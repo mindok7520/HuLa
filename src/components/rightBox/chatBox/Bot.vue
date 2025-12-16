@@ -1,14 +1,14 @@
 <template>
   <div class="bot-container">
-    <!-- 顶部工具栏 -->
+    <!-- 상단 툴바 -->
     <div class="language-switcher">
       <div v-if="canGoBack" class="back-btn flex-shrink-0" @click="goBack">
         <svg class="rotate-180"><use href="#right"></use></svg>
-        返回
+        뒤로
       </div>
       <div v-if="showAssistantMinimalToolbar" class="assistant-compact-toolbar">
         <n-button v-if="canImportLocalModel" size="small" strong secondary class="import-btn" @click="openLocalModel">
-          导入模型
+          모델 가져오기
         </n-button>
         <n-dropdown
           v-if="isAssistantView"
@@ -24,7 +24,7 @@
         </n-dropdown>
       </div>
       <template v-else>
-        <!-- 语言切换器 (仅在查看 README 时显示) -->
+        <!-- 언어 전환기 (README를 볼 때만 표시) -->
         <div v-if="!isViewingLink" class="flex-y-center w-full justify-between">
           <div class="flex-center gap-12px">
             <div :class="['lang-btn', { active: currentLang === 'zh' }]" @click="switchLanguage('zh')">中文</div>
@@ -38,10 +38,10 @@
               secondary
               class="import-btn"
               @click="openLocalModel">
-              导入模型
+              모델 가져오기
             </n-button>
             <n-badge class="mr-14px" value="Beta" :color="'var(--bate-color)'">
-              <div :class="['assistant-btn', { active: isAssistantView }]" @click="showAssistant()">3D预览</div>
+              <div :class="['assistant-btn', { active: isAssistantView }]" @click="showAssistant()">3D 미리보기</div>
             </n-badge>
             <n-dropdown
               v-if="isAssistantView"
@@ -58,18 +58,18 @@
           </div>
         </div>
 
-        <!-- 当前页面标题和操作按钮 -->
+        <!-- 현재 페이지 제목 및 작업 버튼 -->
         <div v-if="isViewingLink" class="page-title">{{ currentUrl }}</div>
         <div v-if="isViewingLink" class="open-in-browser-btn" @click="openInBrowser">
           <svg class="size-16px"><use href="#share"></use></svg>
-          在浏览器中打开
+          브라우저에서 열기
         </div>
       </template>
     </div>
 
     <div class="bot-content">
       <n-loading-bar-provider ref="loadingBarRef" :to="false" :container-style="loadingBarContainerStyle">
-        <!-- HuLa 小管家 3D 模型 -->
+        <!-- HuLa 어시스턴트 3D 모델 -->
         <HuLaAssistant
           v-if="isAssistantView"
           :active="isAssistantView"
@@ -77,17 +77,17 @@
           @ready="handleAssistantReady"
           @error="handleAssistantError" />
 
-        <!-- Markdown 内容区域 -->
+        <!-- Markdown 콘텐츠 영역 -->
         <div
           v-else-if="!isViewingLink"
           ref="markdownContainer"
           class="markdown-content markdown-body"
           v-html="renderedMarkdown"></div>
 
-        <!-- 外部链接 Tauri Webview 容器 -->
+        <!-- 외부 링크 Tauri Webview 컨테이너 -->
         <div v-else ref="webviewContainer" class="external-webview">
           <div v-if="!canEmbedWebview" class="external-webview__fallback">
-            当前环境不支持内嵌浏览器, 已尝试在系统浏览器打开
+            현재 환경은 내장 브라우저를 지원하지 않습니다. 시스템 브라우저에서 열기를 시도했습니다.
           </div>
         </div>
       </n-loading-bar-provider>
@@ -110,23 +110,23 @@ import { useBotStore } from '@/stores/bot'
 import { useAssistantModelPresets, type AssistantModelPreset } from '@/hooks/useAssistantModelPresets'
 import HuLaAssistant from './HuLaAssistant.vue'
 
-// 当前语言
+// 현재 언어
 const currentLang = ref<'zh' | 'en'>('zh')
 
-// 渲染后的 HTML
+// 렌더링된 HTML
 const renderedMarkdown = ref('')
 
-// 是否正在查看链接
+// 링크를 보고 있는지 여부
 const isViewingLink = ref(false)
 
-// 当前链接 URL
+// 현재 링크 URL
 const currentUrl = ref('')
 
-// markdown 容器引用
+// markdown 컨테이너 참조
 const markdownContainer = ref<HTMLElement | null>(null)
 const webviewContainer = ref<HTMLElement | null>(null)
 
-// 视图状态描述, 用于维护“返回”栈
+// 뷰 상태 설명, "뒤로 가기" 스택 유지 관리용
 type ViewState =
   | { type: 'readme' }
   | { type: 'markdown'; source: string }
@@ -144,7 +144,7 @@ const cloneView = (view: ViewState): ViewState => {
 }
 
 const currentView = ref<ViewState>({ type: 'readme' })
-// 记录历史视图, 便于在 Markdown 与外链之间返回
+// Markdown과 외부 링크 간의 뒤로 가기를 위한 히스토리 뷰 기록
 const historyStack = ref<ViewState[]>([])
 const canGoBack = computed(() => historyStack.value.length > 0)
 const isAssistantView = computed(() => currentView.value.type === 'assistant')
@@ -159,7 +159,7 @@ void fetchAssistantModelPresets()
 
 const botStore = useBotStore()
 
-// 局部加载条引用
+// 로컬 로딩 바 참조
 const loadingBarRef = ref<LoadingBarProviderInst | null>(null)
 
 const startLoading = () => {
@@ -182,11 +182,11 @@ const loadingBarContainerStyle = {
   pointerEvents: 'none'
 } as const
 
-// README/Markdown 内容过滤：始终进行基础净化，防止 XSS
-// 移除 trustContent 选项，确保所有内容都经过净化
+// README/Markdown 콘텐츠 필터링: 항상 기본 정화 수행, XSS 방지
+// trustContent 옵션을 제거하여 모든 내용이 정화되도록 보장
 const sanitizeMarkdown = (html: string) => {
-  // 使用 DOMPurify 净化内容
-  // 允许的标签和属性需要保留以支持 markdown 渲染的样式
+  // DOMPurify를 사용하여 콘텐츠 정화
+  // markdown 렌더링 스타일을 지원하기 위해 허용된 태그와 속성을 유지해야 함
   return DOMPurify.sanitize(html, {
     ADD_ATTR: [
       'style',
@@ -201,7 +201,7 @@ const sanitizeMarkdown = (html: string) => {
       'href',
       'target'
     ],
-    ADD_TAGS: ['svg', 'use', 'iframe'] // 如果 markdown 包含这些标签
+    ADD_TAGS: ['svg', 'use', 'iframe'] // markdown에 이러한 태그가 포함된 경우
   })
 }
 
@@ -210,7 +210,7 @@ const webviewLabel = 'bot-inline-browser'
 const webviewListeners: UnlistenFn[] = []
 let containerResizeObserver: ResizeObserver | null = null
 let hostWindow: TauriWindow | null = null
-// 桌面端才允许创建嵌入式 Webview, 同时确认 Tauri 内部上下文已就绪
+// 데스크톱에서만 임베디드 Webview 생성 허용, 동시에 Tauri 내부 컨텍스트가 준비되었는지 확인
 const canEmbedWebview = computed(() => {
   if (typeof window === 'undefined') return false
   return isDesktop() && Boolean((window as Window & { __TAURI_INTERNALS__?: unknown }).__TAURI_INTERNALS__)
@@ -232,20 +232,20 @@ const assistantModelDropdownOptions = computed<DropdownOption[]>(() =>
   assistantModelPresets.value.map((preset) => ({
     key: preset.modelKey,
     label: formatPresetLabel(preset),
-    extra: preset.description ?? (preset.version ? `版本 ${preset.version}` : void 0)
+    extra: preset.description ?? (preset.version ? `버전 ${preset.version}` : void 0)
   }))
 )
 
 const selectedModelLabel = computed(() => {
   if (selectedModelKey.value === 'local') {
-    return '本地模型'
+    return '로컬 모델'
   }
   const preset = findPresetByKey(selectedModelKey.value)
   if (preset) {
     return formatPresetLabel(preset)
   }
   const first = assistantModelPresets.value[0]
-  return first ? formatPresetLabel(first) : '选择模型'
+  return first ? formatPresetLabel(first) : '모델 선택'
 })
 
 const applyFirstPreset = (options?: { force?: boolean }) => {
@@ -287,7 +287,7 @@ watch(
   { immediate: true }
 )
 
-// 将当前视图快照压入栈, 保证后续可回退
+// 현재 뷰 스냅샷을 스택에 푸시하여 나중에 뒤로 갈 수 있도록 함
 const pushCurrentView = () => {
   historyStack.value.push(cloneView(currentView.value))
 }
@@ -306,7 +306,7 @@ const clearWebviewListeners = () => {
       const unsubscribe = webviewListeners.pop()
       unsubscribe?.()
     } catch (error) {
-      console.warn('取消 webview 监听失败:', error)
+      console.warn('webview 리스너 취소 실패:', error)
     }
   }
 }
@@ -319,12 +319,12 @@ const updateExternalWebviewBounds = async () => {
     await externalWebview.value.setPosition(new LogicalPosition(rect.left, rect.top))
     await externalWebview.value.setSize(new LogicalSize(rect.width, rect.height))
   } catch (error) {
-    console.warn('更新嵌入 Webview 尺寸失败:', error)
+    console.warn('임베디드 Webview 크기 업데이트 실패:', error)
   }
 }
 
 const destroyExternalWebview = async () => {
-  // 释放监听/观察器, 避免多实例残留占用系统资源
+  // 리스너/옵저버 해제, 다중 인스턴스 잔류로 인한 시스템 리소스 점유 방지
   clearWebviewListeners()
 
   if (containerResizeObserver && webviewContainer.value) {
@@ -339,7 +339,7 @@ const destroyExternalWebview = async () => {
     try {
       await externalWebview.value.close()
     } catch (error) {
-      console.warn('关闭嵌入 Webview 失败:', error)
+      console.warn('임베디드 Webview 닫기 실패:', error)
     }
     externalWebview.value = null
   }
@@ -353,7 +353,7 @@ const handleAssistantReady = () => {
 }
 
 const handleAssistantError = async (error: unknown) => {
-  console.error('加载 HuLa 小管家失败:', error)
+  console.error('HuLa 어시스턴트 로드 실패:', error)
   customModelPath.value = null
   selectedModelKey.value = null
   applyFirstPreset({ force: true })
@@ -376,7 +376,7 @@ const handleAssistantError = async (error: unknown) => {
 const showAssistant = async (recordHistory = true, preserveCustomModel = false) => {
   await fetchAssistantModelPresets(assistantModelPresets.value.length <= 1)
   if (currentView.value.type === 'assistant') {
-    botStore.setAssistant('正在预览模型')
+    botStore.setAssistant('모델 미리보기 중')
     if (preserveCustomModel) {
       await nextTick()
     }
@@ -394,7 +394,7 @@ const showAssistant = async (recordHistory = true, preserveCustomModel = false) 
   isViewingLink.value = false
   currentUrl.value = ''
   currentView.value = { type: 'assistant' }
-  botStore.setAssistant('正在预览模型')
+  botStore.setAssistant('모델 미리보기 중')
   await nextTick()
 }
 
@@ -414,8 +414,8 @@ const openLocalModel = async () => {
     selectedModelKey.value = 'local'
     await showAssistant(true, true)
   } catch (error) {
-    console.error('选择本地模型失败:', error)
-    window.$message?.error('选择模型文件失败，请重试')
+    console.error('로컬 모델 선택 실패:', error)
+    window.$message?.error('모델 파일 선택 실패, 다시 시도해주세요')
   }
 }
 
@@ -435,16 +435,16 @@ const handlePresetModelSelect = async (key: string) => {
 }
 
 const createExternalWebview = async (url: string) => {
-  // 将新 Webview 附着到当前窗口, 坐标尺寸以容器为准保持贴合
+  // 새 Webview를 현재 창에 부착, 좌표 크기는 컨테이너 기준으로 유지
   const windowInstance = await ensureHostWindow()
   if (!windowInstance || !webviewContainer.value) return
 
-  // 刷新后可能残留旧实例，尝试关闭同名 Webview
+  // 새로고침 후 이전 인스턴스가 남아 있을 수 있으므로 동일한 이름의 Webview 닫기 시도
   try {
     const existing = await Webview.getByLabel(webviewLabel)
     await existing?.close()
   } catch (error) {
-    // 忽略未找到的情况
+    // 찾을 수 없는 경우 무시
   }
 
   await destroyExternalWebview()
@@ -472,7 +472,7 @@ const createExternalWebview = async (url: string) => {
     finishLoading()
   })
   const errorListener = await newWebview.once('tauri://error', async (error) => {
-    console.error('嵌入 Webview 创建失败:', error)
+    console.error('임베디드 Webview 생성 실패:', error)
     errorLoading()
     await destroyExternalWebview()
     isViewingLink.value = false
@@ -480,7 +480,7 @@ const createExternalWebview = async (url: string) => {
     try {
       await openUrl(url)
     } catch (openError) {
-      console.error('在浏览器中打开失败:', openError)
+      console.error('브라우저에서 열기 실패:', openError)
     }
   })
   webviewListeners.push(createdListener, errorListener)
@@ -504,7 +504,7 @@ const showExternalLink = async (url: string, recordHistory = true) => {
     try {
       await openUrl(url)
     } catch (error) {
-      console.error('在浏览器中打开失败:', error)
+      console.error('브라우저에서 열기 실패:', error)
       errorLoading()
     }
     return
@@ -513,7 +513,7 @@ const showExternalLink = async (url: string, recordHistory = true) => {
   try {
     await createExternalWebview(url)
   } catch (error) {
-    console.error('创建嵌入 Webview 失败:', error)
+    console.error('임베디드 Webview 생성 실패:', error)
     errorLoading()
     if (recordHistory) {
       historyStack.value.pop()
@@ -527,7 +527,7 @@ const showExternalLink = async (url: string, recordHistory = true) => {
   }
 }
 
-// 加载 README
+// README 로드
 const loadReadme = async (recordHistory = false, resetHistory = false) => {
   startLoading()
   try {
@@ -537,26 +537,26 @@ const loadReadme = async (recordHistory = false, resetHistory = false) => {
     if (resetHistory) {
       historyStack.value = []
     }
-    // 回到 Markdown 视图前移除 Webview, 防止残留
+    // Markdown 뷰로 돌아가기 전에 Webview 제거, 잔류 방지
     await destroyExternalWebview()
     const html = await invoke<string>('get_readme_html', {
       language: currentLang.value
     })
-    // 尽管来源可信，仍进行基础净化
+    // 출처를 신뢰하지만 기본 정화 수행
     renderedMarkdown.value = sanitizeMarkdown(html)
-    // 先更新视图状态, 确保 nextTick 时容器已挂载
+    // 뷰 상태 먼저 업데이트, nextTick 시 컨테이너가 마운트되도록 함
     currentView.value = { type: 'readme' }
     isViewingLink.value = false
     currentUrl.value = ''
 
-    // 等待 DOM 更新后添加链接点击监听
+    // DOM 업데이트 후 링크 클릭 리스너 추가 대기
     await nextTick()
     attachLinkListeners()
     finishLoading()
     botStore.setReadme(currentLang.value)
   } catch (error) {
-    console.error('加载 README 失败:', error)
-    renderedMarkdown.value = '<p>加载失败,请稍后重试</p>'
+    console.error('README 로드 실패:', error)
+    renderedMarkdown.value = '<p>로드 실패, 나중에 다시 시도해주세요</p>'
     if (recordHistory) {
       historyStack.value.pop()
     }
@@ -564,35 +564,35 @@ const loadReadme = async (recordHistory = false, resetHistory = false) => {
   }
 }
 
-// 加载本地 markdown 文件
+// 로컬 markdown 파일 로드
 const loadMarkdownFile = async (filePath: string, recordHistory = true) => {
   startLoading()
   try {
     if (recordHistory) {
       pushCurrentView()
     }
-    // 加载本地 Markdown 时同样移除嵌入页面
+    // 로컬 Markdown 로드 시에도 임베디드 페이지 제거
     await destroyExternalWebview()
     const html = await invoke<string>('parse_markdown', {
       filePath: filePath
     })
-    // 尽管来源可信，仍进行基础净化
+    // 출처를 신뢰하지만 기본 정화 수행
     renderedMarkdown.value = sanitizeMarkdown(html)
 
-    // 显示在 markdown 视图中,而不是 iframe
+    // iframe이 아닌 markdown 뷰에 표시
     isViewingLink.value = false
-    // 先更新视图状态, 确保 nextTick 时容器已挂载
+    // 뷰 상태 먼저 업데이트, nextTick 시 컨테이너가 마운트되도록 함
     currentView.value = { type: 'markdown', source: filePath }
     currentUrl.value = ''
 
-    // 等待 DOM 更新后添加链接点击监听
+    // DOM 업데이트 후 링크 클릭 리스너 추가 대기
     await nextTick()
     attachLinkListeners()
     finishLoading()
     botStore.setMarkdown(filePath)
   } catch (error) {
-    console.error('加载 markdown 文件失败:', error)
-    renderedMarkdown.value = `<p>加载文件失败: ${filePath}</p><p>错误: ${error}</p>`
+    console.error('markdown 파일 로드 실패:', error)
+    renderedMarkdown.value = `<p>파일 로드 실패: ${filePath}</p><p>오류: ${error}</p>`
     if (recordHistory) {
       historyStack.value.pop()
     }
@@ -600,27 +600,27 @@ const loadMarkdownFile = async (filePath: string, recordHistory = true) => {
   }
 }
 
-// 移除链接点击监听器
+// 링크 클릭 리스너 제거
 const removeLinkListeners = () => {
   if (!markdownContainer.value) return
   markdownContainer.value.removeEventListener('click', handleLinkClick, true)
 }
 
-// 附加链接点击监听器
+// 링크 클릭 리스너 첨부
 const attachLinkListeners = () => {
   if (!markdownContainer.value) return
 
-  // 先移除旧的监听器(如果存在),避免重复添加
+  // 이전 리스너가 있으면 제거하여 중복 추가 방지
   removeLinkListeners()
 
-  // 使用事件委托在容器级别监听,使用捕获阶段确保优先处理
+  // 컨테이너 수준에서 이벤트 위임 사용, 캡처 단계 사용하여 우선 처리 보장
   markdownContainer.value.addEventListener('click', handleLinkClick, true)
-  console.log('已附加链接监听器')
+  console.log('링크 리스너 첨부됨')
 }
 
-// 处理链接点击
+// 링크 클릭 처리
 const handleLinkClick = async (event: Event) => {
-  // 确保获取到 a 标签,即使点击的是子元素
+  // 자식 요소를 클릭하더라도 a 태그를 가져오도록 보장
   let target = event.target as HTMLElement
   while (target && target.tagName !== 'A') {
     target = target.parentElement as HTMLElement
@@ -631,42 +631,42 @@ const handleLinkClick = async (event: Event) => {
   const href = (target as HTMLAnchorElement).getAttribute('href')
   if (!href) return
 
-  // 阻止默认行为
+  // 기본 동작 방지
   event.preventDefault()
   event.stopPropagation()
 
-  console.log('点击链接:', href)
+  console.log('링크 클릭:', href)
 
-  // 处理锚点链接 - 滚动到对应位置
+  // 앵커 링크 처리 - 해당 위치로 스크롤
   if (href.startsWith('#')) {
-    console.log('滚动到锚点:', href)
+    console.log('앵커로 스크롤:', href)
     const id = href.substring(1)
     const element = markdownContainer.value?.querySelector(`#${id}`)
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' })
     }
   } else if (href.endsWith('.md')) {
-    // 如果是 .md 文件,使用 Rust 后端解析并渲染
-    console.log('加载 markdown 文件:', href)
+    // .md 파일인 경우 Rust 백엔드를 사용하여 파싱 및 렌더링
+    console.log('markdown 파일 로드:', href)
     await loadMarkdownFile(href, true)
   } else {
-    // 所有其他链接(包括外部链接和相对链接)都通过 Tauri Webview 内嵌打开
-    console.log('在组件内打开:', href)
+    // 다른 모든 링크(외부 링크 및 상대 링크 포함)는 Tauri Webview 내장으로 열기
+    console.log('컴포넌트 내에서 열기:', href)
     await showExternalLink(href)
   }
 }
 
-// 在外部浏览器中打开当前链接
+// 외부 브라우저에서 현재 링크 열기
 const openInBrowser = async () => {
   if (!currentUrl.value) return
   try {
     await openUrl(currentUrl.value)
   } catch (error) {
-    console.error('在浏览器中打开失败:', error)
+    console.error('브라우저에서 열기 실패:', error)
   }
 }
 
-// 返回 README
+// README로 돌아가기
 const goBack = async () => {
   if (!historyStack.value.length) return
   const previous = historyStack.value.pop()
@@ -683,32 +683,32 @@ const goBack = async () => {
   }
 }
 
-// 切换语言
+// 언어 전환
 const switchLanguage = (lang: 'zh' | 'en') => {
   currentLang.value = lang
 }
 
-// 监听语言变化重新加载
+// 언어 변경 감지 시 다시 로드
 watch(currentLang, () => {
   loadReadme(false, true)
 })
 
-// 监听视图切换,当返回 README 时重新附加监听器
+// 뷰 전환 감지, README로 돌아갈 때 리스너 다시 첨부
 watch(isViewingLink, async (newValue) => {
   if (!newValue) {
-    // 返回到 README 视图,等待 DOM 更新后重新附加监听器
+    // README 뷰로 돌아감, DOM 업데이트 후 리스너 다시 첨부 대기
     await nextTick()
     attachLinkListeners()
   } else {
-    // 切换为外链视图时重新对齐嵌入 Webview
+    // 외부 링크 뷰로 전환 시 임베디드 Webview 다시 정렬
     await nextTick()
     updateExternalWebviewBounds()
   }
 })
 
-// 组件挂载时加载
+// 컴포넌트 마운트 시 로드
 onMounted(() => {
-  // 刷新后可能存在残留的内嵌 Webview，尝试关闭
+  // 새로고침 후 잔류하는 내장 Webview가 있을 수 있으므로 닫기 시도
   Webview.getByLabel(webviewLabel)
     .then((webview) => webview?.close())
     .catch(() => {})
@@ -717,10 +717,10 @@ onMounted(() => {
   loadReadme(false, true)
 })
 
-// 组件卸载时清理事件监听
+// 컴포넌트 언마운트 시 이벤트 리스너 정리
 onUnmounted(() => {
   removeLinkListeners()
-  // 组件销毁时关闭 Webview, 避免孤立窗口
+  // 컴포넌트 파괴 시 Webview 닫기, 고아 창 방지
   void destroyExternalWebview()
   window.removeEventListener('beforeunload', destroyExternalWebview)
 })
@@ -931,7 +931,7 @@ onUnmounted(() => {
   text-align: center;
 }
 
-// Markdown 内容容器
+// Markdown 콘텐츠 컨테이너
 .markdown-content {
   flex: 1;
   min-height: 0;
@@ -948,7 +948,7 @@ onUnmounted(() => {
   word-wrap: break-word;
   overflow-wrap: break-word;
 
-  // 强制所有直接子元素不超出容器
+  // 모든 직접 자식 요소가 컨테이너를 초과하지 않도록 강제
   > * {
     max-width: 100%;
   }
@@ -967,7 +967,7 @@ onUnmounted(() => {
   --borderColor-neutral-muted: rgba(144, 144, 144, 0.2);
   --borderColor-accent-emphasis: #13987f;
 
-  // 通用表格处理
+  // 일반 테이블 처리
   :deep(table) {
     display: table;
     width: 100%;
@@ -1005,7 +1005,7 @@ onUnmounted(() => {
     }
   }
 
-  // 代码块自适应 - 在容器内滚动
+  // 코드 블록 반응형 - 컨테이너 내에서 스크롤
   :deep(pre) {
     width: 100%;
     max-width: 100%;
@@ -1024,21 +1024,21 @@ onUnmounted(() => {
     }
   }
 
-  // 行内代码自适应
+  // 인라인 코드 반응형
   :deep(code) {
     max-width: 100%;
     word-break: break-word;
     box-sizing: border-box;
   }
 
-  // 图片自适应
+  // 이미지 반응형
   :deep(img) {
     max-width: 100%;
     height: auto;
     box-sizing: border-box;
   }
 
-  // 长 URL 和文本处理
+  // 긴 URL 및 텍스트 처리
   :deep(a) {
     color: #13987f;
     word-break: break-word;
@@ -1050,7 +1050,7 @@ onUnmounted(() => {
     text-decoration: underline;
   }
 
-  // 段落和标题自适应
+  // 단락 및 제목 반응형
   :deep(p),
   :deep(h1),
   :deep(h2),
@@ -1093,7 +1093,7 @@ onUnmounted(() => {
     font-size: 16px;
   }
 
-  // 列表自适应
+  // 목록 반응형
   :deep(ul),
   :deep(ol) {
     max-width: 100%;
@@ -1106,7 +1106,7 @@ onUnmounted(() => {
     margin-bottom: 6px;
   }
 
-  // 引用块自适应
+  // 인용 블록 반응형
   :deep(blockquote) {
     max-width: 100%;
     overflow-x: auto;
@@ -1117,13 +1117,13 @@ onUnmounted(() => {
     background: var(--bgColor-attention-muted);
   }
 
-  // div 和其他容器自适应
+  // div 및 기타 컨테이너 반응형
   :deep(div) {
     max-width: 100%;
     box-sizing: border-box;
   }
 
-  // 美化滚动条
+  // 스크롤바 미화
   &::-webkit-scrollbar {
     width: 6px;
   }
