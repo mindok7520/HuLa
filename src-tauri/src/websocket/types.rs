@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-/// WebSocket 连接状态
+/// WebSocket 연결 상태
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum ConnectionState {
@@ -12,24 +12,24 @@ pub enum ConnectionState {
     Error,
 }
 
-/// WebSocket 消息类型
+/// WebSocket 메시지 유형
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 pub enum WsMessage {
-    /// 心跳消息 (ping)
+    /// 하트비트 메시지 (ping)
     #[serde(rename = "2")]
     Heartbeat,
-    /// 心跳响应 (pong)
+    /// 하트비트 응답 (pong)
     #[serde(rename = "3", rename_all = "camelCase")]
     HeartbeatResponse { timestamp: u64 },
-    /// 普通消息
+    /// 일반 메시지
     Message {
         #[serde(flatten)]
         data: serde_json::Value,
     },
 }
 
-/// WebSocket 响应消息类型
+/// WebSocket 응답 메시지 유형
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WsResponseMessage {
     #[serde(rename = "type")]
@@ -37,7 +37,7 @@ pub struct WsResponseMessage {
     pub data: Option<serde_json::Value>,
 }
 
-/// WebSocket 连接配置
+/// WebSocket 연결 구성
 #[derive(Debug, Clone)]
 pub struct WebSocketConfig {
     pub server_url: String,
@@ -55,16 +55,16 @@ impl Default for WebSocketConfig {
             server_url: String::new(),
             token: None,
             client_id: String::new(),
-            heartbeat_interval: 9900, // 9.9秒
-            heartbeat_timeout: 15000, // 15秒
-            // 0 表示无限重连
+            heartbeat_interval: 9900, // 9.9초
+            heartbeat_timeout: 15000, // 15초
+            // 0은 무한 재연결을 의미
             max_reconnect_attempts: 0,
-            reconnect_delay_ms: 1000, // 1秒
+            reconnect_delay_ms: 1000, // 1초
         }
     }
 }
 
-/// 连接健康状态
+/// 연결 건강 상태
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ConnectionHealth {
@@ -74,7 +74,7 @@ pub struct ConnectionHealth {
     pub round_trip_time: Option<u64>,
 }
 
-/// WebSocket 事件
+/// WebSocket 이벤트
 #[derive(Debug, Clone, Serialize)]
 #[serde(tag = "type", rename_all = "camelCase")]
 pub enum WebSocketEvent {
@@ -94,13 +94,13 @@ pub enum WebSocketEvent {
     },
 }
 
-/// WebSocket 请求消息
+/// WebSocket 요청 메시지
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WsRequest {
     pub data: serde_json::Value,
 }
 
-/// 重连配置
+/// 재연결 구성
 #[derive(Debug, Clone)]
 pub struct ReconnectConfig {
     pub max_attempts: u32,

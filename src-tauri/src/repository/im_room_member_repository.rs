@@ -21,7 +21,7 @@ pub async fn cursor_page_room_members(
     cursor_page_param: CursorPageParam,
     login_uid: &str,
 ) -> Result<CursorPageResp<Vec<im_room_member::Model>>, CommonError> {
-    // 查询总数
+    // 총 개수 조회
     let total = im_room_member::Entity::find()
         .filter(im_room_member::Column::RoomId.eq(&room_id))
         .filter(im_room_member::Column::LoginUid.eq(login_uid))
@@ -35,13 +35,13 @@ pub async fn cursor_page_room_members(
         .order_by_desc(im_room_member::Column::LastOptTime)
         .limit(cursor_page_param.page_size as u64);
 
-    // 如果提供了游标，解析游标值并添加过滤条件
+    // 커서가 제공된 경우 커서 값을 파싱하고 필터 조건을 추가
     if !cursor_page_param.cursor.is_empty() {
-        // 从 cursor 中根据'_'分割最后一个字符串转为 i64
+        // cursor에서 '_'로 분할하여 마지막 문자열을 i64로 변환
         let cursor_parts: Vec<&str> = cursor_page_param.cursor.split('_').collect();
         if let Some(last_part) = cursor_parts.last() {
             if let Ok(cursor_value) = last_part.parse::<i64>() {
-                // 使用游标值过滤，获取小于该值的记录（因为是降序排列）
+                // 커서 값을 사용하여 필터링, 해당 값보다 작은 레코드 가져오기 (내림차순이므로)
                 query = query.filter(im_room_member::Column::LastOptTime.lt(cursor_value));
             }
         }
@@ -52,12 +52,12 @@ pub async fn cursor_page_room_members(
         .await
         .map_err(|e| anyhow::anyhow!("Failed to query room members: {}", e))?;
 
-    // 构建下一页游标和判断是否为最后一页
+    // 다음 페이지 커서 생성 및 마지막 페이지 여부 판단
     let (next_cursor, is_last) = if members.len() < cursor_page_param.page_size as usize {
-        // 如果返回的记录数少于请求的页面大小，说明是最后一页
+        // 반환된 레코드 수가 요청한 페이지 크기보다 작으면 마지막 페이지임
         (String::new(), true)
     } else if let Some(last_member) = members.last() {
-        // 使用最后一条记录的 last_opt_time 构建下一页游标
+        // 마지막 레코드의 last_opt_time을 사용하여 다음 페이지 커서 생성
         let next_cursor = format!("{}", last_member.last_opt_time);
         (next_cursor, false)
     } else {
@@ -77,17 +77,17 @@ pub async fn get_room_page(
     db: &DatabaseConnection,
     login_uid: &str,
 ) -> Result<Page<im_room::Model>, CommonError> {
-    // 计算偏移量
+    // 오프셋 계산
     let offset = (page_param.current - 1) * page_param.size;
 
-    // 查询总数
+    // 총 개수 조회
     let total = im_room::Entity::find()
         .filter(im_room::Column::LoginUid.eq(login_uid))
         .count(db)
         .await
         .map_err(|e| anyhow::anyhow!("Failed to query room count: {}", e))?;
 
-    // 分页查询数据
+    // 페이징 데이터 조회
     let records = im_room::Entity::find()
         .filter(im_room::Column::LoginUid.eq(login_uid))
         .offset(offset as u64)
@@ -110,16 +110,16 @@ pub async fn save_room_batch(
 ) -> Result<(), CommonError> {
     use tokio::time::{Duration, timeout};
 
-    // 添加超时保护，避免长时间锁定
+    // 장시간 잠금 방지를 위한 시간 초과 보호 추가
     let operation = async {
-        // 使用事务确保批量操作的原子性
+        // 트랜잭션을 사용하여 일괄 작업의 원자성 보장
         let txn = db.begin().await?;
 
         for mut member in room_members {
-            // 设置 login_uid
+            // login_uid 설정
             member.login_uid = login_uid.to_string();
 
-            // 检查记录是否已存在
+            // 레코드가 이미 존재하는지 확인
             let existing = im_room::Entity::find()
                 .filter(im_room::Column::Id.eq(member.id.clone()))
                 .filter(im_room::Column::LoginUid.eq(member.login_uid.clone()))
@@ -127,17 +127,17 @@ pub async fn save_room_batch(
                 .await?;
 
             if existing.is_none() {
-                // 如果记录不存在，执行插入
+                // 레코드가 존재하지 않으면 삽입 실행
                 let member_active = member.into_active_model();
                 member_active
                     .insert(&txn)
                     .await
                     .map_err(|e| anyhow::anyhow!("Failed to insert room record: {}", e))?;
             }
-            // 如果记录已存在，跳过插入
+            // 레코드가 이미 존재하면 삽입 건너뛰기
         }
 
-        // 提交事务
+        // 트랜잭션 커밋
         txn.commit()
             .await
             .map_err(|e| anyhow::anyhow!("Failed to commit room batch transaction: {}", e))?;
@@ -145,7 +145,7 @@ pub async fn save_room_batch(
         Ok(())
     };
 
-    // 设置30秒超时
+    // 30초 시간 초과 설정
     match timeout(Duration::from_secs(30), operation).await {
         Ok(result) => result.map_err(CommonError::UnexpectedError),
         Err(_) => Err(CommonError::UnexpectedError(anyhow::anyhow!(
@@ -177,12 +177,12 @@ pub async fn save_room_member_batch(
 ) -> Result<(), CommonError> {
     use tokio::time::{Duration, timeout};
 
-    // 添加超时保护，避免长时间锁定
+    // 장시간 잠금 방지를 위한 시간 초과 보호 추가
     let operation = async {
-        // 使用事务确保操作的原子性
+        // 트랜잭션을 사용하여 작업의 원자성 보장
         let txn: sea_orm::DatabaseTransaction = db.begin().await?;
 
-        // 先删除现有数据（使用更高效的方式）
+        // 기존 데이터 삭제 (더 효율적인 방식 사용)
         let delete_result = im_room_member::Entity::delete_many()
             .filter(im_room_member::Column::RoomId.eq(room_id.to_string()))
             .filter(im_room_member::Column::LoginUid.eq(login_uid))
@@ -197,7 +197,7 @@ pub async fn save_room_member_batch(
                 );
             }
             Err(e) => {
-                // 如果删除失败，回滚事务
+                // 삭제 실패 시 트랜잭션 롤백
                 let _ = txn.rollback().await;
                 return Err(anyhow::anyhow!(
                     "Failed to delete existing room members: {}",
@@ -206,9 +206,9 @@ pub async fn save_room_member_batch(
             }
         }
 
-        // 保存新的room_members数据（批量插入）
+        // 새 room_members 데이터 저장 (일괄 삽입)
         if !room_members.is_empty() {
-            let room_members_count = room_members.len(); // 在移动之前保存长度
+            let room_members_count = room_members.len(); // 이동 전에 길이 저장
             let active_models: Vec<im_room_member::ActiveModel> = room_members
                 .into_iter()
                 .map(|member| {
@@ -231,14 +231,14 @@ pub async fn save_room_member_batch(
                     );
                 }
                 Err(e) => {
-                    // 如果插入失败，回滚事务
+                    // 삽입 실패 시 트랜잭션 롤백
                     let _ = txn.rollback().await;
                     return Err(anyhow::anyhow!("Failed to insert room members: {}", e));
                 }
             }
         }
 
-        // 提交事务
+        // 트랜잭션 커밋
         txn.commit()
             .await
             .map_err(|e| anyhow::anyhow!("Failed to commit transaction: {}", e))?;
@@ -246,7 +246,7 @@ pub async fn save_room_member_batch(
         Ok(())
     };
 
-    // 设置5秒超时
+    // 5초 시간 초과 설정
     match timeout(Duration::from_secs(5), operation).await {
         Ok(result) => result.map_err(CommonError::UnexpectedError),
         Err(_) => Err(CommonError::UnexpectedError(anyhow::anyhow!(
@@ -262,7 +262,7 @@ pub async fn update_my_room_info(
     uid: &str,
     login_uid: &str,
 ) -> Result<(), CommonError> {
-    // 根据 room_id、uid 和 login_uid 查找房间成员记录
+    // room_id, uid 및 login_uid를 기반으로 방 멤버 레코드 찾기
     let member = im_room_member::Entity::find()
         .filter(im_room_member::Column::RoomId.eq(room_id))
         .filter(im_room_member::Column::Uid.eq(uid))
@@ -273,7 +273,7 @@ pub async fn update_my_room_info(
 
     if let Some(member) = member {
         debug!("Found room member record: {:?}", member);
-        // 如果找到记录，更新 my_name 字段
+        // 레코드를 찾으면 my_name 필드 업데이트
         let mut member_active = member.into_active_model();
         member_active.my_name = Set(Some(my_name.to_string()));
 
@@ -284,20 +284,20 @@ pub async fn update_my_room_info(
         info!("Successfully updated member room member information");
         Ok(())
     } else {
-        // 如果没有找到记录，创建一个新记录（仅包含必要字段）
+        // 레코드를 찾지 못하면 새 레코드 생성 (필수 필드만 포함)
         debug!(
             "Room member record not found, creating new record for room_id: {}, uid: {}",
             room_id, uid
         );
 
         let new_member = im_room_member::ActiveModel {
-            id: Set(format!("{}_{}", room_id, uid)), // 使用 room_id + uid 作为主键
+            id: Set(format!("{}_{}", room_id, uid)), // room_id + uid를 기본 키로 사용
             room_id: Set(Some(room_id.to_string())),
             uid: Set(Some(uid.to_string())),
             my_name: Set(Some(my_name.to_string())),
             login_uid: Set(login_uid.to_string()),
             last_opt_time: Set(chrono::Utc::now().timestamp()),
-            name: Set(String::new()), // 设置默认空值，实际名称会在下次同步时更新
+            name: Set(String::new()), // 기본 빈 값 설정, 실제 이름은 다음 동기화 시 업데이트됨
             ..Default::default()
         };
 

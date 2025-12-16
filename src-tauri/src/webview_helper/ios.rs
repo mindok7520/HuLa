@@ -30,7 +30,7 @@ thread_local! {
 
 static SHOULD_ADJUST: AtomicBool = AtomicBool::new(false);
 
-/// 读取全局标记，确定当前键盘显示时的处理模式（调整或锁定）。
+/// 전역 플래그를 읽어 현재 키보드 표시 시 처리 모드(조정 또는 잠금)를 결정합니다.
 #[inline]
 fn should_adjust() -> bool {
     SHOULD_ADJUST.load(Ordering::SeqCst)
@@ -48,7 +48,7 @@ enum KeyboardDelegateHolder {
     Lock(Retained<KeyboardLockDelegate>),
 }
 
-/// 初始化 iOS WebView 的键盘处理逻辑，注册通知并按模式调整布局或锁定滚动。
+/// iOS WebView의 키보드 처리 로직을 초기화하고 알림을 등록하며 모드에 따라 레이아웃을 조정하거나 스크롤을 잠급니다.
 pub fn initialize_keyboard_adjustment(webview_window: &WebviewWindow) {
     let _ = webview_window.with_webview(|webview| unsafe {
         #[allow(deprecated)]
@@ -73,7 +73,7 @@ pub fn initialize_keyboard_adjustment(webview_window: &WebviewWindow) {
         scroll_view_arc
             .setContentInsetAdjustmentBehavior(UIScrollViewContentInsetAdjustmentBehavior::Never);
 
-        // 记录原始状态，避免累积调整
+        // 누적 조정을 방지하기 위해 원래 상태 기록
         let keyboard_height_arc = Arc::new(Mutex::new(0f64));
         let original_frame_arc = Arc::new(Mutex::new(webview.frame()));
         let original_inset_arc = Arc::new(Mutex::new(scroll_view_arc.contentInset()));
@@ -89,7 +89,7 @@ pub fn initialize_keyboard_adjustment(webview_window: &WebviewWindow) {
         let original_inset_arc_observer = original_inset_arc.clone();
         let handling_mode_arc_observer = handling_mode_arc.clone();
         let webview_arc_observer = webview_arc.clone();
-        // 监听键盘即将显示，依据模式调整布局和滚动。
+        // 키보드가 곧 표시되는 것을 모니터링하고 모드에 따라 레이아웃과 스크롤을 조정합니다.
         create_observer(
             &notification_center,
             &UIKeyboardWillShowNotification,
@@ -180,11 +180,11 @@ pub fn initialize_keyboard_adjustment(webview_window: &WebviewWindow) {
                             let _: () = msg_send![scroll_view_ptr, setBounces: false];
                         }
 
-                        // 清理键盘高度，避免误触发还原逻辑
+                        // 복원 로직이 잘못 트리거되는 것을 방지하기 위해 키보드 높이 정리
                         let mut keyboard_height = keyboard_height_arc_observer.lock().unwrap();
                         *keyboard_height = 0.0;
 
-                        // 在锁定模式下不需要执行下方的高度调整逻辑
+                        // 잠금 모드에서는 아래의 높이 조정 로직을 실행할 필요가 없음
                         return;
                     }
                     KeyboardHandlingMode::None => unreachable!(),
@@ -270,7 +270,7 @@ pub fn initialize_keyboard_adjustment(webview_window: &WebviewWindow) {
         let original_inset_arc_observer = original_inset_arc.clone();
         let handling_mode_arc_observer = handling_mode_arc.clone();
         let webview_arc_observer = webview_arc.clone();
-        // 监听键盘即将隐藏，恢复初始布局或结束编辑。
+        // 키보드가 곧 숨겨지는 것을 모니터링하고 초기 레이아웃을 복원하거나 편집을 종료합니다.
         create_observer(
             &notification_center,
             &UIKeyboardWillHideNotification,
@@ -316,7 +316,7 @@ pub fn initialize_keyboard_adjustment(webview_window: &WebviewWindow) {
 
                     let scroll_view_for_animation = scroll_view_arc_observer.clone();
                     let animation_block = block2::StackBlock::new(move || {
-                        // 跟随键盘动画恢复初始布局
+                        // 키보드 애니메이션에 따라 초기 레이아웃 복원
                         scroll_view_for_animation.setContentInset(original_inset);
                         scroll_view_for_animation.setScrollIndicatorInsets(original_inset);
                         webview.setFrame(original_frame);
@@ -339,7 +339,7 @@ pub fn initialize_keyboard_adjustment(webview_window: &WebviewWindow) {
                     let mut mode = handling_mode_arc_observer.lock().unwrap();
                     *mode = KeyboardHandlingMode::None;
                 } else if current_mode == KeyboardHandlingMode::Lock {
-                    // 在锁定模式下，恢复滚动视图的默认行为并保持键盘隐藏
+                    // 잠금 모드에서는 스크롤 뷰의 기본 동작을 복원하고 키보드를 숨김 상태로 유지
                     let webview_ptr =
                         (&**webview_arc_observer) as *const UIWebView as *mut UIWebView;
                     let _: () = msg_send![webview_ptr, endEditing: true];
@@ -363,7 +363,7 @@ pub fn initialize_keyboard_adjustment(webview_window: &WebviewWindow) {
                     });
 
                     let mut old_delegate = old_delegate_arc_will_hide.lock().unwrap();
-                    // 恢复原始 UIScrollViewDelegate，确保键盘逻辑结束后行为回到默认。
+                    // 원래 UIScrollViewDelegate를 복원하여 키보드 로직이 끝난 후 동작이 기본값으로 돌아가도록 함
                     if let Some(delegate) = old_delegate.take() {
                         scroll_view_arc_observer.setDelegate(Some(delegate.as_ref()));
                     } else {
@@ -382,7 +382,7 @@ pub fn initialize_keyboard_adjustment(webview_window: &WebviewWindow) {
         let original_frame_arc_observer = original_frame_arc.clone();
         let original_inset_arc_observer = original_inset_arc.clone();
         let handling_mode_arc_observer = handling_mode_arc.clone();
-        // 监听键盘已经显示，确保最终 frame/inset 精确同步。
+        // 키보드가 이미 표시되었음을 모니터링하고 최종 프레임/인셋이 정확하게 동기화되도록 함
         create_observer(
             &notification_center,
             &UIKeyboardDidShowNotification,
@@ -407,25 +407,25 @@ pub fn initialize_keyboard_adjustment(webview_window: &WebviewWindow) {
                 let keyboard_rect: CGRect = msg_send![value, CGRectValue];
                 let new_keyboard_height = keyboard_rect.size.height;
 
-                // 基于原始状态进行调整，避免累积
+                // 누적을 방지하기 위해 원래 상태를 기반으로 조정
                 let original_frame = original_frame_arc_observer.lock().unwrap();
                 let mut adjusted_frame = *original_frame;
                 adjusted_frame.size.height -= new_keyboard_height;
                 webview.setFrame(adjusted_frame);
 
-                // 基于原始 inset 进行调整
+                // 원래 인셋을 기반으로 조정
                 let original_inset = original_inset_arc_observer.lock().unwrap();
                 let mut adjusted_inset = *original_inset;
                 adjusted_inset.bottom += new_keyboard_height;
                 scroll_view_arc_observer.setContentInset(adjusted_inset);
                 scroll_view_arc_observer.setScrollIndicatorInsets(adjusted_inset);
 
-                // 更新键盘高度记录
+                // 키보드 높이 기록 업데이트
                 let mut keyboard_height = keyboard_height_arc_observer.lock().unwrap();
                 *keyboard_height = new_keyboard_height;
 
                 let mut old_delegate = old_delegate_arc_did_show.lock().unwrap();
-                // 键盘显示完毕后恢复原 delegate，避免累积的自定义 delegate 影响后续滚动事件。
+                // 키보드 표시가 완료된 후 원래 delegate를 복원하여 누적된 사용자 지정 delegate가 후속 스크롤 이벤트에 영향을 미치지 않도록 함
                 if let Some(delegate) = old_delegate.take() {
                     scroll_view_arc_observer.setDelegate(Some(delegate.as_ref()));
                 } else {
@@ -440,7 +440,7 @@ pub fn initialize_keyboard_adjustment(webview_window: &WebviewWindow) {
     });
 }
 
-/// 开关键盘调整模式，使后续通知回调依据该值决定策略。
+/// 키보드 조정 모드를 전환하여 후속 알림 콜백이 이 값에 따라 전략을 결정하도록 함
 pub fn set_keyboard_adjustment(enabled: bool) {
     SHOULD_ADJUST.store(enabled, Ordering::SeqCst);
 }
@@ -461,7 +461,7 @@ define_class! {
 
     unsafe impl UIScrollViewDelegate for KeyboardScrollPreventDelegate {
         #[unsafe(method(scrollViewDidScroll:))]
-        // 在滚动回调中强制恢复初始偏移量，避免用户拖动导致错位。
+        // 스크롤 콜백에서 초기 오프셋을 강제로 복원하여 사용자가 드래그하여 잘못 정렬되는 것을 방지
         unsafe fn scroll_view_did_scroll(&self, _scroll_view: &UIScrollView) {
             self.ivars()
                 .scroll_view
@@ -471,7 +471,7 @@ define_class! {
 }
 
 impl KeyboardScrollPreventDelegate {
-    /// 构建滚动阻止 delegate，保存目标滚动视图与初始偏移。
+    /// 스크롤 방지 delegate를 구성하고 대상 스크롤 뷰와 초기 오프셋 저장
     fn new(
         mtm: MainThreadMarker,
         scroll_view: Arc<Retained<UIScrollView>>,
@@ -503,7 +503,7 @@ define_class! {
 
     unsafe impl UIScrollViewDelegate for KeyboardLockDelegate {
         #[unsafe(method(scrollViewWillBeginDragging:))]
-        // 用户尝试拖动时立即结束编辑并恢复锁定偏移。
+        // 사용자가 드래그를 시도할 때 즉시 편집을 종료하고 잠금 오프셋 복원
         unsafe fn scroll_view_will_begin_dragging(&self, _scroll_view: &UIScrollView) {
             let ivars = self.ivars();
             let webview_ptr =
@@ -525,7 +525,7 @@ define_class! {
 }
 
 impl KeyboardLockDelegate {
-    /// 构建滚动锁定 delegate，记录滚动视图、webview 与锁定偏移。
+    /// 스크롤 잠금 delegate를 구성하고 스크롤 뷰, 웹뷰 및 잠금 오프셋 기록
     fn new(
         mtm: MainThreadMarker,
         scroll_view: Arc<Retained<UIScrollView>>,
@@ -542,7 +542,7 @@ impl KeyboardLockDelegate {
     }
 }
 
-/// 封装通知监听注册，使用闭包处理收到的系统通知。
+/// 알림 리스너 등록을 캡슐화하고 클로저를 사용하여 수신된 시스템 알림 처리
 fn create_observer(
     center: &NSNotificationCenter,
     name: &NSNotificationName,

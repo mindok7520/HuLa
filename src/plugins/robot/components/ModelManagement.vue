@@ -2,7 +2,7 @@
   <n-modal
     v-model:show="showModal"
     preset="card"
-    title="模型管理"
+    title="모델 관리"
     style="width: 800px"
     :bordered="false"
     :segmented="{ content: 'soft', footer: 'soft' }">
@@ -11,19 +11,19 @@
         <template #icon>
           <Icon icon="mdi:plus" />
         </template>
-        新增模型
+        모델 추가
       </n-button>
     </template>
 
-    <!-- 模型列表 -->
+    <!-- 모델 목록 -->
     <n-spin :show="loading">
       <div v-if="modelList.length === 0" class="empty-container">
-        <n-empty description="暂无模型数据" size="large">
+        <n-empty description="모델 데이터 없음" size="large">
           <template #icon>
             <Icon icon="mdi:package-variant-closed" class="text-48px color-#909090" />
           </template>
           <template #extra>
-            <n-button type="primary" @click="handleAdd">新增第一个模型</n-button>
+            <n-button type="primary" @click="handleAdd">첫 번째 모델 추가</n-button>
           </template>
         </n-empty>
       </div>
@@ -37,62 +37,62 @@
                 <n-flex align="center" :size="8">
                   <span class="model-name">{{ model.name }}</span>
                   <n-tag :type="model.status === 0 ? 'success' : 'error'" size="small">
-                    {{ model.status === 0 ? '可用' : '不可用' }}
+                    {{ model.status === 0 ? '사용 가능' : '사용 불가' }}
                   </n-tag>
-                  <n-tag v-if="model.publicStatus === 0" type="info" size="small">公开</n-tag>
-                  <n-tag v-else type="warning" size="small">私有</n-tag>
-                  <n-tag v-if="model.type === 1" type="info" size="small">对话</n-tag>
-                  <n-tag v-else-if="model.type === 2" type="success" size="small">图片</n-tag>
-                  <n-tag v-else-if="model.type === 3" type="primary" size="small">音频</n-tag>
-                  <n-tag v-else-if="model.type === 4" type="warning" size="small">视频</n-tag>
-                  <n-tag v-else-if="model.type === 5" type="default" size="small">向量</n-tag>
-                  <n-tag v-else-if="model.type === 6" type="default" size="small">重排序</n-tag>
-                  <n-tag v-else-if="model.type === 7" type="warning" size="small">文生视频</n-tag>
-                  <n-tag v-else-if="model.type === 8" type="error" size="small">图生视频</n-tag>
+                  <n-tag v-if="model.publicStatus === 0" type="info" size="small">공개</n-tag>
+                  <n-tag v-else type="warning" size="small">비공개</n-tag>
+                  <n-tag v-if="model.type === 1" type="info" size="small">대화</n-tag>
+                  <n-tag v-else-if="model.type === 2" type="success" size="small">이미지</n-tag>
+                  <n-tag v-else-if="model.type === 3" type="primary" size="small">오디오</n-tag>
+                  <n-tag v-else-if="model.type === 4" type="warning" size="small">비디오</n-tag>
+                  <n-tag v-else-if="model.type === 5" type="default" size="small">벡터</n-tag>
+                  <n-tag v-else-if="model.type === 6" type="default" size="small">재정렬</n-tag>
+                  <n-tag v-else-if="model.type === 7" type="warning" size="small">텍스트 투 비디오</n-tag>
+                  <n-tag v-else-if="model.type === 8" type="error" size="small">이미지 투 비디오</n-tag>
                 </n-flex>
                 <div class="model-meta">
-                  <span class="meta-item">平台: {{ model.platform }}</span>
-                  <span class="meta-item">模型: {{ model.model }}</span>
+                  <span class="meta-item">플랫폼: {{ model.platform }}</span>
+                  <span class="meta-item">모델: {{ model.model }}</span>
                 </div>
               </div>
             </n-flex>
             <n-flex :size="8">
-              <!-- 只有创建人才显示编辑按钮（公开和私有模型都可以编辑） -->
+              <!-- 생성자만 편집 버튼 표시 (공개 및 비공개 모델 모두 편집 가능) -->
               <n-button v-if="isModelCreator(model)" size="small" @click="handleEdit(model)">
                 <template #icon>
                   <Icon icon="mdi:pencil" />
                 </template>
-                编辑
+                편집
               </n-button>
-              <!-- 只有创建人才显示删除按钮（公开和私有模型都可以删除） -->
+              <!-- 생성자만 삭제 버튼 표시 (공개 및 비공개 모델 모두 삭제 가능) -->
               <n-popconfirm
                 v-if="isModelCreator(model)"
                 @positive-click="handleDelete(model.id)"
-                positive-text="删除"
-                negative-text="取消">
+                positive-text="삭제"
+                negative-text="취소">
                 <template #trigger>
                   <n-button size="small" type="error">
                     <template #icon>
                       <Icon icon="mdi:delete" />
                     </template>
-                    删除
+                    삭제
                   </n-button>
                 </template>
-                <p>确定要删除模型 "{{ model.name }}" 吗？</p>
-                <p class="text-red-500">删除后将无法恢复！</p>
+                <p>모델 "{{ model.name }}"을(를) 삭제하시겠습니까?</p>
+                <p class="text-red-500">삭제 후에는 복구할 수 없습니다!</p>
               </n-popconfirm>
             </n-flex>
           </div>
 
           <div class="model-card-body">
             <n-descriptions :column="3" size="small" bordered>
-              <n-descriptions-item label="温度参数">
+              <n-descriptions-item label="온도 매개변수">
                 {{ model.temperature ?? '-' }}
               </n-descriptions-item>
-              <n-descriptions-item label="最大Token">
+              <n-descriptions-item label="최대 토큰">
                 {{ model.maxTokens ?? '-' }}
               </n-descriptions-item>
-              <n-descriptions-item label="最大上下文">
+              <n-descriptions-item label="최대 컨텍스트">
                 {{ model.maxContexts ?? '-' }}
               </n-descriptions-item>
             </n-descriptions>
@@ -101,7 +101,7 @@
       </div>
     </n-spin>
 
-    <!-- 分页 -->
+    <!-- 페이지네이션 -->
     <n-flex v-if="pagination.total > pagination.pageSize" justify="center" class="mt-16px">
       <n-pagination
         v-model:page="pagination.pageNo"
@@ -111,11 +111,11 @@
     </n-flex>
   </n-modal>
 
-  <!-- 新增/编辑模型弹窗 -->
+  <!-- 모델 추가/편집 팝업 -->
   <n-modal
     v-model:show="showEditModal"
     preset="card"
-    :title="editingModel ? '编辑模型' : '新增模型'"
+    :title="editingModel ? '모델 편집' : '모델 추가'"
     style="width: 750px"
     :bordered="false"
     :segmented="{ content: 'soft', footer: 'soft' }">
@@ -127,28 +127,28 @@
         label-placement="left"
         label-width="120px"
         style="padding-right: 12px">
-        <n-form-item label="API 密钥" path="keyId">
+        <n-form-item label="API 키" path="keyId">
           <n-flex :size="8" style="width: 100%">
             <n-select
               v-model:value="formData.keyId"
               :options="apiKeyOptions"
-              placeholder="请选择 API 密钥"
+              placeholder="API 키를 선택하세요"
               style="flex: 1"
               @update:value="handleKeyIdChange" />
             <n-button @click="handleOpenApiKeyManagement">
               <template #icon>
                 <Icon icon="mdi:cog" />
               </template>
-              管理
+              관리
             </n-button>
           </n-flex>
         </n-form-item>
 
-        <n-form-item label="平台" path="platform">
-          <n-input v-model:value="formData.platform" placeholder="根据API密钥自动设置" disabled />
+        <n-form-item label="플랫폼" path="platform">
+          <n-input v-model:value="formData.platform" placeholder="API 키에 따라 자동 설정됨" disabled />
         </n-form-item>
 
-        <n-form-item label="模型头像" path="avatar">
+        <n-form-item label="모델 프로필" path="avatar">
           <n-flex :size="12" align="center" style="width: 100%">
             <n-avatar :key="formData.avatar" :src="formData.avatar" :size="60" round fallback-src="">
               <Icon v-if="!formData.avatar" icon="mdi:account-circle" :size="40" />
@@ -158,11 +158,11 @@
                 <template #icon>
                   <Icon icon="mdi:upload" />
                 </template>
-                {{ formData.avatar ? '更换头像' : '上传头像' }}
+                {{ formData.avatar ? '프로필 변경' : '프로필 업로드' }}
               </n-button>
               <span v-if="formData.avatar" class="text-(12px #909090)">
-                已上传
-                <n-button text type="error" size="tiny" @click="formData.avatar = ''">清除</n-button>
+                업로드됨
+                <n-button text type="error" size="tiny" @click="formData.avatar = ''">지우기</n-button>
               </span>
             </n-flex>
           </n-flex>
@@ -174,49 +174,49 @@
             @change="handleFileChange" />
         </n-form-item>
 
-        <n-form-item label="模型类型" path="type">
+        <n-form-item label="모델 유형" path="type">
           <n-flex :size="8" style="flex-wrap: wrap">
             <n-button :type="formData.type === 1 ? 'primary' : 'default'" size="small" @click="formData.type = 1">
               <template #icon>
                 <Icon icon="mdi:message-text" />
               </template>
-              对话
+              대화
             </n-button>
             <n-button :type="formData.type === 2 ? 'primary' : 'default'" size="small" @click="formData.type = 2">
               <template #icon>
                 <Icon icon="mdi:image" />
               </template>
-              图片
+              이미지
             </n-button>
             <n-button :type="formData.type === 3 ? 'primary' : 'default'" size="small" @click="formData.type = 3">
               <template #icon>
                 <Icon icon="mdi:microphone" />
               </template>
-              音频
+              오디오
             </n-button>
             <n-button :type="formData.type === 7 ? 'primary' : 'default'" size="small" @click="formData.type = 7">
               <template #icon>
                 <Icon icon="mdi:video-outline" />
               </template>
-              文生视频
+              텍스트 투 비디오
             </n-button>
             <n-button :type="formData.type === 8 ? 'primary' : 'default'" size="small" @click="formData.type = 8">
               <template #icon>
                 <Icon icon="mdi:video-image" />
               </template>
-              图生视频
+              이미지 투 비디오
             </n-button>
           </n-flex>
         </n-form-item>
 
-        <n-form-item label="模型名称" path="name">
+        <n-form-item label="모델 이름" path="name">
           <n-input
             v-model:value="formData.name"
-            placeholder="请输入模型名称，例如: GPT-4"
+            placeholder="모델 이름을 입력하세요 (예: GPT-4)"
             @update:value="handleNameChange" />
         </n-form-item>
 
-        <n-form-item label="模型标志" path="model">
+        <n-form-item label="모델 식별자" path="model">
           <n-flex vertical :size="4" style="width: 100%">
             <n-flex :size="8" style="width: 100%">
               <n-select
@@ -238,14 +238,14 @@
                 <template #icon>
                   <Icon icon="mdi:open-in-new" />
                 </template>
-                文档
+                문서
               </n-button>
             </n-flex>
             <n-text depth="3" style="font-size: 12px">
               {{ modelHint }}
             </n-text>
             <n-text v-if="modelDocsUrl" depth="3" style="font-size: 12px">
-              文档链接：
+              문서 링크:
               <n-a :href="modelDocsUrl" target="_blank" style="font-size: 12px">
                 {{ modelDocsUrl }}
               </n-a>
@@ -253,44 +253,44 @@
           </n-flex>
         </n-form-item>
 
-        <n-form-item label="状态" path="status">
-          <n-select v-model:value="formData.status" :options="statusOptions" placeholder="请选择状态" />
+        <n-form-item label="상태" path="status">
+          <n-select v-model:value="formData.status" :options="statusOptions" placeholder="상태를 선택하세요" />
         </n-form-item>
 
-        <n-form-item label="排序值" path="sort">
-          <n-input-number v-model:value="formData.sort" :min="0" placeholder="数值越小越靠前" style="width: 100%" />
+        <n-form-item label="정렬 값" path="sort">
+          <n-input-number v-model:value="formData.sort" :min="0" placeholder="값이 작을수록 앞에 표시됨" style="width: 100%" />
         </n-form-item>
 
-        <n-form-item label="温度参数" path="temperature">
+        <n-form-item label="온도 매개변수" path="temperature">
           <n-input-number
             v-model:value="formData.temperature"
             :min="0"
             :max="2"
             :step="0.1"
-            placeholder="0-2之间，控制随机性（可选）"
+            placeholder="0-2 사이, 무작위성 제어 (선택 사항)"
             style="width: 100%" />
         </n-form-item>
 
-        <n-form-item label="最大Token数" path="maxTokens">
+        <n-form-item label="최대 토큰 수" path="maxTokens">
           <n-input-number
             v-model:value="formData.maxTokens"
             :min="1"
-            placeholder="单条回复的最大Token数（可选）"
+            placeholder="단일 응답의 최대 토큰 수 (선택 사항)"
             style="width: 100%" />
         </n-form-item>
 
-        <n-form-item label="最大上下文数" path="maxContexts">
+        <n-form-item label="최대 컨텍스트 수" path="maxContexts">
           <n-input-number
             v-model:value="formData.maxContexts"
             :min="1"
-            placeholder="上下文的最大Message数量（可选）"
+            placeholder="컨텍스트의 최대 메시지 수 (선택 사항)"
             style="width: 100%" />
         </n-form-item>
 
-        <n-form-item label="是否公开" path="publicStatus">
+        <n-form-item label="공개 여부" path="publicStatus">
           <n-switch :value="formData.publicStatus === 0" @update:value="handlePublicStatusChange">
-            <template #checked>公开</template>
-            <template #unchecked>私有</template>
+            <template #checked>공개</template>
+            <template #unchecked>비공개</template>
           </n-switch>
         </n-form-item>
       </n-form>
@@ -298,17 +298,17 @@
 
     <template #footer>
       <n-flex justify="end" :size="12">
-        <n-button @click="showEditModal = false">取消</n-button>
+        <n-button @click="showEditModal = false">취소</n-button>
         <n-button type="primary" @click="handleSubmit" :loading="submitting">
-          {{ editingModel ? '保存' : '创建' }}
+          {{ editingModel ? '저장' : '생성' }}
         </n-button>
       </n-flex>
     </template>
   </n-modal>
 
-  <!-- API 密钥管理弹窗 -->
+  <!-- API 키 관리 팝업 -->
   <ApiKeyManagement v-model="showApiKeyManagement" @refresh="handleApiKeyManagementRefresh" />
-  <!-- 头像裁剪组件 -->
+  <!-- 프로필 자르기 컴포넌트 -->
   <AvatarCropper ref="cropperRef" v-model:show="showCropper" :image-url="localImageUrl" @crop="handleCrop" />
 </template>
 
@@ -335,12 +335,12 @@ const emit = defineEmits<{
 
 const userStore = useUserStore()
 
-// 检查当前用户是否是模型创建人
+// 현재 사용자가 모델 생성자인지 확인
 const isModelCreator = (model: any) => {
   return userStore.userInfo?.uid === model.userId
 }
 
-// 模型列表
+// 모델 목록
 const loading = ref(false)
 const modelList = ref<any[]>([])
 const pagination = ref({
@@ -349,18 +349,18 @@ const pagination = ref({
   total: 0
 })
 
-// API 密钥管理
+// API 키 관리
 const showApiKeyManagement = ref(false)
 const apiKeyOptions = ref<any[]>([])
 const apiKeyMap = ref<Map<string, any>>(new Map())
 
-// 编辑相关
+// 편집 관련
 const showEditModal = ref(false)
 const editingModel = ref<any>(null)
 const submitting = ref(false)
 const formRef = ref<FormInst>()
 
-// 表单数据
+// 폼 데이터
 const formData = ref({
   keyId: '',
   name: '',
@@ -373,14 +373,14 @@ const formData = ref({
   temperature: 0.8,
   maxTokens: 4096,
   maxContexts: 10,
-  publicStatus: 1 // 0=公开，1=私有
+  publicStatus: 1 // 0=공개, 1=비공개
 })
 
-// 平台选项和模型信息
+// 플랫폼 옵션 및 모델 정보
 const platformOptions = ref<Array<{ label: string; value: string }>>([])
 const platformModelInfo = ref<Record<string, { examples: string; docs: string; hint: string }>>({})
 
-// 加载平台列表
+// 플랫폼 목록 로드
 const loadPlatformList = async () => {
   try {
     const data = await platformList()
@@ -390,7 +390,7 @@ const loadPlatformList = async () => {
         value: item.platform
       }))
 
-      // 构建平台模型信息映射
+      // 플랫폼 모델 정보 매핑 구축
       const infoMap: Record<string, { examples: string; docs: string; hint: string }> = {}
       data.forEach((item: any) => {
         infoMap[item.platform] = {
@@ -402,7 +402,7 @@ const loadPlatformList = async () => {
       platformModelInfo.value = infoMap
     }
   } catch (error) {
-    // 如果加载失败，使用默认值
+    // 로드 실패 시 기본값 사용
     platformOptions.value = [
       { label: 'OpenAI', value: 'OpenAI' },
       { label: 'DeepSeek', value: 'DeepSeek' }
@@ -411,18 +411,18 @@ const loadPlatformList = async () => {
       OpenAI: {
         examples: 'gpt-4, gpt-4-turbo, gpt-3.5-turbo',
         docs: 'https://platform.openai.com/docs/models',
-        hint: '请前往 OpenAI 官网查看可用模型列表'
+        hint: 'OpenAI 공식 웹사이트에서 사용 가능한 모델 목록을 확인하세요'
       },
       DeepSeek: {
         examples: 'deepseek-chat, deepseek-reasoner, deepseek-coder',
         docs: 'https://platform.deepseek.com/api-docs',
-        hint: '请前往 DeepSeek 官网查看可用模型列表'
+        hint: 'DeepSeek 공식 웹사이트에서 사용 가능한 모델 목록을 확인하세요'
       }
     }
   }
 }
 
-// 计算属性：模型示例列表（用于下拉选择）
+// 계산된 속성: 모델 예시 목록 (드롭다운 선택용)
 const modelExamples = computed(() => {
   if (!formData.value.platform) {
     return []
@@ -431,13 +431,13 @@ const modelExamples = computed(() => {
   if (!info || !info.examples) {
     return []
   }
-  // 将 examples 字符串按逗号分割，去重，并转换为选项格式
+  // examples 문자열을 쉼표로 분할, 중복 제거 및 옵션 형식으로 변환
   const models = info.examples
     .split(',')
     .map((model) => model.trim())
     .filter((model) => model.length > 0)
 
-  // 使用 Set 去重，保持顺序
+  // Set을 사용하여 중복 제거, 순서 유지
   const uniqueModels = Array.from(new Set(models))
 
   return uniqueModels.map((model) => ({
@@ -446,7 +446,7 @@ const modelExamples = computed(() => {
   }))
 })
 
-// 计算属性：模型文档链接
+// 계산된 속성: 모델 문서 링크
 const modelDocsUrl = computed(() => {
   if (!formData.value.platform) {
     return ''
@@ -455,80 +455,80 @@ const modelDocsUrl = computed(() => {
   return info ? info.docs : ''
 })
 
-// 计算属性：模型输入框的占位符
+// 계산된 속성: 모델 입력 상자의 플레이스홀더
 const modelPlaceholder = computed(() => {
   if (!formData.value.platform) {
-    return '请先选择平台'
+    return '플랫폼을 먼저 선택하세요'
   }
   const info = platformModelInfo.value[formData.value.platform]
   if (modelExamples.value.length > 0) {
-    return '请选择或输入模型标志'
+    return '모델 식별자를 선택하거나 입력하세요'
   }
-  return info ? `例如: ${info.examples}` : '请输入模型标志'
+  return info ? `예: ${info.examples}` : '모델 식별자를 입력하세요'
 })
 
-// 计算属性：模型输入提示
+// 계산된 속성: 모델 입력 힌트
 const modelHint = computed(() => {
   if (!formData.value.platform) {
-    return '请先选择平台后再填写模型标志'
+    return '플랫폼을 선택한 후 모델 식별자를 입력하세요'
   }
   const info = platformModelInfo.value[formData.value.platform]
-  return info ? info.hint : '请填写正确的模型标志'
+  return info ? info.hint : '올바른 모델 식별자를 입력하세요'
 })
 
-// 监听模型输入变化，自动保存到后端
+// 모델 입력 변경 감지, 백엔드에 자동 저장
 let saveModelTimeout: NodeJS.Timeout | null = null
 watch(
   () => formData.value.model,
   async (newModel, _oldModel) => {
-    // 清除之前的定时器
+    // 이전 타이머 지우기
     if (saveModelTimeout) {
       clearTimeout(saveModelTimeout)
     }
 
-    // 如果模型为空或平台未选择，不处理
+    // 모델이 비어 있거나 플랫폼이 선택되지 않은 경우 처리 안 함
     if (!newModel || !formData.value.platform) {
       return
     }
 
-    // 如果模型已经在示例列表中，不需要保存
+    // 모델이 이미 예시 목록에 있는 경우 저장할 필요 없음
     const existingModels = modelExamples.value.map((item) => item.value)
     if (existingModels.includes(newModel)) {
       return
     }
 
-    // 防抖：用户停止输入 1 秒后再保存
+    // 디바운스: 사용자가 입력을 멈춘 후 1초 뒤에 저장
     saveModelTimeout = setTimeout(async () => {
       try {
         await platformAddModel(formData.value.platform, newModel)
-        // 重新加载平台列表，更新示例
+        // 플랫폼 목록 다시 로드, 예시 업데이트
         await loadPlatformList()
-        window.$message?.success('模型已添加到示例列表')
+        window.$message?.success('모델이 예시 목록에 추가되었습니다')
       } catch (error) {
-        console.error('保存模型失败:', error)
-        // 静默失败，不影响用户操作
+        console.error('모델 저장 실패:', error)
+        // 조용히 실패, 사용자 작업에 영향 없음
       }
     }, 1000)
   }
 )
 
-// 状态选项
+// 상태 옵션
 const statusOptions = [
-  { label: '可用', value: 0 },
-  { label: '不可用', value: 1 }
+  { label: '사용 가능', value: 0 },
+  { label: '사용 불가', value: 1 }
 ]
 
-// 表单验证规则
+// 폼 검증 규칙
 const formRules: FormRules = {
-  keyId: [{ required: true, message: '请选择 API 密钥', trigger: 'change' }],
-  name: [{ required: true, message: '请输入模型名称', trigger: 'blur' }],
-  model: [{ required: true, message: '请输入模型标志', trigger: 'blur' }],
-  platform: [{ required: true, message: '请选择平台', trigger: 'change' }],
+  keyId: [{ required: true, message: 'API 키를 선택하세요', trigger: 'change' }],
+  name: [{ required: true, message: '모델 이름을 입력하세요', trigger: 'blur' }],
+  model: [{ required: true, message: '모델 식별자를 입력하세요', trigger: 'blur' }],
+  platform: [{ required: true, message: '플랫폼을 선택하세요', trigger: 'change' }],
   type: [
     {
       required: true,
       type: 'number',
-      message: '请选择模型类型',
+      message: '모델 유형을 선택하세요',
       trigger: 'change',
       validator: (_rule: any, value: any) => {
         return value !== undefined && value !== null && value !== ''
@@ -539,7 +539,7 @@ const formRules: FormRules = {
     {
       required: true,
       type: 'number',
-      message: '请输入排序值',
+      message: '정렬 값을 입력하세요',
       trigger: 'blur',
       validator: (_rule: any, value: any) => {
         return value !== undefined && value !== null && value !== ''
@@ -550,7 +550,7 @@ const formRules: FormRules = {
     {
       required: true,
       type: 'number',
-      message: '请选择状态',
+      message: '상태를 선택하세요',
       trigger: 'change',
       validator: (_rule: any, value: any) => {
         return value !== undefined && value !== null && value !== ''
@@ -559,19 +559,19 @@ const formRules: FormRules = {
   ]
 }
 
-// 获取默认头像
+// 기본 프로필 가져오기
 const getDefaultAvatar = () => {
   return 'https://img1.baidu.com/it/u=3613958228,3522035000&fm=253&fmt=auto&app=120&f=JPEG?w=500&h=500'
 }
 
-// 获取模型头像
+// 모델 프로필 가져오기
 const getModelAvatar = (model: any) => {
   if (!model) return getDefaultAvatar()
   if (model.avatar) return model.avatar
   return getDefaultAvatar()
 }
 
-// 加载 API 密钥选项
+// API 키 옵션 로드
 const loadApiKeyOptions = async () => {
   try {
     const data = await apiKeySimpleList()
@@ -581,11 +581,11 @@ const loadApiKeyOptions = async () => {
     }))
     apiKeyMap.value = new Map((data || []).map((item: any) => [item.id, item]))
   } catch (error) {
-    console.error('加载 API 密钥列表失败:', error)
+    console.error('API 키 목록 로드 실패:', error)
   }
 }
 
-// 加载模型列表
+// 모델 목록 로드
 const loadModelList = async () => {
   loading.value = true
   try {
@@ -596,46 +596,46 @@ const loadModelList = async () => {
     modelList.value = data.list || []
     pagination.value.total = data.total || 0
   } catch (error) {
-    console.error('加载模型列表失败:', error)
-    window.$message.error('加载模型列表失败')
+    console.error('모델 목록 로드 실패:', error)
+    window.$message.error('모델 목록 로드 실패')
   } finally {
     loading.value = false
   }
 }
 
-// 分页变化
+// 페이지 변경
 const handlePageChange = (page: number) => {
   pagination.value.pageNo = page
   loadModelList()
 }
 
-// API密钥切换处理
+// API 키 전환 처리
 const handleKeyIdChange = (keyId: string) => {
   if (keyId) {
     const apiKeyInfo = apiKeyMap.value.get(keyId)
     if (apiKeyInfo && apiKeyInfo.platform) {
-      // 自动填充平台
+      // 플랫폼 자동 채우기
       formData.value.platform = apiKeyInfo.platform
-      // 清空模型标志，让用户重新输入
+      // 모델 식별자 지우기, 사용자가 다시 입력하도록 함
       formData.value.model = ''
     }
   }
 }
 
-// 模型名称变化处理 - 单向同步到模型标志
+// 모델 이름 변경 처리 - 모델 식별자에 단방향 동기화
 const handleNameChange = (value: string) => {
-  // 将模型名称同步到模型标志（单向绑定）
+  // 모델 이름을 모델 식별자에 동기화 (단방향 바인딩)
   if (value) {
     formData.value.model = value
   }
 }
 
-// 公开状态变化处理
+// 공개 상태 변경 처리
 const handlePublicStatusChange = (checked: boolean) => {
   formData.value.publicStatus = checked ? 0 : 1
 }
 
-// 新增模型
+// 모델 추가
 const handleAdd = () => {
   editingModel.value = null
   formData.value = {
@@ -650,7 +650,7 @@ const handleAdd = () => {
     temperature: 0.8,
     maxTokens: 4096,
     maxContexts: 10,
-    publicStatus: 1 // 0=公开，1=私有
+    publicStatus: 1 // 0=공개, 1=비공개
   }
   showEditModal.value = true
 }
@@ -669,7 +669,7 @@ const {
     await nextTick()
     formData.value.avatar = downloadUrl
     await nextTick()
-    window.$message.success('头像上传成功')
+    window.$message.success('프로필 업로드 성공')
   }
 })
 
@@ -677,7 +677,7 @@ const handleCrop = async (cropBlob: Blob) => {
   await onCrop(cropBlob)
 }
 
-// 编辑模型
+// 모델 편집
 const handleEdit = (model: any) => {
   editingModel.value = model
   formData.value = {
@@ -692,12 +692,12 @@ const handleEdit = (model: any) => {
     temperature: model.temperature ?? 0.8,
     maxTokens: model.maxTokens ?? 4096,
     maxContexts: model.maxContexts ?? 10,
-    publicStatus: model.publicStatus ?? 0 // 0=公开，1=私有
+    publicStatus: model.publicStatus ?? 0 // 0=공개, 1=비공개
   }
   showEditModal.value = true
 }
 
-// 提交表单
+// 폼 제출
 const handleSubmit = async () => {
   try {
     await formRef.value?.validate()
@@ -720,10 +720,10 @@ const handleSubmit = async () => {
     if (editingModel.value) {
       submitData.id = editingModel.value.id
       await modelUpdate(submitData)
-      window.$message.success('模型更新成功')
+      window.$message.success('모델 업데이트 성공')
     } else {
       await modelUpdate(submitData)
-      window.$message.success('模型创建成功')
+      window.$message.success('모델 생성 성공')
     }
 
     showEditModal.value = false
@@ -732,41 +732,41 @@ const handleSubmit = async () => {
     emit('refresh')
   } catch (error: any) {
     if (error?.errors) {
-      // 表单验证错误
+      // 폼 검증 오류
       return
     }
-    console.error('保存模型失败:', error)
-    window.$message.error('保存模型失败')
+    console.error('모델 저장 실패:', error)
+    window.$message.error('모델 저장 실패')
   } finally {
     submitting.value = false
   }
 }
 
-// 删除模型
+// 모델 삭제
 const handleDelete = async (id: string) => {
   try {
     await modelDelete({ id })
-    window.$message.success('模型删除成功')
+    window.$message.success('모델 삭제 성공')
     loadModelList()
-    // 通知父组件刷新
+    // 부모 컴포넌트에 새로고침 알림
     emit('refresh')
   } catch (error) {
-    console.error('删除模型失败:', error)
-    window.$message.error('删除模型失败')
+    console.error('모델 삭제 실패:', error)
+    window.$message.error('모델 삭제 실패')
   }
 }
 
-// 打开 API 密钥管理
+// API 키 관리 열기
 const handleOpenApiKeyManagement = () => {
   showApiKeyManagement.value = true
 }
 
-// API 密钥管理刷新后的回调
+// API 키 관리 새로고침 후 콜백
 const handleApiKeyManagementRefresh = () => {
   loadApiKeyOptions()
 }
 
-// 监听弹窗显示状态
+// 팝업 표시 상태 감지
 watch(showModal, (val) => {
   if (val) {
     loadApiKeyOptions()
@@ -775,7 +775,7 @@ watch(showModal, (val) => {
   }
 })
 
-// 组件挂载时加载平台列表
+// 컴포넌트 마운트 시 플랫폼 목록 로드
 onMounted(() => {
   loadPlatformList()
 })

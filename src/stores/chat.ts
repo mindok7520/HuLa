@@ -26,19 +26,19 @@ type RecalledMessage = {
   originalType: MsgEnum
 }
 
-// 定义每页加载的消息数量
+// 페이지당 로드할 메시지 수 정의
 export const pageSize = 20
 
-// 单个会话在内存中的消息保留上限，防止后台会话无限增长
+// 단일 대화의 메모리 내 메시지 보존 상한, 백그라운드 대화의 무한 증가 방지
 const ROOM_MESSAGE_CACHE_LIMIT = 40
 
-// 撤回消息的过期时间
-const RECALL_EXPIRATION_TIME = 2 * 60 * 1000 // 2分钟，单位毫秒
+// 메시지 철회 만료 시간
+const RECALL_EXPIRATION_TIME = 2 * 60 * 1000 // 2분, 단위 밀리초
 
-// 创建src/workers/timer.worker.ts
+// src/workers/timer.worker.ts 생성
 const timerWorker = new Worker(new URL('../workers/timer.worker.ts', import.meta.url))
 
-// 添加错误处理
+// 오류 처리 추가
 timerWorker.onerror = (error) => {
   console.error('[Worker Error]', error)
 }
@@ -53,16 +53,16 @@ export const useChatStore = defineStore(
     const groupStore = useGroupStore()
     const sessionUnreadStore = useSessionUnreadStore()
 
-    // 会话列表
+    // 대화 목록
     const sessionList = ref<SessionItem[]>([])
-    // 会话列表的快速查找 Map，通过 roomId 进行 O(1) 查找
+    // 대화 목록 빠른 검색 Map, roomId를 통한 O(1) 검색
     const sessionMap = ref<Record<string, SessionItem>>({})
-    // 会话列表的加载状态
+    // 대화 목록 로딩 상태
     const sessionOptions = reactive({ isLast: false, isLoading: false, cursor: '' })
-    // 消息同步加载状态（用于显示同步中的提示）
+    // 메시지 동기화 로딩 상태 (동기화 중 힌트 표시에 사용)
     const syncLoading = ref(false)
 
-    // 持久化的未读数同步回内存里的会话对象，确保刷新或切账号后还能看到旧的未读状态
+    // 지속된 읽지 않은 수를 메모리의 대화 객체로 동기화하여 새로 고침 또는 계정 전환 후에도 이전 읽지 않은 상태를 볼 수 있도록 함
     const syncPersistedUnreadCounts = (targetSessions: SessionItem[] = sessionList.value) => {
       if (!targetSessions.length) {
         return
@@ -70,7 +70,7 @@ export const useChatStore = defineStore(
       sessionUnreadStore.apply(userStore.userInfo?.uid, targetSessions)
     }
 
-    // 更新本地缓存里的某个会话未读数
+    // 로컬 캐시의 특정 대화 읽지 않은 수 업데이트
     const persistUnreadCount = (roomId: string, count: number) => {
       if (!roomId) {
         return
@@ -78,7 +78,7 @@ export const useChatStore = defineStore(
       sessionUnreadStore.set(userStore.userInfo?.uid, roomId, count)
     }
 
-    // 在删除会话或清理数据时同步移除缓存，避免旧数据污染
+    // 대화 삭제 또는 데이터 정리 시 캐시 동기화 제거, 오래된 데이터 오염 방지
     const removeUnreadCountCache = (roomId: string) => {
       if (!roomId) {
         return
@@ -86,7 +86,7 @@ export const useChatStore = defineStore(
       sessionUnreadStore.remove(userStore.userInfo?.uid, roomId)
     }
 
-    // 将已有的会话列表同步到 sessionMap，解决持久化恢复或请求失败时 map 为空的问题
+    // 기존 대화 목록을 sessionMap에 동기화하여 지속성 복구 또는 요청 실패 시 map이 비어 있는 문제 해결
     const rebuildSessionMap = () => {
       if (!sessionList.value.length) {
         return
@@ -100,7 +100,7 @@ export const useChatStore = defineStore(
       )
     }
 
-    // 兜底获取会话，优先使用 map，没有时从列表里回填一份到 map
+    // 대화 가져오기 폴백, map 우선 사용, 없을 경우 목록에서 map으로 채움
     const resolveSessionByRoomId = (roomId: string) => {
       if (!roomId) return undefined
 
@@ -117,10 +117,10 @@ export const useChatStore = defineStore(
       return session
     }
 
-    // 记录最近一次将会话标记已读时的活跃时间，用于下次登录时识别“旧未读”
+    // 최근 대화 읽음 표시 활성 시간 기록, 다음 로그인 시 "오래된 읽지 않음" 식별에 사용
     const lastReadActiveTime = ref<Record<string, number>>({})
 
-    // 在刷新会话列表后，处理服务器返回的“旧未读”——本地之前已读（未读数为0）、活跃时间未变但服务端仍返回未读
+    // 대화 목록 새로 고침 후 서버에서 반환된 "오래된 읽지 않음" 처리 - 로컬에서 이전에 읽음(읽지 않은 수 0), 활성 시간이 변경되지 않았지만 서버가 여전히 읽지 않음을 반환하는 경우
     const reconcileStaleUnread = async (prevSessions?: Record<string, SessionItem>) => {
       if (!prevSessions) return
       const promises: Promise<unknown>[] = []
@@ -133,7 +133,7 @@ export const useChatStore = defineStore(
         const currentUnread = Math.max(0, session.unreadCount || 0)
         const hasValidActiveTime = !!prev.activeTime && !!session.activeTime
 
-        // 只有在「本地之前为 0、当前为正数、且存在有效活跃时间并未变化」时认为是陈旧未读
+        // "로컬 이전 0, 현재 양수, 유효한 활성 시간이 존재하고 변경되지 않음"인 경우에만 오래된 읽지 않음으로 간주
         if (prevUnread === 0 && currentUnread > 0 && hasValidActiveTime && session.activeTime === prev.activeTime) {
           console.log('[Chat][reconcileStaleUnread] clear stale unread', session.roomId, {
             prevUnread,
@@ -141,10 +141,10 @@ export const useChatStore = defineStore(
             activeTime: session.activeTime
           })
           updateSession(session.roomId, { unreadCount: 0 })
-          // 补一次已读上报，避免下一次刷新又回灌
+          // 다음 새로 고침 시 다시 주입되는 것을 방지하기 위해 읽음 보고 추가
           promises.push(
             markMsgRead(session.roomId).catch((error) => {
-              console.error('[chat] 补偿已读上报失败:', error)
+              console.error('[chat] 보상 읽음 보고 실패:', error)
             })
           )
         }
@@ -156,7 +156,7 @@ export const useChatStore = defineStore(
       }
     }
 
-    // 使用本地记录的“最后已读活跃时间”兜底清理陈旧未读，避免重登时短暂闪现
+    // 로컬에 기록된 "마지막 읽음 활성 시간"을 사용하여 오래된 읽지 않음 정리, 재로그인 시 짧게 깜박이는 현상 방지
     const reconcileUnreadWithReadHistory = async () => {
       const promises: Promise<unknown>[] = []
 
@@ -174,7 +174,7 @@ export const useChatStore = defineStore(
           updateSession(session.roomId, { unreadCount: 0 })
           promises.push(
             markMsgRead(session.roomId).catch((error) => {
-              console.error('[chat] 基于已读历史的补偿上报失败:', error)
+              console.error('[chat] 읽음 기록 기반 보상 보고 실패:', error)
             })
           )
         }
@@ -186,26 +186,26 @@ export const useChatStore = defineStore(
       }
     }
 
-    // 存储所有消息的Record
+    // 모든 메시지 Record 저장
     const messageMap = reactive<Record<string, Record<string, MessageType>>>({})
-    // 消息加载状态
+    // 메시지 로딩 상태
     const messageOptions = reactive<Record<string, { isLast: boolean; isLoading: boolean; cursor: string }>>({})
 
-    // 回复消息的映射关系
+    // 답장 메시지 매핑 관계
     const replyMapping = reactive<Record<string, Record<string, string[]>>>({})
-    // 存储撤回的消息内容和时间
+    // 철회된 메시지 내용 및 시간 저장
     const recalledMessages = reactive<Record<string, RecalledMessage>>({})
-    // 存储每条撤回消息的过期定时器
+    // 각 철회 메시지의 만료 타이머 저장
     const expirationTimers: Record<string, boolean> = {}
     const isMsgMultiChoose = ref<boolean>(false)
     const msgMultiChooseMode = ref<'normal' | 'forward'>('normal')
 
-    // 当前聊天室的消息Map计算属性
+    // 현재 채팅방 메시지 Map 계산 속성
     const currentMessageMap = computed(() => {
       return messageMap[globalStore.currentSessionRoomId] || {}
     })
 
-    // 当前聊天室的消息加载状态计算属性
+    // 현재 채팅방 메시지 로딩 상태 계산 속성
     const currentMessageOptions = computed({
       get: () => {
         const roomId = globalStore.currentSessionRoomId
@@ -221,7 +221,7 @@ export const useChatStore = defineStore(
       }
     })
 
-    // 当前聊天室的回复消息映射计算属性
+    // 현재 채팅방 답장 메시지 매핑 계산 속성
     const currentReplyMap = computed({
       get: () => {
         const roomId = globalStore.currentSessionRoomId
@@ -237,27 +237,27 @@ export const useChatStore = defineStore(
       }
     })
 
-    // 判断是否应该显示“没有更多消息”
+    // "더 이상 메시지 없음" 표시 여부 판단
     const shouldShowNoMoreMessage = computed(() => {
       return currentMessageOptions.value?.isLast
     })
 
-    // 判断当前是否为群聊
+    // 현재 그룹 채팅 여부 판단
     const isGroup = computed(() => globalStore.currentSession?.type === RoomTypeEnum.GROUP)
 
-    // 获取当前会话信息的计算属性
+    // 현재 대화 정보 가져오기 계산 속성
     const currentSessionInfo = computed(() => {
       const roomId = globalStore.currentSessionRoomId
       if (!roomId) return undefined
 
-      // 直接从 sessionMap 中查找（页面刷新后会自动恢复）
+      // sessionMap에서 직접 검색 (페이지 새로 고침 후 자동 복구)
       return resolveSessionByRoomId(roomId)
     })
 
-    // 新消息计数相关的响应式数据
+    // 새 메시지 카운트 관련 반응형 데이터
     const newMsgCount = reactive<Record<string, { count: number; isStart: boolean }>>({})
 
-    // 当前聊天室的新消息计数计算属性
+    // 현재 채팅방 새 메시지 카운트 계산 속성
     const currentNewMsgCount = computed({
       get: () => {
         const roomId = globalStore.currentSessionRoomId
@@ -274,14 +274,14 @@ export const useChatStore = defineStore(
     })
 
     /**
-     * 清理非当前房间的消息缓存
-     * @description 切换房间时调用，释放内存，只保留当前房间的消息
-     * 注意：只清空消息内容，不删除 key，避免影响响应式依赖
+     * 현재 방이 아닌 메시지 캐시 정리
+     * @description 방 전환 시 호출, 메모리 해제, 현재 방의 메시지만 유지
+     * 주의: 메시지 내용만 지우고 key는 삭제하지 않아 반응형 의존성에 영향을 주지 않음
      */
     const clearOtherRoomsMessages = (currentRoomId: string) => {
       for (const roomId in messageMap) {
         if (roomId !== currentRoomId) {
-          // 只清空消息内容，保留响应式对象结构
+          // 메시지 내용만 지우고 반응형 객체 구조 유지
           for (const msgId in messageMap[roomId]) {
             delete messageMap[roomId][msgId]
           }
@@ -290,10 +290,10 @@ export const useChatStore = defineStore(
     }
 
     /**
-     * 切换聊天室
+     * 채팅방 전환
      * @description
-     * 当用户切换到不同的聊天室时调用此方法，执行完整的房间切换流程。
-     * 该方法会清空旧房间的消息数据，重新加载新房间的消息，并处理相关的状态重置。
+     * 사용자가 다른 채팅방으로 전환할 때 이 메서드를 호출하여 전체 방 전환 프로세스를 수행합니다.
+     * 이 메서드는 이전 방의 메시지 데이터를 지우고 새 방의 메시지를 다시 로드하며 관련 상태 재설정을 처리합니다.
      */
     const changeRoom = async () => {
       const currentWindowLabel = WebviewWindow.getCurrent()
@@ -301,32 +301,32 @@ export const useChatStore = defineStore(
         return
       }
 
-      // 如果 currentSession 不存在，直接返回
+      // currentSession이 없으면 바로 반환
       if (!globalStore.currentSessionRoomId) {
         return
       }
 
       const roomId = globalStore.currentSessionRoomId
 
-      // 清理其他房间的消息缓存，释放内存
+      // 다른 방의 메시지 캐시 정리, 메모리 해제
       clearOtherRoomsMessages(roomId)
 
-      // 清理过期的撤回消息缓存
+      // 만료된 철회 메시지 캐시 정리
       cleanupExpiredRecalledMessages()
 
-      // 1. 清空当前房间的旧消息数据
+      // 1. 현재 방의 이전 메시지 데이터 지우기
       if (messageMap[roomId]) {
         messageMap[roomId] = {}
       }
 
-      // 2. 重置消息加载状态
+      // 2. 메시지 로딩 상태 재설정
       currentMessageOptions.value = {
         isLast: false,
         isLoading: false,
         cursor: ''
       }
 
-      // 3. 清空回复映射
+      // 3. 답장 매핑 지우기
       if (currentReplyMap.value) {
         for (const key in currentReplyMap.value) {
           delete currentReplyMap.value[key]
@@ -334,10 +334,10 @@ export const useChatStore = defineStore(
       }
 
       try {
-        // 从服务器加载消息
+        // 서버에서 메시지 로드
         await getPageMsg(pageSize, roomId, '')
       } catch (error) {
-        console.error('无法加载消息:', error)
+        console.error('메시지를 로드할 수 없음:', error)
         currentMessageOptions.value = {
           isLast: false,
           isLoading: false,
@@ -345,7 +345,7 @@ export const useChatStore = defineStore(
         }
       }
 
-      // 标记当前会话已读
+      // 현재 대화 읽음 표시
       if (globalStore.currentSessionRoomId) {
         const session = resolveSessionByRoomId(globalStore.currentSessionRoomId)
         if (session?.unreadCount) {
@@ -353,18 +353,18 @@ export const useChatStore = defineStore(
         }
       }
 
-      // 重置当前回复的消息
+      // 현재 답장 메시지 재설정
       currentMsgReply.value = {}
     }
 
-    // 当前消息回复
+    // 현재 메시지 답장
     const currentMsgReply = ref<Partial<MessageType>>({})
 
-    // 将消息列表转换为数组并计算时间间隔
+    // 메시지 목록을 배열로 변환하고 시간 간격 계산
     const chatMessageList = computed(() => {
       if (!currentMessageMap.value || Object.keys(currentMessageMap.value).length === 0) return []
 
-      // 直接使用 Rust 后端计算的 timeBlock，不做前端计算
+      // Rust 백엔드에서 계산된 timeBlock 직접 사용, 프론트엔드 계산 안 함
       return Object.values(currentMessageMap.value).sort((a, b) => Number(a.message.id) - Number(b.message.id))
     })
 
@@ -386,57 +386,57 @@ export const useChatStore = defineStore(
     }
 
     /**
-     * 登录之后，加载一次所有会话的消息
+     * 로그인 후 모든 대화의 메시지 한 번 로드
      * @description
-     * 使用受控并发加载（p-limit），避免大量会话时阻塞 UI
-     * - 优先加载最近活跃的会话
-     * - 限制并发数为 5，平衡性能和服务器压力
-     * - 使用 Promise.allSettled 确保部分失败不影响其他会话
+     * 제어된 동시 로딩(p-limit) 사용, 대량의 대화 시 UI 차단 방지
+     * - 최근 활성 대화 우선 로드
+     * - 동시성 수를 5로 제한하여 성능과 서버 부하 균형 유지
+     * - Promise.allSettled를 사용하여 일부 실패가 다른 대화에 영향을 주지 않도록 함
      */
     const setAllSessionMsgList = async (size = pageSize) => {
-      await info('初始设置所有会话消息列表')
+      await info('모든 대화 메시지 목록 초기 설정')
 
       if (sessionList.value.length === 0) return
 
-      // 按活跃时间排序，优先加载最近的会话
+      // 활성 시간순 정렬, 최근 대화 우선 로드
       const sortedSessions = [...sessionList.value].sort((a, b) => b.activeTime - a.activeTime)
 
-      // 创建并发限制器（最多同时 5 个请求）
+      // 동시성 제한기 생성 (최대 5개 동시 요청)
       const limit = pLimit(5)
 
-      // 使用 p-limit 包装任务并执行
+      // p-limit으로 작업 래핑 및 실행
       const tasks = sortedSessions.map((session) => limit(() => getPageMsg(size, session.roomId, '', true)))
 
-      // 并发执行所有任务
+      // 모든 작업 동시 실행
       const results = await Promise.allSettled(tasks)
 
-      // 统计加载结果
+      // 로드 결과 통계
       const successCount = results.filter((r) => r.status === 'fulfilled').length
       const failCount = results.filter((r) => r.status === 'rejected').length
 
-      await info(`会话消息加载完成: 成功 ${successCount}/${sortedSessions.length}, 失败 ${failCount}`)
+      await info(`대화 메시지 로드 완료: 성공 ${successCount}/${sortedSessions.length}, 실패 ${failCount}`)
 
-      // 记录失败的会话（可选）
+      // 실패한 대화 기록 (선택 사항)
       if (failCount > 0) {
         results.forEach((result, index) => {
           if (result.status === 'rejected') {
-            console.warn(`会话 ${sortedSessions[index].roomId} 消息加载失败:`, result.reason)
+            console.warn(`대화 ${sortedSessions[index].roomId} 메시지 로드 실패:`, result.reason)
           }
         })
       }
     }
 
-    // 获取消息列表
+    // 메시지 목록 가져오기
     const getMsgList = async (size = pageSize, async?: boolean) => {
-      await info('获取消息列表')
-      // 获取当前房间ID，用于后续比较
+      await info('메시지 목록 가져오기')
+      // 현재 방 ID 가져오기, 후속 비교용
       const requestRoomId = globalStore.currentSessionRoomId
 
       await getPageMsg(size, requestRoomId, currentMessageOptions.value?.cursor, async)
     }
 
     const getPageMsg = async (pageSize: number, roomId: string, cursor: string = '', async?: boolean) => {
-      // 查询本地存储，获取消息数据
+      // 로컬 저장소 조회, 메시지 데이터 가져오기
       const data: any = await invokeWithErrorHandler(
         TauriCommand.PAGE_MSG,
         {
@@ -448,19 +448,19 @@ export const useChatStore = defineStore(
           }
         },
         {
-          customErrorMessage: '获取消息列表失败',
+          customErrorMessage: '메시지 목록 가져오기 실패',
           errorType: ErrorType.Network
         }
       )
 
-      // 更新 messageOptions
+      // messageOptions 업데이트
       messageOptions[roomId] = {
         isLast: data.isLast,
         isLoading: false,
         cursor: data.cursor
       }
 
-      // 确保 messageMap[roomId] 已初始化
+      // messageMap[roomId] 초기화 확인
       if (!messageMap[roomId]) {
         messageMap[roomId] = {}
       }
@@ -486,41 +486,41 @@ export const useChatStore = defineStore(
       }
     }
 
-    // 获取会话列表
+    // 대화 목록 가져오기
     const getSessionList = async (_isFresh = false) => {
       try {
         if (sessionOptions.isLoading) return
         sessionOptions.isLoading = true
-        // 避免显示上次会话的陈旧未读，在同步期间先清零消息未读，待拉取完成后再计算
+        // 이전 대화의 오래된 읽지 않음 표시 방지, 동기화 중 먼저 메시지 읽지 않음 0으로 초기화, 가져오기 완료 후 다시 계산
         globalStore.unreadReady = false
         globalStore.unReadMark.newMsgUnreadCount = 0
         unreadCountManager.refreshBadge(globalStore.unReadMark, feedStore.unreadCount)
         const prevSessions =
           sessionList.value.length > 0
             ? sessionList.value.reduce(
-                (map, item) => {
-                  map[item.roomId] = { ...item }
-                  return map
-                },
-                {} as Record<string, SessionItem>
-              )
+              (map, item) => {
+                map[item.roomId] = { ...item }
+                return map
+              },
+              {} as Record<string, SessionItem>
+            )
             : undefined
         const data: any = await invokeWithErrorHandler(TauriCommand.LIST_CONTACTS, undefined, {
-          customErrorMessage: '获取会话列表失败',
+          customErrorMessage: '대화 목록 가져오기 실패',
           errorType: ErrorType.Network
         }).catch(() => {
           sessionOptions.isLoading = false
           return null
         })
         if (!data) {
-          // 拉取失败也要恢复未读角标的展示，避免 unreadReady 卡在 false
+          // 가져오기 실패 시에도 읽지 않은 배지 표시 복구, unreadReady가 false에 머무는 것 방지
           globalStore.unreadReady = true
           unreadCountManager.refreshBadge(globalStore.unReadMark, feedStore.unreadCount)
           return
         }
 
         // console.log(
-        //   '[SessionDebug] 后端返回的会话列表:',
+        //   '[SessionDebug] 백엔드 반환 대화 목록:',
         //   data.map((item: SessionItem) => ({
         //     roomId: item.roomId,
         //     unreadCount: item.unreadCount,
@@ -532,19 +532,19 @@ export const useChatStore = defineStore(
         syncPersistedUnreadCounts()
         sessionOptions.isLoading = false
 
-        // 同步更新 sessionMap
+        // sessionMap 동기화 업데이트
         for (const session of sessionList.value) {
           sessionMap.value[session.roomId] = session
         }
 
         sortAndUniqueSessionList()
 
-        // 补偿陈旧未读后再一次性更新未读角标，避免加载过程闪现旧数据
+        // 오래된 읽지 않음 보상 후 다시 한 번 읽지 않은 배지 업데이트, 로딩 과정에서 이전 데이터 깜박임 방지
         await reconcileStaleUnread(prevSessions)
         await reconcileUnreadWithReadHistory()
         await clearCurrentSessionUnread()
         updateTotalUnreadCount()
-        // 如果当前会话仍被服务器标记为未读，主动上报并清零，避免气泡卡住
+        // 현재 대화가 서버에서 여전히 읽지 않음으로 표시된 경우, 능동적으로 보고하고 0으로 초기화하여 말풍선이 멈추는 것 방지
         const currentRoomId = globalStore.currentSessionRoomId
         if (currentRoomId) {
           const currentSession = resolveSessionByRoomId(currentRoomId)
@@ -552,19 +552,19 @@ export const useChatStore = defineStore(
             try {
               await markMsgRead(currentRoomId)
             } catch (error) {
-              console.error('[chat] 会话列表同步后上报已读失败:', error)
+              console.error('[chat] 대화 목록 동기화 후 읽음 보고 실패:', error)
             }
             markSessionRead(currentRoomId)
-            // 清除当前会话未读后，需要重新计算总未读数，确保程序坞图标正确更新
+            // 현재 대화 읽지 않음 지운 후 총 읽지 않은 수 다시 계산 필요, 독 아이콘 올바르게 업데이트 보장
             updateTotalUnreadCount()
           }
         }
         globalStore.unreadReady = true
         unreadCountManager.refreshBadge(globalStore.unReadMark, feedStore.unreadCount)
       } catch (e) {
-        console.error('获取会话列表失败11:', e)
+        console.error('대화 목록 가져오기 실패11:', e)
         sessionOptions.isLoading = false
-        // 出错时也恢复未读展示，避免角标长时间隐藏
+        // 오류 발생 시에도 읽지 않은 표시 복구, 배지가 오랫동안 숨겨지는 것 방지
         globalStore.unreadReady = true
         unreadCountManager.refreshBadge(globalStore.unReadMark, feedStore.unreadCount)
       } finally {
@@ -572,9 +572,9 @@ export const useChatStore = defineStore(
       }
     }
 
-    /** 会话列表去重并排序 */
+    /** 대화 목록 중복 제거 및 정렬 */
     const sortAndUniqueSessionList = () => {
-      // 使用 uniqBy 按 roomId 去重，使用 orderBy 按 activeTime 降序排序
+      // uniqBy를 사용하여 roomId로 중복 제거, orderBy를 사용하여 activeTime 내림차순 정렬
       const uniqueAndSorted = orderBy(
         uniqBy(sessionList.value, (item) => item.roomId),
         [(item) => item.activeTime],
@@ -583,19 +583,19 @@ export const useChatStore = defineStore(
       sessionList.value.splice(0, sessionList.value.length, ...uniqueAndSorted)
     }
 
-    // 更新会话
+    // 대화 업데이트
     const updateSession = (roomId: string, data: Partial<SessionItem>) => {
       const session = resolveSessionByRoomId(roomId)
       if (session) {
         const updatedSession = { ...session, ...data }
 
-        // 同步更新 sessionList
+        // sessionList 동기화 업데이트
         const index = sessionList.value.findIndex((s) => s.roomId === roomId)
         if (index !== -1) {
           sessionList.value[index] = updatedSession
         }
 
-        // 同步更新 sessionMap
+        // sessionMap 동기화 업데이트
         sessionMap.value[roomId] = updatedSession
 
         if ('unreadCount' in data && typeof updatedSession.unreadCount === 'number') {
@@ -603,16 +603,16 @@ export const useChatStore = defineStore(
           requestUnreadCountUpdate(roomId)
         }
 
-        // 如果更新了免打扰状态，需要重新计算全局未读数
+        // 방해 금지 상태가 업데이트된 경우 전역 읽지 않은 수 다시 계산 필요
         if ('muteNotification' in data) {
           requestUnreadCountUpdate()
         }
       }
     }
 
-    // 更新会话最后活跃时间, 只要更新的过程中会话不存在，那么将会话刷新出来
+    // 대화 마지막 활성 시간 업데이트, 업데이트 과정에서 대화가 존재하지 않으면 대화 새로 고침
     const updateSessionLastActiveTime = (roomId: string) => {
-      // O(1) 查找
+      // O(1) 검색
       const session = resolveSessionByRoomId(roomId)
       if (session) {
         Object.assign(session, { activeTime: Date.now() })
@@ -626,22 +626,22 @@ export const useChatStore = defineStore(
       const resp = await getSessionDetail({ id: roomId })
       syncPersistedUnreadCounts([resp])
       sessionList.value.unshift(resp)
-      // 同步更新 sessionMap
+      // sessionMap 동기화 업데이트
       sessionMap.value[roomId] = resp
       sortAndUniqueSessionList()
     }
 
-    // 通过房间ID获取会话信息
+    // 방 ID를 통해 대화 정보 가져오기
     const getSession = (roomId: string) => {
       if (!roomId) {
         return sessionList.value[0]
       }
 
-      // O(1) 查找（页面刷新后自动从持久化恢复）
+      // O(1) 검색 (페이지 새로 고침 후 지속성에서 자동 복구)
       return resolveSessionByRoomId(roomId)
     }
 
-    // 推送消息
+    // 메시지 푸시
     const pushMsg = async (msg: MessageType, options: { isActiveChatView?: boolean; activeRoomId?: string } = {}) => {
       if (!msg.message.id) {
         msg.message.id = `${msg.message.roomId}_${msg.message.sendTime}_${msg.fromUser.uid}`
@@ -670,40 +670,40 @@ export const useChatStore = defineStore(
           targetRoomId === msg.message.roomId
       }
 
-      // 获取用户信息缓存
+      // 사용자 정보 캐시 가져오기
       const uid = msg.fromUser.uid
       const cacheUser = groupStore.getUserInfo(uid)
 
-      // 更新会话的文本属性和未读数
+      // 대화의 텍스트 속성 및 읽지 않은 수 업데이트
       const session = updateSessionLastActiveTime(msg.message.roomId)
       if (session) {
         const lastMsgUserName = cacheUser?.name
         const formattedText =
           msg.message.type === MsgEnum.RECALL
             ? session.type === RoomTypeEnum.GROUP
-              ? `${lastMsgUserName}:撤回了一条消息`
+              ? `${lastMsgUserName}:메시지를 철회했습니다`
               : msg.fromUser.uid === userStore.userInfo!.uid
-                ? '你撤回了一条消息'
-                : '对方撤回了一条消息'
+                ? '메시지를 철회했습니다'
+                : '상대방이 메시지를 철회했습니다'
             : renderReplyContent(
-                lastMsgUserName,
-                msg.message.type,
-                msg.message.body?.content || msg.message.body,
-                session.type
-              )
+              lastMsgUserName,
+              msg.message.type,
+              msg.message.body?.content || msg.message.body,
+              session.type
+            )
         session.text = formattedText!
-        // 更新未读数
+        // 읽지 않은 수 업데이트
         if (msg.fromUser.uid !== userStore.userInfo!.uid) {
           if (!isActiveChatView || msg.message.roomId !== targetRoomId) {
             session.unreadCount = (session.unreadCount || 0) + 1
             persistUnreadCount(session.roomId, session.unreadCount)
-            // 使用防抖机制更新，适合并发消息场景
+            // 디바운스 메커니즘 사용하여 업데이트, 동시 메시지 시나리오에 적합
             requestUnreadCountUpdate()
           }
         }
       }
 
-      // 如果收到的消息里面是艾特自己的就发送系统通知
+      // 받은 메시지에 본인 멘션이 포함된 경우 시스템 알림 전송
       if (msg.message.body.atUidList?.includes(userStore.userInfo!.uid) && cacheUser) {
         sendNotification({
           title: cacheUser.name as string,
@@ -712,7 +712,7 @@ export const useChatStore = defineStore(
         })
       }
 
-      // 防止后台会话长期堆积消息，超出上限时做裁剪（保持当前会话完整，避免阅读中被截断）
+      // 백그라운드 대화에 메시지가 장기간 누적되는 것을 방지, 상한 초과 시 자르기 (현재 대화 무결성 유지, 읽는 중 잘림 방지)
       if (!isActiveChatView || msg.message.roomId !== targetRoomId) {
         clearRedundantMessages(msg.message.roomId, ROOM_MESSAGE_CACHE_LIMIT)
       }
@@ -727,7 +727,7 @@ export const useChatStore = defineStore(
       chatMessageList.value.forEach((msg) => (msg.isCheck = false))
     }
 
-    // 过滤掉拉黑用户的发言
+    // 차단된 사용자의 발언 필터링
     // const filterUser = (uid: string) => {
     //   for (const roomId in messageMap) {
     //     const messages = messageMap[roomId]
@@ -740,27 +740,27 @@ export const useChatStore = defineStore(
     //   }
     // }
 
-    // 加载更多消息
+    // 더 많은 메시지 로드
     const loadMore = async (size?: number) => {
       if (currentMessageOptions.value?.isLast) return
       await getMsgList(size, true)
     }
 
-    /** 清除新消息计数 */
+    /** 새 메시지 카운트 지우기 */
     const clearNewMsgCount = () => {
       currentNewMsgCount.value && (currentNewMsgCount.value.count = 0)
     }
 
-    // 查找消息在列表里面的索引
+    // 목록에서 메시지 인덱스 찾기
     const getMsgIndex = (msgId: string) => {
       if (!msgId) return -1
       const keys = currentMessageMap.value ? Object.keys(currentMessageMap.value) : []
       return keys.indexOf(msgId)
     }
 
-    // 更新所有标记类型的数量
+    // 모든 마크 유형의 수량 업데이트
     const updateMarkCount = async (markList: MarkItemType[]) => {
-      info('保存消息标记到本地数据库')
+      info('메시지 마크를 로컬 데이터베이스에 저장')
       for (const mark of markList) {
         const { msgId, markType, markCount, actType, uid } = mark
 
@@ -776,40 +776,40 @@ export const useChatStore = defineStore(
             }
           },
           {
-            customErrorMessage: '保存消息标记',
+            customErrorMessage: '메시지 마크 저장',
             errorType: ErrorType.Client
           }
         )
 
         const msgItem = currentMessageMap.value?.[String(msgId)]
         if (msgItem && msgItem.message.messageMarks) {
-          // 获取当前的标记状态，如果不存在则初始化
+          // 현재 마크 상태 가져오기, 없으면 초기화
           const currentMarkStat = msgItem.message.messageMarks[String(markType)] || {
             count: 0,
             userMarked: false
           }
 
-          // 根据动作类型更新计数和用户标记状态
-          // actType: 1表示确认(添加标记)，2表示取消(移除标记)
+          // 동작 유형에 따라 카운트 및 사용자 마크 상태 업데이트
+          // actType: 1은 확인(마크 추가), 2는 취소(마크 제거)
           if (actType === 1) {
-            // 添加标记
-            // 如果是当前用户的操作，设置userMarked为true
+            // 마크 추가
+            // 현재 사용자의 작업인 경우 userMarked를 true로 설정
             if (uid === userStore.userInfo!.uid) {
               currentMarkStat.userMarked = true
             }
-            // 更新计数
+            // 카운트 업데이트
             currentMarkStat.count = markCount
           } else if (actType === 2) {
-            // 取消标记
-            // 如果是当前用户的操作，设置userMarked为false
+            // 마크 취소
+            // 현재 사용자의 작업인 경우 userMarked를 false로 설정
             if (uid === userStore.userInfo!.uid) {
               currentMarkStat.userMarked = false
             }
-            // 更新计数
+            // 카운트 업데이트
             currentMarkStat.count = markCount
           }
 
-          // 更新messageMark对象
+          // messageMark 객체 업데이트
           msgItem.message.messageMarks[String(markType)] = currentMarkStat
         }
       }
@@ -821,9 +821,9 @@ export const useChatStore = defineStore(
       originalType?: number
       originalContent?: string
     }) => {
-      // 存储撤回的消息内容和时间
+      // 철회된 메시지 내용 및 시간 저장
       const recallTime = Date.now()
-      // 优先使用传入的 originalType 和 originalContent，避免竞态条件导致类型已被修改
+      // 전달된 originalType 및 originalContent 우선 사용, 경쟁 조건으로 인한 유형 수정 방지
       recalledMessages[data.msg.message.id] = {
         messageId: data.msg.message.id,
         content: data.originalContent ?? data.msg.message.body.content,
@@ -832,7 +832,7 @@ export const useChatStore = defineStore(
       }
 
       if (data.recallUid === userStore.userInfo!.uid) {
-        // 使用 Worker 来处理定时器
+        // Worker를 사용하여 타이머 처리
         timerWorker.postMessage({
           type: 'startTimer',
           msgId: data.msg.message.id,
@@ -840,11 +840,11 @@ export const useChatStore = defineStore(
         })
       }
 
-      // 记录这个消息ID已经有了定时器
+      // 이 메시지 ID에 이미 타이머가 있음을 기록
       expirationTimers[data.msg.message.id] = true
     }
 
-    // 更新消息撤回状态
+    // 메시지 철회 상태 업데이트
     const updateRecallMsg = async (data: RevokedMsgType) => {
       const { msgId } = data
       const roomIdFromPayload = data.roomId || currentMessageMap.value?.[msgId]?.message?.roomId
@@ -857,7 +857,7 @@ export const useChatStore = defineStore(
 
       if (message && typeof data.recallUid === 'string') {
         const currentUid = userStore.userInfo!.uid
-        // 被撤回消息的原始发送人
+        // 철회된 메시지의 원래 발신자
         const senderUid = message.fromUser.uid
 
         const isRecallerCurrentUser = data.recallUid === currentUid
@@ -869,41 +869,41 @@ export const useChatStore = defineStore(
         const isGroup = sessionType === RoomTypeEnum.GROUP
 
         if (isRecallerCurrentUser) {
-          // 当前用户是撤回操作执行者
+          // 현재 사용자가 철회 작업 수행자임
           if (data.recallUid === senderUid) {
-            // 自己的视角
-            recallMessageBody = '你撤回了一条消息'
+            // 자신의 관점
+            recallMessageBody = '메시지를 철회했습니다'
           } else {
-            // 撤回他人的消息
-            recallMessageBody = `你撤回了${senderName}的一条消息`
+            // 타인의 메시지 철회
+            recallMessageBody = `${senderName}님의 메시지를 철회했습니다`
           }
         } else {
-          // 当前用户不是撤回操作执行者
+          // 현재 사용자가 철회 작업 수행자가 아님
           if (isGroup) {
-            // 群聊下，展示撤回人昵称
-            const recallerLabel = recallerName || '对方'
+            // 그룹 채팅의 경우 철회자 닉네임 표시
+            const recallerLabel = recallerName || '상대방'
             if (isSenderCurrentUser) {
-              recallMessageBody = `${recallerLabel}撤回了你的一条消息`
+              recallMessageBody = `${recallerLabel}님이 당신의 메시지를 철회했습니다`
             } else {
-              recallMessageBody = `${recallerLabel}撤回了一条消息`
+              recallMessageBody = `${recallerLabel}님이 메시지를 철회했습니다`
             }
           } else {
-            // 非群聊保持原有单聊逻辑
+            // 비그룹 채팅은 기존 1:1 채팅 로직 유지
             if (isSenderCurrentUser) {
-              // 当前用户是被撤回消息的发送者（被撤回者视角）
-              recallMessageBody = '对方撤回了你的一条消息'
+              // 현재 사용자가 철회된 메시지의 발신자임 (철회 당한 사람 관점)
+              recallMessageBody = '상대방이 당신의 메시지를 철회했습니다'
             } else {
-              // 当前用户是旁观者（其他成员视角）
-              recallMessageBody = '对方撤回了一条消息'
+              // 현재 사용자는 관찰자임 (다른 멤버 관점)
+              recallMessageBody = '상대방이 메시지를 철회했습니다'
             }
           }
         }
 
-        // 更新前端缓存
+        // 프론트엔드 캐시 업데이트
         message.message.type = MsgEnum.RECALL
         message.message.body.content = recallMessageBody
 
-        // 同步更新 SQLite 数据库
+        // SQLite 데이터베이스 동기화 업데이트
         try {
           await invokeWithErrorHandler(
             TauriCommand.UPDATE_MESSAGE_RECALL_STATUS,
@@ -913,7 +913,7 @@ export const useChatStore = defineStore(
               messageBody: recallMessageBody
             },
             {
-              customErrorMessage: '更新撤回消息状态失败',
+              customErrorMessage: '철회 메시지 상태 업데이트 실패',
               errorType: ErrorType.Client
             }
           )
@@ -931,24 +931,24 @@ export const useChatStore = defineStore(
         useMitt.emit(MittEnum.UPDATE_SESSION_LAST_MSG, { roomId: resolvedRoomId })
       }
 
-      // 更新与这条撤回消息有关的消息
+      // 이 철회 메시지와 관련된 메시지 업데이트
       const messageList = currentReplyMap.value?.[msgId]
       if (messageList) {
         for (const id of messageList) {
           const msg = currentMessageMap.value?.[id]
           if (msg) {
-            msg.message.body.reply.body = '原消息已被撤回'
+            msg.message.body.reply.body = '원본 메시지가 철회되었습니다'
           }
         }
       }
     }
 
-    // 获取撤回消息
+    // 철회된 메시지 가져오기
     const getRecalledMessage = (msgId: string): RecalledMessage | undefined => {
       return recalledMessages[msgId]
     }
 
-    // 删除消息
+    // 메시지 삭제
     const deleteMsg = (msgId: string) => {
       if (currentMessageMap.value && msgId in currentMessageMap.value) {
         delete currentMessageMap.value[msgId]
@@ -983,7 +983,7 @@ export const useChatStore = defineStore(
       newMsgCount[roomId] = { count: 0, isStart: false }
     }
 
-    // 更新消息
+    // 메시지 업데이트
     const updateMsg = ({
       msgId,
       status,
@@ -1002,7 +1002,7 @@ export const useChatStore = defineStore(
       const msg = currentMessageMap.value?.[msgId]
       if (msg) {
         msg.message.status = status
-        // 只在 timeBlock 有值时才更新，避免覆盖原有值
+        // timeBlock에 값이 있을 때만 업데이트하여 기존 값 덮어쓰기 방지
         if (timeBlock !== undefined) {
           msg.timeBlock = timeBlock
         }
@@ -1013,13 +1013,13 @@ export const useChatStore = defineStore(
           msg.message.body = body
         }
         if (uploadProgress !== undefined) {
-          console.log(`更新消息进度: ${uploadProgress}% (消息ID: ${msgId})`)
-          // 确保响应式更新，创建新的消息对象
+          console.log(`메시지 진행률 업데이트: ${uploadProgress}% (메시지 ID: ${msgId})`)
+          // 반응형 업데이트 보장, 새 메시지 객체 생성
           const updatedMsg = { ...msg, uploadProgress }
           if (currentMessageMap.value) {
             currentMessageMap.value[msg.message.id] = updatedMsg
           }
-          // 强制触发响应式更新
+          // 반응형 업데이트 강제 트리거
           messageMap[globalStore.currentSessionRoomId] = { ...currentMessageMap.value }
         } else {
           if (currentMessageMap.value) {
@@ -1032,7 +1032,7 @@ export const useChatStore = defineStore(
       }
     }
 
-    // 标记已读数为 0
+    // 읽은 수를 0으로 표시
     const markSessionRead = (roomId: string) => {
       const session = resolveSessionByRoomId(roomId)
       if (!session) return
@@ -1041,17 +1041,17 @@ export const useChatStore = defineStore(
         return
       }
 
-      // 记录已读时的活跃时间，用于重登时识别陈旧未读
+      // 읽음 처리 시 활성 시간 기록, 재로그인 시 오래된 읽지 않음 식별에 사용
       const activeTime = session.activeTime || Date.now()
       lastReadActiveTime.value[roomId] = activeTime
       sessionUnreadStore.setLastRead(userStore.userInfo?.uid, roomId, activeTime)
 
       updateSession(roomId, { unreadCount: 0 })
-      // 立即刷新全局未读，避免等待防抖
+      // 전역 읽지 않은 수 즉시 새로 고침, 디바운스 대기 방지
       updateTotalUnreadCount()
     }
 
-    // 清理当前会话的未读（用于重连/重登后仍停留在该会话时的兜底）
+    // 현재 대화의 읽지 않음 정리 (재연결/재로그인 후에도 해당 대화에 머물러 있을 때의 폴백)
     const clearCurrentSessionUnread = async () => {
       const roomId = globalStore.currentSessionRoomId
       if (!roomId) return
@@ -1061,27 +1061,27 @@ export const useChatStore = defineStore(
       try {
         await markMsgRead(roomId)
       } catch (error) {
-        console.error('[chat] 补偿上报已读失败:', error)
+        console.error('[chat] 보상 읽음 보고 실패:', error)
       }
       markSessionRead(roomId)
     }
 
-    // 根据消息id获取消息体
+    // 메시지 ID로 메시지 본문 가져오기
     const getMessage = (messageId: string) => {
       return currentMessageMap.value?.[messageId]
     }
 
-    // 删除会话
+    // 대화 삭제
     const removeSession = (roomId: string) => {
       const session = resolveSessionByRoomId(roomId)
       if (session) {
-        // 从数组中删除
+        // 배열에서 삭제
         const index = sessionList.value.findIndex((s) => s.roomId === roomId)
         if (index !== -1) {
           sessionList.value.splice(index, 1)
         }
 
-        // 从 map 中删除
+        // map에서 삭제
         delete sessionMap.value[roomId]
         delete lastReadActiveTime.value[roomId]
         sessionUnreadStore.setLastRead(userStore.userInfo?.uid, roomId, 0)
@@ -1090,52 +1090,52 @@ export const useChatStore = defineStore(
           globalStore.updateCurrentSessionRoomId(sessionList.value[0].roomId)
         }
 
-        // 删除会话后更新未读计数
+        // 대화 삭제 후 읽지 않은 카운트 업데이트
         requestUnreadCountUpdate()
       }
       removeUnreadCountCache(roomId)
     }
 
-    // 监听 Worker 消息
+    // Worker 메시지 수신 대기
     timerWorker.onmessage = (e) => {
       const { type, msgId } = e.data
 
       if (type === 'timeout') {
-        console.log(`[Timeout] 消息ID: ${msgId} 已过期`)
+        console.log(`[Timeout] 메시지 ID: ${msgId} 만료됨`)
         delete recalledMessages[msgId]
         delete expirationTimers[msgId]
       } else if (type === 'allTimersCompleted') {
-        // 所有定时器都完成了，可以安全地清理资源
+        // 모든 타이머가 완료되었으므로 리소스를 안전하게 정리할 수 있음
         clearAllExpirationTimers()
         terminateWorker()
       }
     }
 
-    // 终止 worker
+    // worker 종료
     const terminateWorker = () => {
       timerWorker.terminate()
     }
 
-    // 清理所有定时器和撤回消息缓存
+    // 모든 타이머 및 철회 메시지 캐시 정리
     const clearAllExpirationTimers = () => {
       for (const msgId in expirationTimers) {
-        // 通知 worker 停止对应的定时器
+        // worker에 해당 타이머 중지 알림
         timerWorker.postMessage({
           type: 'clearTimer',
           msgId
         })
       }
-      // 清理 expirationTimers
+      // expirationTimers 정리
       for (const msgId in expirationTimers) {
         delete expirationTimers[msgId]
       }
-      // 同时清理 recalledMessages，避免内存累积
+      // recalledMessages도 정리하여 메모리 누적 방지
       for (const msgId in recalledMessages) {
         delete recalledMessages[msgId]
       }
     }
 
-    // 清理过期的撤回消息（超过2分钟的）
+    // 만료된 철회 메시지 정리 (2분 초과)
     const cleanupExpiredRecalledMessages = () => {
       const now = Date.now()
       for (const msgId in recalledMessages) {
@@ -1150,29 +1150,29 @@ export const useChatStore = defineStore(
       }
     }
 
-    // 更新未读消息计数
+    // 읽지 않은 메시지 카운트 업데이트
     const updateTotalUnreadCount = () => {
-      // 使用统一的计数管理器（包含朋友圈未读数）
+      // 통합 카운트 관리자 사용 (타임라인 읽지 않은 수 포함)
       unreadCountManager.calculateTotal(sessionList.value, globalStore.unReadMark, feedStore.unreadCount)
     }
 
-    // 设置计数管理器的更新回调
+    // 카운트 관리자 업데이트 콜백 설정
     unreadCountManager.setUpdateCallback(() => {
       unreadCountManager.calculateTotal(sessionList.value, globalStore.unReadMark, feedStore.unreadCount)
     })
 
-    // 使用防抖机制的更新函数
+    // 디바운스 메커니즘을 사용하는 업데이트 함수
     const requestUnreadCountUpdate = (sessionId?: string) => {
       unreadCountManager.requestUpdate(sessionId)
     }
 
-    // 清空所有会话的未读数
+    // 모든 대화의 읽지 않은 수 지우기
     const clearUnreadCount = () => {
       sessionList.value.forEach((session) => {
         session.unreadCount = 0
         persistUnreadCount(session.roomId, 0)
       })
-      // 更新全局未读数
+      // 전역 읽지 않은 수 업데이트
       requestUnreadCountUpdate()
     }
 
@@ -1180,7 +1180,7 @@ export const useChatStore = defineStore(
       const currentMessages = messageMap[roomId]
       if (!currentMessages) return
 
-      // 将消息转换为数组并按消息ID倒序排序，前面的元素代表最新的消息
+      // 메시지를 배열로 변환하고 메시지 ID 역순으로 정렬, 앞쪽 요소가 최신 메시지를 나타냄
       const sortedMessages = Object.values(currentMessages).sort((a, b) => Number(b.message.id) - Number(a.message.id))
 
       if (sortedMessages.length <= limit) {
@@ -1191,7 +1191,7 @@ export const useChatStore = defineStore(
       const keepMessageIds = new Set(keptMessages.map((msg) => msg.message.id))
       const fallbackCursor = keptMessages[keptMessages.length - 1]?.message.id || ''
 
-      // 删除多余的消息
+      // 불필요한 메시지 삭제
       for (const msgId in currentMessages) {
         if (!keepMessageIds.has(msgId)) {
           delete currentMessages[msgId]
@@ -1202,7 +1202,7 @@ export const useChatStore = defineStore(
         messageOptions[roomId] = { isLast: false, isLoading: false, cursor: '' }
       }
 
-      // 更新游标为当前内存里最旧的那条消息ID，确保后续「加载更多」能从数据库补齐更早的消息
+      // 커서를 현재 메모리에서 가장 오래된 메시지 ID로 업데이트하여 후속 '더 보기'가 데이터베이스에서 이전 메시지를 채울 수 있도록 함
       if (fallbackCursor) {
         messageOptions[roomId] = {
           ...messageOptions[roomId],
@@ -1211,7 +1211,7 @@ export const useChatStore = defineStore(
         }
       }
 
-      // 控制台提示裁剪信息，方便定位内存压缩触发点
+      // 콘솔에 자르기 정보 힌트, 메모리 압축 트리거 지점 찾기 용이
       console.info(
         '[chat][trim]',
         `roomId=${roomId}`,
@@ -1222,31 +1222,31 @@ export const useChatStore = defineStore(
     }
 
     /**
-     * 重置并刷新当前聊天室的消息列表
+     * 현재 채팅방 메시지 목록 초기화 및 새로 고침
      * @description
-     * 清空当前聊天室的所有本地消息缓存，并从服务器重新获取最新的消息列表。
-     * 主要用于需要强制刷新消息的场景，确保显示的是最新的服务器数据。
+     * 현재 채팅방의 모든 로컬 메시지 캐시를 지우고 서버에서 최신 메시지 목록을 다시 가져옵니다.
+     * 주로 메시지 강제 새로 고침이 필요한 시나리오에 사용되어 최신 서버 데이터가 표시되도록 합니다.
      */
     const resetAndRefreshCurrentRoomMessages = async () => {
       if (!globalStore.currentSessionRoomId) return
 
-      // 保存当前房间ID，用于后续比较
+      // 현재 방 ID 저장, 후속 비교용
       const requestRoomId = globalStore.currentSessionRoomId
 
       try {
-        // 1. 清空消息数据 避免竞态条件
+        // 1. 메시지 데이터 지우기, 경쟁 조건 방지
         if (messageMap[requestRoomId]) {
           messageMap[requestRoomId] = {}
         }
 
-        // 2. 重置消息加载状态，强制cursor为空以获取最新消息
+        // 2. 메시지 로딩 상태 재설정, 최신 메시지를 가져오기 위해 cursor를 강제로 비움
         messageOptions[requestRoomId] = {
           isLast: false,
           isLoading: true,
           cursor: ''
         }
 
-        // 3. 清空回复映射
+        // 3. 답장 매핑 지우기
         const currentReplyMapping = replyMapping[requestRoomId]
         if (currentReplyMapping) {
           for (const key in currentReplyMapping) {
@@ -1254,13 +1254,13 @@ export const useChatStore = defineStore(
           }
         }
 
-        // 4. 直接调用getPageMsg获取最新消息，强制使用空cursor
+        // 4. getPageMsg를 직접 호출하여 최신 메시지 가져오기, 빈 cursor 강제 사용
         await getPageMsg(pageSize, requestRoomId, '')
 
-        console.log('[Network] 已重置并刷新当前聊天室的消息列表')
+        console.log('[Network] 현재 채팅방 메시지 목록이 초기화 및 새로 고침되었습니다')
       } catch (error) {
-        console.error('[Network] 重置并刷新消息列表失败:', error)
-        // 如果获取失败，确保重置加载状态
+        console.error('[Network] 메시지 목록 초기화 및 새로 고침 실패:', error)
+        // 가져오기 실패 시 로딩 상태 재설정 보장
         if (globalStore.currentSessionRoomId === requestRoomId) {
           messageOptions[requestRoomId] = {
             isLast: false,
@@ -1271,7 +1271,7 @@ export const useChatStore = defineStore(
       }
     }
 
-    // 获取所有群组类型的会话
+    // 모든 그룹 유형의 대화 가져오기
     const getGroupSessions = () => {
       return sessionList.value.filter((session) => session.type === RoomTypeEnum.GROUP)
     }
@@ -1281,7 +1281,7 @@ export const useChatStore = defineStore(
       msgMultiChooseMode.value = flag ? mode : 'normal'
     }
 
-    // 重置所有会话选择状态
+    // 모든 대화 선택 상태 재설정
     const resetSessionSelection = () => {
       sessionList.value.forEach((session) => {
         session.isCheck = false

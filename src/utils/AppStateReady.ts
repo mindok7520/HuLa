@@ -2,14 +2,14 @@ import { listen } from '@tauri-apps/api/event'
 import { invoke } from '@tauri-apps/api/core'
 
 /**
- * 统一管理 后端状态是否可用 的判定，避免在AppData尚未注入时调用 tauri command。
- * 先通过 `is_app_state_ready` 查询一次，如果仍未就绪则监听 `app-state-ready` 事件再继续。
+ * 백엔드 상태가 사용 가능한지 통합 관리, AppData가 아직 주입되지 않았을 때 tauri command 호출 방지.
+ * 먼저 `is_app_state_ready`로 한 번 조회하고, 아직 준비되지 않았으면 `app-state-ready` 이벤트를 수신한 후 계속 진행.
  */
 let isReady = false
 let pendingPromise: Promise<void> | null = null
 
 /**
- * 等待一次后端广播的 ready 事件。事件触发后即解除监听，并允许后续调用直接读取缓存结果。
+ * 백엔드가 브로드캐스트하는 ready 이벤트를 한 번 대기. 이벤트 트리거 후 리스너를 해제하고, 이후 호출은 캐시된 결과를 직접 읽도록 허용.
  */
 const waitForReadyEvent = () =>
   new Promise<void>((resolve) => {
@@ -34,8 +34,8 @@ const waitForReadyEvent = () =>
   })
 
 /**
- * 确保在调用任何依赖后台状态的命令前，Rust 端已经完成初始化。
- * 如果前端在等待期间被多次调用，会复用同一个 Promise，避免重复监听。
+ * 백그라운드 상태에 의존하는 명령을 호출하기 전에 Rust 측이 초기화를 완료했는지 확인.
+ * 프론트엔드가 대기 중에 여러 번 호출되면 동일한 Promise를 재사용하여 중복 리스닝 방지.
  */
 export const ensureAppStateReady = async () => {
   if (isReady) {

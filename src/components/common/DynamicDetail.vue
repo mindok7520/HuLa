@@ -2,7 +2,7 @@
   <div
     class="max-w-full h-full overflow-y-auto overflow-x-hidden"
     :class="mode === 'mobile' ? 'p-16px bg-white' : 'p-24px bg-white rounded-8px'">
-    <!-- 加载状态 -->
+    <!-- 로딩 상태 -->
     <div v-if="loading" class="flex items-center justify-center h-full py-80px">
       <div class="flex flex-col items-center gap-16px">
         <div class="relative">
@@ -18,9 +18,9 @@
       </div>
     </div>
 
-    <!-- 动态详情内容 -->
+    <!-- 피드 상세 내용 -->
     <div v-else-if="feedDetail" class="w-full max-w-full overflow-hidden animate-fadeIn">
-      <!-- 头部 - 用户信息 -->
+      <!-- 헤더 - 사용자 정보 -->
       <div
         class="flex items-center gap-12px mb-20px p-16px rounded-12px bg-gradient-to-r from-#f8f9fa to-#ffffff border border-#e5e5e5 shadow-sm">
         <div class="relative">
@@ -45,7 +45,7 @@
         </div>
       </div>
 
-      <!-- 动态内容 -->
+      <!-- 피드 내용 -->
       <div class="relative">
         <div
           class="pl-20px pr-8px py-12px text-16px text-#333 leading-loose mb-20px whitespace-pre-wrap break-words bg-#fafafa rounded-8px border-l-4 border-#13987F/30">
@@ -53,9 +53,9 @@
         </div>
       </div>
 
-      <!-- 图片区域 -->
+      <!-- 이미지 영역 -->
       <div v-if="feedDetail.urls && feedDetail.urls.length > 0" class="mb-20px w-full max-w-full overflow-hidden">
-        <!-- 单张图片 -->
+        <!-- 단일 이미지 -->
         <div v-if="feedDetail.urls.length === 1" class="w-full max-w-full overflow-hidden group">
           <div class="relative rounded-12px overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300">
             <img
@@ -65,7 +65,7 @@
               @click.stop="handlePreviewImage(feedDetail.urls, 0)" />
             <div
               class="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-300 pointer-events-none"></div>
-            <!-- 查看大图提示 -->
+            <!-- 큰 이미지 보기 힌트 -->
             <div
               class="absolute bottom-12px right-12px bg-black/60 text-white px-12px py-6px rounded-full text-12px opacity-0 group-hover:opacity-100 transition-opacity duration-300 backdrop-blur-sm">
               <svg class="w-14px h-14px inline-block mr-4px" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -79,7 +79,7 @@
             </div>
           </div>
         </div>
-        <!-- 多张图片 - 九宫格布局 -->
+        <!-- 다중 이미지 - 그리드 레이아웃 -->
         <div
           v-else
           class="grid gap-8px w-full max-w-full"
@@ -96,7 +96,7 @@
               :alt="t('dynamic.common.image_alt')"
               class="w-full h-full object-cover block transform group-hover:scale-110 transition-transform duration-300" />
             <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300"></div>
-            <!-- 图片序号 -->
+            <!-- 이미지 번호 -->
             <div
               class="absolute top-8px right-8px bg-black/50 text-white w-24px h-24px rounded-full flex items-center justify-center text-12px font-600 backdrop-blur-sm">
               {{ idx + 1 }}
@@ -105,7 +105,7 @@
         </div>
       </div>
 
-      <!-- 视频区域 -->
+      <!-- 동영상 영역 -->
       <div
         v-else-if="feedDetail.videoUrl"
         class="mb-20px relative rounded-12px overflow-hidden cursor-pointer bg-gradient-to-br from-#f5f5f5 to-#e5e5e5 w-full max-w-full group shadow-lg hover:shadow-xl transition-all duration-300"
@@ -114,9 +114,9 @@
           :src="feedDetail.videoUrl"
           :alt="t('dynamic.common.video_alt')"
           class="w-full max-w-full h-auto max-h-500px object-contain block transform group-hover:scale-105 transition-transform duration-300" />
-        <!-- 遮罩层 -->
+        <!-- 마스크 레이어 -->
         <div class="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors duration-300"></div>
-        <!-- 播放图标 -->
+        <!-- 재생 아이콘 -->
         <div class="absolute inset-0 flex items-center justify-center">
           <div
             class="w-72px h-72px rounded-full bg-#13987F/90 flex items-center justify-center backdrop-blur-md shadow-2xl transform group-hover:scale-110 transition-all duration-300 ring-4 ring-white/30">
@@ -125,7 +125,7 @@
             </svg>
           </div>
         </div>
-        <!-- 视频标签 -->
+        <!-- 동영상 태그 -->
         <div
           class="absolute top-12px left-12px bg-black/60 text-white px-12px py-6px rounded-full text-12px font-500 backdrop-blur-sm flex items-center gap-6px">
           <svg class="w-14px h-14px" viewBox="0 0 24 24" fill="currentColor">
@@ -135,16 +135,16 @@
           </svg>
           {{ t('dynamic.detail.content.video_tag') }}
         </div>
-        <!-- 播放提示 -->
+        <!-- 재생 힌트 -->
         <div
           class="absolute bottom-12px right-12px bg-black/60 text-white px-12px py-6px rounded-full text-12px opacity-0 group-hover:opacity-100 transition-opacity duration-300 backdrop-blur-sm">
           {{ t('dynamic.detail.content.video_cta') }}
         </div>
       </div>
 
-      <!-- 底部操作栏 -->
+      <!-- 하단 작업 표시줄 -->
       <div class="pt-20px mt-20px border-t-2 border-#f0f0f0">
-        <!-- 点赞用户头像显示 - 固定高度防止闪烁 -->
+        <!-- 좋아요 사용자 아바타 표시 - 깜박임 방지 고정 높이 -->
         <div class="mb-16px min-h-48px flex items-center gap-8px">
           <span v-if="(feedDetail.likeList || []).length > 0" class="text-13px text-#999 font-500 flex-shrink-0">
             {{ t('dynamic.detail.stats.liked_by') }}
@@ -159,7 +159,7 @@
               :title="like.userName" />
           </div>
         </div>
-        <!-- 动态统计信息 - 固定高度防止闪烁 -->
+        <!-- 피드 통계 정보 - 깜박임 방지 고정 높이 -->
         <div class="flex items-center justify-between mb-16px text-13px text-#999 min-h-24px">
           <div class="flex items-center gap-16px">
             <div class="flex items-center gap-6px">
@@ -177,9 +177,9 @@
             </div>
           </div>
         </div>
-        <!-- 操作按钮 - 靠右对齐 - 固定高度防止闪烁 -->
+        <!-- 작업 버튼 - 오른쪽 정렬 - 깜박임 방지 고정 높이 -->
         <div class="flex items-center justify-end gap-8px h-40px">
-          <!-- 点赞按钮 -->
+          <!-- 좋아요 버튼 -->
           <div
             class="flex items-center justify-center gap-6px py-10px px-16px rounded-8px cursor-pointer transition-all duration-200"
             :class="feedDetail.hasLiked ? 'bg-#ff6b6b/10 text-#ff6b6b' : 'hover:bg-#f5f5f5 text-#666'"
@@ -191,7 +191,7 @@
               {{ feedDetail.hasLiked ? t('dynamic.detail.stats.liked') : t('dynamic.detail.stats.like') }}
             </span>
           </div>
-          <!-- 评论按钮 -->
+          <!-- 댓글 버튼 -->
           <div
             class="flex items-center justify-center gap-6px py-10px px-16px rounded-8px cursor-pointer hover:bg-#f5f5f5 transition-all duration-200 text-#666"
             @click.stop="showCommentInput = true">
@@ -200,7 +200,7 @@
             </svg>
             <span class="text-14px font-500">{{ t('dynamic.detail.actions.comment') }}</span>
           </div>
-          <!-- 更多操作 -->
+          <!-- 더보기 작업 -->
           <n-dropdown :options="getMoreOptions(feedDetail)" @select="handleMoreAction(feedDetail, $event)">
             <div
               class="flex items-center justify-center py-10px px-16px rounded-8px cursor-pointer hover:bg-#f5f5f5 transition-all duration-200 text-#666"
@@ -215,7 +215,7 @@
         </div>
       </div>
 
-      <!-- 评论列表 -->
+      <!-- 댓글 목록 -->
       <div v-if="commentList.length > 0" class="mt-20px pt-20px border-t-2 border-#f0f0f0">
         <div class="text-14px font-600 mb-16px text-#333">
           {{ t('dynamic.detail.stats.comments', { count: feedDetail.commentCount || 0 }) }}
@@ -229,7 +229,7 @@
                   <span class="text-13px font-500 text-#333">{{ getCommentUserName(comment) }}</span>
                   <span class="text-12px text-#999">{{ formatTimestamp(comment.createTime) }}</span>
                 </div>
-                <!-- 如果是回复评论，显示被回复人信息 -->
+                <!-- 대댓글인 경우 원본 댓글 작성자 정보 표시 -->
                 <div v-if="comment.replyUserName" class="text-12px text-#999 mb-4px">
                   {{ t('dynamic.detail.actions.reply') }}
                   <span class="font-500">{{ comment.replyUserName }}</span>
@@ -253,7 +253,7 @@
       </div>
     </div>
 
-    <!-- 空状态 -->
+    <!-- 빈 상태 -->
     <div v-else class="flex flex-col items-center justify-center h-full text-#999 py-80px">
       <svg class="w-80px h-80px mb-16px text-#d0d0d0" viewBox="0 0 24 24" fill="none" stroke="currentColor">
         <circle cx="12" cy="12" r="10" stroke-width="2" />
@@ -263,7 +263,7 @@
     </div>
   </div>
 
-  <!-- 底部评论输入框 -->
+  <!-- 하단 댓글 입력창 -->
   <n-modal
     v-model:show="showCommentInput"
     preset="dialog"
@@ -365,7 +365,7 @@ const handleMoreAction = async (feed: FeedItem, action: string) => {
         window.$message.success(t('dynamic.messages.delete_success'))
         window.history.back()
       } catch (error) {
-        console.error('删除动态失败:', error)
+        console.error('피드 삭제 실패:', error)
         window.$message.error(t('dynamic.messages.delete_fail'))
       }
       break
@@ -413,10 +413,10 @@ const handleToggleLike = async () => {
         }
       }
     } catch (error) {
-      console.error('获取点赞列表失败:', error)
+      console.error('좋아요 목록 가져오기 실패:', error)
     }
   } catch (error) {
-    console.error('点赞失败:', error)
+    console.error('좋아요 실패:', error)
     if (feedDetail.value) {
       feedDetail.value.hasLiked = !feedDetail.value.hasLiked
       feedDetail.value.likeCount = (feedDetail.value.likeCount || 0) + (feedDetail.value.hasLiked ? 1 : -1)
@@ -455,7 +455,7 @@ const handleSubmitComment = async () => {
 
     await loadCommentList()
   } catch (error) {
-    console.error('发表评论失败:', error)
+    console.error('댓글 게시 실패:', error)
     if (feedDetail.value) {
       feedDetail.value.commentCount = Math.max(0, (feedDetail.value.commentCount || 1) - 1)
     }
@@ -476,7 +476,7 @@ const handleDeleteComment = async (commentId: string) => {
     await feedStore.deleteComment(commentId, feedDetail.value.id)
     await loadCommentList()
   } catch (error) {
-    console.error('删除评论失败:', error)
+    console.error('댓글 삭제 실패:', error)
     window.$message.error(t('dynamic.messages.comment_delete_fail'))
   }
 }
@@ -491,7 +491,7 @@ const loadCommentList = async () => {
       feedDetail.value.commentList = commentListData
     }
   } catch (error) {
-    console.error('加载评论列表失败:', error)
+    console.error('댓글 목록 로드 실패:', error)
   }
 }
 
@@ -516,7 +516,7 @@ const fetchFeedDetail = async () => {
       await loadCommentList()
     }
   } catch (error) {
-    console.error('获取动态详情失败:', error)
+    console.error('피드 상세 정보 가져오기 실패:', error)
     window.$message.error(t('dynamic.messages.detail_fetch_fail'))
     feedDetail.value = null
   } finally {
@@ -566,7 +566,7 @@ watch(
   }
 }
 
-/* 心形图标填充效果 */
+/* 하트 아이콘 채우기 효과 */
 .heart-filled {
   fill: currentColor;
 }

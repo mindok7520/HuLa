@@ -5,40 +5,40 @@ import { useChatStore } from '../stores/chat'
 import { useGroupStore } from '../stores/group'
 
 /**
- * IM 请求参数接口
+ * IM 요청 매개변수 인터페이스
  */
 interface ImRequestParams {
-  /** API URL 枚举 */
+  /** API URL 열거형 */
   url: ImUrlEnum
-  /** 请求体数据 */
+  /** 요청 본문 데이터 */
   body?: any
-  /** 查询参数 */
+  /** 쿼리 매개변수 */
   params?: Record<string, any>
 }
 
 /**
- * IM 请求选项接口
+ * IM 요청 옵션 인터페이스
  */
 interface ImRequestOptions {
-  /** 是否显示错误提示，默认为 true */
+  /** 오류 팁 표시 여부, 기본값 true */
   showError?: boolean
-  /** 自定义错误消息 */
+  /** 사용자 정의 오류 메시지 */
   customErrorMessage?: string
-  /** 错误类型，默认为 Network */
+  /** 오류 유형, 기본값 Network */
   errorType?: ErrorType
-  /** 是否静默调用（不显示错误），默认为 false */
+  /** 조용한 호출 여부 (오류 표시 안 함), 기본값 false */
   silent?: boolean
-  /** 重试选项 */
+  /** 재시도 옵션 */
   retry?: {
-    /** 最大重试次数，默认为 3 */
+    /** 최대 재시도 횟수, 기본값 3 */
     maxRetries?: number
-    /** 重试间隔（毫秒），默认为 1000 */
+    /** 재시도 간격 (밀리초), 기본값 1000 */
     retryDelay?: number
   }
 }
 
 /**
- * 统一的 IM API 请求工具
+ * 통합 IM API 요청 도구
  */
 export async function imRequest<T = any>(
   requestParams: ImRequestParams,
@@ -46,14 +46,14 @@ export async function imRequest<T = any>(
 ): Promise<T> {
   const { retry, ...invokeOptions } = options || {}
 
-  // 构建调用参数
+  // 호출 인수 구성
   const args = {
     url: requestParams.url,
     body: requestParams.body || null,
     params: requestParams.params || null
   }
 
-  // 如果需要重试
+  // 재시도가 필요한 경우
   if (retry) {
     const { invokeWithRetry } = await import('@/utils/TauriInvokeHandler')
     return await invokeWithRetry<T>('im_request_command', args, {
@@ -63,7 +63,7 @@ export async function imRequest<T = any>(
     })
   }
 
-  // 普通调用
+  // 일반 호출
   return await invokeWithErrorHandler<T>('im_request_command', args, {
     ...invokeOptions,
     errorType: invokeOptions.errorType || ErrorType.Network
@@ -71,7 +71,7 @@ export async function imRequest<T = any>(
 }
 
 /**
- * 静默的 IM 请求（不显示错误提示）
+ * 조용한 IM 요청 (오류 팁 표시 안 함)
  *
  * @example
  * ```typescript
@@ -90,7 +90,7 @@ export async function imRequestSilent<T = any>(requestParams: ImRequestParams): 
 }
 
 /**
- * 带重试机制的 IM 请求
+ * 재시도 메커니즘이 포함된 IM 요청
  *
  * @example
  * ```typescript
@@ -120,7 +120,7 @@ export async function imRequestWithRetry<T = any>(
 }
 
 /**
- * 快捷方法：获取用户详情
+ * 바로가기 메서드: 사용자 상세 정보 가져오기
  */
 export async function getUserDetail() {
   return await imRequest({
@@ -129,7 +129,7 @@ export async function getUserDetail() {
 }
 
 /**
- * 快捷方法：获取群组详情
+ * 바로가기 메서드: 그룹 상세 정보 가져오기
  */
 export async function getGroupDetail(roomId: string) {
   return await imRequest({
@@ -139,7 +139,7 @@ export async function getGroupDetail(roomId: string) {
 }
 
 /**
- * 获取群组基础信息 [没进群的人、逻辑删除的群也可以查询]
+ * 그룹 기본 정보 가져오기 [그룹에 가입하지 않은 사람, 논리적으로 삭제된 그룹도 조회 가능]
  */
 export async function getGroupInfo(roomId: string) {
   return await imRequest({
@@ -149,7 +149,7 @@ export async function getGroupInfo(roomId: string) {
 }
 
 /**
- * 快捷方法：获取联系人列表
+ * 바로가기 메서드: 연락처 목록 가져오기
  */
 export async function getContactList(options?: { pageSize?: number; cursor?: string }) {
   return await imRequest({
@@ -162,7 +162,7 @@ export async function getContactList(options?: { pageSize?: number; cursor?: str
 }
 
 /**
- * 获取通知未读数
+ * 알림 읽지 않은 수 가져오기
  */
 export async function getNoticeUnreadCount() {
   return await imRequestSilent({
@@ -171,7 +171,7 @@ export async function getNoticeUnreadCount() {
 }
 
 /**
- * 快捷方法：获取群公告列表
+ * 바로가기 메서드: 그룹 공지 목록 가져오기
  */
 export async function getAnnouncementList(roomId: string, page: number, pageSize: number = 10) {
   return await imRequest({
@@ -475,7 +475,7 @@ export async function updateRoomInfo(body: { id: string; name?: string; avatar?:
   chatStore.updateSession(body.id, body)
   groupStore.updateGroupDetail(body.id, body)
 
-  window.$message.success('更新成功')
+  window.$message.success('업데이트 성공')
 }
 
 export async function updateMyRoomInfo(body: { id: string; myName: string; remark: string }) {
@@ -558,7 +558,7 @@ export async function getQiniuToken(params?: { scene?: string; fileName?: string
   })
 }
 
-/** 获取默认上传提供者 */
+/** 기본 업로드 제공자 가져오기 */
 let __uploadProviderCache: { provider: 'qiniu' | 'minio' } | null = null
 let __uploadProviderPending: Promise<{ provider: 'qiniu' | 'minio' }> | null = null
 
@@ -647,7 +647,7 @@ export async function checkQRStatus(params: {
   )
 }
 
-// 扫描二维码
+// QR 코드 스캔
 export async function scanQRCodeAPI(data: { qrId: string }) {
   return await imRequest({
     url: ImUrlEnum.SCAN_QR_CODE,
@@ -655,7 +655,7 @@ export async function scanQRCodeAPI(data: { qrId: string }) {
   })
 }
 
-// 确认登录
+// 로그인 확인
 export async function confirmQRCodeAPI(data: { qrId: string }) {
   return await imRequest({
     url: ImUrlEnum.CONFIRM_QR_CODE,
@@ -663,7 +663,7 @@ export async function confirmQRCodeAPI(data: { qrId: string }) {
   })
 }
 
-// 查看单条朋友圈
+// 단일 모멘트 보기
 export async function feedDetail(params: { feedId: string }) {
   return await imRequest({
     url: ImUrlEnum.FEED_DETAIL,
@@ -679,13 +679,13 @@ export async function feedList(data: { pageSize?: number; cursor?: string }) {
 }
 
 export async function pushFeed(data: {
-  content: string // 朋友圈文案
-  mediaType: 0 | 1 | 2 // 媒体类型, 0-纯文本内容,1-图片加内容,2-视频加内容
-  urls?: string[] // 图片URL列表
-  videoUrl?: string // 视频URL
-  permission: 'privacy' | 'open' | 'partVisible' | 'notAnyone' // 可见性权限
-  uidList?: number[] // 权限限制的用户ID列表
-  targetIds?: number[] // 权限限制的标签ID列表
+  content: string // 모멘트 내용
+  mediaType: 0 | 1 | 2 // 미디어 유형, 0-일반 텍스트, 1-이미지+내용, 2-비디오+내용
+  urls?: string[] // 이미지 URL 목록
+  videoUrl?: string // 비디오 URL
+  permission: 'privacy' | 'open' | 'partVisible' | 'notAnyone' // 공개 권한
+  uidList?: number[] // 권한 제한 사용자 ID 목록
+  targetIds?: number[] // 권한 제한 태그 ID 목록
 }) {
   return await imRequest({
     url: ImUrlEnum.PUSH_FEED,
@@ -701,14 +701,14 @@ export async function delFeed(data: { feedId: string }) {
 }
 
 export async function editFeed(data: {
-  id: number // 朋友圈ID
-  content: string // 朋友圈文案
-  mediaType: 0 | 1 | 2 // 媒体类型
-  urls?: string[] // 图片URL列表
-  videoUrl?: string // 视频URL
-  permission: 'privacy' | 'open' | 'partVisible' | 'notAnyone' // 可见性权限
-  uidList?: number[] // 权限限制的用户ID列表
-  targetIds?: number[] // 权限限制的标签ID列表
+  id: number // 모멘트 ID
+  content: string // 모멘트 내용
+  mediaType: 0 | 1 | 2 // 미디어 유형
+  urls?: string[] // 이미지 URL 목록
+  videoUrl?: string // 비디오 URL
+  permission: 'privacy' | 'open' | 'partVisible' | 'notAnyone' // 공개 권한
+  uidList?: number[] // 권한 제한 사용자 ID 목록
+  targetIds?: number[] // 권한 제한 태그 ID 목록
 }) {
   return await imRequest({
     url: ImUrlEnum.EDIT_FEED,
@@ -723,7 +723,7 @@ export async function getFeedPermission(params: { feedId: string }) {
   })
 }
 
-// ==================== 朋友圈点赞相关 ====================
+// ==================== 모멘트 좋아요 관련 ====================
 
 export async function feedLikeToggle(data: { feedId: string; actType: number }) {
   return await imRequest({
@@ -753,7 +753,7 @@ export async function feedLikeHasLiked(params: { feedId: string }) {
   })
 }
 
-// ==================== 朋友圈评论相关 ====================
+// ==================== 모멘트 댓글 관련 ====================
 
 export async function feedCommentAdd(data: {
   feedId: string
@@ -796,7 +796,7 @@ export async function feedCommentAll(params: { feedId: string }) {
 }
 
 /**
- * SSE 流式数据事件类型
+ * SSE 스트림 데이터 이벤트 유형
  */
 interface SseStreamEvent {
   eventType: 'chunk' | 'done' | 'error'
@@ -806,7 +806,7 @@ interface SseStreamEvent {
 }
 
 /**
- * 流式数据回调函数
+ * 스트림 데이터 콜백 함수
  */
 export interface StreamCallbacks {
   onChunk?: (chunk: string) => void
@@ -815,12 +815,12 @@ export interface StreamCallbacks {
 }
 
 /**
- * 发送AI消息（流式）
- * 使用 Promise 包装整个 SSE 流程，监听 Tauri 事件接收流式数据
+ * AI 메시지 전송 (스트림)
+ * Promise로 SSE 흐름 전체를 래핑, Tauri 이벤트를 수신하여 스트림 데이터 수신
  *
- * @param body 请求参数
- * @param callbacks 流式数据回调函数
- * @returns Promise，在流结束后 resolve 完整内容
+ * @param body 요청 파라미터
+ * @param callbacks 스트림 데이터 콜백 함수
+ * @returns Promise, 스트림 종료 후 전체 내용을 resolve
  */
 export async function messageSendStream(
   body: { conversationId: string; content: string; useContext?: boolean; reasoningEnabled?: boolean },
@@ -829,19 +829,19 @@ export async function messageSendStream(
   const { invoke, Channel } = await import('@tauri-apps/api/core')
   const { TauriCommand } = await import('@/enums')
 
-  // 生成唯一的请求 ID
+  // 고유한 요청 ID 생성
   const requestId = `ai-stream-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
 
   return new Promise<string>((resolve, reject) => {
     let fullContent = ''
     let isResolved = false
 
-    // 创建 Channel 用于接收流式事件
+    // 스트림 이벤트를 수신하기 위한 Channel 생성
     const onEvent = new Channel<SseStreamEvent>()
     onEvent.onmessage = (event: SseStreamEvent) => {
       const { eventType, data, error, requestId: eventRequestId } = event
 
-      // 只处理当前请求的事件
+      // 현재 요청의 이벤트만 처리
       if (eventRequestId !== requestId) {
         return
       }
@@ -866,7 +866,7 @@ export async function messageSendStream(
         case 'error':
           if (!isResolved) {
             isResolved = true
-            const errorMsg = error || '未知错误'
+            const errorMsg = error || '알 수 없는 오류'
             callbacks?.onError?.(errorMsg)
             reject(new Error(errorMsg))
           }
@@ -874,7 +874,7 @@ export async function messageSendStream(
       }
     }
 
-    // 调用 Rust 后端命令发送请求
+    // Rust 백엔드 명령을 호출하여 요청 전송
     invoke(TauriCommand.AI_MESSAGE_SEND_STREAM, {
       body,
       requestId,
@@ -890,7 +890,7 @@ export async function messageSendStream(
   })
 }
 
-// 获得指定对话的消息列表
+// 지정된 대화의 메시지 목록 가져오기
 export async function messageListByConversationId(params: {
   conversationId: string
   pageNo?: number
@@ -902,7 +902,7 @@ export async function messageListByConversationId(params: {
   })
 }
 
-// 删除单条消息
+// 단일 메시지 삭제
 export async function messageDelete(params: { id: string }) {
   return await imRequest({
     url: ImUrlEnum.MESSAGE_DELETE,
@@ -910,7 +910,7 @@ export async function messageDelete(params: { id: string }) {
   })
 }
 
-// 删除指定对话的消息
+// 지정된 대화의 메시지 삭제
 export async function messageDeleteByConversationId(body: { conversationIdList: string[] }) {
   return await imRequest({
     url: ImUrlEnum.MESSAGE_DELETE_BY_CONVERSATION_ID,
@@ -918,7 +918,7 @@ export async function messageDeleteByConversationId(body: { conversationIdList: 
   })
 }
 
-// 获取会话列表（我的）
+// 대화 목록 가져오기 (내 대화)
 export async function conversationPage(params?: { pageNo?: number; pageSize?: number }) {
   return await imRequest({
     url: ImUrlEnum.CONVERSATION_PAGE,
@@ -926,7 +926,7 @@ export async function conversationPage(params?: { pageNo?: number; pageSize?: nu
   })
 }
 
-// 获得【我的】聊天对话
+// [내 대화] 채팅 대화 가져오기
 export async function conversationGetMy(params?: { id: string }) {
   return await imRequest({
     url: ImUrlEnum.CONVERSATION_GET_MY,
@@ -934,7 +934,7 @@ export async function conversationGetMy(params?: { id: string }) {
   })
 }
 
-// 创建会话（我的）
+// 대화 생성 (내 대화)
 export async function conversationCreateMy(body: {
   roleId?: string
   knowledgeId?: string
@@ -951,7 +951,7 @@ export async function conversationCreateMy(body: {
   })
 }
 
-// 更新会话（我的）
+// 대화 업데이트 (내 대화)
 export async function conversationUpdateMy(body: {
   id: string
   title?: string
@@ -970,7 +970,7 @@ export async function conversationUpdateMy(body: {
   })
 }
 
-// 删除会话（我的）- 支持批量删除
+// 대화 삭제 (내 대화) - 일괄 삭제 지원
 export async function conversationDeleteMy(body: { conversationIdList: string[] }) {
   return await imRequest({
     url: ImUrlEnum.CONVERSATION_DELETE_MY,
@@ -978,7 +978,7 @@ export async function conversationDeleteMy(body: { conversationIdList: string[] 
   })
 }
 
-// 模型页面
+// 모델 페이지
 export async function modelPage(params?: { pageNo?: number; pageSize?: number }) {
   return await imRequest({
     url: ImUrlEnum.MODEL_PAGE,
@@ -986,7 +986,7 @@ export async function modelPage(params?: { pageNo?: number; pageSize?: number })
   })
 }
 
-// 更新模型
+// 모델 업데이트
 export async function modelUpdate(body: {
   id?: string
   keyId: string
@@ -1008,7 +1008,7 @@ export async function modelUpdate(body: {
   })
 }
 
-// 删除模型
+// 모델 삭제
 export async function modelDelete(params: { id: string }) {
   return await imRequest({
     url: ImUrlEnum.MODEL_DELETE,
@@ -1016,7 +1016,7 @@ export async function modelDelete(params: { id: string }) {
   })
 }
 
-// ==================== AI 图片生成 ====================
+// ==================== AI 이미지 생성 ====================
 
 export async function imageMyPage(params?: { pageNo?: number; pageSize?: number; prompt?: string; status?: number }) {
   return await imRequest({
@@ -1032,7 +1032,7 @@ export async function imageGet(params: { id: string }) {
   })
 }
 
-// 生成图片
+// 이미지 생성
 export async function imageDraw(body: {
   modelId: string
   prompt: string
@@ -1047,7 +1047,7 @@ export async function imageDraw(body: {
   })
 }
 
-// 根据ID列表获取【我的】图片记录
+// ID 목록으로 [내] 이미지 기록 가져오기
 export async function imageMyListByIds(params: { ids: string }) {
   return await imRequest({
     url: ImUrlEnum.IMAGE_MY_LIST_BY_IDS,
@@ -1055,7 +1055,7 @@ export async function imageMyListByIds(params: { ids: string }) {
   })
 }
 
-// 删除【我的】图片记录
+// [내] 이미지 기록 삭제
 export async function imageDeleteMy(params: { id: string }) {
   return await imRequest({
     url: ImUrlEnum.IMAGE_DELETE_MY,
@@ -1063,9 +1063,9 @@ export async function imageDeleteMy(params: { id: string }) {
   })
 }
 
-// ==================== AI 视频生成 ====================
+// ==================== AI 비디오 생성 ====================
 
-// 获取【我的】视频生成分页
+// [내] 비디오 생성 페이지 가져오기
 export async function videoMyPage(params?: { pageNo?: number; pageSize?: number; prompt?: string; status?: number }) {
   return await imRequest({
     url: ImUrlEnum.VIDEO_MY_PAGE,
@@ -1073,7 +1073,7 @@ export async function videoMyPage(params?: { pageNo?: number; pageSize?: number;
   })
 }
 
-// 获取【我的】视频生成记录
+// [내] 비디오 생성 기록 가져오기
 export async function videoGet(params: { id: string }) {
   return await imRequest({
     url: ImUrlEnum.VIDEO_GET,
@@ -1081,7 +1081,7 @@ export async function videoGet(params: { id: string }) {
   })
 }
 
-// 根据ID列表获取【我的】视频记录
+// ID 목록으로 [내] 비디오 기록 가져오기
 export async function videoMyListByIds(params: { ids: string }) {
   return await imRequest({
     url: ImUrlEnum.VIDEO_MY_LIST_BY_IDS,
@@ -1089,7 +1089,7 @@ export async function videoMyListByIds(params: { ids: string }) {
   })
 }
 
-// 生成视频
+// 비디오 생성
 export async function videoGenerate(body: {
   modelId: string
   prompt: string
@@ -1104,7 +1104,7 @@ export async function videoGenerate(body: {
   })
 }
 
-// 删除【我的】视频记录
+// [내] 비디오 기록 삭제
 export async function videoDeleteMy(params: { id: string }) {
   return await imRequest({
     url: ImUrlEnum.VIDEO_DELETE_MY,
@@ -1112,9 +1112,9 @@ export async function videoDeleteMy(params: { id: string }) {
   })
 }
 
-// ==================== API 密钥管理 ====================
+// ==================== API 키 관리 ====================
 
-// API 密钥分页列表
+// API 키 페이지 목록
 export async function apiKeyPage(params?: { pageNo?: number; pageSize?: number }) {
   return await imRequest({
     url: ImUrlEnum.API_KEY_PAGE,
@@ -1122,14 +1122,14 @@ export async function apiKeyPage(params?: { pageNo?: number; pageSize?: number }
   })
 }
 
-// API 密钥简单列表（用于下拉选择）
+// API 키 간단 목록 (드롭다운 선택용)
 export async function apiKeySimpleList() {
   return await imRequest({
     url: ImUrlEnum.API_KEY_SIMPLE_LIST
   })
 }
 
-// 创建 API 密钥
+// API 키 생성
 export async function apiKeyCreate(body: {
   name: string
   apiKey: string
@@ -1143,7 +1143,7 @@ export async function apiKeyCreate(body: {
   })
 }
 
-// 更新 API 密钥
+// API 키 업데이트
 export async function apiKeyUpdate(body: {
   id: string
   name: string
@@ -1158,7 +1158,7 @@ export async function apiKeyUpdate(body: {
   })
 }
 
-// 删除 API 密钥
+// API 키 삭제
 export async function apiKeyDelete(params: { id: string }) {
   return await imRequest({
     url: ImUrlEnum.API_KEY_DELETE,
@@ -1166,14 +1166,14 @@ export async function apiKeyDelete(params: { id: string }) {
   })
 }
 
-// 获取平台列表
+// 플랫폼 목록 가져오기
 export async function platformList() {
   return await imRequest({
     url: ImUrlEnum.PLATFORM_LIST
   })
 }
 
-// 添加平台模型到示例列表
+// 플랫폼 모델을 예제 목록에 추가
 export async function platformAddModel(platform: string, model: string) {
   return await imRequest({
     url: ImUrlEnum.PLATFORM_ADD_MODEL,
@@ -1181,7 +1181,7 @@ export async function platformAddModel(platform: string, model: string) {
   })
 }
 
-// 查询 API 密钥余额
+// API 키 잔액 조회
 export async function apiKeyBalance(params: { id: string }) {
   return await imRequest({
     url: ImUrlEnum.API_KEY_BALANCE,
@@ -1189,9 +1189,9 @@ export async function apiKeyBalance(params: { id: string }) {
   })
 }
 
-// ==================== 聊天角色管理 ====================
+// ==================== 채팅 역할 관리 ====================
 
-// 聊天角色分页列表
+// 채팅 역할 페이지 목록
 export async function chatRolePage(params?: { pageNo?: number; pageSize?: number }) {
   return await imRequest({
     url: ImUrlEnum.CHAT_ROLE_PAGE,
@@ -1199,14 +1199,14 @@ export async function chatRolePage(params?: { pageNo?: number; pageSize?: number
   })
 }
 
-// 聊天角色类别列表
+// 채팅 역할 카테고리 목록
 export async function chatRoleCategoryList() {
   return await imRequest({
     url: ImUrlEnum.CHAT_ROLE_CATEGORY_LIST
   })
 }
 
-// 创建聊天角色
+// 채팅 역할 생성
 export async function chatRoleCreate(body: {
   modelId?: string
   name: string
@@ -1226,7 +1226,7 @@ export async function chatRoleCreate(body: {
   })
 }
 
-// 更新聊天角色
+// 채팅 역할 업데이트
 export async function chatRoleUpdate(body: {
   id: string
   modelId?: string
@@ -1247,7 +1247,7 @@ export async function chatRoleUpdate(body: {
   })
 }
 
-// 删除聊天角色
+// 채팅 역할 삭제
 export async function chatRoleDelete(params: { id: string }) {
   return await imRequest({
     url: ImUrlEnum.CHAT_ROLE_DELETE,
@@ -1255,9 +1255,9 @@ export async function chatRoleDelete(params: { id: string }) {
   })
 }
 
-// ==================== AI 音频生成 ====================
+// ==================== AI 오디오 생성 ====================
 
-// 生成音频
+// 오디오 생성
 export async function audioGenerate(body: {
   modelId: number
   prompt: string
@@ -1270,7 +1270,7 @@ export async function audioGenerate(body: {
   })
 }
 
-// 获取我的音频列表（根据ID列表）
+// 내 오디오 목록 가져오기 (ID 목록 기준)
 export async function audioMyListByIds(params: { ids: string }) {
   return await imRequest({
     url: ImUrlEnum.AUDIO_MY_LIST_BY_IDS,
@@ -1278,7 +1278,7 @@ export async function audioMyListByIds(params: { ids: string }) {
   })
 }
 
-// 获取我的音频分页
+// 내 오디오 페이지 가져오기
 export async function audioMyPage(params?: { pageNo?: number; pageSize?: number }) {
   return await imRequest({
     url: ImUrlEnum.AUDIO_MY_PAGE,
@@ -1286,7 +1286,7 @@ export async function audioMyPage(params?: { pageNo?: number; pageSize?: number 
   })
 }
 
-// 获取我的单个音频
+// 내 단일 오디오 가져오기
 export async function audioGetMy(params: { id: string }) {
   return await imRequest({
     url: ImUrlEnum.AUDIO_GET_MY,
@@ -1294,7 +1294,7 @@ export async function audioGetMy(params: { id: string }) {
   })
 }
 
-// 删除我的音频
+// 내 오디오 삭제
 export async function audioDeleteMy(params: { id: string }) {
   return await imRequest({
     url: ImUrlEnum.AUDIO_DELETE_MY,
@@ -1302,7 +1302,7 @@ export async function audioDeleteMy(params: { id: string }) {
   })
 }
 
-// 获取指定模型支持的声音列表
+// 지정된 모델이 지원하는 음성 목록 가져오기
 export async function audioGetVoices(params: { model: string }): Promise<string[]> {
   return await imRequest({
     url: ImUrlEnum.AUDIO_VOICES,
@@ -1310,7 +1310,7 @@ export async function audioGetVoices(params: { model: string }): Promise<string[
   })
 }
 
-// 保存生成内容消息（用于音频、图片、视频等生成功能）
+// 생성된 콘텐츠 메시지 저장 (오디오, 이미지, 비디오 등 생성 기능용)
 export async function messageSaveGeneratedContent(params: {
   conversationId: string
   prompt: string

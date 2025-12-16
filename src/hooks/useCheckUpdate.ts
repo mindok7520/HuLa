@@ -6,20 +6,20 @@ import { useMitt } from './useMitt'
 import { isMobile } from '@/utils/PlatformConstants'
 
 /**
- * 检查更新
+ * 업데이트 확인
  */
 export const useCheckUpdate = () => {
   const settingStore = useSettingStore()
-  // 检查更新周期
+  // 업데이트 확인 주기
   const CHECK_UPDATE_TIME = 30 * 60 * 1000
-  // 在未登录情况下缩短检查周期
+  // 로그인되지 않은 경우 확인 주기 단축
   const CHECK_UPDATE_LOGIN_TIME = 5 * 60 * 1000
   const isProduction = import.meta.env.PROD && !isMobile()
 
   /**
-   * 检查更新
-   * @param closeWin 需要关闭的窗口
-   * @param initialCheck 是否是初始检查，默认为false。初始检查时只显示强制更新提示，不显示普通更新提示
+   * 업데이트 확인
+   * @param closeWin 닫아야 할 창
+   * @param initialCheck 초기 확인 여부, 기본값은 false. 초기 확인 시 강제 업데이트 프롬프트만 표시하고 일반 업데이트 프롬프트는 표시하지 않음
    */
   const checkUpdate = async (closeWin: string, initialCheck: boolean = false) => {
     await check()
@@ -47,7 +47,7 @@ export const useCheckUpdate = () => {
         if (requireForceUpdate) {
           useMitt.emit(MittEnum.DO_UPDATE, { close: closeWin })
         } else if (newVersion !== currenVersion && settingStore.update.dismiss !== newVersion && !initialCheck) {
-          // 只在非初始检查时显示普通更新提示
+          // 초기 확인이 아닐 때만 일반 업데이트 프롬프트 표시
           useMitt.emit(MittEnum.CHECK_UPDATE)
         }
       })

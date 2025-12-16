@@ -33,7 +33,7 @@
               <span class="text-(10px #707070)">{{ onlineCount }}/{{ contactStore.contactsList.length }}</span>
             </template>
             <n-scrollbar style="max-height: calc(100vh / var(--page-scale, 1) - 270px)">
-              <!-- 用户框 多套一层div来移除默认的右键事件然后覆盖掉因为margin空隙而导致右键可用 -->
+              <!-- 사용자 상자: 기본 우클릭 이벤트를 제거하고 여백으로 인해 우클릭이 가능한 문제를 덮어쓰기 위해 div로 한 번 더 감쌈 -->
               <div @contextmenu.stop="$event.preventDefault()">
                 <n-flex
                   :size="10"
@@ -139,7 +139,7 @@ const menuList = computed(() => [
   { label: t('home.friends_list.menu.rename_group'), icon: 'edit' },
   { label: t('home.friends_list.menu.delete_group'), icon: 'delete' }
 ])
-/** 建议把此状态存入localStorage中 */
+/** 이 상태를 localStorage에 저장하는 것이 좋습니다 */
 const activeItem = ref('')
 const detailsShow = ref(false)
 const shrinkStatus = ref(false)
@@ -152,20 +152,20 @@ const settingStore = useSettingStore()
 const { themes } = storeToRefs(settingStore)
 const { stateList } = storeToRefs(userStatusStore)
 
-/** 群聊列表 */
+/** 그룹 채팅 목록 */
 const groupChatList = computed(() => {
   return [...groupStore.groupDetails].sort((a, b) => {
-    // 将roomId为'1'的群聊排在最前面
+    // roomId가 '1'인 그룹 채팅을 맨 앞에 배치
     if (a.roomId === '1' && b.roomId !== '1') return -1
     if (a.roomId !== '1' && b.roomId === '1') return 1
     return 0
   })
 })
-/** 统计在线用户人数 */
+/** 온라인 사용자 수 통계 */
 const onlineCount = computed(() => {
   return contactStore.contactsList.filter((item) => item.activeStatus === OnlineEnum.ONLINE).length
 })
-/** 排序好友列表 */
+/** 친구 목록 정렬 */
 const sortedContacts = computed(() => {
   return [...contactStore.contactsList].sort((a, b) => {
     const aIsBot = isBotUser(a.uid)
@@ -190,7 +190,7 @@ const handleClick = (index: string, type: number) => {
   }
   useMitt.emit(MittEnum.DETAILS_SHOW, data)
 }
-// todo 需要循环数组来展示分组
+// todo 그룹을 표시하기 위해 배열을 순회해야 함
 const showMenu = (event: MouseEvent) => {
   console.log(event)
 }
@@ -209,10 +209,10 @@ const resetSelection = () => {
 }
 
 const handleApply = async (applyType: 'friend' | 'group') => {
-  // 刷新好友申请列表
+  // 친구 신청 목록 새로 고침
   await contactStore.getApplyPage(applyType, true, true)
 
-  // 更新未读数
+  // 읽지 않음 수 업데이트
   if (applyType === 'friend') {
     globalStore.unReadMark.newFriendUnreadCount = 0
   } else {
@@ -229,18 +229,18 @@ const handleApply = async (applyType: 'friend' | 'group') => {
   activeItem.value = ''
 }
 
-/** 获取联系人数据 */
+/** 연락처 데이터 가져오기 */
 const fetchContactData = async () => {
   try {
-    // 同时获取好友列表和群聊列表
+    // 친구 목록과 그룹 채팅 목록 동시에 가져오기
     await Promise.all([contactStore.getContactList()])
   } catch (error) {
-    console.error('获取联系人数据失败:', error)
+    console.error('연락처 데이터 가져오기 실패:', error)
   }
 }
 
 const isBotUser = (uid: string) => groupStore.getUserInfo(uid)?.account === UserType.BOT
-/** 获取用户状态 */
+/** 사용자 상태 가져오기 */
 const getUserState = (uid: string) => {
   const userInfo = groupStore.getUserInfo(uid)
   const userStateId = userInfo?.userStateId
@@ -258,7 +258,7 @@ const translateStateTitle = (title?: string) => {
   return translated === key ? title : translated
 }
 
-/** 监听路由变化，当切换到消息页面时重置选中状态 */
+/** 라우팅 변경 감지, 메시지 페이지로 전환 시 선택 상태 초기화 */
 watch(
   () => route.path,
   (newPath) => {
@@ -269,7 +269,7 @@ watch(
   { immediate: false }
 )
 
-/** 组件挂载时获取数据 */
+/** 컴포넌트 마운트 시 데이터 가져오기 */
 onMounted(async () => {
   useMitt.on(MittEnum.SHRINK_WINDOW, async (event) => {
     shrinkStatus.value = event as boolean

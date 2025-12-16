@@ -2,7 +2,7 @@
   <n-modal
     v-model:show="showModal"
     preset="card"
-    title="API 密钥管理"
+    title="API 키 관리"
     style="width: 900px"
     :bordered="false"
     :segmented="{ content: 'soft', footer: 'soft' }">
@@ -11,19 +11,19 @@
         <template #icon>
           <Icon icon="mdi:plus" />
         </template>
-        新增密钥
+        키 추가
       </n-button>
     </template>
 
-    <!-- 密钥列表 -->
+    <!-- 키 목록 -->
     <n-spin :show="loading">
       <div v-if="apiKeyList.length === 0" class="empty-container">
-        <n-empty description="暂无 API 密钥" size="large">
+        <n-empty description="API 키 없음" size="large">
           <template #icon>
             <Icon icon="mdi:key-variant" class="text-48px color-#909090" />
           </template>
           <template #extra>
-            <n-button type="primary" @click="handleAdd">新增第一个密钥</n-button>
+            <n-button type="primary" @click="handleAdd">첫 번째 키 추가</n-button>
           </template>
         </n-empty>
       </div>
@@ -37,19 +37,19 @@
                 <n-flex align="center" :size="8">
                   <span class="api-key-name">{{ apiKey.name }}</span>
                   <n-tag :type="apiKey.status === 0 ? 'success' : 'error'" size="small">
-                    {{ apiKey.status === 0 ? '可用' : '不可用' }}
+                    {{ apiKey.status === 0 ? '사용 가능' : '사용 불가' }}
                   </n-tag>
-                  <n-tag v-if="apiKey.publicStatus" type="info" size="small">公开</n-tag>
-                  <n-tag v-else type="warning" size="small">私有</n-tag>
+                  <n-tag v-if="apiKey.publicStatus" type="info" size="small">공개</n-tag>
+                  <n-tag v-else type="warning" size="small">비공개</n-tag>
                 </n-flex>
                 <div class="api-key-meta">
-                  <span class="meta-item">平台: {{ apiKey.platform }}</span>
-                  <span class="meta-item">密钥: {{ maskApiKey(apiKey.apiKey) }}</span>
+                  <span class="meta-item">플랫폼: {{ apiKey.platform }}</span>
+                  <span class="meta-item">키: {{ maskApiKey(apiKey.apiKey) }}</span>
                 </div>
               </div>
             </n-flex>
             <n-flex :size="8">
-              <!-- 查询余额按钮 -->
+              <!-- 잔액 조회 버튼 -->
               <n-button
                 size="small"
                 type="info"
@@ -58,41 +58,41 @@
                 <template #icon>
                   <Icon icon="mdi:cash-multiple" />
                 </template>
-                查询余额
+                잔액 조회
               </n-button>
-              <!-- 只有私有密钥才显示编辑按钮 -->
+              <!-- 비공개 키만 편집 버튼 표시 -->
               <n-button v-if="!apiKey.publicStatus" size="small" @click="handleEdit(apiKey)">
                 <template #icon>
                   <Icon icon="mdi:pencil" />
                 </template>
-                编辑
+                편집
               </n-button>
-              <!-- 只有私有密钥才显示删除按钮 -->
+              <!-- 비공개 키만 삭제 버튼 표시 -->
               <n-popconfirm
                 v-if="!apiKey.publicStatus"
                 @positive-click="handleDelete(apiKey.id)"
-                positive-text="删除"
-                negative-text="取消">
+                positive-text="삭제"
+                negative-text="취소">
                 <template #trigger>
                   <n-button size="small" type="error">
                     <template #icon>
                       <Icon icon="mdi:delete" />
                     </template>
-                    删除
+                    삭제
                   </n-button>
                 </template>
-                <p>确定要删除密钥 "{{ apiKey.name }}" 吗？</p>
-                <p class="text-red-500">删除后将无法恢复！</p>
+                <p>키 "{{ apiKey.name }}"를 삭제하시겠습니까?</p>
+                <p class="text-red-500">삭제 후에는 복구할 수 없습니다!</p>
               </n-popconfirm>
             </n-flex>
           </div>
 
           <div v-if="apiKey.url || balanceMap[apiKey.id]" class="api-key-card-body">
             <n-descriptions :column="1" size="small" bordered>
-              <n-descriptions-item v-if="apiKey.url" label="API 地址">
+              <n-descriptions-item v-if="apiKey.url" label="API 주소">
                 {{ apiKey.url }}
               </n-descriptions-item>
-              <n-descriptions-item v-if="balanceMap[apiKey.id]" label="账户余额">
+              <n-descriptions-item v-if="balanceMap[apiKey.id]" label="계정 잔액">
                 <n-flex align="center" :size="8">
                   <span class="text-primary font-600 text-16px">
                     {{ balanceMap[apiKey.id].balanceInfos[0].totalBalance || '0' }}
@@ -106,7 +106,7 @@
       </div>
     </n-spin>
 
-    <!-- 分页 -->
+    <!-- 페이지네이션 -->
     <n-flex v-if="pagination.total > pagination.pageSize" justify="center" class="mt-16px">
       <n-pagination
         v-model:page="pagination.pageNo"
@@ -116,45 +116,45 @@
     </n-flex>
   </n-modal>
 
-  <!-- 新增/编辑密钥弹窗 -->
+  <!-- 키 추가/편집 팝업 -->
   <n-modal
     v-model:show="showEditModal"
     preset="card"
-    :title="editingApiKey ? '编辑密钥' : '新增密钥'"
+    :title="editingApiKey ? '키 편집' : '키 추가'"
     style="width: 600px"
     :bordered="false"
     :segmented="{ content: 'soft', footer: 'soft' }">
     <n-form ref="formRef" :model="formData" :rules="formRules" label-placement="left" label-width="100px">
-      <n-form-item label="密钥名称" path="name">
-        <n-input v-model:value="formData.name" placeholder="请输入密钥名称，例如: OpenAI 主账号" />
+      <n-form-item label="키 이름" path="name">
+        <n-input v-model:value="formData.name" placeholder="키 이름을 입력하세요 (예: OpenAI 메인 계정)" />
       </n-form-item>
 
-      <n-form-item label="API 密钥" path="apiKey">
+      <n-form-item label="API 키" path="apiKey">
         <n-input
           v-model:value="formData.apiKey"
           type="password"
           show-password-on="click"
-          placeholder="请输入 API 密钥" />
+          placeholder="API 키를 입력하세요" />
       </n-form-item>
 
-      <n-form-item label="平台" path="platform">
-        <n-select v-model:value="formData.platform" :options="platformOptions" placeholder="请选择平台" />
+      <n-form-item label="플랫폼" path="platform">
+        <n-select v-model:value="formData.platform" :options="platformOptions" placeholder="플랫폼을 선택하세요" />
       </n-form-item>
 
-      <n-form-item label="API 地址" path="url">
-        <n-input v-model:value="formData.url" placeholder="可选，例如: https://api.openai.com/v1" />
+      <n-form-item label="API 주소" path="url">
+        <n-input v-model:value="formData.url" placeholder="선택 사항 (예: https://api.openai.com/v1)" />
       </n-form-item>
 
-      <n-form-item label="状态" path="status">
-        <n-select v-model:value="formData.status" :options="statusOptions" placeholder="请选择状态" />
+      <n-form-item label="상태" path="status">
+        <n-select v-model:value="formData.status" :options="statusOptions" placeholder="상태를 선택하세요" />
       </n-form-item>
     </n-form>
 
     <template #footer>
       <n-flex justify="end" :size="12">
-        <n-button @click="showEditModal = false">取消</n-button>
+        <n-button @click="showEditModal = false">취소</n-button>
         <n-button type="primary" @click="handleSubmit" :loading="submitting">
-          {{ editingApiKey ? '保存' : '创建' }}
+          {{ editingApiKey ? '저장' : '생성' }}
         </n-button>
       </n-flex>
     </template>
@@ -178,7 +178,7 @@ const emit = defineEmits<{
   refresh: []
 }>()
 
-// 密钥列表
+// 키 목록
 const loading = ref(false)
 const apiKeyList = ref<any[]>([])
 const pagination = ref({
@@ -187,17 +187,17 @@ const pagination = ref({
   total: 0
 })
 
-// 余额相关
-const balanceMap = ref<Record<string, any>>({}) // 存储每个密钥的余额信息
-const balanceLoadingMap = ref<Record<string, boolean>>({}) // 存储每个密钥的余额加载状态
+// 잔액 관련
+const balanceMap = ref<Record<string, any>>({}) // 각 키의 잔액 정보 저장
+const balanceLoadingMap = ref<Record<string, boolean>>({}) // 각 키의 잔액 로딩 상태 저장
 
-// 编辑相关
+// 편집 관련
 const showEditModal = ref(false)
 const editingApiKey = ref<any>(null)
 const submitting = ref(false)
 const formRef = ref<FormInst>()
 
-// 表单数据
+// 폼 데이터
 const formData = ref({
   name: '',
   apiKey: '',
@@ -206,10 +206,10 @@ const formData = ref({
   status: 0
 })
 
-// 平台选项
+// 플랫폼 옵션
 const platformOptions = ref<Array<{ label: string; value: string }>>([])
 
-// 加载平台列表
+// 플랫폼 목록 로드
 const loadPlatformList = async () => {
   try {
     const data = await platformList()
@@ -220,11 +220,11 @@ const loadPlatformList = async () => {
         value: item.platform
       }))
     } else {
-      console.warn('平台列表数据格式不正确:', data)
+      console.warn('플랫폼 목록 데이터 형식이 올바르지 않습니다:', data)
       platformOptions.value = []
     }
   } catch (error) {
-    // 如果加载失败，使用默认值
+    // 로드 실패 시 기본값 사용
     platformOptions.value = [
       { label: 'SiliconFlow (硅基流动)', value: 'SiliconFlow' },
       { label: 'Gitee AI', value: 'GiteeAI' }
@@ -232,22 +232,22 @@ const loadPlatformList = async () => {
   }
 }
 
-// 状态选项
+// 상태 옵션
 const statusOptions = [
-  { label: '可用', value: 0 },
-  { label: '不可用', value: 1 }
+  { label: '사용 가능', value: 0 },
+  { label: '사용 불가', value: 1 }
 ]
 
-// 表单验证规则
+// 폼 검증 규칙
 const formRules: FormRules = {
-  name: [{ required: true, message: '请输入密钥名称', trigger: 'blur' }],
-  apiKey: [{ required: true, message: '请输入 API 密钥', trigger: 'blur' }],
-  platform: [{ required: true, message: '请选择平台', trigger: 'change' }],
+  name: [{ required: true, message: '키 이름을 입력하세요', trigger: 'blur' }],
+  apiKey: [{ required: true, message: 'API 키를 입력하세요', trigger: 'blur' }],
+  platform: [{ required: true, message: '플랫폼을 선택하세요', trigger: 'change' }],
   status: [
     {
       required: true,
       type: 'number',
-      message: '请选择状态',
+      message: '상태를 선택하세요',
       trigger: 'change',
       validator: (_rule: any, value: any) => {
         return value !== undefined && value !== null && value !== ''
@@ -256,14 +256,14 @@ const formRules: FormRules = {
   ]
 }
 
-// 掩码显示 API 密钥
+// API 키 마스킹 처리
 const maskApiKey = (key: string) => {
   if (!key) return ''
   if (key.length <= 8) return '***'
   return key.substring(0, 4) + '***' + key.substring(key.length - 4)
 }
 
-// 加载密钥列表
+// 키 목록 로드
 const loadApiKeyList = async () => {
   loading.value = true
   try {
@@ -274,20 +274,20 @@ const loadApiKeyList = async () => {
     apiKeyList.value = data.list || []
     pagination.value.total = data.total || 0
   } catch (error) {
-    console.error('加载 API 密钥列表失败:', error)
-    window.$message.error('加载 API 密钥列表失败')
+    console.error('API 키 목록 로드 실패:', error)
+    window.$message.error('API 키 목록 로드 실패')
   } finally {
     loading.value = false
   }
 }
 
-// 分页变化
+// 페이지 변경
 const handlePageChange = (page: number) => {
   pagination.value.pageNo = page
   loadApiKeyList()
 }
 
-// 新增密钥
+// 키 추가
 const handleAdd = () => {
   editingApiKey.value = null
   formData.value = {
@@ -300,7 +300,7 @@ const handleAdd = () => {
   showEditModal.value = true
 }
 
-// 编辑密钥
+// 키 편집
 const handleEdit = (apiKey: any) => {
   editingApiKey.value = apiKey
   formData.value = {
@@ -313,7 +313,7 @@ const handleEdit = (apiKey: any) => {
   showEditModal.value = true
 }
 
-// 提交表单
+// 폼 제출
 const handleSubmit = async () => {
   try {
     await formRef.value?.validate()
@@ -331,60 +331,60 @@ const handleSubmit = async () => {
     }
 
     if (editingApiKey.value) {
-      // 更新
+      // 업데이트
       submitData.id = editingApiKey.value.id
       await apiKeyUpdate(submitData)
-      window.$message.success('密钥更新成功')
+      window.$message.success('키 업데이트 성공')
     } else {
-      // 创建
+      // 생성
       await apiKeyCreate(submitData)
-      window.$message.success('密钥创建成功')
+      window.$message.success('키 생성 성공')
     }
 
     showEditModal.value = false
     loadApiKeyList()
-    // 通知父组件刷新
+    // 부모 컴포넌트에 새로고침 알림
     emit('refresh')
   } catch (error: any) {
     if (error?.errors) {
       return
     }
-    console.error('保存密钥失败:', error)
-    window.$message.error('保存密钥失败')
+    console.error('키 저장 실패:', error)
+    window.$message.error('키 저장 실패')
   } finally {
     submitting.value = false
   }
 }
 
-// 删除密钥
+// 키 삭제
 const handleDelete = async (id: string) => {
   try {
     await apiKeyDelete({ id })
-    window.$message.success('密钥删除成功')
+    window.$message.success('키 삭제 성공')
     loadApiKeyList()
     emit('refresh')
   } catch (error) {
-    console.error('删除密钥失败:', error)
-    window.$message.error('删除密钥失败')
+    console.error('키 삭제 실패:', error)
+    window.$message.error('키 삭제 실패')
   }
 }
 
-// 查询余额
+// 잔액 조회
 const handleQueryBalance = async (id: string) => {
   try {
     balanceLoadingMap.value[id] = true
     const data = await apiKeyBalance({ id })
     balanceMap.value[id] = data
-    window.$message.success('余额查询成功')
+    window.$message.success('잔액 조회 성공')
   } catch (error) {
-    console.error('查询余额失败:', error)
-    window.$message.error('查询余额失败')
+    console.error('잔액 조회 실패:', error)
+    window.$message.error('잔액 조회 실패')
   } finally {
     balanceLoadingMap.value[id] = false
   }
 }
 
-// 监听弹窗显示状态
+// 팝업 표시 상태 감지
 watch(showModal, (val) => {
   if (val) {
     loadApiKeyList()
@@ -392,7 +392,7 @@ watch(showModal, (val) => {
   }
 })
 
-// 组件挂载时加载平台列表
+// 컴포넌트 마운트 시 플랫폼 목록 로드
 onMounted(() => {
   loadPlatformList()
 })

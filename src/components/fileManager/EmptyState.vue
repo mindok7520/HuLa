@@ -1,17 +1,17 @@
 <template>
   <div class="flex-center h-full">
     <div class="empty-content">
-      <!-- 图标 -->
+      <!-- 아이콘 -->
       <svg class="mb-16px size-58px">
         <use href="#explosion"></use>
       </svg>
 
-      <!-- 标题 -->
+      <!-- 제목 -->
       <h3 v-if="title" class="empty-title text-15px font-500 text-[--text-color] mb-8px m-0">
         {{ title }}
       </h3>
 
-      <!-- 操作按钮 -->
+      <!-- 작업 버튼 -->
       <div v-if="$slots.actions" class="empty-actions">
         <slot name="actions" />
       </div>
@@ -64,7 +64,7 @@ const { title } = defineProps<{
   }
 }
 
-// 减少动画
+// 애니메이션 감소
 @media (prefers-reduced-motion: reduce) {
   .empty-content,
   .empty-title,

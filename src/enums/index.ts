@@ -1,403 +1,403 @@
 /**
- * 全局枚举文件
- * 如果枚举值需要在全局使用，那么请在此文件中定义。其他枚举值请在对应的文件中定义。
- * 定义规则：
- *  枚举名：XxxEnum
- *  枚举值：全部大写，单词间用下划线分割
+ * 전역 열거형 파일
+ * 열거형 값을 전역으로 사용해야 하는 경우 이 파일에 정의하십시오. 다른 열거형 값은 해당 파일에 정의하십시오.
+ * 정의 규칙:
+ *  열거형 이름: XxxEnum
+ *  열거형 값: 모두 대문자, 단어 사이는 밑줄로 구분
  */
 
-/**请求响应码类型*/
+/** 요청 응답 코드 유형 */
 export enum RCodeEnum {
-  /**成功请求*/
+  /** 요청 성공 */
   OK = '200',
-  /**请求错误*/
+  /** 요청 오류 */
   FAIL = '400',
-  /**服务器出现问题*/
+  /** 서버 문제 발생 */
   SERVE_EXCEPTION = '500',
-  /**业务出现问题*/
+  /** 비즈니스 로직 문제 발생 */
   BUSINESS_EXCEPTION = '600'
 }
 
 /**URL*/
 export enum URLEnum {
-  /**用户*/
+  /** 사용자 */
   USER = '/im/user',
   /**Token*/
   TOKEN = '/oauth',
-  /**聊天*/
+  /** 채팅 */
   CHAT = '/im/chat',
-  /**房间*/
+  /** 방 */
   ROOM = '/im/room',
-  /**系统*/
+  /** 시스템 */
   SYSTEM = '/system',
-  /**验证码*/
+  /** 인증 코드 */
   CAPTCHA = '/im/captcha',
-  /**消息推送服务前缀*/
+  /** 메시지 푸시 서비스 접두사 */
   WEBSOCKET = '/ws'
 }
 
-/** tauri原生跨窗口通信时传输的类型 */
+/** tauri 네이티브 창 간 통신 시 전송 유형 */
 export enum EventEnum {
-  /** 窗口关闭 */
+  /** 창 닫기 */
   WIN_CLOSE = 'winClose',
-  /** 窗口显示 */
+  /** 창 표시 */
   WIN_SHOW = 'winShow',
-  /** 退出程序 */
+  /** 프로그램 종료 */
   EXIT = 'exit',
-  /** 退出账号 */
+  /** 로그아웃 */
   LOGOUT = 'logout',
-  /** 独立窗口 */
+  /** 독립 창 */
   ALONE = 'alone',
-  /** 共享屏幕 */
+  /** 화면 공유 */
   SHARE_SCREEN = 'shareScreen',
-  /** 锁屏 */
+  /** 화면 잠금 */
   LOCK_SCREEN = 'lockScreen',
-  /** 多窗口 */
+  /** 다중 창 */
   MULTI_MSG = 'multiMsg'
 }
 
-/** Mitt兄弟组件通信 */
+/** Mitt 형제 컴포넌트 통신 */
 export enum MittEnum {
-  /** 更新消息数量 */
+  /** 메시지 수 업데이트 */
   UPDATE_MSG_TOTAL = 'updateMsgTotal',
-  /** 显示消息框 */
+  /** 메시지 상자 표시 */
   MSG_BOX_SHOW = 'msgBoxShow',
-  /** 跳到发送信息 */
+  /** 메시지 전송으로 이동 */
   TO_SEND_MSG = 'toSendMsg',
-  /** 缩小窗口 */
+  /** 창 축소 */
   SHRINK_WINDOW = 'windowShrink',
-  /** 详情页面显示 */
+  /** 상세 페이지 표시 */
   DETAILS_SHOW = 'detailsShow',
-  /** 好友申请页面显示 */
+  /** 친구 신청 페이지 표시 */
   APPLY_SHOW = 'applyShow',
-  /** 回复消息 */
+  /** 메시지 답장 */
   REPLY_MEG = 'replyMsg',
-  /** 手动触发InfoPopover */
+  /** InfoPopover 수동 트리거 */
   INFO_POPOVER = 'infoPopover',
-  /** 打开个人信息编辑窗口 */
+  /** 개인 정보 편집 창 열기 */
   OPEN_EDIT_INFO = 'openEditInfo',
-  /** 关闭个人信息浮窗 */
+  /** 개인 정보 팝업 닫기 */
   CLOSE_INFO_SHOW = 'closeInfoShow',
-  /** 打开修改群昵称弹窗 */
+  /** 그룹 닉네임 수정 팝업 열기 */
   OPEN_GROUP_NICKNAME_MODAL = 'openGroupNicknameModal',
-  /** 左边菜单弹窗 */
+  /** 왼쪽 메뉴 팝업 */
   LEFT_MODAL_SHOW = 'leftModalShow',
-  /** 登录窗口异地登录弹窗 */
+  /** 로그인 창 타지역 로그인 팝업 */
   LOGIN_REMOTE_MODAL = 'loginRemoteModal',
-  /** 触发home窗口事件 */
+  /** home 창 이벤트 트리거 */
   HOME_WINDOW_RESIZE = 'homeWindowResize',
   /** @ AT */
   AT = 'at',
-  /** 重新编辑 */
+  /** 다시 편집 */
   RE_EDIT = 'reEdit',
-  /** 删除会话 */
+  /** 세션 삭제 */
   DELETE_SESSION = 'deleteSession',
-  /** 隐藏会话 */
+  /** 세션 숨기기 */
   HIDE_SESSION = 'hideSession',
-  /** 定位会话 */
+  /** 세션 위치 찾기 */
   LOCATE_SESSION = 'locateSession',
-  /** 聊天框滚动到底部 */
+  /** 채팅창 하단으로 스크롤 */
   CHAT_SCROLL_BOTTOM = 'chatScrollBottom',
-  /** 创建群聊 */
+  /** 그룹 채팅 생성 */
   CREATE_GROUP = 'createGroup',
-  /** 更新提示 */
+  /** 업데이트 알림 */
   CHECK_UPDATE = 'checkUpdate',
-  /** 强制更新 */
+  /** 강제 업데이트 */
   DO_UPDATE = 'doUpdate',
-  /** 视频下载状态更新 */
+  /** 비디오 다운로드 상태 업데이트 */
   VIDEO_DOWNLOAD_STATUS_UPDATED = 'videoDownloadStatusUpdated',
-  /** 切换语言页面 */
+  /** 언어 전환 페이지 */
   VOICE_RECORD_TOGGLE = 'voiceRecordToggle',
-  /** 消息多选 */
+  /** 메시지 다중 선택 */
   MSG_MULTI_CHOOSE = 'msgMultiChoose',
-  /** 扫码事件 */
+  /** QR 스캔 이벤트 */
   QR_SCAN_EVENT = 'qrScanEvent',
-  /** 移动端通话浮层请求 */
+  /** 모바일 통화 오버레이 요청 */
   MOBILE_RTC_CALL_REQUEST = 'mobileRtcCallRequest',
-  /** 移动端关闭输入框面板 */
+  /** 모바일 입력창 패널 닫기 */
   MOBILE_CLOSE_PANEL = 'mobileClosePanel',
-  /** 切换会话 */
+  /** 세션 전환 */
   MSG_INIT = 'msg_init',
-  /** 会话切换完成*/
+  /** 세션 전환 완료 */
   SESSION_CHANGED = 'sessionChanged',
-  /** 更新会话最后一条消息 */
+  /** 세션 마지막 메시지 업데이트 */
   UPDATE_SESSION_LAST_MSG = 'updateSessionLastMsg'
 }
 
-/** 主题类型 */
+/** 테마 유형 */
 export enum ThemeEnum {
-  /** 亮色 */
+  /** 라이트 모드 */
   LIGHT = 'light',
-  /** 暗色 */
+  /** 다크 모드 */
   DARK = 'dark',
-  /** 跟随系统 */
+  /** 시스템 설정 따름 */
   OS = 'os'
 }
 
-/** pinia存储的名称 */
+/** pinia 저장소 이름 */
 export enum StoresEnum {
-  /** 置顶 */
+  /** 상단 고정 */
   ALWAYS_ON_TOP = 'alwaysOnTop',
-  /** 设置 */
+  /** 설정 */
   SETTING = 'setting',
-  /** 历史内容 */
+  /** 기록 내용 */
   HISTORY = 'history',
-  /** 聊天列表 */
+  /** 채팅 목록 */
   CHAT_LIST = 'chatList',
-  /** 插件列表 */
+  /** 플러그인 목록 */
   PLUGINS = 'plugins',
-  /** 侧边栏头部菜单栏 */
+  /** 사이드바 상단 메뉴바 */
   MENUTOP = 'menuTop',
-  /** 账号账号历史记录列表 */
+  /** 계정 로그인 기록 목록 */
   LOGIN_HISTORY = 'loginHistory',
-  /** 好友列表 */
+  /** 친구 목록 */
   NOTICE = 'notice',
-  /** 图片查看器数据 */
+  /** 이미지 뷰어 데이터 */
   IMAGEVIEWER = 'imageViewer',
-  /** 用户状态 */
+  /** 사용자 상태 */
   USER_STATE = 'userState',
-  /** 用户 */
+  /** 사용자 */
   USER = 'user',
-  /** 群组 */
+  /** 그룹 */
   GROUP = 'group',
-  /** 公告 */
+  /** 공지사항 */
   ANNOUNCEMENT = 'announcement',
-  /** 全局 */
+  /** 전역 */
   GLOBAL = 'global',
-  /** 表情 */
+  /** 이모티콘 */
   EMOJI = 'emoji',
-  /** 联系人 */
+  /** 연락처 */
   CONTACTS = 'contacts',
-  /** 聊天 */
+  /** 채팅 */
   CHAT = 'chat',
-  /** 会话未读缓存 */
+  /** 세션 읽지 않음 캐시 */
   SESSION_UNREAD = 'sessionUnread',
-  /** 缓存 */
+  /** 캐시 */
   CACHED = 'cached',
-  /** 配置 */
+  /** 구성 */
   CONFIG = 'config',
-  /** 视频查看器数据 */
+  /** 비디오 뷰어 데이터 */
   VIDEOVIEWER = 'videoViewer',
-  /** 文件下载管理 */
+  /** 파일 다운로드 관리 */
   FILE_DOWNLOAD = 'fileDownload',
-  /** 移动端状态 */
+  /** 모바일 상태 */
   MOBILE = 'mobile',
-  /** 目录扫描器 */
+  /** 디렉토리 스캐너 */
   SCANNER = 'scanner',
-  /** 引导状态 */
+  /** 가이드 상태 */
   GUIDE = 'guide',
-  /** 动态/朋友圈 */
+  /** 피드/모멘트 */
   FEED = 'feed',
-  /** 朋友圈通知 */
+  /** 모멘트 알림 */
   FEED_NOTIFICATION = 'feedNotification',
-  /** Bot 视图状态 */
+  /** 봇 뷰 상태 */
   BOT = 'bot',
-  /** 文件管理 */
+  /** 파일 관리 */
   FILE = 'file',
-  /** 缩略图缓存 */
+  /** 썸네일 캐시 */
   THUMBNAIL_CACHE = 'thumbnailCache',
-  /** 初始化同步状态 */
+  /** 초기 동기화 상태 */
   INITIAL_SYNC = 'initialSync'
 }
 
 /**
- * 消息类型
- * todo: 后续需要补充
+ * 메시지 유형
+ * todo: 추후 보완 필요
  */
 export enum MsgEnum {
-  /** 未知 0*/
+  /** 알 수 없음 0 */
   UNKNOWN,
-  /** 文本 1*/
+  /** 텍스트 1 */
   TEXT,
-  /** 撤回 2*/
+  /** 철회 2 */
   RECALL,
-  /** 图片 3*/
+  /** 이미지 3 */
   IMAGE,
-  /** 文件 4*/
+  /** 파일 4 */
   FILE,
-  /** 语音 5*/
+  /** 음성 5 */
   VOICE,
-  /** 视频 6*/
+  /** 비디오 6 */
   VIDEO,
-  /** 表情包 7*/
+  /** 이모티콘 팩 7 */
   EMOJI,
-  /** 系统消息 8*/
+  /** 시스템 메시지 8 */
   SYSTEM,
-  /** 聊天记录 9*/
+  /** 채팅 기록 9 */
   MERGE,
-  /** 公告 10*/
+  /** 공지사항 10 */
   NOTICE,
-  /** 机器人 11*/
+  /** 로봇 11 */
   BOT,
-  /** 视频通话 12*/
+  /** 영상 통화 12 */
   VIDEO_CALL,
-  /** 语音通话 13*/
+  /** 음성 통화 13 */
   AUDIO_CALL,
-  /** 混合 14*/
+  /** 혼합 14 */
   MIXED,
-  /** 艾特 15*/
+  /** 멘션 15 */
   AIT,
-  /** 回复 16*/
+  /** 답장 16 */
   REPLY,
   /** AI 17*/
   AI,
-  /** 位置 18*/
+  /** 위치 18 */
   LOCATION
 }
 
 /**
- * AI 消息内容类型枚举
- * 用于标识 AI 生成的消息内容类型（文本、图片、视频、音频）
+ * AI 메시지 콘텐츠 유형 열거형
+ * AI 생성 메시지 콘텐츠 유형 식별에 사용 (텍스트, 이미지, 비디오, 오디오)
  */
 export enum AiMsgContentTypeEnum {
-  /** 文本 1 */
+  /** 텍스트 1 */
   TEXT = 1,
-  /** 图片 2 */
+  /** 이미지 2 */
   IMAGE = 2,
-  /** 视频 3 */
+  /** 비디오 3 */
   VIDEO = 3,
-  /** 音频 4 */
+  /** 오디오 4 */
   AUDIO = 4
 }
 
 /**
- * 在线状态
+ * 온라인 상태
  */
 export enum OnlineEnum {
-  /** 在线 */
+  /** 온라인 */
   ONLINE = 1,
-  /** 离线 */
+  /** 오프라인 */
   OFFLINE
 }
 
 /**
- * 操作类型
+ * 작업 유형
  */
 export enum ActEnum {
-  /** 确认 */
+  /** 확인 */
   Confirm = 1,
-  /** 取消 */
+  /** 취소 */
   Cancel
 }
 
-/** 性别 */
+/** 성별 */
 export enum SexEnum {
-  /** 男 */
+  /** 남 */
   MAN = 1,
-  /** 女 */
+  /** 여 */
   REMALE
 }
 
-/** 权限状态 */
+/** 권한 상태 */
 export enum PowerEnum {
-  /** 用户 */
+  /** 사용자 */
   USER,
-  /** 管理员 */
+  /** 관리자 */
   ADMIN
 }
 
-/** 是否状态 */
+/** 여부 상태 */
 export enum IsYesEnum {
-  /** 否 */
+  /** 아니요 */
   NO,
-  /** 是 */
+  /** 예 */
   YES
 }
 
 export enum MarkEnum {
-  /** 点赞 */
+  /** 좋아요 */
   LIKE = 1,
-  /** 不满 */
+  /** 싫어요 */
   DISLIKE,
-  /** 爱心 */
+  /** 하트 */
   HEART,
-  /** 愤怒 */
+  /** 화남 */
   ANGRY,
-  /** 礼炮 */
+  /** 폭죽 */
   CELEBRATE,
-  /** 火箭 */
+  /** 로켓 */
   ROCKET,
-  /** 笑哭 */
+  /** 웃픈 */
   LOL,
-  /** 鼓掌 */
+  /** 박수 */
   APPLAUSE,
-  /** 鲜花 */
+  /** 꽃 */
   FLOWER,
-  /** 炸弹 */
+  /** 폭탄 */
   BOMB,
-  /** 疑问 */
+  /** 의문 */
   CONFUSED,
-  /** 胜利 */
+  /** 승리 */
   VICTORY,
-  /** 灯光 */
+  /** 조명 */
   LIGHT,
-  /** 红包 */
+  /** 홍바오 */
   MONEY
 }
 
-// 成员角色 1群主 2管理员 3普通成员 4踢出群聊
+// 멤버 역할 1그룹 소유자 2관리자 3일반 멤버 4강제 퇴장
 export enum RoleEnum {
-  /** 1群主 */
+  /** 1그룹 소유자 */
   LORD = 1,
-  /** 2管理员 */
+  /** 2관리자 */
   ADMIN,
-  /** 3普通成员 */
+  /** 3일반 멤버 */
   NORMAL,
-  /** 4踢出群聊 */
+  /** 4강제 퇴장 */
   REMOVED
 }
 
-/** 房间类型 1群聊 2单聊 */
+/** 방 유형 1그룹 채팅 21:1 채팅 */
 export enum RoomTypeEnum {
-  /** 1群聊 */
+  /** 1그룹 채팅 */
   GROUP = 1,
-  /** 2单聊 */
+  /** 21:1 채팅 */
   SINGLE = 2
 }
 
-/** 房间操作 */
+/** 방 작업 */
 export enum RoomActEnum {
-  /** 退出群聊 */
+  /** 그룹 채팅 나가기 */
   EXIT_GROUP,
-  /** 解散群聊 */
+  /** 그룹 채팅 해산 */
   DISSOLUTION_GROUP,
-  /** 删除好友 */
+  /** 친구 삭제 */
   DELETE_FRIEND,
-  /** 删除记录 */
+  /** 기록 삭제 */
   DELETE_RECORD,
-  /** 屏蔽好友 */
+  /** 친구 차단 */
   BLOCK_FRIEND,
-  /** 修改群名称 */
+  /** 그룹 이름 수정 */
   UPDATE_GROUP_NAME,
-  /** 修改群信息 */
+  /** 그룹 정보 수정 */
   UPDATE_GROUP_INFO
 }
 
-/** 变更类型 1 加入群组，2： 移除群组 */
+/** 변경 유형 1 그룹 가입, 2: 그룹 제거 */
 export enum ChangeTypeEnum {
-  /** 1 加入群组 */
+  /** 1 그룹 가입 */
   JOIN = 1,
-  /** 2 移除群组 */
+  /** 2 그룹 제거 */
   REMOVE,
-  /** 3 退出群组 */
+  /** 3 그룹 나가기 */
   EXIT_GROUP
 }
 
-/** 关闭窗口的行为 */
+/** 창 닫기 동작 */
 export enum CloseBxEnum {
-  /** 隐藏 */
+  /** 숨기기 */
   HIDE = 'hide',
-  /** 关闭 */
+  /** 닫기 */
   CLOSE = 'close'
 }
 
-/** 限制上传 */
+/** 업로드 제한 */
 export enum LimitEnum {
-  /** 通用限制数量 */
+  /** 일반 제한 수량 */
   COM_COUNT = 5
 }
 
-/** ws响应类型 */
+/** ws 응답 유형 */
 export enum WorkerMsgEnum {
   /** open */
   OPEN = 'open',
@@ -411,15 +411,15 @@ export enum WorkerMsgEnum {
   WS_ERROR = 'wsError'
 }
 
-/** 左边菜单弹出框类型 */
+/** 왼쪽 메뉴 팝업 유형 */
 export enum ModalEnum {
-  /** 锁屏弹窗 */
+  /** 화면 잠금 팝업 */
   LOCK_SCREEN,
-  /** 检查更新弹窗 */
+  /** 업데이트 확인 팝업 */
   CHECK_UPDATE
 }
 
-/** MacOS键盘映射 */
+/** MacOS 키보드 매핑 */
 export enum MacOsKeyEnum {
   '⌘' = '⌘',
   '⌥' = '⌥',
@@ -427,7 +427,7 @@ export enum MacOsKeyEnum {
   '^' = '^'
 }
 
-/** Windows键盘映射 */
+/** Windows 키보드 매핑 */
 export enum WinKeyEnum {
   CTRL = 'Ctrl',
   WIN = 'Win',
@@ -435,32 +435,32 @@ export enum WinKeyEnum {
   SHIFT = 'Shift'
 }
 
-/** 插件状态 */
+/** 플러그인 상태 */
 export enum PluginEnum {
-  /** 已内置 */
+  /** 내장됨 */
   BUILTIN,
-  /** 已安装 */
+  /** 설치됨 */
   INSTALLED,
-  /** 下载中 */
+  /** 다운로드 중 */
   DOWNLOADING,
-  /** 未安装 */
+  /** 설치되지 않음 */
   NOT_INSTALLED,
-  /** 卸载中 */
+  /** 제거 중 */
   UNINSTALLING,
-  /** 可更新 */
+  /** 업데이트 가능 */
   CAN_UPDATE
 }
 
-/** 菜单显示模式 */
+/** 메뉴 표시 모드 */
 export enum ShowModeEnum {
-  /** 图标方式 */
+  /** 아이콘 방식 */
   ICON,
-  /** 文字方式 */
+  /** 텍스트 방식 */
   TEXT
 }
 
 /**
- * 消息发送状态
+ * 메시지 전송 상태
  */
 export enum MessageStatusEnum {
   PENDING = 'pending',
@@ -469,14 +469,14 @@ export enum MessageStatusEnum {
   FAILED = 'failed'
 }
 
-/** 触发类型枚举 */
+/** 트리거 유형 열거형 */
 export enum TriggerEnum {
   MENTION = '@',
   AI = '/',
   TOPIC = '#'
 }
 
-/** 连接状态枚举 */
+/** 연결 상태 열거형 */
 export enum ConnectionState {
   CONNECTING = 'connecting',
   CONNECTED = 'connected',
@@ -484,321 +484,321 @@ export enum ConnectionState {
   RECONNECTING = 'reconnecting'
 }
 
-/** 上传scene值状态 */
+/** 업로드 scene 값 상태 */
 export enum UploadSceneEnum {
-  /** 聊天 */
+  /** 채팅 */
   CHAT = 'chat',
-  /** 表情 */
+  /** 이모티콘 */
   EMOJI = 'emoji',
-  /** 头像 */
+  /** 프로필 사진 */
   AVATAR = 'avatar'
 }
 
-/** 移动端面板状态枚举 */
+/** 모바일 패널 상태 열거형 */
 export enum MobilePanelStateEnum {
-  /** 无面板 */
+  /** 패널 없음 */
   NONE = 'none',
-  /** 表情面板 */
+  /** 이모티콘 패널 */
   EMOJI = 'emoji',
-  /** 语音面板 */
+  /** 음성 패널 */
   VOICE = 'voice',
-  /** 更多面板 */
+  /** 더보기 패널 */
   MORE = 'more',
-  /** 输入框聚焦 */
+  /** 입력창 포커스 */
   FOCUS = 'focus'
 }
 
-/** 会话操作 */
+/** 세션 작업 */
 export enum SessionOperateEnum {
-  /** 删除好友 */
+  /** 친구 삭제 */
   DELETE_FRIEND = 0,
-  /** 解散群聊 */
+  /** 그룹 채팅 해산 */
   DISSOLUTION_GROUP = 1,
-  /** 退出群聊 */
+  /** 그룹 채팅 나가기 */
   EXIT_GROUP = 2 | 3
 }
 
 /**
- * 通知类型 0 -> 允许接受消息 1 -> 接收但不提醒[免打扰] 2 -> 屏蔽消息
+ * 알림 유형 0 -> 메시지 수신 허용 1 -> 수신하지만 알림 없음[방해 금지] 2 -> 메시지 차단
  */
 export enum NotificationTypeEnum {
-  /** 允许接受消息 */
+  /** 메시지 수신 허용 */
   RECEPTION = 0,
-  /** 接收但不提醒[免打扰] */
+  /** 수신하지만 알림 없음[방해 금지] */
   NOT_DISTURB = 1
 }
 
-/** Tauri 命令 */
+/** Tauri 명령 */
 export enum TauriCommand {
-  /** 更新我的群聊信息 */
+  /** 내 그룹 채팅 정보 업데이트 */
   UPDATE_MY_ROOM_INFO = 'update_my_room_info',
-  /** 获取房间成员 */
+  /** 방 멤버 가져오기 */
   GET_ROOM_MEMBERS = 'get_room_members',
-  /** 分页查询所有房间 */
+  /** 모든 방 페이징 조회 */
   PAGE_ROOM = 'page_room',
-  /** 分页查询房间成员 */
+  /** 방 멤버 페이징 조회 */
   CURSOR_PAGE_ROOM_MEMBERS = 'cursor_page_room_members',
-  /** 列出所有会话列表 */
+  /** 모든 세션 목록 나열 */
   LIST_CONTACTS = 'list_contacts_command',
-  /** 分页查询会话消息 */
+  /** 세션 메시지 페이징 조회 */
   PAGE_MSG = 'page_msg',
-  /** 保存用户信息 */
+  /** 사용자 정보 저장 */
   SAVE_USER_INFO = 'save_user_info',
-  /** 更新用户最后操作时间 */
+  /** 사용자 마지막 작업 시간 업데이트 */
   UPDATE_USER_LAST_OPT_TIME = 'update_user_last_opt_time',
-  /** 发送消息 */
+  /** 메시지 전송 */
   SEND_MSG = 'send_msg',
-  /** 保存消息 */
+  /** 메시지 저장 */
   SAVE_MSG = 'save_msg',
-  /** 保存消息标记 */
+  /** 메시지 마크 저장 */
   SAVE_MESSAGE_MARK = 'save_message_mark',
-  /** 删除单条聊天消息 */
+  /** 단일 채팅 메시지 삭제 */
   DELETE_MESSAGE = 'delete_message',
-  /** 删除房间内的所有聊天记录 */
+  /** 방 내 모든 채팅 기록 삭제 */
   DELETE_ROOM_MESSAGES = 'delete_room_messages',
-  /** 更新消息撤回状态 */
+  /** 메시지 철회 상태 업데이트 */
   UPDATE_MESSAGE_RECALL_STATUS = 'update_message_recall_status',
-  /** 获取用户 tokens */
+  /** 사용자 토큰 가져오기 */
   GET_USER_TOKENS = 'get_user_tokens',
-  /** 更新 token */
+  /** 토큰 업데이트 */
   UPDATE_TOKEN = 'update_token',
-  /** 移除 token */
+  /** 토큰 제거 */
   REMOVE_TOKENS = 'remove_tokens',
-  /** 查询聊天历史记录 */
+  /** 채팅 기록 조회 */
   QUERY_CHAT_HISTORY = 'query_chat_history',
-  /** AI 消息流式发送 */
+  /** AI 메시지 스트리밍 전송 */
   AI_MESSAGE_SEND_STREAM = 'ai_message_send_stream',
-  /** 生成 MinIO 预签名 URL */
+  /** MinIO 미리 서명된 URL 생성 */
   GENERATE_MINIO_PRESIGNED_URL = 'generate_minio_presigned_url'
 }
 
-// 通话状态枚举
+// 통화 상태 열거형
 export enum RTCCallStatus {
-  CALLING = 1, // 呼叫
-  ACCEPT = 2, // 接听
-  END = 3, // 结束
-  REJECT = 4, // 拒绝
-  ERROR = 5, // 错误中断
-  BUSY = 6, // 忙线中
-  CANCEL = 7 // 取消
+  CALLING = 1, // 호출
+  ACCEPT = 2, // 수락
+  END = 3, // 종료
+  REJECT = 4, // 거절
+  ERROR = 5, // 오류 중단
+  BUSY = 6, // 통화 중
+  CANCEL = 7 // 취소
 }
 
-// 通话类型枚举
+// 통화 유형 열거형
 export enum CallTypeEnum {
-  AUDIO = 1, // 语音通话
-  VIDEO = 2 // 视频通话
+  AUDIO = 1, // 음성 통화
+  VIDEO = 2 // 영상 통화
 }
 
 export enum ImUrlEnum {
-  // Token 相关
-  /** 登录 */
+  // Token 관련
+  /** 로그인 */
   LOGIN = 'login',
-  /** 刷新token */
+  /** 토큰 갱신 */
   REFRESH_TOKEN = 'refreshToken',
-  /** 忘记密码 */
+  /** 비밀번호 찾기 */
   FORGET_PASSWORD = 'forgetPassword',
-  /** 检查token */
+  /** 토큰 확인 */
   CHECK_TOKEN = 'checkToken',
-  /** 退出登录 */
+  /** 로그아웃 */
   LOGOUT = 'logout',
-  /** 注册 */
+  /** 회원가입 */
   REGISTER = 'register',
 
-  // 系统相关
-  /** 获取七牛云token */
+  // 시스템 관련
+  /** Qiniu 클라우드 토큰 가져오기 */
   GET_QINIU_TOKEN = 'getQiniuToken',
-  /** 初始化配置 */
+  /** 구성 초기화 */
   INIT_CONFIG = 'initConfig',
-  /** 获取默认存储提供者 */
+  /** 기본 스토리지 공급자 가져오기 */
   STORAGE_PROVIDER = 'storageProvider',
-  /** 获取模型列表 */
+  /** 모델 목록 가져오기 */
   GET_ASSISTANT_MODEL_LIST = 'getAssistantModelList',
-  /** 坐标转换 */
+  /** 좌표 변환 */
   MAP_COORD_TRANSLATE = 'mapCoordTranslate',
-  /** 逆地理编码 */
+  /** 역 지오코딩 */
   MAP_REVERSE_GEOCODE = 'mapReverseGeocode',
-  /** 地址静态图片 */
+  /** 주소 정적 이미지 */
   MAP_STATIC = 'mapStatic',
 
-  // 验证码相关
-  /** 发送验证码 */
+  // 인증 코드 관련
+  /** 인증 코드 전송 */
   SEND_CAPTCHA = 'sendCaptcha',
-  /** 获取验证码 */
+  /** 인증 코드 가져오기 */
   GET_CAPTCHA = 'getCaptcha',
 
-  // 群公告相关
-  /** 查看群公告 */
+  // 그룹 공지 관련
+  /** 그룹 공지 보기 */
   ANNOUNCEMENT = 'announcement',
-  /** 编辑群公告 */
+  /** 그룹 공지 편집 */
   EDIT_ANNOUNCEMENT = 'editAnnouncement',
-  /** 删除群公告 */
+  /** 그룹 공지 삭제 */
   DELETE_ANNOUNCEMENT = 'deleteAnnouncement',
-  /** 发布群公告 */
+  /** 그룹 공지 게시 */
   PUSH_ANNOUNCEMENT = 'pushAnnouncement',
-  /** 获取群公告列表 */
+  /** 그룹 공지 목록 가져오기 */
   GET_ANNOUNCEMENT_LIST = 'getAnnouncementList',
 
-  // 群聊申请相关
-  /** 申请加群 */
+  // 그룹 가입 신청 관련
+  /** 그룹 가입 신청 */
   APPLY_GROUP = 'applyGroup',
 
-  // 群聊搜索和管理
-  /** 搜索群聊 */
+  // 그룹 검색 및 관리
+  /** 그룹 검색 */
   SEARCH_GROUP = 'searchGroup',
-  /** 修改我的群聊信息 */
+  /** 내 그룹 정보 수정 */
   UPDATE_MY_ROOM_INFO = 'updateMyRoomInfo',
-  /** 修改群聊信息 */
+  /** 그룹 정보 수정 */
   UPDATE_ROOM_INFO = 'updateRoomInfo',
-  /** 群聊列表 */
+  /** 그룹 목록 */
   GROUP_LIST = 'groupList',
-  /** 群聊详情 */
+  /** 그룹 상세 */
   GROUP_DETAIL = 'groupDetail',
-  /** 群聊信息 */
+  /** 그룹 정보 */
   GROUP_INFO = 'groupInfo',
 
-  // 群聊管理员
-  /** 撤销管理员 */
+  // 그룹 관리자
+  /** 관리자 해제 */
   REVOKE_ADMIN = 'revokeAdmin',
-  /** 添加管理员 */
+  /** 관리자 추가 */
   ADD_ADMIN = 'addAdmin',
 
-  // 群聊成员管理
-  /** 退出群聊 */
+  // 그룹 멤버 관리
+  /** 그룹 채팅 나가기 */
   EXIT_GROUP = 'exitGroup',
-  /** 接受邀请 */
+  /** 초대 수락 */
   ACCEPT_INVITE = 'acceptInvite',
-  /** 邀请列表 */
+  /** 초대 목록 */
   INVITE_LIST = 'inviteList',
-  /** 邀请群成员 */
+  /** 그룹 멤버 초대 */
   INVITE_GROUP_MEMBER = 'inviteGroupMember',
-  /** 创建群聊 */
+  /** 그룹 채팅 생성 */
   CREATE_GROUP = 'createGroup',
 
-  // 聊天会话相关
-  /** 屏蔽消息 */
+  // 채팅 세션 관련
+  /** 메시지 차단 */
   SHIELD = 'shield',
-  /** 通知设置 */
+  /** 알림 설정 */
   NOTIFICATION = 'notification',
-  /** 删除会话 */
+  /** 세션 삭제 */
   DELETE_SESSION = 'deleteSession',
-  /** 设置会话置顶 */
+  /** 세션 상단 고정 설정 */
   SET_SESSION_TOP = 'setSessionTop',
-  /** 会话详情（联系人） */
+  /** 세션 상세 (연락처) */
   SESSION_DETAIL_WITH_FRIENDS = 'sessionDetailWithFriends',
-  /** 会话详情 */
+  /** 세션 상세 */
   SESSION_DETAIL = 'sessionDetail',
 
-  // 消息已读未读
-  /** 获取消息已读数 */
+  // 메시지 읽음/안 읽음
+  /** 메시지 읽은 수 가져오기 */
   GET_MSG_READ_COUNT = 'getMsgReadCount',
-  /** 获取消息已读列表 */
+  /** 메시지 읽은 목록 가져오기 */
   GET_MSG_READ_LIST = 'getMsgReadList',
 
-  // 好友相关
-  /** 修改好友备注 */
+  // 친구 관련
+  /** 친구 메모 수정 */
   MODIFY_FRIEND_REMARK = 'modifyFriendRemark',
-  /** 删除好友 */
+  /** 친구 삭제 */
   DELETE_FRIEND = 'deleteFriend',
-  /** 发送添加好友请求 */
+  /** 친구 추가 요청 전송 */
   SEND_ADD_FRIEND_REQUEST = 'sendAddFriendRequest',
-  /** 处理邀请 */
+  /** 초대 처리 */
   HANDLE_INVITE = 'handleInvite',
-  /** 通知未读数 */
+  /** 읽지 않은 알림 수 */
   NOTICE_UN_READ_COUNT = 'noticeUnReadCount',
-  /** 请求通知页面 */
+  /** 알림 페이지 요청 */
   REQUEST_NOTICE_PAGE = 'requestNoticePage',
-  /** 通知已读 */
+  /** 알림 읽음 */
   REQUEST_NOTICE_READ = 'RequestNoticeRead',
-  /** 获取联系人列表 */
+  /** 연락처 목록 가져오기 */
   GET_CONTACT_LIST = 'getContactList',
-  /** 搜索好友 */
+  /** 친구 검색 */
   SEARCH_FRIEND = 'searchFriend',
 
-  // 用户状态相关
-  /** 改变用户状态 */
+  // 사용자 상태 관련
+  /** 사용자 상태 변경 */
   CHANGE_USER_STATE = 'changeUserState',
-  /** 获取所有用户状态 */
+  /** 모든 사용자 상태 가져오기 */
   GET_ALL_USER_STATE = 'getAllUserState',
 
-  // 二维码相关
-  /** 生成二维码 */
+  // QR 코드 관련
+  /** QR 코드 생성 */
   GENERATE_QR_CODE = 'generateQRCode',
-  /** 检查二维码状态 */
+  /** QR 코드 상태 확인 */
   CHECK_QR_STATUS = 'checkQRStatus',
-  /** 扫描二维码 */
+  /** QR 코드 스캔 */
   SCAN_QR_CODE = 'scanQRCode',
-  /** 确认登录 */
+  /** 로그인 확인 */
   CONFIRM_QR_CODE = 'confirmQRCode',
 
-  // 用户信息相关
-  /** 上传头像 */
+  // 사용자 정보 관련
+  /** 프로필 사진 업로드 */
   UPLOAD_AVATAR = 'uploadAvatar',
-  /** 获取表情 */
+  /** 이모티콘 가져오기 */
   GET_EMOJI = 'getEmoji',
-  /** 删除表情 */
+  /** 이모티콘 삭제 */
   DELETE_EMOJI = 'deleteEmoji',
-  /** 添加表情 */
+  /** 이모티콘 추가 */
   ADD_EMOJI = 'addEmoji',
-  /** 设置用户徽章 */
+  /** 사용자 배지 설정 */
   SET_USER_BADGE = 'setUserBadge',
-  /** 修改用户基础信息 */
+  /** 사용자 기본 정보 수정 */
   MODIFY_USER_INFO = 'ModifyUserInfo',
-  /** 获取用户信息详情 */
+  /** 사용자 정보 상세 가져오기 */
   GET_USER_INFO_DETAIL = 'getUserInfoDetail',
-  /** 批量获取徽章 */
+  /** 배지 일괄 가져오기 */
   GET_BADGES_BATCH = 'getBadgesBatch',
-  /** 获取徽章列表 */
+  /** 배지 목록 가져오기 */
   GET_BADGE_LIST = 'getBadgeList',
-  /** 拉黑用户 */
+  /** 사용자 차단 */
   BLOCK_USER = 'blockUser',
 
-  // 消息相关
-  /** 撤回消息 */
+  // 메시지 관련
+  /** 메시지 철회 */
   RECALL_MSG = 'recallMsg',
-  /** 标记消息 */
+  /** 메시지 마크 */
   MARK_MSG = 'markMsg',
-  /** 获取消息列表 */
+  /** 메시지 목록 가져오기 */
   GET_MSG_LIST = 'getMsgList',
-  /** 获取成员统计 */
+  /** 멤버 통계 가져오기 */
   GET_MEMBER_STATISTIC = 'getMemberStatistic',
 
-  /** 获取朋友圈详情 */
+  /** 모멘트 상세 가져오기 */
   FEED_DETAIL = 'feedDetail',
-  /** 获取朋友圈列表 */
+  /** 모멘트 목록 가져오기 */
   FEED_LIST = 'feedList',
-  /** 发布朋友圈 */
+  /** 모멘트 게시 */
   PUSH_FEED = 'pushFeed',
-  /** 删除朋友圈 */
+  /** 모멘트 삭제 */
   DEL_FEED = 'delFeed',
-  /** 编辑朋友圈 */
+  /** 모멘트 편집 */
   EDIT_FEED = 'editFeed',
-  /** 获取朋友圈权限 */
+  /** 모멘트 권한 가져오기 */
   GET_FEED_PERMISSION = 'getFeedPermission',
 
-  // 朋友圈点赞相关
-  /** 点赞或取消点赞 */
+  // 모멘트 좋아요 관련
+  /** 좋아요 또는 좋아요 취소 */
   FEED_LIKE_TOGGLE = 'feedLikeToggle',
-  /** 获取点赞列表 */
+  /** 좋아요 목록 가져오기 */
   FEED_LIKE_LIST = 'feedLikeList',
-  /** 获取点赞数量 */
+  /** 좋아요 수 가져오기 */
   FEED_LIKE_COUNT = 'feedLikeCount',
-  /** 判断是否已点赞 */
+  /** 좋아요 여부 확인 */
   FEED_LIKE_HAS_LIKED = 'feedLikeHasLiked',
 
-  // 朋友圈评论相关
-  /** 发表评论 */
+  // 모멘트 댓글 관련
+  /** 댓글 게시 */
   FEED_COMMENT_ADD = 'feedCommentAdd',
-  /** 删除评论 */
+  /** 댓글 삭제 */
   FEED_COMMENT_DELETE = 'feedCommentDelete',
-  /** 获取评论列表 */
+  /** 댓글 목록 가져오기 */
   FEED_COMMENT_LIST = 'feedCommentList',
-  /** 获取所有评论列表（不分页） */
+  /** 모든 댓글 목록 가져오기 (페이징 없음) */
   FEED_COMMENT_ALL = 'feedCommentAll',
-  /** 获取评论数量 */
+  /** 댓글 수 가져오기 */
   FEED_COMMENT_COUNT = 'feedCommentCount',
 
-  // 群成员信息
-  /** 获取所有用户基础信息 */
+  // 그룹 멤버 정보
+  /** 모든 사용자 기본 정보 가져오기 */
   GET_ALL_USER_BASE_INFO = 'getAllUserBaseInfo',
 
   GROUP_LIST_MEMBER = 'groupListMember',
@@ -806,114 +806,114 @@ export enum ImUrlEnum {
   SET_HIDE = 'setHide',
   GET_FRIEND_PAGE = 'getFriendPage',
   MARK_MSG_READ = 'markMsgRead',
-  /** 移出群成员 */
+  /** 그룹 멤버 내보내기 */
   REMOVE_GROUP_MEMBER = 'removeGroupMember',
   CHECK_EMAIL = 'checkEmail',
 
   MERGE_MSG = 'mergeMsg',
   GET_USER_BY_IDS = 'getUserByIds',
 
-  /** 发送 AI 消息 */
+  /** AI 메시지 전송 */
   MESSAGE_SEND_STREAM = 'messageSendStream',
-  /** 保存生成内容消息（用于音频、图片、视频等生成功能） */
+  /** 생성된 콘텐츠 메시지 저장 (오디오, 이미지, 비디오 등 생성 기능에 사용) */
   MESSAGE_SAVE_GENERATED_CONTENT = 'messageSaveGeneratedContent',
-  /** 获取指定会话消息列表 */
+  /** 지정된 세션 메시지 목록 가져오기 */
   MESSAGE_LIST_BY_CONVERSATION_ID = 'messageListByConversationId',
-  /** 删除单条消息 */
+  /** 단일 메시지 삭제 */
   MESSAGE_DELETE = 'messageDelete',
-  /** 删除指定对话的消息 */
+  /** 지정된 대화의 메시지 삭제 */
   MESSAGE_DELETE_BY_CONVERSATION_ID = 'messageDeleteByConversationId',
-  /** 获取会话消息列表 */
+  /** 세션 메시지 목록 가져오기 */
   CONVERSATION_PAGE = 'conversationPage',
-  /** 获得【我的】聊天对话 */
+  /** [내] 채팅 대화 가져오기 */
   CONVERSATION_GET_MY = 'conversationGetMy',
-  /** 创建会话 */
+  /** 세션 생성 */
   CONVERSATION_CREATE_MY = 'conversationCreateMy',
-  /** 更新会话 */
+  /** 세션 업데이트 */
   CONVERSATION_UPDATE_MY = 'conversationUpdateMy',
-  /** 删除会话 */
+  /** 세션 삭제 */
   CONVERSATION_DELETE_MY = 'conversationDeleteMy',
-  /** 模型页面 */
+  /** 모델 페이지 */
   MODEL_PAGE = 'modelPage',
-  /** 创建模型 */
+  /** 모델 생성 */
   MODEL_CREATE = 'modelCreate',
-  /** 更新模型 */
+  /** 모델 업데이트 */
   MODEL_UPDATE = 'modelUpdate',
-  /** 删除模型 */
+  /** 모델 삭제 */
   MODEL_DELETE = 'modelDelete',
 
-  // ==================== AI 图片生成 ====================
-  /** 获取【我的】图片生成分页 */
+  // ==================== AI 이미지 생성 ====================
+  /** [내] 이미지 생성 페이징 가져오기 */
   IMAGE_MY_PAGE = 'imageMyPage',
-  /** 获取【我的】图片生成记录 */
+  /** [내] 이미지 생성 기록 가져오기 */
   IMAGE_GET = 'imageGet',
-  /** 根据ID列表获取【我的】图片记录 */
+  /** ID 목록으로 [내] 이미지 기록 가져오기 */
   IMAGE_MY_LIST_BY_IDS = 'imageMyListByIds',
-  /** 生成图片 */
+  /** 이미지 생성 */
   IMAGE_DRAW = 'imageDraw',
-  /** 删除【我的】图片记录 */
+  /** [내] 이미지 기록 삭제 */
   IMAGE_DELETE_MY = 'imageDeleteMy',
 
-  // ==================== AI 视频生成 ====================
-  /** 获取【我的】视频生成分页 */
+  // ==================== AI 비디오 생성 ====================
+  /** [내] 비디오 생성 페이징 가져오기 */
   VIDEO_MY_PAGE = 'videoMyPage',
-  /** 获取【我的】视频生成记录 */
+  /** [내] 비디오 생성 기록 가져오기 */
   VIDEO_GET = 'videoGet',
-  /** 根据ID列表获取【我的】视频记录 */
+  /** ID 목록으로 [내] 비디오 기록 가져오기 */
   VIDEO_MY_LIST_BY_IDS = 'videoMyListByIds',
-  /** 生成视频 */
+  /** 비디오 생성 */
   VIDEO_GENERATE = 'videoGenerate',
-  /** 删除【我的】视频记录 */
+  /** [내] 비디오 기록 삭제 */
   VIDEO_DELETE_MY = 'videoDeleteMy',
 
-  // ==================== AI 音频生成 ====================
-  /** 获取【我的】音频生成分页 */
+  // ==================== AI 오디오 생성 ====================
+  /** [내] 오디오 생성 페이징 가져오기 */
   AUDIO_MY_PAGE = 'audioMyPage',
-  /** 获取【我的】音频生成记录 */
+  /** [내] 오디오 생성 기록 가져오기 */
   AUDIO_GET_MY = 'audioGetMy',
-  /** 根据ID列表获取【我的】音频记录 */
+  /** ID 목록으로 [내] 오디오 기록 가져오기 */
   AUDIO_MY_LIST_BY_IDS = 'audioMyListByIds',
-  /** 生成音频 */
+  /** 오디오 생성 */
   AUDIO_GENERATE = 'audioGenerate',
-  /** 删除【我的】音频记录 */
+  /** [내] 오디오 기록 삭제 */
   AUDIO_DELETE_MY = 'audioDeleteMy',
-  /** 获取指定模型支持的声音列表 */
+  /** 지정된 모델이 지원하는 음성 목록 가져오기 */
   AUDIO_VOICES = 'audioVoices',
 
-  /** API 密钥分页 */
+  /** API 키 페이징 */
   API_KEY_PAGE = 'apiKeyPage',
-  /** API 密钥简单列表 */
+  /** API 키 간단 목록 */
   API_KEY_SIMPLE_LIST = 'apiKeySimpleList',
-  /** 创建 API 密钥 */
+  /** API 키 생성 */
   API_KEY_CREATE = 'apiKeyCreate',
-  /** 更新 API 密钥 */
+  /** API 키 업데이트 */
   API_KEY_UPDATE = 'apiKeyUpdate',
-  /** 删除 API 密钥 */
+  /** API 키 삭제 */
   API_KEY_DELETE = 'apiKeyDelete',
-  /** 查询 API 密钥余额 */
+  /** API 키 잔액 조회 */
   API_KEY_BALANCE = 'apiKeyBalance',
-  /** 获取平台列表 */
+  /** 플랫폼 목록 가져오기 */
   PLATFORM_LIST = 'platformList',
-  /** 添加平台模型 */
+  /** 플랫폼 모델 추가 */
   PLATFORM_ADD_MODEL = 'platformAddModel',
-  /** 聊天角色分页 */
+  /** 채팅 역할 페이징 */
   CHAT_ROLE_PAGE = 'chatRolePage',
-  /** 聊天角色类别列表 */
+  /** 채팅 역할 카테고리 목록 */
   CHAT_ROLE_CATEGORY_LIST = 'chatRoleCategoryList',
-  /** 创建聊天角色 */
+  /** 채팅 역할 생성 */
   CHAT_ROLE_CREATE = 'chatRoleCreate',
-  /** 更新聊天角色 */
+  /** 채팅 역할 업데이트 */
   CHAT_ROLE_UPDATE = 'chatRoleUpdate',
-  /** 删除聊天角色 */
+  /** 채팅 역할 삭제 */
   CHAT_ROLE_DELETE = 'chatRoleDelete'
 }
 
-// 滚动意图管理枚举
+// 스크롤 의도 관리 열거형
 export enum ScrollIntentEnum {
   NONE = 'none',
-  INITIAL = 'initial', // 初始化或切换房间
-  NEW_MESSAGE = 'new_message', // 新消息到达
-  LOAD_MORE = 'load_more' // 加载更多历史消息
+  INITIAL = 'initial', // 초기화 또는 방 전환
+  NEW_MESSAGE = 'new_message', // 새 메시지 도착
+  LOAD_MORE = 'load_more' // 더 많은 기록 메시지 로드
 }
 
 export enum MergeMessageType {
@@ -921,7 +921,7 @@ export enum MergeMessageType {
   MERGE = 2
 }
 
-// 用户类型
+// 사용자 유형
 export enum UserType {
   BOT = 'bot'
 }

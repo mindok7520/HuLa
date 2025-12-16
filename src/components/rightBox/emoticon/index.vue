@@ -6,7 +6,7 @@
     @scroll="activeMenuId = ''">
     <transition name="fade" mode="out-in">
       <div :key="activeIndex" class="emoji-content">
-        <!-- 最近使用 -->
+        <!-- 최근 사용 -->
         <div v-if="activeIndex === 0">
           <div v-if="emojiRef.historyList?.length > 0">
             <span v-if="!checkIsUrl(emojiRef.historyList[0])" class="text-12px text-[--text-color]">
@@ -25,7 +25,7 @@
             </n-flex>
           </div>
 
-          <!-- emoji表情 -->
+          <!-- 이모지 표정 -->
           <div v-for="items in emojiObj" :key="items?.name">
             <template v-if="items?.name && items.value?.length">
               <span class="text-12px text-[--text-color]">{{ items.name }}</span>
@@ -44,7 +44,7 @@
           </div>
         </div>
 
-        <!-- 表情包系列 -->
+        <!-- 이모티콘 시리즈 -->
         <div v-else-if="currentSeries">
           <span class="text-12px text-[--text-color]">{{ currentSeries.name }}</span>
           <n-flex align="center" :class="isMobile() ? 'emoji-pack-grid-mobile mx-6px my-12px' : 'mx-6px my-12px'">
@@ -72,7 +72,7 @@
           </n-flex>
         </div>
 
-        <!-- 我的喜欢页面 -->
+        <!-- 즐겨찾기 페이지 -->
         <div v-else>
           <div v-if="emojiStore.emojiList?.length > 0">
             <span class="text-12px text-[--text-color]">{{ t('emoticon.favorites.title') }}</span>
@@ -131,12 +131,12 @@
     </transition>
   </n-scrollbar>
 
-  <!-- 底部选项 -->
+  <!-- 하단 옵션 -->
   <n-flex align="center" class="expression-item">
     <n-scrollbar x-scrollable class="scrollbar-container">
       <div class="series-container">
         <template v-for="item in tabList" :key="item.id">
-          <!-- 图标类型选项 -->
+          <!-- 아이콘 유형 옵션 -->
           <svg
             class="series-icon"
             v-if="item.type === 'icon'"
@@ -145,7 +145,7 @@
             <use :href="item.icon"></use>
           </svg>
 
-          <!-- 系列类型选项 -->
+          <!-- 시리즈 유형 옵션 -->
           <div
             v-else
             :class="{ active: activeIndex === item.id }"
@@ -211,14 +211,14 @@ const { emoji, setEmoji, lastEmojiTabIndex, setLastEmojiTabIndex } = useHistoryS
 const emojiStore = useEmojiStore()
 const userStore = useUserStore()
 const { t } = useI18n()
-/** 获取米游社的表情包 */
+/** 미요샤 이모티콘 가져오기 */
 const emojisBbs = HulaEmojis.MihoyoBbs
 const activeIndex = ref(lastEmojiTabIndex)
 const currentSeriesIndex = ref(0)
-// 设置当前右键点击的表情项ID
+// 현재 우클릭된 이모티콘 항목 ID 설정
 const activeMenuId = ref('')
 const emojiLocalPathMap = ref<Record<string, string>>({})
-// 仅在元素可见时调度本地缓存，阈值随端变化
+// 요소가 보일 때만 로컬 캐시 예약, 임계값은 클라이언트에 따라 다름
 const {
   observe: observeEmojiVisibility,
   unobserve: unobserveEmojiVisibility,
@@ -233,7 +233,7 @@ const emojiCacheEnv = ref<EmojiCacheEnvironment | null>(null)
 const emojiWorkerUrl = new URL('../../../workers/imageDownloader.ts', import.meta.url)
 let emojiCacheWorker: Worker | null = null
 const emojiExtCache = new Map<string, string>()
-const localUrlCache = new Map<string, string>() // 仅用于最近使用的表情包快速匹配本地链接
+const localUrlCache = new Map<string, string>() // 최근 사용 이모티콘의 로컬 링크 빠른 매칭에만 사용
 const emojiUrlToLocalMap = new Map<string, string>() // expressionUrl -> localUrl
 const downloadLimit = pLimit(3)
 const downloadingUrls = new Set<string>()
@@ -248,14 +248,14 @@ const clearEmojiLocalPath = (id: string, expressionUrl?: string) => {
   }
 }
 
-// 生成选项卡数组
+// 탭 배열 생성
 const tabList = computed<TabItem[]>(() => {
   const baseItems: TabItem[] = [
     { id: 0, type: 'icon', name: t('emoticon.tabs.emoji'), icon: '#face' },
     { id: -1, type: 'icon', name: t('emoticon.tabs.favorites'), icon: '#heart' }
   ]
 
-  // 添加米游社表情包系列
+  // 미요샤 이모티콘 시리즈 추가
   const seriesItems: TabItem[] = emojisBbs.series.map((series, index) => ({
     id: index + 1,
     type: 'series',
@@ -268,7 +268,7 @@ const tabList = computed<TabItem[]>(() => {
 
 const currentSeries = computed(() => (activeIndex.value > 0 ? emojisBbs.series[activeIndex.value - 1] : null))
 
-// 将"我的表情包"列表倒序显示
+// "내 이모티콘" 목록 역순 표시
 const reversedEmojiList = computed(() => {
   return [...emojiStore.emojiList].reverse()
 })
@@ -301,7 +301,7 @@ const emojiRef = reactive<{
   allEmoji: emojiObj.value
 })
 
-// 只在支持 window/Worker 的环境下按需创建 emoji 缓存 Worker，并在全局复用
+// window/Worker 지원 환경에서만 필요 시 이모지 캐시 Worker 생성 및 전역 재사용
 const getEmojiWorker = () => {
   if (typeof window === 'undefined') {
     return null
@@ -315,7 +315,7 @@ const getEmojiWorker = () => {
 const getEmojiBaseDir = () => (isMobile() ? BaseDirectory.AppData : BaseDirectory.Resource)
 const getEmojiBaseDirPath = async () => (isMobile() ? await appDataDir() : await resourceDir())
 
-// 兜底从 URL 字符串中推断扩展名，避免远端类型识别失败
+// 원격 유형 식별 실패 방지를 위해 URL 문자열에서 확장자 추론
 const inferExtFromUrl = (url: string) => {
   try {
     const { pathname } = new URL(url)
@@ -333,7 +333,7 @@ const inferExtFromUrl = (url: string) => {
   return null
 }
 
-// 优先使用 detectRemoteFileType 获取真实扩展名，否则回退到 URL 规则推断并缓存结果
+// detectRemoteFileType으로 실제 확장자 우선 확인, 실패 시 URL 규칙 추론 및 결과 캐시
 const resolveEmojiExtension = async (url: string) => {
   if (emojiExtCache.has(url)) {
     return emojiExtCache.get(url)!
@@ -343,7 +343,7 @@ const resolveEmojiExtension = async (url: string) => {
     const info = await detectRemoteFileType({ url, fileSize: 1 })
     ext = info?.ext || ''
   } catch (error) {
-    console.warn('识别表情类型失败:', error)
+    console.warn('이모티콘 유형 식별 실패:', error)
   }
   if (!ext) {
     ext = inferExtFromUrl(url) || 'png'
@@ -352,14 +352,14 @@ const resolveEmojiExtension = async (url: string) => {
   return ext
 }
 
-// 使用 Emoji URL 的 md5 + 扩展名生成稳定文件名，避免重复下载
+// 이모지 URL의 md5 + 확장자로 안정적인 파일명 생성, 중복 다운로드 방지
 const buildEmojiFileName = async (url: string) => {
   const hash = await md5FromString(url)
   const ext = await resolveEmojiExtension(url)
   return `${hash}.${ext}`
 }
 
-// 将绝对路径转换为 Tauri 可访问的 file URI，并写入响应式映射
+// 절대 경로를 Tauri 접근 가능 file URI로 변환 및 반응형 매핑에 쓰기
 const setEmojiLocalPath = (id: string, absolutePath: string, expressionUrl?: string) => {
   const localUrl = convertFileSrc(absolutePath)
   emojiLocalPathMap.value = {
@@ -392,7 +392,7 @@ const ensureEmojiCacheEnvironment = async () => {
     emojiCacheEnv.value = env
     return env
   } catch (error) {
-    console.error('初始化表情缓存目录失败:', error)
+    console.error('이모티콘 캐시 디렉터리 초기화 실패:', error)
     return null
   }
 }
@@ -416,13 +416,13 @@ const resolveVisibilityElement = (target: Element | ComponentPublicInstance | nu
   return el instanceof Element ? el : null
 }
 
-// 首选借助 Worker 下载以隔离网络 I/O；若无 Worker（如 SSR）则回退到 fetch
+// 네트워크 I/O 격리를 위해 Worker 다운로드 우선; Worker 없으면(SSR 등) fetch로 대체
 const downloadEmojiFile = async (url: string) => {
   const worker = getEmojiWorker()
   if (!worker) {
     const response = await fetch(url)
     if (!response.ok) {
-      throw new Error(`下载表情失败: ${response.status} ${response.statusText}`)
+      throw new Error(`이모티콘 다운로드 실패: ${response.status} ${response.statusText}`)
     }
     return new Uint8Array(await response.arrayBuffer())
   }
@@ -437,7 +437,7 @@ const downloadEmojiFile = async (url: string) => {
       if (data.success && data.buffer) {
         resolve(new Uint8Array(data.buffer))
       } else {
-        reject(new Error(data.error || '下载表情失败'))
+        reject(new Error(data.error || '이모티콘 다운로드 실패'))
       }
     }
 
@@ -482,7 +482,7 @@ const cleanupEmojiObservers = (validIds: string[]) => {
   })
 }
 
-// 只有当收藏项真正出现在视口内时才执行缓存下载
+// 즐겨찾기 항목이 뷰포트에 실제로 나타날 때만 캐시 다운로드 실행
 const handleEmojiVisibility = async (emojiItem: EmojiListItem) => {
   const id = emojiItem.id
   if (emojiItem.localUrl || emojiLocalPathMap.value[id] || cachingEmojiIds.has(id)) {
@@ -497,14 +497,14 @@ const handleEmojiVisibility = async (emojiItem: EmojiListItem) => {
   try {
     await ensureEmojiCached(emojiItem, env.emojiDir, env.baseDir, env.baseDirPath)
   } catch (error) {
-    console.error('缓存表情失败:', emojiItem.expressionUrl, error)
+    console.error('이모티콘 캐시 실패:', emojiItem.expressionUrl, error)
   } finally {
     cachingEmojiIds.delete(id)
     releaseEmojiObserver(id)
   }
 }
 
-// 绑定 DOM 元素到观察器，等待其进入视口后触发下载
+// DOM 요소를 관찰자에 바인딩, 뷰포트 진입 시 다운로드 트리거 대기
 const registerEmojiVisibilityTarget = (target: Element | ComponentPublicInstance | null, emojiItem: EmojiListItem) => {
   releaseEmojiObserver(emojiItem.id)
   const el = resolveVisibilityElement(target)
@@ -517,7 +517,7 @@ const registerEmojiVisibilityTarget = (target: Element | ComponentPublicInstance
   })
 }
 
-// 根据用户 UID 的缓存目录落盘单个 Emoji，若文件不存在则下载后写入
+// 사용자 UID 캐시 디렉터리에 단일 이모지 저장, 파일 없으면 다운로드 후 쓰기
 const ensureEmojiCached = async (
   emojiItem: EmojiListItem,
   emojiDir: string,
@@ -535,7 +535,7 @@ const ensureEmojiCached = async (
   setEmojiLocalPath(emojiItem.id, absolutePath, emojiItem.expressionUrl)
 }
 
-// 将 store 中已有表情与本地缓存对齐，优先使用本地链接渲染
+// store의 기존 이모티콘을 로컬 캐시와 정렬, 로컬 링크 렌더링 우선 사용
 const hydrateEmojiLocalCache = async () => {
   const env = await ensureEmojiCacheEnvironment()
   if (!env) return
@@ -547,16 +547,16 @@ const hydrateEmojiLocalCache = async () => {
     const absolutePath = await join(env.baseDirPath, relativePath)
 
     if (!hasFile) {
-      // 本地文件不存在，先清除失效映射
+      // 로컬 파일 없음, 유효하지 않은 매핑 먼저 지우기
       clearEmojiLocalPath(item.id, item.expressionUrl)
-      // 异步下载（使用 worker）
+      // 비동기 다운로드 (worker 사용)
       if (!downloadingUrls.has(item.expressionUrl)) {
         downloadingUrls.add(item.expressionUrl)
         const task = downloadLimit(async () => {
           try {
             await ensureEmojiCached(item, env.emojiDir, env.baseDir, env.baseDirPath)
           } catch (error) {
-            console.error('[emoji] 重新缓存表情失败:', item.expressionUrl, error)
+            console.error('[emoji] 이모티콘 다시 캐시 실패:', item.expressionUrl, error)
           } finally {
             downloadingUrls.delete(item.expressionUrl)
           }
@@ -564,7 +564,7 @@ const hydrateEmojiLocalCache = async () => {
         downloadTasks.push(task)
       }
     } else {
-      // 文件存在但 store 没有记录时，回填本地链接
+      // 파일은 있지만 store에 기록 없을 때 로컬 링크 채우기
       const localUrl = convertFileSrc(absolutePath)
       setEmojiLocalPath(item.id, absolutePath, item.expressionUrl)
       localUrlCache.set(item.expressionUrl, localUrl)
@@ -576,7 +576,7 @@ const hydrateEmojiLocalCache = async () => {
   }
 }
 
-// 监听收藏列表变化，保持本地映射与观察目标同步
+// 즐겨찾기 목록 변경 감지, 로컬 매핑 및 관찰 대상 동기화 유지
 watch(
   () => emojiStore.emojiList.map((item) => ({ id: item.id, url: item.expressionUrl })),
   (list) => {
@@ -588,7 +588,7 @@ watch(
   { immediate: true, deep: true }
 )
 
-// 用户切换时重置缓存上下文与观察器
+// 사용자 전환 시 캐시 컨텍스트 및 관찰자 재설정
 watch(
   () => userStore.userInfo?.uid,
   () => {
@@ -600,7 +600,7 @@ watch(
     })
     emojiVisibilityTargetMap.clear()
     disconnectEmojiObserver()
-    // 切换账号后如已有列表，立即尝试用本地缓存替换链接
+    // 계정 전환 후 목록 있으면 즉시 로컬 캐시로 링크 교체 시도
     if (emojiStore.emojiList.length > 0 && userStore.userInfo?.uid) {
       void hydrateEmojiLocalCache()
     }
@@ -609,7 +609,7 @@ watch(
 )
 
 /**
- * 检查字符串是否为URL
+ * 문자열이 URL인지 확인
  */
 const checkIsUrl = (str: string) => {
   try {
@@ -621,57 +621,57 @@ const checkIsUrl = (str: string) => {
 }
 
 /**
- * 处理右键菜单点击事件
- * @param event 鼠标事件
- * @param item 表情项
+ * 우클릭 메뉴 이벤트 처리
+ * @param event 마우스 이벤트
+ * @param item 이모티콘 항목
  */
 const handleContextMenu = (event: MouseEvent, item: any) => {
-  // 阻止原生右键菜单
+  // 기본 우클릭 메뉴 차단
   event.preventDefault()
   activeMenuId.value = item.id
 }
 
 /**
- * 删除我的表情包
- * @param id 表情包ID
+ * 내 이모티콘 삭제
+ * @param id 이모티콘 ID
  */
 const deleteMyEmoji = async (id: string) => {
   try {
     await emojiStore.deleteEmoji(id)
     window.$message.success(t('emoticon.favorites.deleteSuccess'))
-    // 关闭菜单
+    // 메뉴 닫기
     activeMenuId.value = ''
     localUrlCache.clear()
     emojiUrlToLocalMap.clear()
   } catch (error) {
-    console.error('删除表情失败:', error)
+    console.error('이모티콘 삭제 실패:', error)
     window.$message.error(t('emoticon.favorites.deleteFail'))
   }
 }
 
 /**
- * 选择表情
+ * 이모티콘 선택
  * @param item
  */
 const chooseEmoji = async (item: any, type: 'emoji' | 'url' = 'emoji') => {
   emojiRef.chooseItem = typeof item === 'string' ? item : item?.renderUrl || item?.expressionUrl || ''
 
-  // 只有非URL的表情（emoji）才记录到历史记录中
+  // URL이 아닌 이모티콘(emoji)만 기록에 저장
   if (type === 'emoji') {
-    // 如果已经存在于历史记录中，则先移除
+    // 이미 기록에 존재하면 먼저 제거
     const index = emojiRef.historyList.indexOf(item)
     if (index !== -1) {
       emojiRef.historyList.splice(index, 1)
     }
     emojiRef.historyList.unshift(item)
     if (emojiRef.historyList.length > 18) {
-      emojiRef.historyList.splice(18) // 保留前18个元素
+      emojiRef.historyList.splice(18) // 상위 18개 요소 유지
     }
     setEmoji([...emojiRef.historyList])
   }
 
-  // 传递表情类型信息，URL类型的表情作为EMOJI类型处理
-  // URL 类型时，确保 renderUrl 优先使用本地链接
+  // 이모티콘 유형 정보 전달, URL 유형 이모티콘은 EMOJI 유형으로 처리
+  // URL 유형 시 renderUrl이 로컬 링크 우선 사용하도록 보장
   if (type === 'url') {
     const payload =
       typeof item === 'object' && item
@@ -687,7 +687,7 @@ const chooseEmoji = async (item: any, type: 'emoji' | 'url' = 'emoji') => {
         payload.renderUrl = local
       }
     } catch (error) {
-      console.warn('[emoji] 获取本地表情失败，回退服务器URL', error)
+      console.warn('[emoji] 로컬 이모티콘 가져오기 실패, 서버 URL로 대체', error)
     }
     emit('emojiHandle', payload, 'emoji-url')
     return payload
@@ -710,7 +710,7 @@ const getEmojiRenderUrl = (item: EmojiListItem) => {
   return item.expressionUrl
 }
 
-// 确保某个服务端 URL 有本地副本，并返回可用于渲染的本地链接
+// 서버 URL에 로컬 사본이 있는지 확인하고 렌더링 가능한 로컬 링크 반환
 const ensureLocalByServerUrl = async (serverUrl: string, id?: string) => {
   try {
     if (!serverUrl) return null
@@ -732,7 +732,7 @@ const ensureLocalByServerUrl = async (serverUrl: string, id?: string) => {
       }
       return localUrl
     }
-    // 未命中本地文件则异步下载，先返回 null 以便立即使用服务器 URL 展示
+    // 로컬 파일 없으면 비동기 다운로드, 즉시 서버 URL 표시 위해 null 반환
     if (!downloadingUrls.has(serverUrl)) {
       downloadingUrls.add(serverUrl)
       void downloadLimit(async () => {
@@ -742,14 +742,14 @@ const ensureLocalByServerUrl = async (serverUrl: string, id?: string) => {
           const localUrl = convertFileSrc(absolutePath)
           emojiUrlToLocalMap.set(serverUrl, localUrl)
           localUrlCache.set(serverUrl, localUrl)
-          // 触发视图更新
+          // 뷰 업데이트 트리거
           if (id) {
             const nextMap = { ...emojiLocalPathMap.value }
             nextMap[id] = localUrl
             emojiLocalPathMap.value = nextMap
           }
         } catch (error) {
-          console.error('[emoji] ensureLocalByServerUrl 下载失败:', serverUrl, error)
+          console.error('[emoji] ensureLocalByServerUrl 다운로드 실패:', serverUrl, error)
           clearEmojiLocalPath('', serverUrl)
         } finally {
           downloadingUrls.delete(serverUrl)
@@ -758,13 +758,13 @@ const ensureLocalByServerUrl = async (serverUrl: string, id?: string) => {
     }
     return null
   } catch (error) {
-    console.warn('[emoji] ensureLocalByServerUrl 异常，回退服务器URL', error)
+    console.warn('[emoji] ensureLocalByServerUrl 예외, 서버 URL로 대체', error)
     return null
   }
 }
 
 /**
- * 切换表情类型标签
+ * 이모티콘 유형 탭 전환
  */
 const handleTabChange = (index: number) => {
   activeIndex.value = index
@@ -775,7 +775,7 @@ const handleTabChange = (index: number) => {
 }
 
 /**
- * 选择表情包系列
+ * 이모티콘 시리즈 선택
  */
 const selectSeries = (index: number) => {
   currentSeriesIndex.value = index
@@ -784,11 +784,11 @@ const selectSeries = (index: number) => {
 }
 
 onMounted(async () => {
-  // 获取我的表情包列表
+  // 내 이모티콘 목록 가져오기
   await emojiStore.getEmojiList()
-  // 表情列表加载后立即尝试使用本地缓存
+  // 이모티콘 목록 로드 후 즉시 로컬 캐시 사용 시도
   await hydrateEmojiLocalCache()
-  // 如果上次选择的是表情包系列，设置正确的currentSeriesIndex
+  // 지난번 선택이 이모티콘 시리즈인 경우 올바른 currentSeriesIndex 설정
   if (activeIndex.value > 0) {
     currentSeriesIndex.value = activeIndex.value - 1
   }
@@ -804,7 +804,7 @@ onBeforeUnmount(() => {
 </script>
 
 <style lang="scss">
-/**! 修改naive-ui滚动条的间距 */
+/**! naive-ui 스크롤바 간격 수정 */
 .n-scrollbar > .n-scrollbar-rail.n-scrollbar-rail--vertical,
 .n-scrollbar + .n-scrollbar-rail.n-scrollbar-rail--vertical {
   right: 0;
@@ -818,12 +818,12 @@ onBeforeUnmount(() => {
 .emoji-item {
   @apply cursor-pointer;
 
-  // 默认表情的样式
+  // 기본 이모티콘 스타일
   &:not(:has(.n-image)) {
     @apply size-36px text-26px hover:bg-[--emoji-hover] rounded-8px;
   }
 
-  // 米游社表情包的样式
+  // 미요샤 이모티콘 팩 스타일
   &:has(.n-image) {
     @apply size-60px;
     &:hover .n-image {
@@ -892,7 +892,7 @@ onBeforeUnmount(() => {
   transform: translateX(-20px);
 }
 
-// 移动端表情网格布局 - 普通emoji表情（7列）
+// 모바일 이모티콘 그리드 레이아웃 - 일반 emoji 이모티콘 (7열)
 .emoji-grid-mobile {
   display: grid !important;
   grid-template-columns: repeat(7, 1fr);
@@ -901,7 +901,7 @@ onBeforeUnmount(() => {
   width: 100%;
 }
 
-// 移动端表情包网格布局 - 表情包图片（4列）
+// 모바일 이모티콘 팩 그리드 레이아웃 - 이모티콘 팩 이미지 (4열)
 .emoji-pack-grid-mobile {
   display: grid !important;
   grid-template-columns: repeat(4, 1fr);

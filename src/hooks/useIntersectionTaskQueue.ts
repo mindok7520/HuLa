@@ -11,8 +11,8 @@ const isClient = typeof window !== 'undefined'
 const isIntersectionObserverSupported = isClient && 'IntersectionObserver' in window
 
 /**
- * 轻量封装 IntersectionObserver，便于在元素可见时触发任务
- * @param options IntersectionObserver 配置
+ * 요소가 보일 때 작업을 트리거하기 위한 IntersectionObserver 경량 래퍼
+ * @param options IntersectionObserver 설정
  */
 export const useIntersectionTaskQueue = (options?: IntersectionObserverInit) => {
   let observer: IntersectionObserver | null = null

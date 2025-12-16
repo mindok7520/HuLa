@@ -41,14 +41,14 @@
     ],
     "windows": {
       "wix": {
-        "language": "zh-CN"
+        "language": "ko-KR"
       },
       "nsis": {
         "installMode": "perMachine",
         "installerIcon": "./icons/icon.ico",
         "displayLanguageSelector": true,
         "languages": [
-          "SimpChinese"
+          "Korean"
         ],
         "template": "template/installer.nsi"
       }
@@ -58,7 +58,7 @@
     "withGlobalTauri": true,
     "windows": [
       {
-        "title": "登录",
+        "title": "로그인",
         "label": "login",
         "url": "/login",
         "fullscreen": false,

@@ -40,14 +40,14 @@ pub struct ChatHistoryResponse {
     pub current_page: u32,
 }
 
-/// 查询聊天历史记录的Tauri命令
+/// 채팅 기록 쿼리 Tauri 명령
 #[tauri::command]
 pub async fn query_chat_history(
     param: ChatHistoryQueryParam,
     state: State<'_, AppData>,
 ) -> Result<ChatHistoryResponse, String> {
     info!(
-        "查询聊天历史记录 - 房间ID: {}, 消息类型: {:?}, 搜索关键词: {:?}, 排序: {:?}, 页码: {}",
+        "채팅 기록 쿼리 - 방 ID: {}, 메시지 유형: {:?}, 검색 키워드: {:?}, 정렬: {:?}, 페이지 번호: {}",
         param.room_id,
         param.message_type,
         param.search_keyword,
@@ -55,13 +55,13 @@ pub async fn query_chat_history(
         param.pagination.page
     );
 
-    // 获取当前登录用户的 uid
+    // 현재 로그인한 사용자의 uid 가져오기
     let login_uid = {
         let user_info = state.user_info.lock().await;
         user_info.uid.clone()
     };
 
-    // 构建查询条件
+    // 쿼리 조건 구축
     let query_condition = ChatHistoryQueryCondition {
         room_id: param.room_id.clone(),
         login_uid: login_uid.clone(),
@@ -72,22 +72,22 @@ pub async fn query_chat_history(
         pagination: param.pagination.clone(),
     };
 
-    // 查询数据库
+    // 데이터베이스 쿼리
     let messages =
         im_message_repository::query_chat_history(state.db_conn.deref(), query_condition)
             .await
             .map_err(|e| {
-                error!("查询聊天历史记录失败: {}", e);
+                error!("채팅 기록 쿼리 실패: {}", e);
                 e.to_string()
             })?;
 
-    // 转换为响应格式
+    // 응답 형식으로 변환
     let message_resps: Vec<MessageResp> = messages
         .into_iter()
         .map(|msg| crate::command::message_command::convert_message_to_resp(msg, None))
         .collect();
 
-    // 根据返回的消息数量判断是否还有更多数据
+    // 반환된 메시지 수에 따라 더 많은 데이터가 있는지 판단
     let has_more = message_resps.len() >= param.pagination.page_size as usize;
 
     let response = ChatHistoryResponse {
@@ -99,7 +99,7 @@ pub async fn query_chat_history(
     Ok(response)
 }
 
-/// 内部查询条件结构
+/// 내부 쿼리 조건 구조체
 #[derive(Debug, Clone)]
 pub struct ChatHistoryQueryCondition {
     pub room_id: String,
@@ -117,32 +117,32 @@ pub enum SortOrder {
     Desc,
 }
 
-/// 解析消息类型筛选条件
+/// 메시지 유형 필터링 조건 파싱
 fn parse_message_type(message_type: &Option<String>) -> Option<Vec<u8>> {
     match message_type {
         Some(msg_type) => match msg_type.as_str() {
             "image" => {
-                // 图片和视频类型的消息类型ID
-                // 根据项目实际的消息类型枚举定义这些值
-                Some(vec![3, 6]) // 假设3=图片, 6=视频
+                // 이미지 및 비디오 유형의 메시지 유형 ID
+                // 프로젝트의 실제 메시지 유형 열거형 정의에 따라 이 값들을 설정
+                Some(vec![3, 6]) // 가정: 3=이미지, 6=비디오
             }
             "file" => {
-                // 文件类型的消息类型ID
-                Some(vec![4]) // 假设4=文件
+                // 파일 유형의 메시지 유형 ID
+                Some(vec![4]) // 가정: 4=파일
             }
-            "all" | _ => None, // 不筛选，返回所有类型
+            "all" | _ => None, // 필터링하지 않음, 모든 유형 반환
         },
         None => None,
     }
 }
 
-/// 解析排序方式
+/// 정렬 방식 파싱
 fn parse_sort_order(sort_order: &Option<String>) -> SortOrder {
     match sort_order {
         Some(order) => match order.as_str() {
             "asc" => SortOrder::Asc,
             "desc" | _ => SortOrder::Desc,
         },
-        None => SortOrder::Desc, // 默认降序（最新的在前）
+        None => SortOrder::Desc, // 기본 내림차순 (최신순)
     }
 }

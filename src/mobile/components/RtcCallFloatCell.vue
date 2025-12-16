@@ -78,11 +78,11 @@ const isVisible = computed(() => currentCall.value !== null)
 
 const avatarUrl = computed(() => currentCall.value?.avatar ?? AvatarUtils.getAvatarUrl(''))
 
-const displayName = computed(() => currentCall.value?.displayName || '未知用户')
+const displayName = computed(() => currentCall.value?.displayName || '알 수 없는 사용자')
 
 const callMessage = computed(() => {
   if (!currentCall.value) return ''
-  return currentCall.value.callType === CallTypeEnum.VIDEO ? '邀请你视频通话...' : '邀请你语音通话...'
+  return currentCall.value.callType === CallTypeEnum.VIDEO ? '영상 통화 요청 중...' : '음성 통화 요청 중...'
 })
 
 const toAvatarUrl = (raw?: unknown) => {
@@ -127,7 +127,7 @@ const handleCallRequest = (payload: CallPayload) => {
   const callType = payload.isVideo || payload.video ? CallTypeEnum.VIDEO : CallTypeEnum.AUDIO
   const remoteUserInfo = groupStore.getUserInfo(callerUid, roomId)
   const displayNameCandidate =
-    remoteUserInfo?.myName || remoteUserInfo?.name || payload.callerName || payload.name || '未知用户'
+    remoteUserInfo?.myName || remoteUserInfo?.name || payload.callerName || payload.name || '알 수 없는 사용자'
   const avatarCandidate = remoteUserInfo?.avatar ?? payload.avatar
 
   currentCall.value = {
@@ -159,7 +159,7 @@ const handleReject = async () => {
       }
     })
   } catch (error) {
-    console.error('发送拒绝响应失败:', error)
+    console.error('거절 응답 전송 실패:', error)
   } finally {
     clearCall()
   }
@@ -180,7 +180,7 @@ const handleAccept = async () => {
   try {
     await router.push({ path: '/mobile/rtcCall', query })
   } catch (error) {
-    console.error('跳转通话页面失败:', error)
+    console.error('통화 페이지로 이동 실패:', error)
   } finally {
     clearCall()
   }

@@ -1,7 +1,7 @@
 import { nextTick, type Ref } from 'vue'
 import { TriggerEnum } from '@/enums'
 
-// 添加选择器常量
+// 선택자 상수 추가
 const SELECTORS = {
   MENTION: '.ait-options',
   AI: '.AI-options',
@@ -25,10 +25,10 @@ export const useTrigger = (
   topicDialogVisible: Ref<boolean>,
   topicKeyword: Ref<string>
 ) => {
-  // 产品阶段暂不使用 / 唤起 AI，保留开关便于后续快速恢复
+  // 제품 단계에서는 / 로 AI 호출을 사용하지 않음, 나중에 빠르게 복구할 수 있도록 스위치 유지
   const enableAITrigger = false
 
-  /** 重置所有状态 */
+  /** 모든 상태 초기화 */
   const resetAllStates = () => {
     ait.value = false
     aitKey.value = ''
@@ -38,7 +38,7 @@ export const useTrigger = (
     topicKeyword.value = ''
   }
 
-  /** 处理 @ 提及 */
+  /** @ 멘션 처리 */
   const handleMention = async (context: TriggerContext) => {
     if (personList.value.length === 0) {
       resetAllStates()
@@ -60,10 +60,10 @@ export const useTrigger = (
     })
   }
 
-  /** 处理AI对话 */
+  /** AI 대화 처리 */
   const handleAI = async (context: TriggerContext) => {
     if (!enableAITrigger) {
-      // 当功能关闭时直接返回，避免弹层状态被重新打开
+      // 기능이 꺼져 있으면 팝업 상태가 다시 열리지 않도록 바로 반환
       return
     }
 
@@ -96,7 +96,7 @@ export const useTrigger = (
     dom.style.top = `${res.y - (dom.offsetHeight + 5)}px`
   }
 
-  /** 处理话题标签 */
+  /** 토픽 태그 처리 */
   const handleTopic = async (context: TriggerContext) => {
     if (topicList.value.length === 0) {
       resetAllStates()
@@ -118,10 +118,10 @@ export const useTrigger = (
     })
   }
 
-  /** 检查是否应该触发 */
+  /** 트리거 여부 확인 */
   const shouldTrigger = (text: string, cursorPosition: number, triggerSymbol: string) => {
     try {
-      // 确保有效的文本和光标位置
+      // 유효한 텍스트 및 커서 위치 확인
       if (!text || cursorPosition === undefined || cursorPosition < 0) {
         return false
       }
@@ -130,12 +130,12 @@ export const useTrigger = (
       const pattern = new RegExp(`\\${triggerSymbol}([^\\${triggerSymbol}]*)$`)
       return pattern.test(searchStr)
     } catch (err) {
-      console.error('检查触发条件出错:', err)
+      console.error('트리거 조건 확인 오류:', err)
       return false
     }
   }
 
-  /** 提取关键词 */
+  /** 키워드 추출 */
   const extractKeyword = (text: string, cursorPosition: number, triggerSymbol: string) => {
     try {
       if (!text || cursorPosition === undefined || cursorPosition < 0) {
@@ -147,17 +147,17 @@ export const useTrigger = (
       const matches = pattern.exec(searchStr)
       return matches && matches.length > 1 ? matches[1] : null
     } catch (err) {
-      console.error('提取关键词出错:', err)
+      console.error('키워드 추출 오류:', err)
       return null
     }
   }
 
-  /** 处理触发 */
+  /** 트리거 처리 */
   const handleTrigger = async (text: string, cursorPosition: number, context: TriggerContext) => {
     try {
       let hasTriggered = false
 
-      // 检查@提及
+      // @멘션 확인
       if (shouldTrigger(text, cursorPosition, TriggerEnum.MENTION)) {
         const keyword = extractKeyword(text, cursorPosition, TriggerEnum.MENTION)
         if (keyword !== null) {
@@ -165,8 +165,8 @@ export const useTrigger = (
           hasTriggered = ait.value
         }
       }
-      // 检查AI对话
-      // 仅在开关开启时解析 / 触发，避免误触发已禁用的逻辑
+      // AI 대화 확인
+      // 스위치가 켜져 있을 때만 / 트리거 해석, 비활성화된 로직 오작동 방지
       else if (enableAITrigger && shouldTrigger(text, cursorPosition, TriggerEnum.AI)) {
         const keyword = extractKeyword(text, cursorPosition, TriggerEnum.AI)
         if (keyword !== null) {
@@ -174,7 +174,7 @@ export const useTrigger = (
           hasTriggered = aiDialogVisible.value
         }
       }
-      // 检查话题标签
+      // 토픽 태그 확인
       else if (shouldTrigger(text, cursorPosition, TriggerEnum.TOPIC)) {
         const keyword = extractKeyword(text, cursorPosition, TriggerEnum.TOPIC)
         if (keyword !== null) {
@@ -189,7 +189,7 @@ export const useTrigger = (
 
       return hasTriggered
     } catch (err) {
-      console.error('处理触发事件出错:', err)
+      console.error('트리거 이벤트 처리 오류:', err)
       resetAllStates()
       return false
     }

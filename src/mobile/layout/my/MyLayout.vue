@@ -1,7 +1,7 @@
 <template>
   <MobileLayout :topSafeAreaClass="computedTopAreaClass">
     <div class="h-full flex flex-col">
-      <!-- 页面全部内容 -->
+      <!-- 페이지 전체 콘텐츠 -->
       <div class="flex flex-col flex-1">
         <RouterView v-slot="{ Component }">
           <div class="page-view">
@@ -23,14 +23,14 @@ import { useUserStore } from '@/stores/user'
 import { getGroupDetail, scanQRCodeAPI } from '@/utils/ImRequestUtils'
 
 interface ScanData {
-  type: string // 必须有
-  [key: string]: any // 允许有其他任意字段
+  type: string // 필수
+  [key: string]: any // 기타 임의 필드 허용
 }
 
 const handleScanLogin = async (data: ScanData) => {
   if (!Object.hasOwn(data, 'qrId')) {
-    window.$message.warning('登录二维码不存在qrId')
-    throw new Error('登录二维码不存在qrId:', data as any)
+    window.$message.warning('로그인 QR 코드에 qrId가 없습니다')
+    throw new Error('로그인 QR 코드에 qrId가 없습니다:', data as any)
   }
 
   const { qrId } = data
@@ -53,22 +53,22 @@ const globalStore = useGlobalStore()
 const userStore = useUserStore()
 
 const handleScanAddFriend = async (data: ScanData) => {
-  console.log('尝试扫码添加好友')
+  console.log('QR 코드로 친구 추가 시도')
   if (!Object.hasOwn(data, 'uid')) {
-    window.$message.warning('登录二维码不存在uid')
-    throw new Error('登录二维码不存在uid:', data as any)
+    window.$message.warning('로그인 QR 코드에 uid가 없습니다')
+    throw new Error('로그인 QR 코드에 uid가 없습니다:', data as any)
   }
 
   const uidStr = data.uid as string
   const uid = uidStr.split('&')[0]
 
-  // 判断uid是不是自己的
+  // uid가 자신의 것인지 확인
 
   const selfUid = userStore.userInfo?.uid as string
 
   if (selfUid === uid) {
-    window.$message.warning('不能添加自己为好友哦~', { duration: 4000 })
-    throw new Error('用户尝试扫自己二维码添加好友但被拒绝:', data as any)
+    window.$message.warning('자신을 친구로 추가할 수 없습니다~', { duration: 4000 })
+    throw new Error('사용자가 자신의 QR 코드를 스캔하여 친구 추가를 시도했지만 거부됨:', data as any)
   }
 
   globalStore.addFriendModalInfo.uid = uid
@@ -79,18 +79,18 @@ const handleScanAddFriend = async (data: ScanData) => {
 }
 
 /**
- * 扫码进群
+ * QR 코드로 그룹 가입
  */
 const handleScanEnterGroup = async (data: ScanData) => {
-  console.log('尝试扫码加群', data, Object.hasOwn(data, 'roomId'))
+  console.log('QR 코드로 그룹 가입 시도', data, Object.hasOwn(data, 'roomId'))
   if (!Object.hasOwn(data, 'roomId')) {
-    window.$message.warning('加群二维码不存在roomId')
-    throw new Error('加群二维码不存在roomId:', data as any)
+    window.$message.warning('그룹 가입 QR 코드에 roomId가 없습니다')
+    throw new Error('그룹 가입 QR 코드에 roomId가 없습니다:', data as any)
   }
 
   const roomId = data.roomId as string
 
-  // 可能是扫码出来的
+  // QR 코드로 스캔된 것일 수 있음
   const groupDetail = await getGroupDetail(roomId)
 
   globalStore.addGroupModalInfo.account = groupDetail.account
@@ -103,12 +103,12 @@ const handleScanEnterGroup = async (data: ScanData) => {
 }
 
 /**
- * 监听事件扫码
+ * QR 코드 스캔 이벤트 수신
  */
 useMitt.on(MittEnum.QR_SCAN_EVENT, async (data: ScanData) => {
   if (!Object.hasOwn(data, 'type')) {
-    window.$message.warning('识别不到正确的二维码')
-    throw new Error('二维码缺少type字段:', data as any)
+    window.$message.warning('올바른 QR 코드를 인식할 수 없습니다')
+    throw new Error('QR 코드에 type 필드가 없습니다:', data as any)
   }
 
   switch (data.type) {
@@ -116,26 +116,26 @@ useMitt.on(MittEnum.QR_SCAN_EVENT, async (data: ScanData) => {
       try {
         await handleScanLogin(data)
       } catch (error) {
-        console.log('扫码尝试获取Token失败:', error)
+        console.log('QR 코드 스캔으로 토큰 획득 시도 실패:', error)
       }
       break
     case 'addFriend':
       try {
         await handleScanAddFriend(data)
       } catch (error) {
-        console.log('扫码添加好友失败:', error)
+        console.log('QR 코드 스캔으로 친구 추가 실패:', error)
       }
       break
     case 'scanEnterGroup':
       try {
         await handleScanEnterGroup(data)
       } catch (error) {
-        console.log('扫码加入群失败:', error)
+        console.log('QR 코드 스캔으로 그룹 가입 실패:', error)
       }
       break
     default:
-      window.$message.warning('识别不到正确的二维码')
-      throw new Error('二维码缺少type字段:', data as any)
+      window.$message.warning('올바른 QR 코드를 인식할 수 없습니다')
+      throw new Error('QR 코드에 type 필드가 없습니다:', data as any)
   }
 })
 
@@ -148,7 +148,7 @@ const route = useRoute()
 
 <style lang="scss" scoped>
 // .page-view {
-//   // 进入时的动画
+//   // 진입 애니메이션
 //   animation: fade-slide-in 0.3s ease;
 // }
 

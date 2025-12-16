@@ -6,18 +6,18 @@ export const useVideoViewer = defineStore(
   () => {
     const imageList = ref<string[]>([])
     const currentIndex = ref(0)
-    // 单图模式相关变量
+    // 단일 이미지 모드 관련 변수
     const singleImage = ref('')
     const isSingleMode = ref(false)
 
-    // 视频相关变量
+    // 비디오 관련 변수
     const videoList = ref<string[]>([])
     const currentVideoIndex = ref(0)
 
-    // 添加一个重置方法,用于设置新的图片列表
+    // 새 이미지 목록을 설정하는 초기화 메서드 추가
     const resetImageList = (list: string[], originalIndex: number) => {
       isSingleMode.value = false
-      // 创建一个去重后的新数组，同时保持原有顺序
+      // 중복 제거된 새 배열 생성, 원래 순서 유지
       const uniqueList: string[] = []
       const seenUrls = new Set<string>()
 
@@ -28,20 +28,20 @@ export const useVideoViewer = defineStore(
         }
       }
 
-      // 找到原始图片在去重后的新列表中的索引
+      // 중복 제거된 새 목록에서 원본 이미지의 인덱스 찾기
       const newIndex = uniqueList.indexOf(list[originalIndex])
 
       imageList.value = uniqueList
       currentIndex.value = newIndex !== -1 ? newIndex : 0
     }
 
-    // 设置单图的方法
+    // 단일 이미지 설정 메서드
     const setSingleImage = (url: string) => {
       singleImage.value = url
       isSingleMode.value = true
     }
 
-    // 用于设置新的视频列表
+    // 새 비디오 목록 설정에 사용
     const resetVideoListOptimized = (list: string[], originalIndex: number) => {
       const uniqueList: string[] = []
       const seenUrls = new Set<string>()
@@ -59,7 +59,7 @@ export const useVideoViewer = defineStore(
       currentVideoIndex.value = newIndex !== -1 ? newIndex : 0
     }
 
-    // 更新视频列表中的特定视频路径（用于下载完成后更新为本地路径）
+    // 비디오 목록의 특정 비디오 경로 업데이트 (다운로드 완료 후 로컬 경로로 업데이트하는 데 사용)
     const updateVideoPath = (originalUrl: string, newPath: string) => {
       const index = videoList.value.indexOf(originalUrl)
       if (index !== -1) {
@@ -67,7 +67,7 @@ export const useVideoViewer = defineStore(
       }
     }
 
-    // 批量更新视频路径（用于批量处理本地路径）
+    // 비디오 경로 일괄 업데이트 (로컬 경로 일괄 처리에 사용)
     const updateVideoListPaths = (pathMapping: Record<string, string>) => {
       videoList.value = videoList.value.map((url) => pathMapping[url] || url)
     }

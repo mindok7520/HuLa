@@ -54,20 +54,22 @@ const naiveLocaleMap: Record<string, NaiveLocalePack> = {
   'zh-CN': { locale: zhCN, dateLocale: dateZhCN },
   zh: { locale: zhCN, dateLocale: dateZhCN },
   'en-US': { locale: enUS, dateLocale: dateEnUS },
-  en: { locale: enUS, dateLocale: dateEnUS }
+  en: { locale: enUS, dateLocale: dateEnUS },
+  'ko-KR': { locale: koKR, dateLocale: dateKoKR },
+  ko: { locale: koKR, dateLocale: dateKoKR }
 }
 
-const defaultNaiveLocalePack = naiveLocaleMap['zh-CN']
+const defaultNaiveLocalePack = naiveLocaleMap['ko-KR']
 const resolveNaiveLocale = (lang: string): NaiveLocalePack => naiveLocaleMap[lang] ?? defaultNaiveLocalePack
 const currentNaiveLocale = computed(() => resolveNaiveLocale(locale.value).locale)
 const currentNaiveDateLocale = computed(() => resolveNaiveLocale(locale.value).dateLocale)
-/**监听深色主题颜色变化*/
+/** 다크 모드 테마 색상 변경 감지 */
 const globalTheme = ref<any>(themes.value.content)
 const prefers = matchMedia('(prefers-color-scheme: dark)')
-// 定义不需要显示消息提示的窗口
+// 메시지 힌트를 표시할 필요가 없는 창 정의
 const noMessageWindows = ['tray', 'notify', 'capture', 'update', 'checkupdate']
 
-/** 跟随系统主题模式切换主题 */
+/** 시스템 테마 모드에 따라 테마 전환 */
 const followOS = () => {
   globalTheme.value = prefers.matches ? darkTheme : lightTheme
   document.documentElement.dataset.theme = prefers.matches ? ThemeEnum.DARK : ThemeEnum.LIGHT
@@ -80,7 +82,7 @@ watchEffect(() => {
     themes.value.pattern = ThemeEnum.OS
     prefers.addEventListener('change', followOS)
   } else {
-    // 判断content是否是深色还是浅色
+    // content가 다크 모드인지 라이트 모드인지 판단
     document.documentElement.dataset.theme = themes.value.content || ThemeEnum.LIGHT
     globalTheme.value = themes.value.content === ThemeEnum.DARK ? darkTheme : lightTheme
     prefers.removeEventListener('change', followOS)
@@ -166,7 +168,7 @@ const commonTheme: GlobalThemeOverrides = {
   }
 }
 
-/** 浅色模式的主题颜色 */
+/** 라이트 모드 테마 색상 */
 const lightThemeOverrides: GlobalThemeOverrides = {
   ...commonTheme,
   Scrollbar: {
@@ -179,7 +181,7 @@ const lightThemeOverrides: GlobalThemeOverrides = {
   }
 }
 
-/** 深色模式的主题颜色 */
+/** 다크 모드 테마 색상 */
 const darkThemeOverrides: GlobalThemeOverrides = {
   ...commonTheme,
   Scrollbar: {
@@ -188,17 +190,17 @@ const darkThemeOverrides: GlobalThemeOverrides = {
   }
 }
 
-// 挂载naive组件的方法至window, 以便在路由钩子函数和请求函数里面调用
+// 라우트 훅 함수 및 요청 함수 내에서 호출할 수 있도록 naive 컴포넌트 메서드를 window에 마운트
 const registerNaiveTools = () => {
   window.$loadingBar = useLoadingBar()
   window.$dialog = useDialog()
   window.$notification = useNotification()
   window.$modal = useModal()
 
-  // 获取原始的消息对象
+  // 원본 메시지 객체 가져오기
   const originalMessage = useMessage()
 
-  // 创建一个空的消息对象，用于禁用消息的窗口
+  // 메시지 창을 비활성화하기 위한 빈 메시지 객체 생성
   const noOpMessage = {
     info: () => {},
     success: () => {},
@@ -215,12 +217,12 @@ const registerNaiveTools = () => {
     destroyAll: () => {}
   } as unknown as ReturnType<typeof useMessage>
 
-  // 检查当前路由是否需要禁用消息
+  // 현재 라우트에서 메시지를 비활성화해야 하는지 확인
   const shouldDisableMessage = () => {
     return noMessageWindows.includes(getCurrentWebviewWindow().label)
   }
 
-  // 设置消息对象
+  // 메시지 객체 설정
   window.$message = shouldDisableMessage() ? noOpMessage : originalMessage
 }
 

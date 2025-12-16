@@ -1,45 +1,45 @@
 <template>
   <main class="video-generation-container">
     <div class="content-area">
-      <!-- 头部 -->
+      <!-- 헤더 -->
       <div data-tauri-drag-region class="header flex p-[8px_16px_10px_16px] justify-between items-center">
         <n-flex :size="10" vertical>
-          <p class="leading-6 text-(18px [--chat-text-color]) font-500">AI 视频生成</p>
-          <p class="text-(11px #707070)">共生成 {{ totalVideos }} 个视频</p>
+          <p class="leading-6 text-(18px [--chat-text-color]) font-500">AI 비디오 생성</p>
+          <p class="text-(11px #707070)">총 {{ totalVideos }}개의 비디오 생성됨</p>
         </n-flex>
       </div>
 
-      <!-- 生成区域 -->
+      <!-- 생성 영역 -->
       <div class="generation-area p-16px">
-        <n-card title="生成视频" :bordered="false" class="mb-16px">
+        <n-card title="비디오 생성" :bordered="false" class="mb-16px">
           <n-form ref="formRef" :model="formData" label-placement="left" label-width="80">
-            <!-- 模型选择 -->
-            <n-form-item label="选择模型" path="modelId">
+            <!-- 모델 선택 -->
+            <n-form-item label="모델 선택" path="modelId">
               <n-select
                 v-model:value="formData.modelId"
                 :options="modelOptions"
-                placeholder="请选择视频生成模型"
+                placeholder="비디오 생성 모델을 선택하세요"
                 filterable
                 @update:value="handleModelChange" />
             </n-form-item>
 
-            <!-- 提示词输入 -->
-            <n-form-item label="提示词" path="prompt">
+            <!-- 프롬프트 입력 -->
+            <n-form-item label="프롬프트" path="prompt">
               <n-input
                 v-model:value="formData.prompt"
                 type="textarea"
-                placeholder="请输入视频描述，例如：一只可爱的猫咪在花园里追逐蝴蝶"
+                placeholder="비디오 설명을 입력하세요. 예: 정원에서 나비를 쫓는 귀여운 고양이"
                 :autosize="promptAutosize"
                 maxlength="2000"
                 show-count />
             </n-form-item>
 
-            <!-- 参数设置 -->
-            <n-form-item label="视频尺寸">
+            <!-- 매개변수 설정 -->
+            <n-form-item label="비디오 크기">
               <n-flex :size="12">
                 <n-input-number
                   v-model:value="formData.width"
-                  placeholder="宽度"
+                  placeholder="너비"
                   :min="256"
                   :max="1920"
                   :step="64"
@@ -47,7 +47,7 @@
                 <span class="text-14px text-#909090">×</span>
                 <n-input-number
                   v-model:value="formData.height"
-                  placeholder="高度"
+                  placeholder="높이"
                   :min="256"
                   :max="1080"
                   :step="64"
@@ -55,65 +55,65 @@
               </n-flex>
             </n-form-item>
 
-            <n-form-item label="视频时长">
+            <n-form-item label="비디오 길이">
               <n-input-number
                 v-model:value="formData.duration"
-                placeholder="时长（秒）"
+                placeholder="길이 (초)"
                 :min="1"
                 :max="60"
                 :step="1"
                 style="width: 120px" />
-              <span class="text-12px text-#909090 ml-8px">秒</span>
+              <span class="text-12px text-#909090 ml-8px">초</span>
             </n-form-item>
 
-            <!-- 生成按钮 -->
+            <!-- 생성 버튼 -->
             <n-form-item>
               <n-button
                 type="primary"
                 :loading="isGenerating"
                 :disabled="!formData.modelId || !formData.prompt"
                 @click="handleGenerate">
-                {{ isGenerating ? '生成中...' : '开始生成' }}
+                {{ isGenerating ? '생성 중...' : '생성 시작' }}
               </n-button>
             </n-form-item>
           </n-form>
         </n-card>
 
-        <!-- 视频展示区域 -->
-        <n-card title="生成历史" :bordered="false">
+        <!-- 비디오 표시 영역 -->
+        <n-card title="생성 기록" :bordered="false">
           <n-spin :show="isLoading">
             <div v-if="videoList.length > 0" class="video-grid">
               <div v-for="video in videoList" :key="video.id" class="video-item">
                 <div class="video-wrapper">
-                  <!-- 状态标签 -->
+                  <!-- 상태 태그 -->
                   <n-tag v-if="video.status === 10" class="status-tag" type="info" size="small" :bordered="false">
-                    生成中
+                    생성 중
                   </n-tag>
                   <n-tag v-else-if="video.status === 30" class="status-tag" type="error" size="small" :bordered="false">
-                    失败
+                    실패
                   </n-tag>
 
-                  <!-- 视频播放器 -->
+                  <!-- 비디오 플레이어 -->
                   <div v-if="video.status === 20 && video.videoUrl" class="video-player">
                     <video :src="video.videoUrl" :poster="video.coverUrl" controls class="video" @click.stop></video>
                   </div>
                   <div v-else-if="video.status === 10" class="video-placeholder">
                     <n-spin size="large" />
-                    <p class="text-12px text-#909090 mt-12px">视频生成中，请稍候...</p>
+                    <p class="text-12px text-#909090 mt-12px">비디오 생성 중, 잠시만 기다려주세요...</p>
                   </div>
                   <div v-else-if="video.status === 30" class="video-placeholder error">
                     <Icon icon="mdi:alert-circle-outline" class="text-48px text-#d5304f" />
-                    <p class="text-12px text-#d5304f mt-8px">{{ video.errorMessage || '生成失败' }}</p>
+                    <p class="text-12px text-#d5304f mt-8px">{{ video.errorMessage || '생성 실패' }}</p>
                   </div>
                 </div>
 
-                <!-- 视频信息 -->
+                <!-- 비디오 정보 -->
                 <div class="video-info">
                   <p class="prompt" :title="video.prompt">{{ video.prompt }}</p>
                   <n-flex justify="space-between" align="center" class="mt-8px">
                     <span class="text-11px text-#909090">
                       {{ formatTime(video.createTime) }}
-                      <span v-if="video.duration" class="ml-4px">· {{ video.duration }}s</span>
+                      <span v-if="video.duration" class="ml-4px">· {{ video.duration }}초</span>
                     </span>
                     <n-flex :size="8">
                       <n-button v-if="video.status === 20" text size="small" @click="handleDownload(video)">
@@ -129,17 +129,17 @@
                             </template>
                           </n-button>
                         </template>
-                        确定要删除这个视频吗？
+                        이 비디오를 삭제하시겠습니까?
                       </n-popconfirm>
                     </n-flex>
                   </n-flex>
                 </div>
               </div>
             </div>
-            <n-empty v-else description="暂无生成记录" class="py-40px" />
+            <n-empty v-else description="생성 기록 없음" class="py-40px" />
           </n-spin>
 
-          <!-- 分页 -->
+          <!-- 페이지네이션 -->
           <n-flex justify="center" class="mt-16px" v-if="totalVideos > pageSize">
             <n-pagination
               v-model:page="pageNo"
@@ -154,32 +154,32 @@
       </div>
     </div>
 
-    <!-- 视频详情预览 -->
+    <!-- 비디오 상세 미리보기 -->
     <n-modal v-model:show="showPreview" preset="card" style="width: 90%; max-width: 1200px">
       <template #header>
-        <span>视频详情</span>
+        <span>비디오 상세</span>
       </template>
       <div v-if="previewVideo" class="preview-container">
         <video :src="previewVideo.videoUrl" :poster="previewVideo.coverUrl" controls class="preview-video"></video>
         <div class="preview-info mt-16px">
           <p class="text-14px">
-            <strong>提示词：</strong>
+            <strong>프롬프트:</strong>
             {{ previewVideo.prompt }}
           </p>
           <p class="text-12px text-#909090 mt-8px">
-            <strong>尺寸：</strong>
+            <strong>크기:</strong>
             {{ previewVideo.width }} × {{ previewVideo.height }}
           </p>
           <p class="text-12px text-#909090 mt-4px">
-            <strong>时长：</strong>
-            {{ previewVideo.duration }} 秒
+            <strong>길이:</strong>
+            {{ previewVideo.duration }} 초
           </p>
           <p class="text-12px text-#909090 mt-4px">
-            <strong>模型：</strong>
+            <strong>모델:</strong>
             {{ previewVideo.model }} ({{ previewVideo.platform }})
           </p>
           <p class="text-12px text-#909090 mt-4px">
-            <strong>生成时间：</strong>
+            <strong>생성 시간:</strong>
             {{ formatTime(previewVideo.createTime) }}
           </p>
         </div>
@@ -198,7 +198,7 @@ const message = useMessage()
 const promptAutosize = { minRows: 3, maxRows: 6 }
 const paginationSizes = [10, 20, 30, 50]
 
-// 表单数据
+// 폼 데이터
 const formData = ref({
   modelId: '',
   prompt: '',
@@ -208,34 +208,34 @@ const formData = ref({
   options: {}
 })
 
-// 模型选项
+// 모델 옵션
 const modelOptions = ref<Array<{ label: string; value: string }>>([])
 
-// 视频列表
+// 비디오 목록
 const videoList = ref<any[]>([])
 const totalVideos = ref(0)
 const pageNo = ref(1)
 const pageSize = ref(12)
 
-// 状态
+// 상태
 const isGenerating = ref(false)
 const isLoading = ref(false)
 
-// 预览
+// 미리보기
 const showPreview = ref(false)
 const previewVideo = ref<any>(null)
 
-// 轮询定时器
+// 폴링 타이머
 let pollingTimer: NodeJS.Timeout | null = null
 let pollingStartAt: number | null = null
-const MAX_POLL_DURATION = 5 * 60 * 1000 // 5分钟超时，防止长时间占用内存
+const MAX_POLL_DURATION = 5 * 60 * 1000 // 5분 타임아웃, 장시간 메모리 점유 방지
 
-// 加载模型列表
+// 모델 목록 로드
 const loadModels = async () => {
   try {
     const res: any = await modelPage({ pageNo: 1, pageSize: 100 })
     if (res?.data?.list) {
-      // 筛选视频生成模型 (type = 4)
+      // 비디오 생성 모델 필터링 (type = 4)
       modelOptions.value = res.data.list
         .filter((m: any) => m.type === 4 && m.status === 0)
         .map((m: any) => ({
@@ -244,11 +244,11 @@ const loadModels = async () => {
         }))
     }
   } catch (error) {
-    console.error('加载模型失败:', error)
+    console.error('모델 로드 실패:', error)
   }
 }
 
-// 加载视频列表
+// 비디오 목록 로드
 const loadVideos = async () => {
   isLoading.value = true
   try {
@@ -261,17 +261,17 @@ const loadVideos = async () => {
       totalVideos.value = res.data.total || 0
     }
   } catch (error) {
-    console.error('加载视频列表失败:', error)
-    message.error('加载视频列表失败')
+    console.error('비디오 목록 로드 실패:', error)
+    message.error('비디오 목록 로드 실패')
   } finally {
     isLoading.value = false
   }
 }
 
-// 生成视频
+// 비디오 생성
 const handleGenerate = async () => {
   if (!formData.value.modelId || !formData.value.prompt) {
-    message.warning('请选择模型并输入提示词')
+    message.warning('모델을 선택하고 프롬프트를 입력하세요')
     return
   }
 
@@ -287,44 +287,44 @@ const handleGenerate = async () => {
     })
 
     if (res?.data) {
-      message.success('视频生成任务已提交，请稍候...')
-      // 重新加载列表
+      message.success('비디오 생성 작업이 제출되었습니다, 잠시만 기다려주세요...')
+      // 목록 다시 로드
       await loadVideos()
-      // 开始轮询
+      // 폴링 시작
       startPolling()
     }
   } catch (error: any) {
-    console.error('生成视频失败:', error)
-    message.error(error?.message || '生成视频失败')
+    console.error('비디오 생성 실패:', error)
+    message.error(error?.message || '비디오 생성 실패')
   } finally {
     isGenerating.value = false
   }
 }
 
-// 开始轮询检查生成状态
+// 생성 상태 폴링 시작
 const startPolling = () => {
   if (pollingTimer) return
 
   pollingStartAt = Date.now()
   pollingTimer = setInterval(async () => {
-    // 超时保护，避免长时间挂起导致内存占用
+    // 타임아웃 보호, 장시간 중단으로 인한 메모리 점유 방지
     if (pollingStartAt && Date.now() - pollingStartAt > MAX_POLL_DURATION) {
       stopPolling()
-      message.warning('检测到视频生成轮询超时，已自动停止，请刷新重试')
+      message.warning('비디오 생성 폴링 시간 초과가 감지되어 자동으로 중지되었습니다. 새로고침 후 다시 시도하세요')
       return
     }
 
-    // 检查是否有进行中的任务
+    // 진행 중인 작업이 있는지 확인
     const hasInProgress = videoList.value.some((video) => video.status === 10)
     if (hasInProgress) {
       await loadVideos()
     } else {
       stopPolling()
     }
-  }, 5000) // 每5秒轮询一次（视频生成较慢）
+  }, 5000) // 5초마다 폴링 (비디오 생성은 느림)
 }
 
-// 停止轮询
+// 폴링 중지
 const stopPolling = () => {
   if (pollingTimer) {
     clearInterval(pollingTimer)
@@ -333,19 +333,19 @@ const stopPolling = () => {
   pollingStartAt = null
 }
 
-// 删除视频
+// 비디오 삭제
 const handleDelete = async (id: string) => {
   try {
     await videoDeleteMy({ id })
-    message.success('删除成功')
+    message.success('삭제 성공')
     await loadVideos()
   } catch (error) {
-    console.error('删除失败:', error)
-    message.error('删除失败')
+    console.error('삭제 실패:', error)
+    message.error('삭제 실패')
   }
 }
 
-// 下载视频
+// 비디오 다운로드
 const handleDownload = (video: any) => {
   if (!video.videoUrl) return
   const link = document.createElement('a')
@@ -354,14 +354,14 @@ const handleDownload = (video: any) => {
   link.click()
 }
 
-// 格式化时间
+// 시간 포맷팅
 const formatTime = (time: string) => {
   if (!time) return ''
   const date = new Date(time)
-  return date.toLocaleString('zh-CN')
+  return date.toLocaleString('ko-KR')
 }
 
-// 分页处理
+// 페이지네이션 처리
 const handlePageChange = (page: number) => {
   pageNo.value = page
   loadVideos()
@@ -374,14 +374,14 @@ const handlePageSizeChange = (size: number) => {
 }
 
 const handleModelChange = () => {
-  // 模型切换时可以重置参数
+  // 모델 전환 시 매개변수 초기화 가능
 }
 
-// 生命周期
+// 생명주기
 onMounted(() => {
   loadModels()
   loadVideos()
-  // 检查是否有进行中的任务，如果有则开始轮询
+  // 진행 중인 작업이 있는지 확인하고, 있으면 폴링 시작
   if (videoList.value.some((video) => video.status === 10)) {
     startPolling()
   }
@@ -389,7 +389,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   stopPolling()
-  // 清空状态，释放内存
+  // 상태 초기화, 메모리 해제
   videoList.value = []
   formData.value.prompt = ''
 })

@@ -1,8 +1,8 @@
 import { onUnmounted, ref } from 'vue'
 
 /**
- * 管理自动滚动保护窗口，避免在程序滚动期间被误判为用户滚动。
- * 使用 requestAnimationFrame 控制时长，不依赖 setTimeout。
+ * 자동 스크롤 보호 창을 관리하여 프로그램 스크롤 중에 사용자 스크롤로 오판되는 것을 방지합니다.
+ * setTimeout에 의존하지 않고 requestAnimationFrame을 사용하여 지속 시간을 제어합니다.
  */
 export const useAutoScrollGuard = () => {
   const isAutoScrolling = ref(false)

@@ -1,5 +1,5 @@
 /**
- * 用于处理头像相关操作的实用类
+ * 아바타 관련 작업을 처리하기 위한 유틸리티 클래스
  */
 export class AvatarUtils {
   private static readonly DEFAULT_AVATAR_RANGE = {
@@ -11,26 +11,26 @@ export class AvatarUtils {
   private static readonly RANGE_END = parseInt(AvatarUtils.DEFAULT_AVATAR_RANGE.end, 10)
 
   /**
-   * 检查头像字符串是否为默认头像 (001-022)
-   * @param avatar - 要检查的头像字符串
-   * @returns 布尔值指示是否是默认头像
+   * 아바타 문자열이 기본 아바타인지 확인 (001-022)
+   * @param avatar - 확인할 아바타 문자열
+   * @returns 기본 아바타인지 여부를 나타내는 불린값
    */
   public static isDefaultAvatar(avatar: string): boolean {
-    // 快速判断：如果为空或长度不是3，直接返回false
+    // 빠른 판단: 비어있거나 길이가 3이 아니면 바로 false 반환
     if (!avatar || avatar.length !== 3) return false
 
-    // 检查是否全是数字
+    // 모두 숫자인지 확인
     const num = parseInt(avatar, 10)
     if (isNaN(num)) return false
 
-    // 数字范围检查 (001-021)
+    // 숫자 범위 확인 (001-021)
     return num >= AvatarUtils.RANGE_START && num <= AvatarUtils.RANGE_END
   }
 
   /**
-   * 根据头像值获取头像URL
-   * @param avatar - 头像字符串或URL
-   * @returns 头像字符串或URL
+   * 아바타 값에 따라 아바타 URL 가져오기
+   * @param avatar - 아바타 문자열 또는 URL
+   * @returns 아바타 문자열 또는 URL
    */
   public static getAvatarUrl(avatar: string): string {
     const DEFAULT = '/logoD.png'
@@ -47,7 +47,7 @@ export class AvatarUtils {
         return parsed.toString()
       }
     } catch {
-      // 如果是自家预置文件名，可进一步做白名单/正则校验
+      // 자체 사전 설정 파일명인 경우 화이트리스트/정규식 검증 추가 가능
       if (/^[a-z0-9_-]+$/i.test(avatar)) {
         return `/avatar/${avatar}.webp`
       }

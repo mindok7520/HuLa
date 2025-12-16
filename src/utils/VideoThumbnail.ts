@@ -4,7 +4,7 @@ import { BaseDirectory, remove, writeFile } from '@tauri-apps/plugin-fs'
 import { AppException } from '@/common/exception'
 import { isMobile } from '@/utils/PlatformConstants'
 
-// 压缩缩略图至给定尺寸与质量，保持比例，返回压缩后的 File
+// 섬네일을 주어진 크기와 품질로 압축, 비율 유지, 압축된 File 반환
 const compressThumbnail = async (
   file: File,
   maxWidth: number = 300,
@@ -41,7 +41,7 @@ const compressThumbnail = async (
           if (blob) {
             resolve(new File([blob], file.name, { type: 'image/jpeg' }))
           } else {
-            reject(new AppException('缩略图压缩失败'))
+            reject(new AppException('섬네일 압축 실패'))
           }
         },
         'image/jpeg',
@@ -50,14 +50,14 @@ const compressThumbnail = async (
     }
 
     img.onerror = () => {
-      reject(new AppException('缩略图加载失败'))
+      reject(new AppException('섬네일 로드 실패'))
     }
 
     img.src = URL.createObjectURL(file)
   })
 }
 
-// 使用浏览器能力截取视频首帧生成缩略图，作为无 Rust 支持时的兜底方案
+// 브라우저 기능을 사용하여 비디오 첫 프레임 캐처하여 섬네일 생성, Rust 지원이 없을 때의 대체 방안
 const getLocalVideoThumbnail = async (file: File) => {
   const url = URL.createObjectURL(file)
   try {
@@ -74,7 +74,7 @@ const getLocalVideoThumbnail = async (file: File) => {
         canvas.height = video.videoHeight
         const ctx = canvas.getContext('2d')
         if (!ctx) {
-          reject(new AppException('生成视频缩略图失败: 无法获取画布上下文'))
+          reject(new AppException('비디오 섬네일 생성 실패: 캠버스 컨텍스트를 가져올 수 없음'))
           return
         }
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
@@ -83,14 +83,14 @@ const getLocalVideoThumbnail = async (file: File) => {
             if (blobResult) {
               resolve(blobResult)
             } else {
-              reject(new AppException('生成视频缩略图失败: 画布转换失败'))
+              reject(new AppException('비디오 섬네일 생성 실패: 캠버스 변환 실패'))
             }
           },
           'image/jpeg',
           0.8
         )
       }
-      video.onerror = () => reject(new AppException('生成视频缩略图失败: 无法加载视频'))
+      video.onerror = () => reject(new AppException('비디오 섬네일 생성 실패: 비디오를 로드할 수 없음'))
     })
 
     const fallbackFile = new File([blob], 'thumbnail.jpg', { type: 'image/jpeg' })
@@ -100,7 +100,7 @@ const getLocalVideoThumbnail = async (file: File) => {
   }
 }
 
-// 生成视频缩略图：优先调用 Rust 获取首帧，失败或移动端则回退前端截帧
+// 비디오 섬네일 생성: 우선 Rust를 호출하여 첫 프레임 획득, 실패하거나 모바일인 경우 프론트엔드 프레임 캡처로 대체
 export const generateVideoThumbnail = async (file: File): Promise<File> => {
   try {
     const tempPath = `temp-video-${Date.now()}-${file.name}`
@@ -134,15 +134,15 @@ export const generateVideoThumbnail = async (file: File): Promise<File> => {
     try {
       await remove(tempPath, { baseDir })
     } catch (cleanupError) {
-      console.warn('清理临时文件失败:', cleanupError)
+      console.warn('임시 파일 정리 실패:', cleanupError)
     }
 
     return await compressThumbnail(thumbnailFile)
   } catch (error) {
-    console.error('Rust 缩略图生成失败，尝试使用前端兜底方案:', error)
+    console.error('Rust 섬네일 생성 실패, 프론트엔드 대체 방안 시도:', error)
     if (isMobile() || String(error).includes('Command get_video_thumbnail not found')) {
       return await getLocalVideoThumbnail(file)
     }
-    throw new AppException(`生成视频缩略图失败: ${error}`)
+    throw new AppException(`비디오 섬네일 생성 실패: ${error}`)
   }
 }

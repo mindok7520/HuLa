@@ -1,11 +1,11 @@
 <template>
   <div class="size-full bg-#000 relative flex flex-col select-none">
-    <!-- 顶部操作栏 -->
+    <!-- 상단 작업 표시줄 -->
     <ActionBar class="bg-#000 z-9999" :shrink="false" :current-label="currentLabel" />
 
-    <!-- 主体内容区域 -->
+    <!-- 본문 내용 영역 -->
     <div class="flex-1 overflow-auto">
-      <!-- 视频展示区域 -->
+      <!-- 비디오 표시 영역 -->
       <div style="min-height: calc(100vh / var(--page-scale, 1) - 124px)" class="flex-center w-full h-full">
         <video
           ref="videoRef"
@@ -19,7 +19,7 @@
           @play="onVideoPlay"
           alt="preview" />
 
-        <!-- 提示文本 -->
+        <!-- 팁 텍스트 -->
         <transition name="viewer-tip">
           <div
             v-if="showTip"
@@ -31,9 +31,9 @@
       </div>
     </div>
 
-    <!-- 底部工具栏 -->
+    <!-- 하단 툴바 -->
     <div data-tauri-drag-region class="z-9999 h-50px bg-#000 flex justify-center items-center gap-20px">
-      <!-- 上一个视频 -->
+      <!-- 이전 동영상 -->
       <n-tooltip placement="top">
         <template #trigger>
           <div
@@ -72,7 +72,7 @@
         {{ isMuted ? t('message.video_viewer.unmute') : t('message.video_viewer.mute') }}
       </n-tooltip>
 
-      <!-- 下一个视频 -->
+      <!-- 다음 동영상 -->
       <n-tooltip placement="top">
         <template #trigger>
           <div @click="nextVideo" class="bottom-operation">
@@ -101,10 +101,10 @@ const { t } = useI18n()
 const { addListener } = useTauriListener()
 const videoViewerStore = useVideoViewer()
 const appWindow = WebviewWindow.getCurrent()
-// 支持的视频文件扩展名
+// 지원되는 비디오 파일 확장자
 const supportedVideoExtensions = ['.mp4', '.avi', '.mov', '.mkv', '.wmv', '.flv', '.webm', '.m4v']
 
-// 初始化数据
+// 데이터 초기화
 const videoList = ref<string[]>([])
 
 const currentLabel = WebviewWindow.getCurrent().label
@@ -117,18 +117,18 @@ const tipText = ref('')
 const videoWidth = ref(0)
 const videoHeight = ref(0)
 
-// 当前显示的视频URL（统一使用列表模式）
+// 현재 표시되는 비디오 URL (목록 모드 통일 사용)
 const currentVideo = computed(() => {
   const videoUrl = videoList.value[currentIndex.value] || ''
 
-  // 如果是本地文件路径，使用 Tauri 的 convertFileSrc 来转换
+  // 로컬 파일 경로인 경우 Tauri의 convertFileSrc를 사용하여 변환
   if (videoUrl && !videoUrl.startsWith('http')) {
     return convertFileSrc(videoUrl)
   }
   return videoUrl
 })
 
-// 视频样式类
+// 비디오 스타일 클래스
 const videoClass = computed(() => 'w-full h-full object-contain')
 
 const videoStyle = computed(() => {
@@ -144,41 +144,41 @@ const videoStyle = computed(() => {
   return style
 })
 
-// 是否可以切换到上一个视频
+// 이전 동영상으로 전환 가능 여부
 const canGoPrevious = computed(() => {
   if (videoList.value.length <= 1) return false
 
   const currentVideoPath = videoList.value[currentIndex.value]
   if (!currentVideoPath || currentVideoPath.startsWith('http')) {
-    // 网络视频：检查是否不是第一个
+    // 네트워크 비디오: 첫 번째가 아닌지 확인
     return currentIndex.value > 0
   }
 
-  // 本地视频：总是返回true，具体判断在点击时进行
+  // 로컬 비디오: 항상 true 반환, 구체적인 판단은 클릭 시 수행
   return true
 })
 
-// 是否可以切换到下一个视频
+// 다음 동영상으로 전환 가능 여부
 const canGoNext = computed(() => {
   if (videoList.value.length <= 1) return false
 
   const currentVideoPath = videoList.value[currentIndex.value]
   if (!currentVideoPath || currentVideoPath.startsWith('http')) {
-    // 网络视频：检查是否不是最后一个
+    // 네트워크 비디오: 마지막이 아닌지 확인
     return currentIndex.value < videoList.value.length - 1
   }
 
-  // 本地视频：总是返回true，具体判断在点击时进行
+  // 로컬 비디오: 항상 true 반환, 구체적인 판단은 클릭 시 수행
   return true
 })
 
-// 检查文件是否为视频文件
+// 파일이 비디오 파일인지 확인
 const isVideoFile = (filename: string) => {
   const ext = filename.toLowerCase().substring(filename.lastIndexOf('.'))
   return supportedVideoExtensions.includes(ext)
 }
 
-// 获取当前视频所在文件夹的所有视频文件
+// 현재 비디오가 있는 폴더의 모든 비디오 파일 가져오기
 const getVideosFromCurrentFolder = async (currentVideoPath: string) => {
   try {
     if (!currentVideoPath || currentVideoPath.startsWith('http')) {
@@ -187,7 +187,7 @@ const getVideosFromCurrentFolder = async (currentVideoPath: string) => {
 
     const folderPath = await dirname(currentVideoPath)
 
-    // 使用绝对路径读取目录
+    // 절대 경로를 사용하여 디렉토리 읽기
     const entries = await readDir(folderPath)
 
     const videoFiles = await Promise.all(
@@ -196,14 +196,14 @@ const getVideosFromCurrentFolder = async (currentVideoPath: string) => {
         .map(async (entry) => await join(folderPath, entry.name))
     )
 
-    return videoFiles.sort() // 按文件名排序
+    return videoFiles.sort() // 파일명으로 정렬
   } catch (error) {
-    console.warn('获取文件夹视频文件失败:', error)
+    console.warn('폴더 비디오 파일 가져오기 실패:', error)
     return []
   }
 }
 
-// 播放/暂停视频
+// 비디오 재생/일시정지
 const playPause = () => {
   if (videoRef.value) {
     if (videoRef.value.paused) {
@@ -213,7 +213,7 @@ const playPause = () => {
           isPlaying.value = true
         })
         .catch((error) => {
-          console.warn('视频播放失败:', error)
+          console.warn('비디오 재생 실패:', error)
           isPlaying.value = false
         })
     } else {
@@ -223,7 +223,7 @@ const playPause = () => {
   }
 }
 
-// 静音/取消静音
+// 음소거/음소거 해제
 const muteUnmute = () => {
   if (videoRef.value) {
     videoRef.value.muted = !videoRef.value.muted
@@ -231,10 +231,10 @@ const muteUnmute = () => {
   }
 }
 
-// 自动播放视频
+// 비디오 자동 재생
 const onVideoLoaded = () => {
   if (videoRef.value) {
-    // 获取视频原始尺寸
+    // 비디오 원본 크기 가져오기
     videoWidth.value = videoRef.value.videoWidth
     videoHeight.value = videoRef.value.videoHeight
 
@@ -244,42 +244,42 @@ const onVideoLoaded = () => {
         isPlaying.value = true
       })
       .catch((error) => {
-        console.warn('自动播放失败，可能需要用户交互:', error)
+        console.warn('자동 재생 실패, 사용자 상호 작용이 필요할 수 있음:', error)
         isPlaying.value = false
       })
   }
 }
 
-// 视频播放结束事件
+// 비디오 재생 종료 이벤트
 const onVideoEnded = () => {
   isPlaying.value = false
-  // 播放结束不自动切下一条
+  // 재생 종료 시 자동으로 다음으로 넘어가지 않음
   if (videoRef.value) {
     videoRef.value.currentTime = videoRef.value.duration
   }
 }
 
-// 视频暂停事件
+// 비디오 일시정지 이벤트
 const onVideoPaused = () => {
   isPlaying.value = false
 }
 
-// 视频播放事件
+// 비디오 재생 이벤트
 const onVideoPlay = () => {
   isPlaying.value = true
 }
 
-// 切换到上一个视频
+// 이전 동영상으로 전환
 const previousVideo = async () => {
   if (!canGoPrevious.value) return
 
   const currentVideoPath = videoList.value[currentIndex.value]
   if (!currentVideoPath || currentVideoPath.startsWith('http')) {
-    // 如果是网络视频，使用原有逻辑
+    // 네트워크 비디오인 경우 기존 로직 사용
     currentIndex.value--
     showVideoTip(t('message.video_viewer.tip_playing_index', { index: currentIndex.value + 1 }))
   } else {
-    // 如果是本地视频，从文件夹获取视频列表
+    // 로컬 비디오인 경우 폴더에서 비디오 목록 가져오기
     const folderVideos = await getVideosFromCurrentFolder(currentVideoPath)
     if (folderVideos.length > 0) {
       const currentVideoIndex = folderVideos.indexOf(currentVideoPath)
@@ -292,7 +292,7 @@ const previousVideo = async () => {
         return
       }
     } else {
-      // 如果获取文件夹视频失败，使用原有逻辑
+      // 폴더 비디오 가져오기 실패 시 기존 로직 사용
       currentIndex.value--
       showVideoTip(t('message.video_viewer.tip_playing_index', { index: currentIndex.value + 1 }))
     }
@@ -307,24 +307,24 @@ const previousVideo = async () => {
           isPlaying.value = true
         })
         .catch((error) => {
-          console.warn('视频播放失败:', error)
+          console.warn('비디오 재생 실패:', error)
           isPlaying.value = false
         })
     }
   })
 }
 
-// 切换到下一个视频
+// 다음 동영상으로 전환
 const nextVideo = async () => {
   if (!canGoNext.value) return
 
   const currentVideoPath = videoList.value[currentIndex.value]
   if (!currentVideoPath || currentVideoPath.startsWith('http')) {
-    // 如果是网络视频，使用原有逻辑
+    // 네트워크 비디오인 경우 기존 로직 사용
     currentIndex.value++
     showVideoTip(t('message.video_viewer.tip_playing_index', { index: currentIndex.value + 1 }))
   } else {
-    // 如果是本地视频，从文件夹获取视频列表
+    // 로컬 비디오인 경우 폴더에서 비디오 목록 가져오기
     const folderVideos = await getVideosFromCurrentFolder(currentVideoPath)
     if (folderVideos.length > 0) {
       const currentVideoIndex = folderVideos.indexOf(currentVideoPath)
@@ -337,7 +337,7 @@ const nextVideo = async () => {
         return
       }
     } else {
-      // 如果获取文件夹视频失败，使用原有逻辑
+      // 폴더 비디오 가져오기 실패 시 기존 로직 사용
       currentIndex.value++
       showVideoTip(t('message.video_viewer.tip_playing_index', { index: currentIndex.value + 1 }))
     }
@@ -352,14 +352,14 @@ const nextVideo = async () => {
           isPlaying.value = true
         })
         .catch((error) => {
-          console.warn('视频播放失败:', error)
+          console.warn('비디오 재생 실패:', error)
           isPlaying.value = false
         })
     }
   })
 }
 
-// 显示提示信息
+// 팁 메시지 표시
 const showVideoTip = (message: string) => {
   tipText.value = message
   showTip.value = true
@@ -371,7 +371,7 @@ const showVideoTip = (message: string) => {
 onMounted(async () => {
   await getCurrentWebviewWindow().show()
 
-  // 修改事件名称与发送端保持一致
+  // 이벤트 이름을 발신 측과 일치하도록 수정
   await addListener(
     appWindow.listen('video-updated', (event: any) => {
       const { list, index } = event.payload
@@ -381,7 +381,7 @@ onMounted(async () => {
         if (videoRef.value) {
           videoRef.value.load()
           videoRef.value.play().catch((error) => {
-            console.warn('视频播放失败:', error)
+            console.warn('비디오 재생 실패:', error)
             isPlaying.value = false
           })
         }
@@ -390,7 +390,7 @@ onMounted(async () => {
     'video-updated'
   )
 
-  // 统一使用列表模式初始化
+  // 목록 모드로 통일하여 초기화
   const validIndex = Math.min(Math.max(videoViewerStore.currentVideoIndex, 0), videoViewerStore.videoList.length - 1)
   videoList.value = [...videoViewerStore.videoList]
   currentIndex.value = validIndex
@@ -402,7 +402,7 @@ onMounted(async () => {
   @apply flex-center px-8px py-7px rounded-8px cursor-pointer hover:bg-gray-600/50 transition-colors duration-300;
 }
 
-/* 自定义滚动条样式 */
+/* 사용자 정의 스크롤바 스타일 */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -417,7 +417,7 @@ onMounted(async () => {
   background: transparent;
 }
 
-/* 添加以下样式来修改 ActionBar 中的 svg 颜色 */
+/* ActionBar의 svg 색상을 수정하려면 다음 스타일을 추가하세요 */
 :deep(.action-close),
 :deep(.hover-box) {
   svg {

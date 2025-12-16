@@ -8,13 +8,13 @@
           :hidden-right="true"
           :enable-default-background="false"
           :enable-shadow="false"
-          room-name="编辑资料" />
+          room-name="프로필 편집" />
       </template>
 
       <template #container>
         <div class="flex flex-col gap-1 overflow-auto h-full">
           <div class="flex flex-col p-[0px_20px_20px_20px] gap-15px">
-            <!-- 头像 -->
+            <!-- 프로필 사진 -->
             <div class="flex justify-center">
               <div class="rounded-full relative bg-white w-86px h-86px overflow-hidden" @click="openAvatarCropper">
                 <n-avatar
@@ -25,7 +25,7 @@
                   round />
                 <div
                   class="absolute h-50% w-full bottom-0 bg-[rgb(50,50,50)] bg-clip-padding backdrop-filter backdrop-blur-sm bg-opacity-15 backdrop-saturate-100 backdrop-contrast-100"></div>
-                <div class="absolute bottom-25% text-center w-full text-12px text-white">更换头像</div>
+                <div class="absolute bottom-25% text-center w-full text-12px text-white">프로필 사진 변경</div>
               </div>
               <input
                 ref="fileInput"
@@ -39,26 +39,26 @@
                 :image-url="localImageUrl"
                 @crop="handleCrop" />
             </div>
-            <!-- 个人信息 -->
+            <!-- 개인 정보 -->
             <van-form @submit="saveEditInfo">
               <van-cell-group class="shadow" inset>
-                <!-- 昵称 -->
+                <!-- 닉네임 -->
                 <van-field
                   :disabled="true"
                   v-model="localUserInfo.name"
-                  name="昵称"
-                  label="昵称"
-                  placeholder="请输入昵称"
-                  :rules="[{ required: true, message: '请填写昵称' }]" />
+                  name="닉네임"
+                  label="닉네임"
+                  placeholder="닉네임을 입력하세요"
+                  :rules="[{ required: true, message: '닉네임을 입력해주세요' }]" />
 
-                <!-- 性别 -->
+                <!-- 성별 -->
                 <van-field
                   v-model="genderText"
                   is-link
                   readonly
                   name="picker"
-                  label="性别"
-                  placeholder="点击选择性别"
+                  label="성별"
+                  placeholder="성별 선택"
                   @click="pickerState.gender = true" />
 
                 <van-popup v-model:show="pickerState.gender" position="bottom">
@@ -68,24 +68,24 @@
                     @cancel="pickerState.gender = false" />
                 </van-popup>
 
-                <!-- 生日 -->
+                <!-- 생일 -->
                 <van-field
                   v-model="birthday"
-                  name="生日"
-                  label="生日"
-                  placeholder="请选择生日"
+                  name="생일"
+                  label="생일"
+                  placeholder="생일 선택"
                   is-link
                   readonly
                   @click="toEditBirthday" />
 
-                <!-- 地区 -->
+                <!-- 지역 -->
                 <van-field
                   v-model="region"
                   is-link
                   readonly
                   name="area"
-                  label="地区选择"
-                  placeholder="点击选择省市区"
+                  label="지역 선택"
+                  placeholder="시/군/구 선택"
                   @click="pickerState.region = true" />
                 <van-popup v-model:show="pickerState.region" position="bottom">
                   <van-area
@@ -94,23 +94,23 @@
                     @cancel="pickerState.region = false" />
                 </van-popup>
 
-                <!-- 手机号 -->
+                <!-- 휴대폰 번호 -->
                 <van-field
                   :disabled="true"
                   v-model="localUserInfo.phone"
                   type="tel"
-                  name="手机号"
-                  label="手机号"
-                  placeholder="请输入手机号"
-                  :rules="[{ required: false, message: '请填写手机号' }]" />
+                  name="휴대폰 번호"
+                  label="휴대폰 번호"
+                  placeholder="휴대폰 번호 입력"
+                  :rules="[{ required: false, message: '휴대폰 번호를 입력해주세요' }]" />
 
-                <!-- 简介 -->
+                <!-- 소개 -->
                 <van-field
                   v-model="localUserInfo.resume"
-                  name="简介"
-                  label="简介"
+                  name="소개"
+                  label="소개"
                   type="textarea"
-                  placeholder="请输入个人简介"
+                  placeholder="개인 소개를 입력하세요"
                   rows="3"
                   autosize
                   @click="toEditBio" />
@@ -131,7 +131,7 @@
                     display: inline-block;
                   "
                   type="submit">
-                  保存
+                  저장
                 </button>
               </div>
             </van-form>
@@ -164,8 +164,8 @@ const birthday = ref('')
 
 const pickerColumn = ref({
   gender: [
-    { text: '男', value: 1 },
-    { text: '女', value: 2 }
+    { text: '남', value: 1 },
+    { text: '여', value: 2 }
   ]
 })
 
@@ -198,20 +198,20 @@ const {
   handleCrop: onCrop
 } = useAvatarUpload({
   onSuccess: async (downloadUrl) => {
-    // 更新编辑信息
+    // 편집 정보 업데이트
     localUserInfo.value.avatar = downloadUrl
-    // 更新用户信息
+    // 사용자 정보 업데이트
     userStore.userInfo!.avatar = downloadUrl
-    // 更新头像更新时间
+    // 프로필 사진 업데이트 시간 갱신
     userStore.userInfo!.avatarUpdateTime = Date.now()
-    // 更新登录历史记录
+    // 로그인 기록 업데이트
     loginHistoriesStore.loginHistories.filter((item) => item.uid === userStore.userInfo!.uid)[0].avatar = downloadUrl
-    // 更新缓存里面的用户信息
+    // 캐시된 사용자 정보 업데이트
     updateCurrentUserCache('avatar', downloadUrl)
   }
 })
 
-// 处理裁剪，调用hook中的方法
+// 자르기 처리, hook의 메서드 호출
 const handleCrop = async (cropBlob: Blob) => {
   await onCrop(cropBlob)
 }
@@ -239,17 +239,17 @@ const toEditBio = () => {
 const updateCurrentUserCache = (key: 'name' | 'wearingItemId' | 'avatar', value: any) => {
   const currentUser = userStore.userInfo!.uid && groupStore.getUserInfo(userStore.userInfo!.uid)
   if (currentUser) {
-    currentUser[key] = value // 更新缓存里面的用户信息
+    currentUser[key] = value // 캐시된 사용자 정보 업데이트
   }
 }
 
 const saveEditInfo = () => {
   if (!localUserInfo.value.name || localUserInfo.value.name.trim() === '') {
-    window.$message.error('昵称不能为空')
+    window.$message.error('닉네임은 비워둘 수 없습니다')
     return
   }
   // if (localUserInfo.value.modifyNameChance === 0) {
-  //   window.$message.error('改名次数不足')
+  //   window.$message.error('이름 변경 횟수 부족')
   //   return
   // }
 
@@ -261,15 +261,15 @@ const saveEditInfo = () => {
     resume: localUserInfo.value.resume ?? '',
     modifyNameChance: localUserInfo.value.modifyNameChance!
   }).then(() => {
-    // 更新本地缓存的用户信息
+    // 로컬 캐시 사용자 정보 업데이트
     userStore.userInfo!.name = localUserInfo.value.name!
     userStore.userInfo!.sex = localUserInfo.value.sex!
     userStore.userInfo!.phone = localUserInfo.value.phone!
-    loginHistoriesStore.updateLoginHistory(<UserInfoType>userStore.userInfo) // 更新登录历史记录
-    updateCurrentUserCache('name', localUserInfo.value.name) // 更新缓存里面的用户信息
+    loginHistoriesStore.updateLoginHistory(<UserInfoType>userStore.userInfo) // 로그인 기록 업데이트
+    updateCurrentUserCache('name', localUserInfo.value.name) // 캐시된 사용자 정보 업데이트
     if (!localUserInfo.value.modifyNameChance) return
     localUserInfo.value.modifyNameChance -= 1
-    window.$message.success('修改成功')
+    window.$message.success('수정 성공')
   })
 }
 

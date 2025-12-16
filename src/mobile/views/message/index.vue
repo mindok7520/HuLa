@@ -2,7 +2,7 @@
   <div class="flex flex-col h-full">
     <img src="@/assets/mobile/chat-home/background.webp" class="w-100% fixed top-0" alt="hula" />
 
-    <!-- 页面蒙板 -->
+    <!-- 페이지 마스크 -->
     <div
       v-if="showMask"
       @touchend="maskHandler.close"
@@ -33,11 +33,11 @@
                   sans-serif;
               "
               class="text-(16px [--text-color])">
-              {{ userStore.userInfo?.name ? userStore.userInfo.name : '无名字' }}
+              {{ userStore.userInfo?.name ? userStore.userInfo.name : '이름 없음' }}
             </p>
             <p class="text-(10px [--text-color])">
               {{
-                userStore.userInfo?.uid ? groupStore.getUserInfo(userStore.userInfo!.uid)?.locPlace || '中国' : '中国'
+                userStore.userInfo?.uid ? groupStore.getUserInfo(userStore.userInfo!.uid)?.locPlace || '중국' : '중국'
               }}
             </p>
           </n-flex>
@@ -69,7 +69,7 @@
           autoComplete="off"
           autoCorrect="off"
           autoCapitalize="off"
-          placeholder="搜索"
+          placeholder="검색"
           @focus="lockScroll"
           @blur="unlockScroll">
           <template #prefix>
@@ -98,7 +98,7 @@
             :key="`${item.id}-${idx}`"
             class="text-black"
             :class="item.top ? 'w-full bg-#64A29C18' : ''">
-            <!-- 长按项 -->
+            <!-- 길게 누르기 항목 -->
             <div @click.stop="intoRoom(item)" class="grid grid-cols-[2.2rem_1fr_4rem] items-start px-4 py-3 gap-1">
               <div class="flex-shrink-0">
                 <n-badge
@@ -109,7 +109,7 @@
                   <n-avatar :size="52" :src="AvatarUtils.getAvatarUrl(item.avatar)" fallback-src="/logo.png" round />
                 </n-badge>
               </div>
-              <!-- 中间：两行内容 -->
+              <!-- 중간: 두 줄 내용 -->
               <div class="truncate pl-7 flex pt-5px gap-10px leading-tight flex-col">
                 <div class="text-16px font-bold flex-1 truncate text-#333 truncate">{{ item.name }}</div>
                 <div class="text-13px text-#555 truncate">
@@ -117,7 +117,7 @@
                 </div>
               </div>
 
-              <!-- 时间：靠顶 -->
+              <!-- 시간: 상단 정렬 -->
               <div class="text-12px pt-9px text-right flex flex-col gap-1 items-end justify-center">
                 <div class="flex items-center gap-1">
                   <span v-if="item.hotFlag === IsAllUserEnum.Yes">
@@ -141,18 +141,18 @@
                 <div
                   class="h-full text-14px w-80px bg-#13987f text-white flex items-center justify-center"
                   @click="handleToggleTop(item)">
-                  {{ item.top ? '取消置顶' : '置顶' }}
+                  {{ item.top ? '상단 고정 해제' : '상단 고정' }}
                 </div>
                 <div
                   :class="(item?.unreadCount ?? 0) > 0 ? 'bg-#909090' : 'bg-#fbb160'"
                   class="h-full text-14px w-80px text-white flex items-center justify-center"
                   @click="handleToggleReadStatus((item?.unreadCount ?? 0) > 0, item)">
-                  {{ (item?.unreadCount ?? 0) > 0 ? '标记为已读' : '标记为未读' }}
+                  {{ (item?.unreadCount ?? 0) > 0 ? '읽음으로 표시' : '읽지 않음으로 표시' }}
                 </div>
                 <div
                   class="h-full text-14px w-80px bg-#d5304f text-white flex items-center justify-center"
                   @click="handleDelete(item)">
-                  删除
+                  삭제
                 </div>
               </div>
             </template>
@@ -167,12 +167,12 @@
         :style="{ top: longPressState.longPressMenuTop + 'px' }"
         class="fixed gap-10px z-999 left-1/2 transform -translate-x-1/2">
         <div class="flex justify-between p-18px text-16px gap-22px rounded-16px bg-#4e4e4e whitespace-nowrap">
-          <div class="text-white" @click="handleDelete(currentLongPressItem)">删除</div>
+          <div class="text-white" @click="handleDelete(currentLongPressItem)">삭제</div>
           <div class="text-white" @click="handleToggleTop(currentLongPressItem)">
-            {{ currentLongPressItem?.top ? '取消置顶' : '置顶' }}
+            {{ currentLongPressItem?.top ? '상단 고정 해제' : '상단 고정' }}
           </div>
           <div class="text-white" @click="handleToggleReadStatus((currentLongPressItem?.unreadCount ?? 0) > 0)">
-            {{ (currentLongPressItem?.unreadCount ?? 0) > 0 ? '已读' : '未读' }}
+            {{ (currentLongPressItem?.unreadCount ?? 0) > 0 ? '읽음' : '읽지 않음' }}
           </div>
         </div>
         <div class="flex w-full justify-center h-15px">
@@ -214,12 +214,12 @@ const userStore = useUserStore()
 const globalStore = useGlobalStore()
 const contactStore = useContactStore()
 
-// 加载更多ui事件处理（开始）
+// 더 보기 로드 UI 이벤트 처리 (시작)
 
-const isEnablePullRefresh = ref(true) // 是否启用下拉刷新，现在设置为滚动到顶才启用
-const scrollContainer = ref(null) // 消息滚动容器
+const isEnablePullRefresh = ref(true) // 당겨서 새로고침 활성화 여부, 현재는 맨 위로 스크롤될 때만 활성화됨
+const scrollContainer = ref(null) // 메시지 스크롤 컨테이너
 
-let scrollTop = 0 // 记住当前滑动到哪了
+let scrollTop = 0 // 현재 스크롤 위치 기억
 
 const enablePullRefresh = useDebounceFn((top: number) => {
   isEnablePullRefresh.value = top === 0
@@ -238,15 +238,15 @@ const onScroll = (e: any) => {
   }
 }
 
-// 加载更多ui事件处理（结束）
+// 더 보기 로드 UI 이벤트 처리 (종료)
 
 const longPressState = ref({
   showLongPressMenu: false,
   longPressMenuTop: 0,
   longPressActive: false,
-  // 禁用所有事件
+  // 모든 이벤트 비활성화
   enable: () => {
-    // 设置长按激活状态
+    // 길게 누르기 활성 상태 설정
     longPressState.value.longPressActive = true
     disablePullRefresh()
   },
@@ -261,35 +261,35 @@ const longPressState = ref({
 })
 
 const allUserMap = computed(() => {
-  const map = new Map<string, any>() // User 是你定义的用户类型
+  const map = new Map<string, any>() // User는 정의한 사용자 유형
   groupStore.allUserInfo.forEach((user) => {
     map.set(user.uid, user)
   })
   return map
 })
 
-// 会话列表
+// 세션 목록
 const sessionList = computed(() => {
   return (
     chatStore.sessionList
       .map((item) => {
-        // 获取最新的头像
+        // 최신 프로필 사진 가져오기
         let latestAvatar = item.avatar
         if (item.type === RoomTypeEnum.SINGLE && item.id) {
           latestAvatar = groupStore.getUserInfo(item.id)?.avatar || item.avatar
         }
 
-        // 获取群聊备注名称（如果有）
+        // 그룹 채팅 비고 이름 가져오기 (있는 경우)
         let displayName = item.name
         if (item.type === RoomTypeEnum.GROUP && item.remark) {
-          // 使用群组备注（如果存在）
+          // 그룹 비고 사용 (있는 경우)
           displayName = item.remark
         }
 
         const { checkRoomAtMe, getMessageSenderName, formatMessageContent } = useReplaceMsg()
-        // 获取该会话的所有消息用于检查@我
+        // 해당 세션의 모든 메시지를 가져와서 나를 멘션했는지 확인
         const messages = chatStore.chatMessageListByRoomId(item.roomId)
-        // 检查是否有@我的消息
+        // 나를 멘션한 메시지가 있는지 확인
         const isAtMe = checkRoomAtMe(
           item.roomId,
           item.type,
@@ -298,7 +298,7 @@ const sessionList = computed(() => {
           item.unreadCount
         )
 
-        // 处理显示消息
+        // 표시 메시지 처리
         let displayMsg = ''
 
         const lastMsg = messages[messages.length - 1]
@@ -310,38 +310,38 @@ const sessionList = computed(() => {
         return {
           ...item,
           avatar: latestAvatar,
-          name: displayName, // 使用可能修改过的显示名称
-          lastMsg: displayMsg || '欢迎使用HuLa',
+          name: displayName, // 수정되었을 수 있는 표시 이름 사용
+          lastMsg: displayMsg || 'HuLa 사용을 환영합니다',
           lastMsgTime: formatTimestamp(item?.activeTime),
           isAtMe
         }
       })
-      // 添加排序逻辑：先按置顶状态排序，再按活跃时间排序
+      // 정렬 로직 추가: 먼저 상단 고정 상태로 정렬한 다음, 활성 시간순으로 정렬
       .sort((a, b) => {
-        // 1. 先按置顶状态排序（置顶的排在前面）
+        // 1. 상단 고정 상태로 먼저 정렬 (상단 고정된 항목이 앞에 옴)
         if (a.top && !b.top) return -1
         if (!a.top && b.top) return 1
 
-        // 2. 在相同置顶状态下，按最后活跃时间降序排序（最新的排在前面）
+        // 2. 동일한 상단 고정 상태에서 마지막 활성 시간 내림차순 정렬 (최신 항목이 앞에 옴)
         return b.activeTime - a.activeTime
       })
   )
 })
 
-// 删除会话
+// 세션 삭제
 const handleDelete = async (item: SessionItem | null) => {
   if (!item) return
 
   try {
     await handleMsgDelete(item.roomId)
   } catch (error) {
-    console.error('删除会话失败:', error)
+    console.error('세션 삭제 실패:', error)
   } finally {
     maskHandler.close()
   }
 }
 
-// 置顶/取消置顶
+// 상단 고정/해제
 const handleToggleTop = async (item: SessionItem | null) => {
   if (!item) return
 
@@ -353,16 +353,16 @@ const handleToggleTop = async (item: SessionItem | null) => {
       top: newTopState
     })
 
-    // 更新本地会话状态
+    // 로컬 세션 상태 업데이트
     chatStore.updateSession(item.roomId, { top: newTopState })
   } catch (error) {
-    console.error('置顶操作失败:', error)
+    console.error('상단 고정 작업 실패:', error)
   } finally {
     maskHandler.close()
   }
 }
 
-// 切换已读/未读状态
+// 읽음/읽지 않음 상태 전환
 const handleToggleReadStatus = async (markAsRead: boolean, sessionItem?: SessionItem) => {
   const targetItem = sessionItem || currentLongPressItem.value
   if (!targetItem) return
@@ -372,9 +372,9 @@ const handleToggleReadStatus = async (markAsRead: boolean, sessionItem?: Session
 
   try {
     const unreadCount = markAsRead ? 0 : 1
-    const successMsg = markAsRead ? '已标记为已读' : '已标记为未读'
+    const successMsg = markAsRead ? '읽음으로 표시됨' : '읽지 않음으로 표시됨'
 
-    // 更新未读计数（乐观更新，失败时回滚）
+    // 읽지 않음 수 업데이트 (낙관적 업데이트, 실패 시 롤백)
     chatStore.updateSession(item.roomId, {
       unreadCount
     })
@@ -386,13 +386,13 @@ const handleToggleReadStatus = async (markAsRead: boolean, sessionItem?: Session
 
     window.$message.success(successMsg)
   } catch (error) {
-    // 回滚未读计数
+    // 읽지 않음 수 롤백
     chatStore.updateSession(item.roomId, {
       unreadCount: previousUnreadCount
     })
     globalStore.updateGlobalUnreadCount()
 
-    const errorMsg = markAsRead ? '标记已读失败' : '标记未读失败'
+    const errorMsg = markAsRead ? '읽음 표시 실패' : '읽지 않음 표시 실패'
     window.$message.error(errorMsg)
     console.error(errorMsg, error)
   } finally {
@@ -401,7 +401,7 @@ const handleToggleReadStatus = async (markAsRead: boolean, sessionItem?: Session
 }
 
 const onRefresh = () => {
-  // 如果没到0.5秒就延迟0.5秒，如果接口执行时间超过0.5秒那就以getSessionList时间为准
+  // 0.5초가 안 되었으면 0.5초 지연, 인터페이스 실행 시간이 0.5초를 초과하면 getSessionList 시간을 기준으로 함
   loading.value = true
   count.value++
 
@@ -410,13 +410,13 @@ const onRefresh = () => {
 
   Promise.all([apiPromise, delayPromise])
     .then(([res]) => {
-      // 接口和延时都完成后执行
+      // 인터페이스와 지연이 모두 완료된 후 실행
       loading.value = false
-      console.log('刷新完成', res)
+      console.log('새로고침 완료', res)
     })
     .catch((error) => {
       loading.value = false
-      console.log('刷新会话列表失败：', error)
+      console.log('세션 목록 새로고침 실패:', error)
     })
 }
 
@@ -426,9 +426,9 @@ onMounted(async () => {
 })
 
 /**
- * 渲染图片图标的函数工厂
- * @param {string} src - 图标图片路径
- * @returns {() => import('vue').VNode} 返回一个渲染图片的函数组件
+ * 이미지 아이콘 렌더링 함수 팩토리
+ * @param {string} src - 아이콘 이미지 경로
+ * @returns {() => import('vue').VNode} 이미지 렌더링 함수 컴포넌트 반환
  */
 const renderImgIcon = (src: string) => {
   return () =>
@@ -439,44 +439,44 @@ const renderImgIcon = (src: string) => {
 }
 
 /**
- * UI 视图数据，包含菜单选项及其图标
+ * UI 뷰 데이터, 메뉴 옵션 및 아이콘 포함
  * @type {import('vue').Ref<{ addOptions: { label: string; key: string; icon: () => import('vue').VNode }[] }>}
  */
 const uiViewsData = ref({
   addOptions: [
     {
-      label: '发起群聊',
+      label: '그룹 채팅 시작',
       key: '/mobile/mobileFriends/startGroupChat',
       icon: renderImgIcon(groupChatIcon)
     },
     {
-      label: '加好友/群',
+      label: '친구/그룹 추가',
       key: '/mobile/mobileFriends/addFriends',
       icon: renderImgIcon(addFriendIcon)
     }
   ]
 })
 
-// 页面蒙板相关处理（开始）
+// 페이지 마스크 관련 처리 (시작)
 
 /**
- * 页面蒙板显示状态
+ * 페이지 마스크 표시 상태
  * @type {import('vue').Ref<boolean>}
  */
 const showMask = ref(false)
 
 /**
- * 当前页面滚动的纵向位置，避免打开蒙板时页面跳动
+ * 현재 페이지 스크롤의 세로 위치, 마스크를 열 때 페이지 점프 방지
  * @type {number}
  */
 let scrollY = 0
 
 /**
- * 控制页面蒙板的对象，包含打开和关闭方法
+ * 페이지 마스크 제어 객체, 열기 및 닫기 메서드 포함
  */
 const maskHandler = {
   /**
-   * 打开蒙板，并锁定滚动位置
+   * 마스크 열기 및 스크롤 위치 잠금
    */
   open: () => {
     scrollY = window.scrollY
@@ -488,7 +488,7 @@ const maskHandler = {
   },
 
   /**
-   * 关闭蒙板，恢复滚动状态和位置
+   * 마스크 닫기, 스크롤 상태 및 위치 복원
    */
   close: () => {
     const closeModal = () => {
@@ -497,7 +497,7 @@ const maskHandler = {
       document.body.style.position = ''
       document.body.style.top = ''
       document.body.style.width = ''
-      window.scrollTo(0, scrollY) // 恢复滚动位置
+      window.scrollTo(0, scrollY) // 스크롤 위치 복원
     }
 
     setTimeout(closeModal, 60)
@@ -506,30 +506,30 @@ const maskHandler = {
   }
 }
 
-// 页面蒙板相关处理（结束）
+// 페이지 마스크 관련 처리 (종료)
 
 /**
- * 添加按钮相关事件处理对象
+ * 추가 버튼 관련 이벤트 처리 객체
  */
 const addIconHandler = {
   /**
-   * 选项选择时关闭蒙板
+   * 옵션 선택 시 마스크 닫기
    */
   select: (item: string) => {
-    console.log('选择的项：', item)
+    console.log('선택된 항목:', item)
     router.push(item)
     maskHandler.close()
   },
 
   /**
-   * 点击加号按钮打开蒙板
+   * 플러스 버튼 클릭 시 마스크 열기
    */
   open: () => {
     maskHandler.open()
   },
 
   /**
-   * 点击下拉菜单外部区域关闭蒙板
+   * 드롭다운 메뉴 외부 영역 클릭 시 마스크 닫기
    */
   clickOutside: () => {
     maskHandler.close()
@@ -539,7 +539,7 @@ const addIconHandler = {
 const router = useRouter()
 const { handleMsgClick, handleMsgDelete } = useMessage()
 
-// 阻止消息的点击事件，为false时不阻止
+// 메시지 클릭 이벤트 차단, false일 경우 차단하지 않음
 let preventClick = false
 
 const handleSwipeOpen = () => {
@@ -563,7 +563,7 @@ const intoRoom = (item: any) => {
   const foundedUser = allUserMap.value.get(item.detailId)
 
   setTimeout(() => {
-    // 如果找到用户，就表示该会话属于好友，那就传入好友的uid;同时排除id为1的hula小管家
+    // 사용자를 찾으면 해당 세션이 친구의 것이므로 친구의 uid를 전달; 동시에 id가 1인 hula 봇 제외
     if (foundedUser && foundedUser.uid !== '1') {
       router.push({
         name: 'mobileChatMain',
@@ -579,13 +579,13 @@ const intoRoom = (item: any) => {
   }, 0)
 }
 const toSimpleBio = () => {
-  // 切成你想要的离场动画
+  // 원하는 퇴장 애니메이션으로 전환
   router.push('/mobile/mobileMy/simpleBio')
 }
 
-// 锁滚动（和蒙板一样）
+// 스크롤 잠금 (마스크와 동일)
 const lockScroll = () => {
-  console.log('锁定触发')
+  console.log('잠금 트리거됨')
   const scrollEl = document.querySelector('.flex-1.overflow-auto') as HTMLElement
   if (scrollEl) {
     scrollEl.style.overflow = 'hidden'
@@ -593,14 +593,14 @@ const lockScroll = () => {
 }
 
 const unlockScroll = () => {
-  console.log('锁定解除')
+  console.log('잠금 해제됨')
   const scrollEl = document.querySelector('.flex-1.overflow-auto') as HTMLElement
   if (scrollEl) {
     scrollEl.style.overflow = 'auto'
   }
 }
 
-// 长按事件处理（开始）
+// 길게 누르기 이벤트 처리 (시작)
 const longPressOption = ref({
   delay: 200,
   modifiers: {
@@ -626,7 +626,7 @@ const handleLongPress = (e: PointerEvent, item: SessionItem) => {
 
   longPressState.value.enable()
 
-  // 设置长按菜单top值
+  // 길게 누르기 메뉴 top 값 설정
   const setLongPressMenuTop = () => {
     const target = e.target as HTMLElement
 
@@ -634,7 +634,7 @@ const handleLongPress = (e: PointerEvent, item: SessionItem) => {
       return
     }
 
-    const currentTarget = target.closest('.grid') // 向上找父级，找到grid就停止
+    const currentTarget = target.closest('.grid') // 상위 요소를 찾아 grid가 나오면 중지
 
     if (!currentTarget) {
       return
@@ -647,24 +647,24 @@ const handleLongPress = (e: PointerEvent, item: SessionItem) => {
 
   setLongPressMenuTop()
 
-  longPressState.value.showLongPressMenu = true // 显示长按菜单
+  longPressState.value.showLongPressMenu = true // 길게 누르기 메뉴 표시
 }
 
-// 长按事件处理（结束）
+// 길게 누르기 이벤트 처리 (종료)
 </script>
 
 <style scoped lang="scss">
 .keyboard-mask {
   position: fixed;
   inset: 0;
-  background: transparent; // 透明背景
-  z-index: 1400; // 低于 Naive 弹层，高于页面内容
-  pointer-events: auto; // 确保能接收事件
-  touch-action: none; // 禁止滚动
+  background: transparent; // 투명 배경
+  z-index: 1400; // Naive 팝업보다 낮고, 페이지 콘텐츠보다 높음
+  pointer-events: auto; // 이벤트 수신 보장
+  touch-action: none; // 스크롤 금지
 }
 
 ::deep(#search) {
   position: relative;
-  z-index: 1500; // 高于键盘蒙层，低于 Naive 弹层
+  z-index: 1500; // 키보드 마스크보다 높고, Naive 팝업보다 낮음
 }
 </style>

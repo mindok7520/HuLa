@@ -1,44 +1,44 @@
 <template>
   <main class="image-generation-container">
     <div class="content-area">
-      <!-- 头部 -->
+      <!-- 헤더 -->
       <div data-tauri-drag-region class="header flex p-[8px_16px_10px_16px] justify-between items-center">
         <n-flex :size="10" vertical>
-          <p class="leading-6 text-(18px [--chat-text-color]) font-500">AI 图片生成</p>
-          <p class="text-(11px #707070)">共生成 {{ totalImages }} 张图片</p>
+          <p class="leading-6 text-(18px [--chat-text-color]) font-500">AI 이미지 생성</p>
+          <p class="text-(11px #707070)">총 {{ totalImages }}장의 이미지 생성됨</p>
         </n-flex>
       </div>
 
-      <!-- 生成区域 -->
+      <!-- 생성 영역 -->
       <div class="generation-area p-16px">
-        <n-card title="生成图片" :bordered="false" class="mb-16px">
+        <n-card title="이미지 생성" :bordered="false" class="mb-16px">
           <n-form ref="formRef" :model="formData" label-placement="left" label-width="80">
-            <!-- 模型选择 -->
-            <n-form-item label="选择模型" path="modelId">
+            <!-- 모델 선택 -->
+            <n-form-item label="모델 선택" path="modelId">
               <n-select
                 v-model:value="formData.modelId"
                 :options="modelOptions"
-                placeholder="请选择图片生成模型"
+                placeholder="이미지 생성 모델을 선택하세요"
                 filterable
                 @update:value="handleModelChange" />
             </n-form-item>
 
-            <!-- 提示词输入 -->
-            <n-form-item label="提示词" path="prompt">
+            <!-- 프롬프트 입력 -->
+            <n-form-item label="프롬프트" path="prompt">
               <n-input
                 v-model:value="formData.prompt"
                 type="textarea"
-                placeholder="请输入图片描述，例如：一只可爱的猫咪在花园里玩耍"
+                placeholder="이미지 설명을 입력하세요. 예: 정원에서 노는 귀여운 고양이"
                 :autosize="promptAutosize"
                 maxlength="2000"
                 show-count />
             </n-form-item>
 
-            <n-form-item label="图片尺寸">
+            <n-form-item label="이미지 크기">
               <n-flex :size="12">
                 <n-input-number
                   v-model:value="formData.width"
-                  placeholder="宽度"
+                  placeholder="너비"
                   :min="256"
                   :max="2048"
                   :step="64"
@@ -46,7 +46,7 @@
                 <span class="text-14px text-#909090">×</span>
                 <n-input-number
                   v-model:value="formData.height"
-                  placeholder="高度"
+                  placeholder="높이"
                   :min="256"
                   :max="2048"
                   :step="64"
@@ -60,27 +60,27 @@
                 :loading="isGenerating"
                 :disabled="!formData.modelId || !formData.prompt"
                 @click="handleGenerate">
-                {{ isGenerating ? '生成中...' : '开始生成' }}
+                {{ isGenerating ? '생성 중...' : '생성 시작' }}
               </n-button>
             </n-form-item>
           </n-form>
         </n-card>
 
-        <!-- 图片展示区域 -->
-        <n-card title="生成历史" :bordered="false">
+        <!-- 이미지 표시 영역 -->
+        <n-card title="생성 기록" :bordered="false">
           <n-spin :show="isLoading">
             <div v-if="imageList.length > 0" class="image-grid">
               <div v-for="image in imageList" :key="image.id" class="image-item">
                 <div class="image-wrapper">
-                  <!-- 状态标签 -->
+                  <!-- 상태 태그 -->
                   <n-tag v-if="image.status === 10" class="status-tag" type="info" size="small" :bordered="false">
-                    生成中
+                    생성 중
                   </n-tag>
                   <n-tag v-else-if="image.status === 30" class="status-tag" type="error" size="small" :bordered="false">
-                    失败
+                    실패
                   </n-tag>
 
-                  <!-- 图片 -->
+                  <!-- 이미지 -->
                   <img
                     v-if="image.status === 20 && image.picUrl"
                     :src="image.picUrl"
@@ -92,11 +92,11 @@
                   </div>
                   <div v-else-if="image.status === 30" class="image-placeholder error">
                     <Icon icon="mdi:alert-circle-outline" class="text-48px text-#d5304f" />
-                    <p class="text-12px text-#d5304f mt-8px">{{ image.errorMessage || '生成失败' }}</p>
+                    <p class="text-12px text-#d5304f mt-8px">{{ image.errorMessage || '생성 실패' }}</p>
                   </div>
                 </div>
 
-                <!-- 图片信息 -->
+                <!-- 이미지 정보 -->
                 <div class="image-info">
                   <p class="prompt" :title="image.prompt">{{ image.prompt }}</p>
                   <n-flex justify="space-between" align="center" class="mt-8px">
@@ -115,17 +115,17 @@
                             </template>
                           </n-button>
                         </template>
-                        确定要删除这张图片吗？
+                        이 이미지를 삭제하시겠습니까?
                       </n-popconfirm>
                     </n-flex>
                   </n-flex>
                 </div>
               </div>
             </div>
-            <n-empty v-else description="暂无生成记录" class="py-40px" />
+            <n-empty v-else description="생성 기록 없음" class="py-40px" />
           </n-spin>
 
-          <!-- 分页 -->
+          <!-- 페이지네이션 -->
           <n-flex justify="center" class="mt-16px" v-if="totalImages > pageSize">
             <n-pagination
               v-model:page="pageNo"
@@ -140,28 +140,28 @@
       </div>
     </div>
 
-    <!-- 图片预览 -->
+    <!-- 이미지 미리보기 -->
     <n-modal v-model:show="showPreview" preset="card" style="width: 90%; max-width: 1200px">
       <template #header>
-        <span>图片预览</span>
+        <span>이미지 미리보기</span>
       </template>
       <div v-if="previewImage" class="preview-container">
         <img :src="previewImage.picUrl" :alt="previewImage.prompt" class="preview-image" />
         <div class="preview-info mt-16px">
           <p class="text-14px">
-            <strong>提示词：</strong>
+            <strong>프롬프트:</strong>
             {{ previewImage.prompt }}
           </p>
           <p class="text-12px text-#909090 mt-8px">
-            <strong>尺寸：</strong>
+            <strong>크기:</strong>
             {{ previewImage.width }} × {{ previewImage.height }}
           </p>
           <p class="text-12px text-#909090 mt-4px">
-            <strong>模型：</strong>
+            <strong>모델:</strong>
             {{ previewImage.model }} ({{ previewImage.platform }})
           </p>
           <p class="text-12px text-#909090 mt-4px">
-            <strong>生成时间：</strong>
+            <strong>생성 시간:</strong>
             {{ formatTime(previewImage.createTime) }}
           </p>
         </div>
@@ -177,7 +177,7 @@ import { imageMyPage, imageDraw, imageDeleteMy, modelPage } from '@/utils/ImRequ
 const promptAutosize = { minRows: 3, maxRows: 6 }
 const paginationSizes = [10, 20, 30, 50]
 
-// 表单数据
+// 폼 데이터
 const formData = ref({
   modelId: '',
   prompt: '',
@@ -186,36 +186,36 @@ const formData = ref({
   options: {}
 })
 
-// 模型选项
+// 모델 옵션
 const modelOptions = ref<Array<{ label: string; value: string }>>([])
 
-// 图片列表
+// 이미지 목록
 const imageList = ref<any[]>([])
 const totalImages = ref(0)
 const pageNo = ref(1)
 const pageSize = ref(20)
 
-// 状态
+// 상태
 const isGenerating = ref(false)
 const isLoading = ref(false)
 
-// 预览
+// 미리보기
 const showPreview = ref(false)
 const previewImage = ref<any>(null)
 
-// 轮询定时器
+// 폴링 타이머
 let pollingTimer: NodeJS.Timeout | null = null
 let pollingStartAt: number | null = null
-const MAX_POLL_DURATION = 5 * 60 * 1000 // 5分钟超时，防止长时间占用内存
-// 记录已完成的图片ID,避免重复提示
+const MAX_POLL_DURATION = 5 * 60 * 1000 // 5분 타임아웃, 장시간 메모리 점유 방지
+// 완료된 이미지 ID 기록, 중복 알림 방지
 const completedImageIds = new Set<string>()
 
-// 加载模型列表
+// 모델 목록 로드
 const loadModels = async () => {
   try {
     const res = await modelPage({ pageNo: 1, pageSize: 100 })
     if (res?.data?.list) {
-      // 筛选图片生成模型 (type = 2)
+      // 이미지 생성 모델 필터링 (type = 2)
       modelOptions.value = res.data.list
         .filter((m: any) => m.type === 2 && m.status === 0)
         .map((m: any) => ({
@@ -224,11 +224,11 @@ const loadModels = async () => {
         }))
     }
   } catch (error) {
-    // 移除console.error
+    // console.error 제거
   }
 }
 
-// 加载图片列表
+// 이미지 목록 로드
 const loadImages = async (showSuccessNotification = false) => {
   isLoading.value = true
   try {
@@ -239,12 +239,12 @@ const loadImages = async (showSuccessNotification = false) => {
     if (res?.data) {
       const newList = res.data.list || []
 
-      // 检查是否有新完成的图片
+      // 새로 완료된 이미지가 있는지 확인
       if (showSuccessNotification) {
         newList.forEach((img: any) => {
           if (img.status === 20 && !completedImageIds.has(img.id)) {
             completedImageIds.add(img.id)
-            window.$message.success('图片生成成功')
+            window.$message.success('이미지 생성 성공')
           }
         })
       }
@@ -258,10 +258,10 @@ const loadImages = async (showSuccessNotification = false) => {
   }
 }
 
-// 生成图片
+// 이미지 생성
 const handleGenerate = async () => {
   if (!formData.value.modelId || !formData.value.prompt) {
-    window.$message.warning('请选择模型并输入提示词')
+    window.$message.warning('모델을 선택하고 프롬프트를 입력하세요')
     return
   }
 
@@ -276,46 +276,46 @@ const handleGenerate = async () => {
     })
 
     if (res?.data) {
-      // 只显示一次提交成功的提示
-      window.$message.success('图片生成任务已提交')
-      // 重新加载列表(不显示成功通知)
+      // 제출 성공 알림은 한 번만 표시
+      window.$message.success('이미지 생성 작업이 제출되었습니다')
+      // 목록 다시 로드 (성공 알림 표시 안 함)
       await loadImages(false)
-      // 开始轮询
+      // 폴링 시작
       startPolling()
     }
   } catch (error: any) {
-    // 移除console.error
-    window.$message.error(error?.message || '生成图片失败')
+    // console.error 제거
+    window.$message.error(error?.message || '이미지 생성 실패')
   } finally {
     isGenerating.value = false
   }
 }
 
-// 开始轮询检查生成状态
+// 생성 상태 폴링 시작
 const startPolling = () => {
   if (pollingTimer) return
 
   pollingStartAt = Date.now()
   pollingTimer = setInterval(async () => {
-    // 超时保护，避免长时间挂起导致内存占用
+    // 타임아웃 보호, 장시간 중단으로 인한 메모리 점유 방지
     if (pollingStartAt && Date.now() - pollingStartAt > MAX_POLL_DURATION) {
       stopPolling()
-      window.$message.warning('检测到图片生成轮询超时，已自动停止，请刷新重试')
+      window.$message.warning('이미지 생성 폴링 시간 초과가 감지되어 자동으로 중지되었습니다. 새로고침 후 다시 시도하세요')
       return
     }
 
-    // 检查是否有进行中的任务
+    // 진행 중인 작업이 있는지 확인
     const hasInProgress = imageList.value.some((img) => img.status === 10)
     if (hasInProgress) {
-      // 轮询时启用成功通知
+      // 폴링 시 성공 알림 활성화
       await loadImages(true)
     } else {
       stopPolling()
     }
-  }, 3000) // 每3秒轮询一次
+  }, 3000) // 3초마다 폴링
 }
 
-// 停止轮询
+// 폴링 중지
 const stopPolling = () => {
   if (pollingTimer) {
     clearInterval(pollingTimer)
@@ -324,25 +324,25 @@ const stopPolling = () => {
   pollingStartAt = null
 }
 
-// 删除图片
+// 이미지 삭제
 const handleDelete = async (id: string) => {
   try {
     await imageDeleteMy({ id })
-    window.$message.success('删除成功')
+    window.$message.success('삭제 성공')
     await loadImages(false)
   } catch (error) {
-    // 移除console.error
-    window.$message.error('删除失败')
+    // console.error 제거
+    window.$message.error('삭제 실패')
   }
 }
 
-// 预览图片
+// 이미지 미리보기
 const handlePreview = (image: any) => {
   previewImage.value = image
   showPreview.value = true
 }
 
-// 下载图片
+// 이미지 다운로드
 const handleDownload = (image: any) => {
   if (!image.picUrl) return
   const link = document.createElement('a')
@@ -351,14 +351,14 @@ const handleDownload = (image: any) => {
   link.click()
 }
 
-// 格式化时间
+// 시간 포맷팅
 const formatTime = (time: string) => {
   if (!time) return ''
   const date = new Date(time)
-  return date.toLocaleString('zh-CN')
+  return date.toLocaleString('ko-KR')
 }
 
-// 分页处理
+// 페이지네이션 처리
 const handlePageChange = (page: number) => {
   pageNo.value = page
   loadImages(false)
@@ -371,13 +371,13 @@ const handlePageSizeChange = (size: number) => {
 }
 
 const handleModelChange = () => {
-  // 模型切换时可以重置参数
+  // 모델 전환 시 매개변수 초기화 가능
 }
 
 onMounted(async () => {
   loadModels()
   await loadImages(false)
-  // 检查是否有进行中的任务，如果有则开始轮询
+  // 진행 중인 작업이 있는지 확인하고, 있으면 폴링 시작
   if (imageList.value.some((img) => img.status === 10)) {
     startPolling()
   }
@@ -385,7 +385,7 @@ onMounted(async () => {
 
 onUnmounted(() => {
   stopPolling()
-  // 清空缓存，释放内存
+  // 캐시 지우기, 메모리 해제
   completedImageIds.clear()
 })
 </script>

@@ -1,7 +1,7 @@
 <template>
   <div class="dynamic-detail-page h-full flex flex-col bg-gradient-to-br from-#f8f9fa to-#e9ecef">
     <ActionBar :shrink="false" :max-w="false"></ActionBar>
-    <!-- 顶部导航栏 -->
+    <!-- 상단 네비게이션 바 -->
     <div
       data-tauri-drag-region
       class="flex items-center justify-between px-24px py-16px bg-white/80 backdrop-blur-md border-b border-#e5e5e5 shadow-sm">
@@ -20,7 +20,7 @@
       </div>
     </div>
 
-    <!-- 动态详情内容 -->
+    <!-- 게시물 상세 내용 -->
     <div v-if="feedId" class="flex-1 detail-scroll-container px-24px py-24px">
       <div class="max-w-900px mx-auto">
         <DynamicDetail :feed-id="feedId" mode="pc" @preview-image="previewImage" @video-play="handleVideoPlay" />
@@ -55,10 +55,10 @@ const route = useRoute()
 const { addListener } = useTauriListener()
 const { t } = useI18n()
 
-// 动态ID
+// 게시물 ID
 const feedId = ref<string>('')
 
-// 获取窗口传递的参数
+// 윈도우 전달 파라미터 가져오기
 onMounted(async () => {
   const currentWindow = WebviewWindow.getCurrent()
 
@@ -75,7 +75,7 @@ onMounted(async () => {
     }
   }
 
-  // 监听 payload 更新事件，用于窗口复用时更新内容
+  // payload 업데이트 이벤트 수신, 윈도우 재사용 시 내용 업데이트용
   await addListener(
     listen('window-payload-updated', async (event: any) => {
       const payload = event.payload
@@ -86,26 +86,26 @@ onMounted(async () => {
     'window-payload-updated'
   )
 
-  // 显示窗口
+  // 윈도우 표시
   await currentWindow.show()
 })
 
-// 关闭窗口
+// 윈도우 닫기
 const goBack = async () => {
   const currentWindow = WebviewWindow.getCurrent()
   await currentWindow.close()
 }
 
-// 图片预览
+// 이미지 미리보기
 const previewImage = (images: string[], index: number) => {
-  console.log('预览图片:', images, index)
-  // TODO: 实现图片预览功能
+  console.log('이미지 미리보기:', images, index)
+  // TODO: 이미지 미리보기 기능 구현
 }
 
-// 视频播放
+// 동영상 재생
 const handleVideoPlay = (url: string) => {
-  console.log('播放视频:', url)
-  // TODO: 实现视频播放功能
+  console.log('동영상 재생:', url)
+  // TODO: 동영상 재생 기능 구현
 }
 </script>
 
@@ -115,7 +115,7 @@ const handleVideoPlay = (url: string) => {
   height: 100%;
 }
 
-/* 自定义滚动条样式 */
+/* 커스텀 스크롤바 스타일 */
 .detail-scroll-container {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;

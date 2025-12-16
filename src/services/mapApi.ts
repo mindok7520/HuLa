@@ -28,11 +28,11 @@ type ReverseGeocodeResult = {
     city_code: string
   }
 }
-// 使用后端代理，不再需要 JSONP
+// 백엔드 프록시 사용, 더 이상 JSONP 필요 없음
 
-// 坐标系转换（WGS84 -> GCJ-02）
+// 좌표계 변환 (WGS84 -> GCJ-02)
 export const transformCoordinates = async (lat: number, lng: number): Promise<TransformedCoordinate> => {
-  if (lat < -90 || lat > 90 || lng < -180 || lng > 180) throw new Error('坐标范围无效')
+  if (lat < -90 || lat > 90 || lng < -180 || lng > 180) throw new Error('좌표 범위가 유효하지 않습니다')
   try {
     const data = await imRequest<{ lat: number; lng: number }>({
       url: ImUrlEnum.MAP_COORD_TRANSLATE,
@@ -44,9 +44,9 @@ export const transformCoordinates = async (lat: number, lng: number): Promise<Tr
   }
 }
 
-// 逆地理编码（获取地址信息）
+// 역 지오코딩 (주소 정보 가져오기)
 export const reverseGeocode = async (lat: number, lng: number): Promise<ReverseGeocodeResult | null> => {
-  if (lat < -90 || lat > 90 || lng < -180 || lng > 180) throw new Error('坐标范围无效')
+  if (lat < -90 || lat > 90 || lng < -180 || lng > 180) throw new Error('좌표 범위가 유효하지 않습니다')
   try {
     const data = await imRequest<ReverseGeocodeResult>({
       url: ImUrlEnum.MAP_REVERSE_GEOCODE,

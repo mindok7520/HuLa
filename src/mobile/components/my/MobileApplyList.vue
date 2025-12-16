@@ -5,7 +5,7 @@
       align="center"
       justify="space-between"
       class="color-[--text-color] px-20px py-10px">
-      <p class="text-16px">{{ props.type === 'friend' ? '好友通知' : '群通知' }}</p>
+      <p class="text-16px">{{ props.type === 'friend' ? '친구 알림' : '그룹 알림' }}</p>
       <svg class="size-18px cursor-pointer">
         <use href="#delete"></use>
       </svg>
@@ -38,7 +38,7 @@
             <div
               @click="isCurrentUser(item.senderId) ? (currentUserId = item.operateId) : (currentUserId = item.senderId)"
               class="flex justify-between text-14px text-#2DA38D">
-              {{ getUserInfo(item)?.name || '未知用户' }}
+              {{ getUserInfo(item)?.name || '알 수 없는 사용자' }}
             </div>
             <div class="flex justify-between text-gray-500 text-12px">
               <span>
@@ -46,15 +46,15 @@
               </span>
             </div>
             <div v-if="isFriendApplyOrGroupInvite(item)" class="flex gap-2 flex-1 text-12px text-gray-500">
-              <div class="whitespace-nowrap">留言:</div>
+              <div class="whitespace-nowrap">메시지:</div>
               <n-ellipsis :tooltip="true" expand-trigger="click" line-clamp="2" style="max-width: 100%">
                 {{ item.content }}
               </n-ellipsis>
             </div>
             <div v-else class="flex gap-2 flex-1 text-12px text-gray-500">
-              <div class="whitespace-nowrap">处理人:</div>
+              <div class="whitespace-nowrap">처리자:</div>
               <n-ellipsis :tooltip="true" expand-trigger="click" line-clamp="2" style="max-width: 100%">
-                {{ groupStore.getUserInfo(item.senderId)?.name || '未知用户' }}
+                {{ groupStore.getUserInfo(item.senderId)?.name || '알 수 없는 사용자' }}
               </n-ellipsis>
             </div>
           </div>
@@ -66,7 +66,7 @@
               :size="10"
               v-if="item.status === RequestNoticeAgreeStatus.UNTREATED && !isCurrentUser(item.senderId)">
               <n-button size="small" secondary :loading="loadingMap[item.applyId]" @click="handleAgree(item)">
-                接受
+                수락
               </n-button>
             </n-flex>
             <n-dropdown
@@ -81,22 +81,22 @@
               </n-icon>
             </n-dropdown>
             <span class="text-(12px #64a29c)" v-else-if="item.status === RequestNoticeAgreeStatus.ACCEPTED">
-              已同意
+              이미 동의함
             </span>
             <span class="text-(12px #c14053)" v-else-if="item.status === RequestNoticeAgreeStatus.REJECTED">
-              已拒绝
+              이미 거부함
             </span>
-            <span class="text-(12px #909090)" v-else-if="item.status === RequestNoticeAgreeStatus.IGNORE">已忽略</span>
+            <span class="text-(12px #909090)" v-else-if="item.status === RequestNoticeAgreeStatus.IGNORE">이미 무시함</span>
             <span
               class="text-(12px #64a29c)"
               :class="{ 'text-(12px #c14053)': item.status === RequestNoticeAgreeStatus.REJECTED }"
               v-else-if="isCurrentUser(item.senderId)">
               {{
                 isAccepted(item)
-                  ? '已同意'
+                  ? '이미 동의함'
                   : item.status === RequestNoticeAgreeStatus.REJECTED
-                    ? '对方已拒绝'
-                    : '等待验证'
+                    ? '상대방이 이미 거부함'
+                    : '검증 대기 중'
               }}
             </span>
           </div>
@@ -104,9 +104,9 @@
       </template>
     </n-virtual-list>
 
-    <!-- 空数据提示 -->
+    <!-- 빈 데이터 안내 -->
     <n-flex v-if="applyList.length === 0" vertical justify="center" align="center" class="py-40px">
-      <n-empty :description="props.type === 'friend' ? '暂无好友申请' : '暂无群通知'" />
+      <n-empty :description="props.type === 'friend' ? '친구 신청이 없습니다' : '그룹 알림이 없습니다'" />
     </n-flex>
   </n-flex>
 </template>
@@ -133,11 +133,11 @@ const props = defineProps<{
   closeHeader?: boolean
 }>()
 
-// 存储群组信息的响应式对象
+// 그룹 정보를 저장하는 반응형 객체
 const groupDetailsMap = ref<Record<string, any>>({})
 const loadingGroups = ref<Set<string>>(new Set())
 
-// 检查好友申请是否已被接受
+// 친구 신청이 이미 수락되었는지 확인
 const isAccepted = (item: any) => {
   return item.status !== RequestNoticeAgreeStatus.UNTREATED
 }
@@ -152,21 +152,21 @@ const applyList = computed(() => {
   })
 })
 
-// 获取群组信息的函数
+// 그룹 정보를 가져오는 함수
 const getGroupDetail = async (roomId: string) => {
   if (!roomId) return null
 
-  // 如果已经在加载中，直接返回
+  // 이미 로드 중이면 바로 반환
   if (loadingGroups.value.has(roomId)) {
     return null
   }
 
-  // 如果已经有缓存，直接返回
+  // 이미 캐시가 있으면 바로 반환
   if (groupDetailsMap.value[roomId]) {
     return groupDetailsMap.value[roomId]
   }
 
-  // 开始加载
+  // 로드 시작
   loadingGroups.value.add(roomId)
   try {
     const groupInfo = await getGroupInfo(roomId)
@@ -175,7 +175,7 @@ const getGroupDetail = async (roomId: string) => {
       return groupInfo
     }
   } catch (error) {
-    console.error('获取群组信息失败:', error)
+    console.error('그룹 정보 가져오기 실패:', error)
   } finally {
     loadingGroups.value.delete(roomId)
   }
@@ -183,54 +183,54 @@ const getGroupDetail = async (roomId: string) => {
   return null
 }
 
-// 异步获取群组信息的计算属性
+// 그룹 정보를 비동기로 가져오는 계산된 속성
 const applyMsg = computed(() => (item: any) => {
   if (props.type === 'friend') {
-    return isCurrentUser(item.senderId) ? (isAccepted(item) ? '已同意你的请求' : '正在验证你的邀请') : '请求加为好友'
+    return isCurrentUser(item.senderId) ? (isAccepted(item) ? '당신의 요청에 동의함' : '당신의 초대를 검증 중') : '친구 추가 요청'
   } else {
     const groupDetail = groupDetailsMap.value[item.roomId]
     if (!groupDetail) {
       if (item.roomId && !loadingGroups.value.has(item.roomId)) {
         getGroupDetail(item.roomId)
       }
-      return '加载中...'
+      return '로드 중...'
     }
 
     if (item.eventType === NoticeType.GROUP_APPLY) {
-      return '申请加入 [' + groupDetail.name + ']'
+      return '가입 신청 [' + groupDetail.name + ']'
     } else if (item.eventType === NoticeType.GROUP_INVITE) {
-      const inviter = groupStore.getUserInfo(item.operateId)?.name || '未知用户'
-      return '邀请' + inviter + '加入 [' + groupDetail.name + ']'
+      const inviter = groupStore.getUserInfo(item.operateId)?.name || '알 수 없는 사용자'
+      return '초대' + inviter + '가입 [' + groupDetail.name + ']'
     } else if (isFriendApplyOrGroupInvite(item)) {
       return isCurrentUser(item.senderId)
-        ? '已同意加入 [' + groupDetail.name + ']'
-        : '邀请你加入 [' + groupDetail.name + ']'
+        ? '가입에 동의함 [' + groupDetail.name + ']'
+        : '가입 초대 [' + groupDetail.name + ']'
     } else if (item.eventType === NoticeType.GROUP_MEMBER_DELETE) {
-      const operator = groupStore.getUserInfo(item.senderId)?.name || '未知用户'
-      return '已被' + operator + '踢出 [' + groupDetail.name + ']'
+      const operator = groupStore.getUserInfo(item.senderId)?.name || '알 수 없는 사용자'
+      return '이미' + operator + '에 의해 추방됨 [' + groupDetail.name + ']'
     } else if (item.eventType === NoticeType.GROUP_SET_ADMIN) {
-      return '已被群主设置为 [' + groupDetail.name + '] 的管理员'
+      return '그룹장에 의해 [' + groupDetail.name + '] 관리자로 설정됨'
     } else if (item.eventType === NoticeType.GROUP_RECALL_ADMIN) {
-      return '已被群主取消 [' + groupDetail.name + '] 的管理员权限'
+      return '그룹장에 의해 [' + groupDetail.name + '] 관리자 권한이 취소됨'
     }
   }
 })
 
-// 下拉菜单选项
+// 드롭다운 메뉴 옵션
 const dropdownOptions = [
   {
-    label: '拒绝',
+    label: '거부',
     key: 'reject'
   },
   {
-    label: '忽略',
+    label: '무시',
     key: 'ignore'
   }
 ]
 
 const avatarSrc = (url: string) => AvatarUtils.getAvatarUrl(url)
 
-// 判断是否为当前登录用户
+// 현재 로그인한 사용자인지 판단
 const isCurrentUser = (uid: string) => {
   return uid === userStore.userInfo!.uid
 }
@@ -254,7 +254,7 @@ const getUserInfo = (item: any) => {
   }
 }
 
-// 判断是否为好友申请或者群申请、群邀请
+// 친구 신청 또는 그룹 신청, 그룹 초대인지 판단
 const isFriendApplyOrGroupInvite = (item: any) => {
   return (
     item.eventType === NoticeType.FRIEND_APPLY ||
@@ -265,20 +265,20 @@ const isFriendApplyOrGroupInvite = (item: any) => {
   )
 }
 
-// 处理滚动事件
+// 스크롤 이벤트 처리
 const handleScroll = (e: Event) => {
   if (isLoadingMore.value) return
 
   const { scrollTop, scrollHeight, clientHeight } = e.target as HTMLElement
-  // 当滚动到距离底部20px以内时触发加载更多
+  // 하단 20px 이내로 스크롤할 때 더 로드 트리거
   if (scrollHeight - scrollTop - clientHeight < 20) {
     loadMoreFriendRequests()
   }
 }
 
-// 加载更多好友申请
+// 친구 신청 더 로드
 const loadMoreFriendRequests = async () => {
-  // 如果已经是最后一页或正在加载中，则不再加载
+  // 이미 마지막 페이지이거나 로드 중이면 더 이상 로드하지 않음
   if (contactStore.applyPageOptions.isLast) {
     return
   }
@@ -310,7 +310,7 @@ const handleAgree = async (item: NoticeItem) => {
   }
 }
 
-// 处理好友请求操作
+// 친구 요청 작업 처리
 const handleFriendAction = async (action: string, applyId: string) => {
   loadingMap.value[applyId] = true
   try {
@@ -340,14 +340,14 @@ onMounted(() => {
   contactStore.getApplyPage(props.type, true)
 })
 
-// 监听applyList变化，批量加载群组信息
+// applyList 변화를 감지하여 그룹 정보를 일괄 로드
 watch(
   () => applyList.value,
   (newList) => {
     const roomIds = uniq(newList.filter((item) => item.roomId && Number(item.roomId) > 0).map((item) => item.roomId))
 
     if (roomIds.length > 0) {
-      // 批量加载群组信息
+      // 그룹 정보를 일괄 로드
       roomIds.forEach((roomId) => {
         if (!groupDetailsMap.value[roomId] && !loadingGroups.value.has(roomId)) {
           getGroupDetail(roomId)

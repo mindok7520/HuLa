@@ -6,7 +6,7 @@ pub trait CustomInit {
     fn init_plugin(self) -> Self;
 }
 
-/// 构建平台特定的日志插件
+/// 플랫폼별 로그 플러그인 구축
 fn build_log_plugin<R: Runtime>() -> TauriPlugin<R> {
     let builder = tauri_plugin_log::Builder::new()
         .level(tracing::log::LevelFilter::Info)
@@ -15,7 +15,7 @@ fn build_log_plugin<R: Runtime>() -> TauriPlugin<R> {
         .level_for("sqlx::query", tracing::log::LevelFilter::Warn)
         .level_for("sea_orm", tracing::log::LevelFilter::Warn)
         .level_for("hula_app_lib", tracing::log::LevelFilter::Debug)
-        // 过滤掉无用的 tauri 内部日志
+        // 불필요한 tauri 내부 로그 필터링
         .level_for("tauri", tracing::log::LevelFilter::Warn)
         .level_for("tauri::manager", tracing::log::LevelFilter::Warn)
         .level_for("tauri::event", tracing::log::LevelFilter::Warn)
@@ -47,7 +47,7 @@ fn build_log_plugin<R: Runtime>() -> TauriPlugin<R> {
     builder.build()
 }
 
-/// 初始化公共插件（所有平台通用）
+/// 공통 플러그인 초기화 (모든 플랫폼 공통)
 pub fn init_common_plugins<R: Runtime>(builder: tauri::Builder<R>) -> tauri::Builder<R> {
     let builder = builder
         .plugin(tauri_plugin_os::init())
@@ -63,6 +63,6 @@ pub fn init_common_plugins<R: Runtime>(builder: tauri::Builder<R>) -> tauri::Bui
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_mic_recorder::init());
 
-    // 添加日志插件
+    // 로그 플러그인 추가
     builder.plugin(build_log_plugin())
 }

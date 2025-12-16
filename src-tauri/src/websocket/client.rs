@@ -34,44 +34,44 @@ impl AckMessage {
     }
 }
 
-/// WebSocket 客户端
+/// WebSocket 클라이언트
 #[derive(Clone)]
 pub struct WebSocketClient {
     config: Arc<RwLock<WebSocketConfig>>,
     state: Arc<RwLock<ConnectionState>>,
     app_handle: AppHandle,
 
-    // 心跳相关
+    // 하트비트 관련
     last_pong_time: Arc<AtomicU64>,
     consecutive_failures: Arc<AtomicU32>,
     heartbeat_active: Arc<AtomicBool>,
 
-    // 重连相关
+    // 재연결 관련
     reconnect_attempts: Arc<AtomicU32>,
     is_reconnecting: Arc<AtomicBool>,
 
-    // 消息队列
+    // 메시지 큐
     message_sender: Arc<RwLock<Option<mpsc::UnboundedSender<Message>>>>,
     pending_messages: Arc<RwLock<Vec<serde_json::Value>>>,
 
-    // 连接控制
+    // 연결 제어
     should_stop: Arc<AtomicBool>,
 
-    // 应用状态跟踪
+    // 앱 상태 추적
     is_app_in_background: Arc<AtomicBool>,
     last_foreground_time: Arc<AtomicU64>,
     background_heartbeat_failures: Arc<AtomicU32>,
 
-    // 连接状态标记
+    // 연결 상태 표시
     is_ws_connected: Arc<AtomicBool>,
 
-    // 连接互斥锁，防止并发连接
+    // 동시 연결 방지를 위한 연결 뮤텍스
     connection_mutex: Arc<Mutex<()>>,
 
-    // 任务句柄管理
+    // 작업 핸들 관리
     task_handles: Arc<RwLock<Vec<JoinHandle<()>>>>,
 
-    // 关闭信号发送器
+    // 종료 신호 전송기
     close_sender: Arc<RwLock<Option<mpsc::UnboundedSender<()>>>>,
 }
 
@@ -101,46 +101,46 @@ impl WebSocketClient {
         }
     }
 
-    /// 初始化连接
+    /// 연결 초기화
     pub async fn connect(&self, config: WebSocketConfig) -> Result<()> {
-        // 获取连接锁，确保同时只有一个连接操作
+        // 연결 잠금 획득, 동시에 하나의 연결 작업만 수행되도록 보장
         let _lock: tokio::sync::MutexGuard<'_, ()> = self.connection_mutex.lock().await;
         info!(
             "Initializing WebSocket connection to: {}",
             config.server_url
         );
 
-        // 在锁保护下再次检查连接状态
+        // 잠금 보호 하에 연결 상태 다시 확인
         if self.is_ws_connected.load(Ordering::SeqCst) {
             warn!("WebSocket already connected, ignoring duplicate connection request");
             return Ok(());
         }
 
-        // 更新配置
+        // 구성 업데이트
         *self.config.write().await = config;
         self.should_stop.store(false, Ordering::SeqCst);
 
-        // 开始连接循环
+        // 연결 루프 시작
         self.connection_loop().await?;
 
         Ok(())
     }
 
-    /// 断开连接
+    /// 연결 끊기
     pub async fn disconnect(&self) {
         let _lock = self.connection_mutex.lock().await;
         self.internal_disconnect().await;
     }
 
-    /// 内部断开连接方法（不获取锁）
+    /// 내부 연결 끊기 메서드 (잠금 획득 안 함)
     pub async fn internal_disconnect(&self) {
         info!("Disconnecting WebSocket connection");
         self.should_stop.store(true, Ordering::SeqCst);
 
-        // 更新连接状态
+        // 연결 상태 업데이트
         self.is_ws_connected.store(false, Ordering::SeqCst);
 
-        // 取消所有任务
+        // 모든 작업 취소
         let mut handles = self.task_handles.write().await;
         let task_count = handles.len();
         for handle in handles.drain(..) {
@@ -148,7 +148,7 @@ impl WebSocketClient {
         }
         info!("Cancelled {} async tasks", task_count);
 
-        // 发送关闭信号以主动关闭 WebSocket 连接
+        // WebSocket 연결을 능동적으로 닫기 위해 종료 신호 전송
         if let Some(close_sender) = self.close_sender.write().await.take() {
             if let Err(_) = close_sender.send(()) {
                 warn!("Failed to send close signal, connection may already be closed");
@@ -157,14 +157,14 @@ impl WebSocketClient {
             }
         }
 
-        // 清理消息发送器
+        // 메시지 전송기 정리
         *self.message_sender.write().await = None;
 
-        // 更新状态
+        // 상태 업데이트
         self.update_state(ConnectionState::Disconnected, false)
             .await;
 
-        // 重置计数器
+        // 카운터 재설정
         self.consecutive_failures.store(0, Ordering::SeqCst);
         self.reconnect_attempts.store(0, Ordering::SeqCst);
         self.heartbeat_active.store(false, Ordering::SeqCst);
@@ -172,9 +172,9 @@ impl WebSocketClient {
         info!("WebSocket connection completely disconnected");
     }
 
-    /// 发送消息
+    /// 메시지 전송
     pub async fn send_message(&self, data: serde_json::Value) -> Result<()> {
-        // 首先检查连接状态
+        // 먼저 연결 상태 확인
         let current_state = self.get_state().await;
 
         match current_state {
@@ -190,32 +190,32 @@ impl WebSocketClient {
                     Ok(())
                 } else {
                     warn!("Connection state is Connected but sender not ready, message queued");
-                    // 连接未完全建立，将消息加入待发队列
+                    // 연결이 완전히 설정되지 않음, 메시지를 대기열에 추가
                     let mut pending = self.pending_messages.write().await;
                     pending.push(data);
 
-                    // 限制队列长度
+                    // 대기열 길이 제한
                     if pending.len() > 100 {
                         pending.remove(0);
                         warn!("Pending queue full, dropping oldest message");
                     }
 
-                    // 返回错误，让上层知道消息没有立即发送
+                    // 오류 반환, 상위 계층에 메시지가 즉시 전송되지 않았음을 알림
                     Err(anyhow::anyhow!(
                         "Connection not fully established, message queued"
                     ))
                 }
             }
             ConnectionState::Connecting | ConnectionState::Reconnecting => {
-                // 连接中，将消息加入待发队列
+                // 연결 중, 메시지를 대기열에 추가
                 let mut pending = self.pending_messages.write().await;
                 pending.push(data);
                 warn!(
-                    "正在连接中，消息已加入待发队列 (队列长度: {})",
+                    "연결 중, 메시지가 대기열에 추가되었습니다 (대기열 길이: {})",
                     pending.len()
                 );
 
-                // 限制队列长度
+                // 대기열 길이 제한
                 if pending.len() > 100 {
                     pending.remove(0);
                     warn!("Pending queue full, dropping oldest message");
@@ -224,7 +224,7 @@ impl WebSocketClient {
                 Err(anyhow::anyhow!("WebSocket is connecting, message queued"))
             }
             _ => {
-                warn!("WebSocket 未连接 (状态: {:?})，无法发送消息", current_state);
+                warn!("WebSocket 연결되지 않음 (상태: {:?}), 메시지 전송 불가", current_state);
                 Err(anyhow::anyhow!(
                     "WebSocket not connected (state: {:?})",
                     current_state
@@ -233,17 +233,17 @@ impl WebSocketClient {
         }
     }
 
-    /// 获取连接健康状态
+    /// 연결 상태 확인
     pub async fn get_health_status(&self) -> ConnectionHealth {
         let last_pong = self.last_pong_time.load(Ordering::SeqCst);
         let failures = self.consecutive_failures.load(Ordering::SeqCst);
         let now = chrono::Utc::now().timestamp_millis() as u64;
 
         let is_healthy = if last_pong == 0 {
-            // 如果还没有收到过pong，根据连接状态判断
+            // 퐁을 아직 받지 못한 경우 연결 상태에 따라 판단
             matches!(*self.state.read().await, ConnectionState::Connected)
         } else {
-            now - last_pong < 30000 // 30秒内收到过pong认为健康
+            now - last_pong < 30000 // 30초 이내에 퐁을 받으면 정상으로 간주
         };
 
         ConnectionHealth {
@@ -254,40 +254,40 @@ impl WebSocketClient {
                 Some(last_pong)
             },
             consecutive_failures: failures,
-            round_trip_time: None, // 可以在心跳时计算
+            round_trip_time: None, // 하트비트 시 계산 가능
         }
     }
 
-    /// 强制重连
+    /// 강제 재연결
     pub async fn force_reconnect(&self) -> Result<()> {
         info!("Force reconnecting");
 
-        // 获取连接锁
+        // 연결 잠금 획득
         let _lock = self.connection_mutex.lock().await;
 
-        // 标记为重连，以便前端显示同步提示
+        // 프론트엔드에 동기화 힌트를 표시하기 위해 재연결로 표시
         self.is_reconnecting.store(true, Ordering::SeqCst);
 
         self.reconnect_attempts.store(0, Ordering::SeqCst);
 
-        // 先断开当前连接
+        // 먼저 현재 연결 끊기
         self.internal_disconnect().await;
 
-        // 重新连接
+        // 다시 연결
         let config = self.config.read().await.clone();
 
-        // 更新配置
+        // 구성 업데이트
         *self.config.write().await = config.clone();
         self.should_stop.store(false, Ordering::SeqCst);
 
-        // 开始连接循环
+        // 연결 루프 시작
         self.connection_loop().await
     }
 
-    /// 主连接循环
+    /// 메인 연결 루프
     async fn connection_loop(&self) -> Result<()> {
         loop {
-            // 检查是否应该停止
+            // 중지해야 하는지 확인
             if self.should_stop.load(Ordering::SeqCst) {
                 info!("Received stop signal, exiting connection loop");
                 break;
@@ -298,7 +298,7 @@ impl WebSocketClient {
                     info!("WebSocket connection established");
                     self.reconnect_attempts.store(0, Ordering::SeqCst);
 
-                    // 监控连接状态，直到断开
+                    // 연결이 끊어질 때까지 연결 상태 모니터링
                     while self.is_ws_connected.load(Ordering::SeqCst)
                         && !self.should_stop.load(Ordering::SeqCst)
                     {
@@ -308,13 +308,13 @@ impl WebSocketClient {
                     info!("Connection disconnected, preparing to reconnect...");
                     self.is_reconnecting.store(true, Ordering::SeqCst);
                     self.update_state(ConnectionState::Reconnecting, true).await;
-                    // 清理当前连接状态
+                    // 현재 연결 상태 정리
                     self.cleanup_connection_state().await;
 
                     continue;
                 }
                 Err(e) => {
-                    // 当 max_reconnect_attempts 为 0 时表示无限重连，避免溢出使用饱和加
+                    // max_reconnect_attempts가 0이면 무한 재연결을 의미하므로 오버플로 방지를 위해 포화 덧셈 사용
                     let attempts = self
                         .reconnect_attempts
                         .fetch_update(Ordering::SeqCst, Ordering::SeqCst, |val| {
@@ -335,7 +335,7 @@ impl WebSocketClient {
                         e
                     );
 
-                    // 当 max_reconnect_attempts 为 0 时不做次数上限限制；否则遵循上限
+                    // max_reconnect_attempts가 0이면 횟수 상한 제한 없음; 그렇지 않으면 상한 따름
                     if config.max_reconnect_attempts > 0
                         && attempts >= config.max_reconnect_attempts
                     {
@@ -349,12 +349,12 @@ impl WebSocketClient {
                         return Err(anyhow::anyhow!("Max reconnection attempts reached"));
                     }
 
-                    // 指数退避延迟
-                    // 退避阶数做上限，避免 attempts 无限增长导致幂计算溢出
+                    // 지수 백오프 지연
+                    // attempts가 무한히 증가하여 거듭제곱 계산 오버플로가 발생하는 것을 방지하기 위해 백오프 단계 상한 설정
                     let backoff_steps = attempts.saturating_sub(1).min(10);
                     let delay = std::cmp::min(
                         config.reconnect_delay_ms * (2_u64.pow(backoff_steps)),
-                        15000, // 最大15秒
+                        15000, // 최대 15초
                     );
 
                     info!("Retrying connection in {}ms...", delay);
@@ -366,28 +366,28 @@ impl WebSocketClient {
         Ok(())
     }
 
-    /// 清理连接状态
+    /// 연결 상태 정리
     async fn cleanup_connection_state(&self) {
-        // 停止心跳
+        // 하트비트 중지
         self.heartbeat_active.store(false, Ordering::SeqCst);
 
-        // 清理消息发送器
+        // 메시지 전송기 정리
         *self.message_sender.write().await = None;
 
-        // 清理关闭信号发送器
+        // 종료 신호 전송기 정리
         *self.close_sender.write().await = None;
 
-        // 重置连接状态
+        // 연결 상태 재설정
         self.is_ws_connected.store(false, Ordering::SeqCst);
 
         info!("Connection state cleaned up");
     }
 
-    /// 尝试建立连接
+    /// 연결 시도
     async fn try_connect(&self) -> Result<()> {
         let config = self.config.read().await.clone();
 
-        // 构建连接URL
+        // 연결 URL 구축
         let mut url = Url::parse(&config.server_url)
             .map_err(|e| anyhow::anyhow!("Invalid WebSocket URL '{}': {}", config.server_url, e))?;
 
@@ -402,22 +402,22 @@ impl WebSocketClient {
         info!("Connecting to WebSocket: {}", url_str);
         self.update_state(ConnectionState::Connecting, false).await;
 
-        // 建立连接
+        // 연결 수립
         let (ws_stream, _) = connect_async(url_str)
             .await
             .map_err(|e| anyhow::anyhow!("Failed to connect to WebSocket '{}': {}", url_str, e))?;
 
         let (mut ws_sender, mut ws_receiver) = ws_stream.split();
 
-        // 创建消息通道
+        // 메시지 채널 생성
         let (msg_sender, mut msg_receiver) = mpsc::unbounded_channel();
         *self.message_sender.write().await = Some(msg_sender);
 
-        // 创建关闭信号通道
+        // 종료 신호 채널 생성
         let (close_sender, mut close_receiver) = mpsc::unbounded_channel();
         *self.close_sender.write().await = Some(close_sender);
 
-        // 更新连接状态
+        // 연결 상태 업데이트
         let was_reconnecting = self.is_reconnecting.swap(false, Ordering::SeqCst);
         self.update_state(ConnectionState::Connected, was_reconnecting)
             .await;
@@ -426,16 +426,16 @@ impl WebSocketClient {
             self.schedule_post_reconnect_sync();
         }
 
-        // 标记为已连接
+        // 연결됨으로 표시
         self.is_ws_connected.store(true, Ordering::SeqCst);
 
-        // 发送待发消息
+        // 대기 중인 메시지 전송
         self.send_pending_messages().await?;
 
-        // 启动心跳
+        // 하트비트 시작
         self.start_heartbeat().await;
 
-        // 处理消息发送
+        // 메시지 전송 처리
         let message_sender_task = {
             let should_stop = self.should_stop.clone();
             let is_ws_connected = self.is_ws_connected.clone();
@@ -464,7 +464,7 @@ impl WebSocketClient {
             })
         };
 
-        // 处理消息接收
+        // 메시지 수신 처리
         let message_receiver_task = {
             let app_handle = self.app_handle.clone();
             let last_pong_time = self.last_pong_time.clone();
@@ -510,13 +510,13 @@ impl WebSocketClient {
             })
         };
 
-        // 启动后台任务监控
+        // 백그라운드 작업 모니터링 시작
         let should_stop = self.should_stop.clone();
         let heartbeat_active = self.heartbeat_active.clone();
         let message_sender_ref = self.message_sender.clone();
 
         let monitor_task = tokio::spawn(async move {
-            // 等待任务完成或停止信号
+            // 작업 완료 또는 중지 신호 대기
             tokio::select! {
                 _ = message_sender_task => {
                     info!("Message sending task ended");
@@ -533,12 +533,12 @@ impl WebSocketClient {
                 }
             }
 
-            // 清理
+            // 정리
             heartbeat_active.store(false, Ordering::SeqCst);
             *message_sender_ref.write().await = None;
         });
 
-        // 保存监控任务句柄
+        // 모니터링 작업 핸들 저장
         let mut handles = self.task_handles.write().await;
         handles.push(monitor_task);
 
@@ -546,7 +546,7 @@ impl WebSocketClient {
         Ok(())
     }
 
-    /// 处理收到的消息（静态方法，用于异步任务）
+    /// 수신된 메시지 처리 (비동기 작업을 위한 정적 메서드)
     async fn handle_message_static(
         text: String,
         app_handle: &AppHandle,
@@ -555,7 +555,7 @@ impl WebSocketClient {
     ) {
         info!("Received message: {}", text);
 
-        // 尝试解析心跳响应
+        // 하트비트 응답 파싱 시도
         if let Ok(ws_msg) = serde_json::from_str::<WsMessage>(&text) {
             match ws_msg {
                 WsMessage::HeartbeatResponse { timestamp: _ } => {
@@ -582,12 +582,12 @@ impl WebSocketClient {
             }
         }
 
-        // 处理业务消息
+        // 비즈니스 메시지 처리
         if let Ok(json_value) = serde_json::from_str::<serde_json::Value>(&text) {
-            // 处理具体的业务消息类型
+            // 구체적인 비즈니스 메시지 유형 처리
             Self::process_business_message(&json_value, app_handle).await;
 
-            // 同时发送原始消息事件（保持兼容性）
+            // 원본 메시지 이벤트도 함께 전송 (호환성 유지)
             let _ = app_handle.emit(
                 "websocket-event",
                 &WebSocketEvent::MessageReceived {
@@ -595,7 +595,7 @@ impl WebSocketClient {
                 },
             );
         } else {
-            // 非JSON消息，直接转发
+            // JSON이 아닌 메시지, 직접 전달
             let _ = app_handle.emit(
                 "websocket-event",
                 &WebSocketEvent::MessageReceived {
@@ -613,7 +613,7 @@ impl WebSocketClient {
             "data": ack_message
         });
 
-        // 添加重试机制
+        // 재시도 메커니즘 추가
         let max_retries = 3;
         let mut retry_count = 0;
 
@@ -642,7 +642,7 @@ impl WebSocketClient {
                         message_id, retry_count, e
                     );
 
-                    // 指数退避
+                    // 지수 백오프
                     tokio::time::sleep(Duration::from_millis(100 * 2u64.pow(retry_count as u32)))
                         .await;
                 }
@@ -652,19 +652,19 @@ impl WebSocketClient {
         Err(anyhow::anyhow!("Failed to send ACK after all retries"))
     }
 
-    /// 处理业务消息类型
+    /// 비즈니스 메시지 유형 처리
     async fn process_business_message(message: &serde_json::Value, app_handle: &AppHandle) {
-        // 提取消息类型
+        // 메시지 유형 추출
         let message_type = message.get("type").and_then(|t| t.as_str()).unwrap_or("");
 
-        // 提取消息数据
+        // 메시지 데이터 추출
         let data = message.get("data");
 
         debug!("Processing business message type: {}", message_type);
 
-        // 根据消息类型进行处理并发送对应的事件
+        // 메시지 유형에 따라 처리하고 해당 이벤트 전송
         match message_type {
-            // 登录相关
+            // 로그인 관련
             "loginQrCode" => {
                 info!("Getting login QR code");
                 let _ = app_handle.emit("ws-login-qr-code", data);
@@ -678,7 +678,7 @@ impl WebSocketClient {
                 let _ = app_handle.emit_to("home", "ws-login-success", data);
             }
 
-            // 消息相关 TODO 暂时只实现聊天消息的ack
+            // 메시지 관련 TODO 현재 채팅 메시지의 ack만 구현됨
             "receiveMessage" => {
                 info!("Received message");
 
@@ -691,7 +691,7 @@ impl WebSocketClient {
                         .and_then(|m| m.get("id"))
                         .and_then(|id| id.as_str())
                     {
-                        info!("回执 ACK: {}", message_id);
+                        info!("수신 확인 ACK: {}", message_id);
 
                         if let Some(client) = client_guard.as_ref() {
                             match client.send_ack(message_id).await {
@@ -703,7 +703,7 @@ impl WebSocketClient {
                                 }
                             };
                         } else {
-                            error!(" 回执失败");
+                            error!(" 수신 확인 실패");
                         }
                     }
                 }
@@ -719,7 +719,7 @@ impl WebSocketClient {
                 let _ = app_handle.emit_to("home", "ws-msg-mark-item", data);
             }
 
-            // 用户状态相关
+            // 사용자 상태 관련
             "online" => {
                 info!("User online");
                 let _ = app_handle.emit_to("home", "ws-online", data);
@@ -732,7 +732,7 @@ impl WebSocketClient {
                 info!("User state changed");
                 let _ = app_handle.emit_to("home", "ws-user-state-change", data);
             }
-            // 通知总线
+            // 알림 버스
             "notifyEvent" => {
                 info!("新的notifyEvent");
                 let _ = app_handle.emit_to("home", "ws-request-notify-event", data);
@@ -740,7 +740,7 @@ impl WebSocketClient {
             "groupSetAdmin" => {
                 let _ = app_handle.emit_to("home", "ws-group-set-admin-success", data);
             }
-            // 好友相关
+            // 친구 관련
             "newApply" => {
                 info!("New apply request");
                 let _ = app_handle.emit_to("home", "ws-request-new-apply", data);
@@ -754,7 +754,7 @@ impl WebSocketClient {
                 let _ = app_handle.emit_to("home", "ws-member-change", data);
             }
 
-            // 房间/群聊相关
+            // 방/그룹 채팅 관련
             "roomInfoChange" => {
                 info!("Room info changed");
                 let _ = app_handle.emit_to("home", "ws-room-info-change", data);
@@ -776,7 +776,7 @@ impl WebSocketClient {
                 let _ = app_handle.emit_to("home", "ws-room-dissolution", data);
             }
 
-            // 视频通话相关
+            // 화상 통화 관련
             "VideoCallRequest" => {
                 info!("Received call request");
                 let _ = app_handle.emit("ws-video-call-request", data);
@@ -820,7 +820,7 @@ impl WebSocketClient {
                 let _ = app_handle.emit("ws-timeout", data);
             }
 
-            // 系统相关
+            // 시스템 관련
             "tokenExpired" => {
                 warn!("Token expired");
                 let _ = app_handle.emit("ws-token-expired", data);
@@ -835,7 +835,7 @@ impl WebSocketClient {
                 let _ = app_handle.emit("ws-delete-friend", data);
             }
 
-            // 朋友圈相关
+            // 모멘트 관련
             "feedSendMsg" => {
                 info!("Feed message received");
                 let _ = app_handle.emit_to("home", "ws-feed-send-msg", data);
@@ -845,19 +845,19 @@ impl WebSocketClient {
                 let _ = app_handle.emit_to("home", "ws-feed-notify", data);
             }
 
-            // 未知消息类型
+            // 알 수 없는 메시지 유형
             _ => {
                 warn!("Received unhandled message type: {}", message_type);
-                // 发送通用的未知消息事件
+                // 일반적인 알 수 없는 메시지 이벤트 전송
                 let _ = app_handle.emit("ws-unknown-message", message);
             }
         }
     }
 
-    /// 启动心跳机制
+    /// 하트비트 메커니즘 시작
     async fn start_heartbeat(&self) {
         if self.heartbeat_active.swap(true, Ordering::SeqCst) {
-            return; // 已经在运行
+            return; // 이미 실행 중
         }
 
         let config = self.config.read().await.clone();
@@ -881,7 +881,7 @@ impl WebSocketClient {
                 {
                     heartbeat_interval.tick().await;
 
-                    // 发送心跳
+                    // 하트비트 전송
                     let heartbeat_msg = WsMessage::Heartbeat;
                     if let Ok(json) = serde_json::to_value(&heartbeat_msg) {
                         let sender = message_sender.read().await;
@@ -897,16 +897,16 @@ impl WebSocketClient {
                         }
                     }
 
-                    // 检查心跳超时
+                    // 하트비트 타임아웃 확인
                     let last_pong = last_pong_time.load(Ordering::SeqCst);
                     if last_pong > 0 {
                         let now = chrono::Utc::now().timestamp_millis() as u64;
                         let time_since_pong = now - last_pong;
 
-                        // 根据应用状态调整超时策略
+                        // 앱 상태에 따른 타임아웃 정책 조정
                         let is_background = is_app_in_background.load(Ordering::SeqCst);
                         let effective_timeout = if is_background {
-                            // 后台模式下更宽松的超时时间（2分钟）
+                            // 백그라운드 모드에서 더 완화된 타임아웃 시간 (2분)
                             120000
                         } else {
                             timeout_ms
@@ -930,11 +930,11 @@ impl WebSocketClient {
                                 time_since_pong
                             );
 
-                            // 后台模式下更宽松的重连策略
+                            // 백그라운드 모드에서 더 완화된 재연결 정책
                             let max_failures = if is_background { 5 } else { 3 };
                             if failures >= max_failures {
                                 error!("Consecutive heartbeat timeouts, triggering reconnection");
-                                // 心跳失败时标记连接断开
+                                // 하트비트 실패 시 연결 끊김 표시
                                 is_ws_connected.store(false, Ordering::SeqCst);
                                 break;
                             }
@@ -946,14 +946,14 @@ impl WebSocketClient {
             })
         };
 
-        // 保存心跳任务句柄
+        // 하트비트 작업 핸들 저장
         let mut handles = self.task_handles.write().await;
         handles.push(heartbeat_task);
     }
 
-    /// 发送待发消息
+    /// 대기 중인 메시지 전송
     async fn send_pending_messages(&self) -> Result<()> {
-        // 先取出所有待发消息
+        // 먼저 모든 대기 중인 메시지 가져오기
         let messages_to_send = {
             let mut pending = self.pending_messages.write().await;
             if pending.is_empty() {
@@ -964,12 +964,12 @@ impl WebSocketClient {
             pending.drain(..).collect::<Vec<_>>()
         };
 
-        // 获取发送器
+        // 전송기 가져오기
         let sender = self.message_sender.read().await;
         if let Some(sender) = sender.as_ref() {
             let mut failed_messages = Vec::new();
 
-            // 尝试发送每条消息
+            // 각 메시지 전송 시도
             for message in messages_to_send {
                 let text_message = Message::Text(message.to_string().into());
                 if let Err(e) = sender.send(text_message) {
@@ -978,18 +978,18 @@ impl WebSocketClient {
                 }
             }
 
-            // 如果有失败的消息，重新加入队列
+            // 실패한 메시지가 있으면 대기열에 다시 추가
             if !failed_messages.is_empty() {
                 let mut pending = self.pending_messages.write().await;
                 for msg in failed_messages.into_iter().rev() {
-                    pending.insert(0, msg); // 插入到队列前面
+                    pending.insert(0, msg); // 대기열 앞에 삽입
                 }
                 return Err(anyhow::anyhow!("Some pending messages failed to send"));
             }
 
             info!("All pending messages sent");
         } else {
-            // 发送器未就绪，将消息重新加入队列
+            // 전송기가 준비되지 않음, 메시지를 대기열에 다시 추가
             let mut pending = self.pending_messages.write().await;
             for msg in messages_to_send.into_iter().rev() {
                 pending.insert(0, msg);
@@ -1001,7 +1001,7 @@ impl WebSocketClient {
         Ok(())
     }
 
-    /// 更新连接状态
+    /// 연결 상태 업데이트
     async fn update_state(&self, new_state: ConnectionState, is_reconnection: bool) {
         let mut state = self.state.write().await;
         if *state != new_state {
@@ -1017,14 +1017,14 @@ impl WebSocketClient {
         }
     }
 
-    /// 发送事件到前端
+    /// 프론트엔드로 이벤트 전송
     async fn emit_event(&self, event: WebSocketEvent) {
         if let Err(e) = self.app_handle.emit("websocket-event", &event) {
             error!(" Failed to emit WebSocket event: {}", e);
         }
     }
 
-    /// 发送错误事件
+    /// 오류 이벤트 전송
     async fn emit_error(
         &self,
         message: String,
@@ -1034,17 +1034,17 @@ impl WebSocketClient {
             .await;
     }
 
-    /// 获取当前状态
+    /// 현재 상태 가져오기
     pub async fn get_state(&self) -> ConnectionState {
         self.state.read().await.clone()
     }
 
-    /// 更新配置
+    /// 구성 업데이트
     pub async fn update_config(&self, new_config: WebSocketConfig) {
         *self.config.write().await = new_config;
     }
 
-    /// 设置应用后台状态
+    /// 앱 백그라운드 상태 설정
     pub fn set_app_background_state(&self, is_background: bool) {
         let was_background = self
             .is_app_in_background
@@ -1052,7 +1052,7 @@ impl WebSocketClient {
 
         if is_background && !was_background {
             info!("App entered background mode");
-            // 重置后台心跳失败计数
+            // 백그라운드 하트비트 실패 횟수 재설정
             self.background_heartbeat_failures
                 .store(0, Ordering::SeqCst);
         } else if !is_background && was_background {
@@ -1060,7 +1060,7 @@ impl WebSocketClient {
             self.last_foreground_time.store(now, Ordering::SeqCst);
             info!("App resumed from background to foreground");
 
-            // 检查是否需要重连
+            // 재연결이 필요한지 확인
             tokio::spawn({
                 let client = self.clone();
                 async move {
@@ -1070,7 +1070,7 @@ impl WebSocketClient {
         }
     }
 
-    /// 检查并恢复连接（从后台恢复时调用）
+    /// 연결 확인 및 복구 (백그라운드에서 복귀 시 호출)
     async fn check_and_recover_connection(&self) {
         let current_state = self.get_state().await;
         let last_pong = self.last_pong_time.load(Ordering::SeqCst);
@@ -1084,13 +1084,13 @@ impl WebSocketClient {
 
         match current_state {
             ConnectionState::Connected => {
-                // 检查心跳是否过期
+                // 하트비트 만료 확인
                 if last_pong > 0 && now - last_pong > 60000 {
-                    // 60秒无心跳
+                    // 60초 동안 하트비트 없음
                     warn!("Connection may be lost, forcing reconnection");
                     if let Err(e) = self.force_reconnect().await {
                         warn!("Auto-reconnection failed: {}", e);
-                        // 通知前端需要重连
+                        // 프론트엔드에 재연결 필요 알림
                         if let Err(emit_err) = self.app_handle.emit(
                             "ws-connection-lost",
                             serde_json::json!({
@@ -1103,7 +1103,7 @@ impl WebSocketClient {
                         }
                     }
                 } else {
-                    // 发送一个心跳来测试连接
+                    // 연결 테스트를 위해 하트비트 전송
                     self.send_test_heartbeat().await;
                 }
             }
@@ -1111,7 +1111,7 @@ impl WebSocketClient {
                 info!("Connection disconnected, attempting to reconnect");
                 if let Err(e) = self.force_reconnect().await {
                     warn!("Auto-reconnection failed: {}", e);
-                    // 通知前端需要重连
+                    // 프론트엔드에 재연결 필요 알림
                     if let Err(emit_err) = self.app_handle.emit(
                         "ws-connection-lost",
                         serde_json::json!({
@@ -1133,7 +1133,7 @@ impl WebSocketClient {
         }
     }
 
-    /// 发送测试心跳
+    /// 테스트 하트비트 전송
     async fn send_test_heartbeat(&self) {
         let heartbeat_msg = WsMessage::Heartbeat;
         if let Ok(json) = serde_json::to_value(&heartbeat_msg) {
@@ -1143,7 +1143,7 @@ impl WebSocketClient {
                 }
                 Err(e) => {
                     warn!("Test heartbeat failed: {}", e);
-                    // 通过事件通知前端需要重连
+                    // 이벤트를 통해 프론트엔드에 재연결 필요 알림
                     if let Err(emit_err) = self.app_handle.emit(
                         "ws-connection-lost",
                         serde_json::json!({
@@ -1159,12 +1159,12 @@ impl WebSocketClient {
         }
     }
 
-    /// 获取应用后台状态
+    /// 앱 백그라운드 상태 가져오기
     pub fn is_app_in_background(&self) -> bool {
         self.is_app_in_background.load(Ordering::SeqCst)
     }
 
-    /// 检查 WebSocket 是否已连接
+    /// WebSocket 연결 여부 확인
     pub fn is_connected(&self) -> bool {
         self.is_ws_connected.load(Ordering::SeqCst)
     }

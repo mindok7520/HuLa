@@ -21,7 +21,7 @@ export class AppException extends Error {
   public readonly type: ErrorType
   public readonly code?: number
   public readonly details?: Record<string, any>
-  // 使用静态标志位来追踪是否已经显示过错误消息
+  // 정적 플래그를 사용하여 오류 메시지가 이미 표시되었는지 추적
   private static hasShownError = false
 
   constructor(message: string, errorDetails?: Partial<ErrorDetails>) {
@@ -31,16 +31,16 @@ export class AppException extends Error {
     this.code = errorDetails?.code
     this.details = errorDetails?.details
 
-    // 只有在明确指定显示错误时才显示
+    // 오류 표시가 명시적으로 지정된 경우에만 표시
     if (errorDetails?.showError && !AppException.hasShownError) {
-      // 如果是重试相关的错误，使用console.log打印而不是弹窗提示
+      // 재시도 관련 오류인 경우 팝업 대신 console.log를 사용하여 출력
       if (errorDetails?.isRetryError) {
-        console.log('重试错误:', message, this.details)
+        console.log('재시도 오류:', message, this.details)
       } else {
         window.$message.error(message)
         AppException.hasShownError = true
 
-        // 只有在 2 秒内没有显示过错误消息时才会显示
+        // 2초 내에 오류 메시지가 표시되지 않은 경우에만 표시
         setTimeout(() => {
           AppException.hasShownError = false
         }, 2000)

@@ -2,23 +2,23 @@ import { invoke } from '@tauri-apps/api/core'
 import { AppException, ErrorType } from '@/common/exception'
 
 /**
- * Tauri invoke 调用的统一错误处理包装器
- * @param command Tauri 命令名称
- * @param args 命令参数
- * @param options 错误处理选项
+ * Tauri invoke 호출을 위한 통합 오류 처리 래퍼
+ * @param command Tauri 명령 이름
+ * @param args 명령 파라미터
+ * @param options 오류 처리 옵션
  * @returns Promise<T>
  */
 export async function invokeWithErrorHandler<T = any>(
   command: string,
   args?: Record<string, any>,
   options?: {
-    /** 是否显示错误提示，默认为 true */
+    /** 오류 메시지를 표시할지 여부, 기본값은 true */
     showError?: boolean
-    /** 自定义错误消息 */
+    /** 사용자 지정 오류 메시지 */
     customErrorMessage?: string
-    /** 是否为重试相关的错误，默认为 false */
+    /** 재시도 관련 오류인지 여부, 기본값은 false */
     isRetryError?: boolean
-    /** 错误类型，默认为 Unknown */
+    /** 오류 유형, 기본값은 Unknown */
     errorType?: ErrorType
   }
 ): Promise<T> {
@@ -28,9 +28,9 @@ export async function invokeWithErrorHandler<T = any>(
     const result = await invoke<T>(command, args)
     return result
   } catch (error) {
-    console.error(`[Tauri Invoke Error] 命令: ${command}`, error)
+    console.error(`[Tauri Invoke Error] 명령: ${command}`, error)
 
-    // 构造错误消息
+    // 오류 메시지 구성
     let errorMessage = customErrorMessage
     if (!errorMessage) {
       if (typeof error === 'string') {
@@ -38,11 +38,11 @@ export async function invokeWithErrorHandler<T = any>(
       } else if (error instanceof Error) {
         errorMessage = error.message
       } else {
-        errorMessage = `调用 ${command} 命令失败`
+        errorMessage = `${command} 명령 호출 실패`
       }
     }
 
-    // 使用 AppException 统一处理错误
+    // AppException을 사용하여 오류 통합 처리
     throw new AppException(errorMessage, {
       type: errorType,
       showError,
@@ -57,10 +57,10 @@ export async function invokeWithErrorHandler<T = any>(
 }
 
 /**
- * 静默调用 Tauri 命令（不显示错误提示）
- * @param command Tauri 命令名称
- * @param args 命令参数
- * @returns Promise<T | null> 成功返回结果，失败返回 null
+ * 조용히 Tauri 명령 호출 (오류 메시지를 표시하지 않음)
+ * @param command Tauri 명령 이름
+ * @param args 명령 파라미터
+ * @returns Promise<T | null> 성공하면 결과 반환, 실패하면 null 반환
  */
 export async function invokeSilently<T = any>(command: string, args?: Record<string, any>): Promise<T | null> {
   try {
@@ -71,23 +71,23 @@ export async function invokeSilently<T = any>(command: string, args?: Record<str
 }
 
 /**
- * 带重试机制的 Tauri 调用
- * @param command Tauri 命令名称
- * @param args 命令参数
- * @param options 重试选项
+ * 재시도 메커니즘을 가진 Tauri 호출
+ * @param command Tauri 명령 이름
+ * @param args 명령 파라미터
+ * @param options 재시도 옵션
  * @returns Promise<T>
  */
 export async function invokeWithRetry<T = any>(
   command: string,
   args?: Record<string, any>,
   options?: {
-    /** 最大重试次数，默认为 3 */
+    /** 최대 재시도 횟수, 기본값은 3 */
     maxRetries?: number
-    /** 重试间隔（毫秒），默认为 1000 */
+    /** 재시도 간격 (밀리초), 기본값은 1000 */
     retryDelay?: number
-    /** 是否显示错误提示，默认为 true */
+    /** 오류 메시지를 표시할지 여부, 기본값은 true */
     showError?: boolean
-    /** 自定义错误消息 */
+    /** 사용자 지정 오류 메시지 */
     customErrorMessage?: string
   }
 ): Promise<T> {
@@ -107,7 +107,7 @@ export async function invokeWithRetry<T = any>(
       lastError = error
 
       if (attempt < maxRetries) {
-        console.log(`重试 ${command} 命令 (${attempt}/${maxRetries})...`)
+        console.log(`${command} 명령 재시도 (${attempt}/${maxRetries})...`)
         await new Promise((resolve) => setTimeout(resolve, retryDelay))
       }
     }

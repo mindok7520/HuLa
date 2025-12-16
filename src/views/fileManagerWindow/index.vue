@@ -2,15 +2,15 @@
   <div class="size-full rounded-8px bg-[--right-bg-color] flex flex-col">
     <ActionBar :shrink="false" :current-label="WebviewWindow.getCurrent().label" />
 
-    <!-- 主内容区域 -->
+    <!-- 메인 콘텐츠 영역 -->
     <div class="flex-1 flex overflow-hidden">
-      <!-- 左侧导航区域 -->
+      <!-- 왼쪽 탐색 영역 -->
       <SideNavigation />
 
-      <!-- 中间用户列表区域 -->
+      <!-- 중간 사용자 목록 영역 -->
       <UserList />
 
-      <!-- 右侧文件展示区域 -->
+      <!-- 오른쪽 파일 표시 영역 -->
       <FileContent />
     </div>
   </div>
@@ -23,7 +23,7 @@ import FileContent from '@/components/fileManager/FileContent.vue'
 import SideNavigation from '@/components/fileManager/SideNavigation.vue'
 import UserList from '@/components/fileManager/UserList.vue'
 
-// 定义文件管理的响应式状态
+// 파일 관리 반응형 상태 정의
 const activeNavigation = ref('myFiles')
 const selectedUser = ref('')
 const selectedRoom = ref('')
@@ -33,12 +33,12 @@ const userList = ref<any[]>([])
 const loading = ref(false)
 const navigationItems = ref<any[]>([])
 
-// 查询文件
+// 파일 조회
 const queryFiles = async () => {
   try {
     loading.value = true
 
-    // 根据导航类型确定查询参数
+    // 탐색 유형에 따라 조회 매개변수 결정
     const queryParam = {
       navigationType: activeNavigation.value,
       selectedUser: undefined,
@@ -48,18 +48,18 @@ const queryFiles = async () => {
       pageSize: 50
     } as any
 
-    // 根据不同的导航类型设置查询参数
+    // 다양한 탐색 유형에 따라 조회 매개변수 설정
     switch (activeNavigation.value) {
       case 'myFiles':
-        // 我的文件：查询所有文件，不过滤用户或房间
+        // 내 파일: 모든 파일 조회, 사용자 또는 방 필터링 없음
         break
       case 'senders':
-        // 发送人：按用户过滤
+        // 보낸 사람: 사용자별 필터링
         queryParam.selectedUser = selectedUser.value || undefined
         break
       case 'sessions':
       case 'groups':
-        // 会话/群聊：按房间过滤
+        // 세션/그룹 채팅: 방별 필터링
         queryParam.roomId = selectedRoom.value || undefined
         break
     }
@@ -71,55 +71,55 @@ const queryFiles = async () => {
     timeGroupedFiles.value = response.timeGroupedFiles
     userList.value = response.userList
   } catch (error) {
-    console.error('查询文件失败:', error)
+    console.error('파일 조회 실패:', error)
   } finally {
     loading.value = false
   }
 }
 
-// 获取导航菜单项
+// 탐색 메뉴 항목 가져오기
 const getNavigationItems = async () => {
   try {
     const items = (await invoke('get_navigation_items')) as any[]
     navigationItems.value = items
   } catch (error) {
-    console.error('获取导航菜单失败:', error)
+    console.error('탐색 메뉴 가져오기 실패:', error)
   }
 }
 
-// 设置激活的导航项
+// 활성 탐색 항목 설정
 const setActiveNavigation = (key: string) => {
   activeNavigation.value = key
   navigationItems.value.forEach((item) => {
     item.active = item.key === key
   })
 
-  // 切换导航时重置选择状态
+  // 탐색 전환 시 선택 상태 초기화
   selectedUser.value = ''
   selectedRoom.value = ''
 
-  queryFiles() // 重新查询文件
+  queryFiles() // 파일 다시 조회
 }
 
-// 设置选中的用户
+// 선택된 사용자 설정
 const setSelectedUser = (userId: string) => {
   selectedUser.value = userId
-  queryFiles() // 重新查询文件
+  queryFiles() // 파일 다시 조회
 }
 
-// 设置选中的房间
+// 선택된 방 설정
 const setSelectedRoom = (roomId: string) => {
   selectedRoom.value = roomId
-  queryFiles() // 重新查询文件
+  queryFiles() // 파일 다시 조회
 }
 
-// 设置搜索关键词
+// 검색 키워드 설정
 const setSearchKeyword = (keyword: string) => {
   searchKeyword.value = keyword
-  queryFiles() // 重新查询文件
+  queryFiles() // 파일 다시 조회
 }
 
-// 提供给子组件使用的方法和状态
+// 하위 컴포넌트에 제공할 메서드 및 상태
 provide('fileManagerState', {
   activeNavigation: readonly(activeNavigation),
   selectedUser: readonly(selectedUser),
@@ -137,7 +137,7 @@ provide('fileManagerState', {
 
 onMounted(async () => {
   await getCurrentWebviewWindow().show()
-  // 加载导航菜单和文件数据
+  // 탐색 메뉴 및 파일 데이터 로드
   await getNavigationItems()
   await queryFiles()
 })

@@ -2,11 +2,11 @@ use crate::common::init::{CustomInit, init_common_plugins};
 use tauri::Runtime;
 
 impl<R: Runtime> CustomInit for tauri::Builder<R> {
-    // 初始化插件
+    // 플러그인 초기화
     fn init_plugin(self) -> Self {
         let builder = init_common_plugins(self);
 
-        // 移动端特有的插件
+        // 모바일 전용 플러그인
         #[cfg(mobile)]
         let builder = builder
             .plugin(tauri_plugin_safe_area_insets::init())

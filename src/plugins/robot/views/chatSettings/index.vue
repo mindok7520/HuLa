@@ -1,8 +1,8 @@
 <template>
   <div class="flex border-b-(1px solid [--line-color]) truncate p-[14px_20px] justify-between items-center gap-50px">
     <n-flex :size="10" vertical class="truncate">
-      <p class="text-(22px [--chat-text-color]) truncate font-500">设置</p>
-      <p class="text-(14px #909090)">所有设置选项</p>
+      <p class="text-(22px [--chat-text-color]) truncate font-500">설정</p>
+      <p class="text-(14px #909090)">모든 설정 옵션</p>
     </n-flex>
 
     <n-flex class="min-w-fit">
@@ -12,7 +12,7 @@
     </n-flex>
   </div>
 
-  <!-- 设置的主体内容  -->
+  <!-- 설정의 본문 내용  -->
   <n-scrollbar :class="{ 'shadow-inner': page.shadow }" style="max-height: calc(100vh / var(--page-scale, 1) - 104px)">
     <n-flex vertical :size="20" class="p-[20px_0]">
       <div v-for="(key, index) in content" :key="index" class="flex flex-1 p-[0_20px]">

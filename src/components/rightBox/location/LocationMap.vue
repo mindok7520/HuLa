@@ -1,6 +1,6 @@
 <template>
   <div class="relative size-full">
-    <!-- 地图容器 -->
+    <!-- 지도 컨테이너 -->
     <TlbsMap
       ref="mapRef"
       :api-key="apiKey"
@@ -11,7 +11,7 @@
       :options="mapOptions"
       :style="{ height: `${height}px` }"
       @map_inited="() => emit('map-ready')">
-      <!-- 位置标记 -->
+      <!-- 위치 마커 -->
       <TlbsMultiMarker
         id="location-marker"
         :styles="markerStyles"
@@ -54,29 +54,29 @@ const props = withDefaults(defineProps<LocationMapProps>(), {
 const emit = defineEmits<LocationMapEmits>()
 const { t } = useI18n()
 
-// 地图实例和状态
+// 지도 인스턴스 및 상태
 const mapRef = ref()
 
-// 计算属性
+// 계산된 속성
 const mapCenter = computed(() => ({
   lat: props.location.latitude,
   lng: props.location.longitude
 }))
 
-// 地图配置
+// 지도 구성
 const mapControl = {
   scale: true,
   zoom: false,
   mapType: false,
-  rotation: false // 禁用指南针
+  rotation: false // 나침반 비활성화
 }
 
-// 地图交互选项 - 根据draggable属性决定是否禁用交互
+// 지도 상호 작용 옵션 - draggable 속성에 따라 상호 작용 비활성화 여부 결정
 const mapOptions = computed(() => ({
-  draggable: props.draggable, // 禁用拖拽
-  scrollWheelZoom: props.draggable, // 禁用滚轮缩放
-  doubleClickZoom: props.draggable, // 禁用双击缩放
-  clickable: props.draggable // 禁用点击
+  draggable: props.draggable, // 드래그 비활성화
+  scrollWheelZoom: props.draggable, // 휠 줌 비활성화
+  doubleClickZoom: props.draggable, // 더블 클릭 줌 비활성화
+  clickable: props.draggable // 클릭 비활성화
 }))
 
 const markerStyles = {
@@ -98,7 +98,7 @@ const markerGeometries = computed(() => [
   }
 ])
 
-// 事件处理
+// 이벤트 처리
 const handleMarkerClick = (event: any) => {
   if (props.draggable) {
     emit('location-change', {
@@ -117,7 +117,7 @@ const handleMarkerDragEnd = (event: any) => {
   }
 }
 
-// 响应式监听
+// 반응형 감지
 watch(
   () => props.location,
   (newLocation) => {

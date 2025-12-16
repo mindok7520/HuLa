@@ -41,7 +41,7 @@ const useSideOptions = () => {
   ])
 }
 
-/** 发送按钮快捷键的选项 */
+/** 전송 버튼 단축키 옵션 */
 const useSendOptions = () => {
   const { t } = useI18n()
   const key = computed(() => {
@@ -60,7 +60,7 @@ const useSendOptions = () => {
   ])
 }
 
-/** 翻译提供商的选项 */
+/** 번역 제공자 옵션 */
 const useTranslateOptions = () => {
   const { t } = useI18n()
   return computed(() => [
@@ -75,7 +75,7 @@ const useTranslateOptions = () => {
   ])
 }
 
-/** 字体 */
+/** 폰트 */
 const useFontOptions = () => {
   const { t } = useI18n()
   return computed(() => [
@@ -96,8 +96,8 @@ const langOptions = [
     value: 'AUTO'
   },
   {
-    label: '简体中文',
-    value: 'zh-CN'
+    label: '한국어',
+    value: 'ko-KR'
   },
   {
     label: 'English',

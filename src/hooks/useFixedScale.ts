@@ -3,17 +3,17 @@ import { useDebounceFn } from '@vueuse/core'
 export type FixedScaleMode = 'zoom' | 'transform'
 
 export type UseFixedScaleOptions = {
-  /** 目标容器：CSS 选择器或元素，默认 '#app' */
+  /** 대상 컨테이너: CSS 선택자 또는 요소, 기본값 '#app' */
   target?: string | HTMLElement
-  /** 默认 'zoom' */
+  /** 기본값 'zoom' */
   mode?: FixedScaleMode
-  /** 自定义计算缩放比例方法，默认返回 1 / devicePixelRatio */
+  /** 사용자 정의 배율 계산 방법, 기본값은 1 / devicePixelRatio 반환 */
   getScale?: () => number
-  /** 限制最小缩放 */
+  /** 최소 배율 제한 */
   minScale?: number
-  /** 限制最大缩放 */
+  /** 최대 배율 제한 */
   maxScale?: number
-  /** 是否启用Windows文本缩放检测 */
+  /** Windows 텍스트 배율 감지 활성화 여부 */
   enableWindowsTextScaleDetection?: boolean
 }
 
@@ -22,11 +22,11 @@ type FixedScaleController = {
   disable: () => void
   getCurrentScale: () => number
   forceUpdate: () => void
-  /** 当前是否启用 */
+  /** 현재 활성화 여부 */
   readonly isEnabled: ComputedRef<boolean>
-  /** 当前缩放比例 */
+  /** 현재 배율 */
   readonly currentScale: ComputedRef<number>
-  /** 当前 DPR */
+  /** 현재 DPR */
   readonly devicePixelRatio: ComputedRef<number>
 }
 
@@ -46,7 +46,7 @@ const resolveElement = (target?: string | HTMLElement): HTMLElement => {
   return target
 }
 
-// 检测是否支持 zoom 样式
+// zoom 스타일 지원 여부 감지
 const supportsZoom = (() => {
   const testEl = document.createElement('div')
   testEl.style.zoom = '1'
@@ -54,13 +54,13 @@ const supportsZoom = (() => {
 })()
 
 /**
- * 保持页面在不同系统显示缩放(DPI)下视觉尺寸一致的组合式函数
- * - 当系统显示缩放为 125%、150%、200% 等导致 window.devicePixelRatio(DPR) 改变时，自动反向缩放页面，保持 UI 视觉尺寸一致
- * - 默认基于 zoom 方案（桌面端 Chromium/Edge/Tauri 环境表现较稳定）
- * - 提供 transform 方案作为兜底（当某些环境不支持 zoom 或有兼容问题时可切换）
- * - 监听窗口 resize / visualViewport 变化与 DPR 媒体查询变化，动态应用
- * - 提供启用/禁用接口，确保卸载时恢复样式与事件
- * @param options 配置选项
+ * 다양한 시스템 디스플레이 배율(DPI)에서 페이지의 시각적 크기를 일관되게 유지하는 컴포저블 함수
+ * - 시스템 디스플레이 배율이 125%, 150%, 200% 등으로 설정되어 window.devicePixelRatio(DPR)가 변경될 때, 페이지를 자동으로 역방향으로 축소하여 UI 시각적 크기를 일관되게 유지
+ * - 기본적으로 zoom 방식 사용 (데스크톱 Chromium/Edge/Tauri 환경에서 비교적 안정적)
+ * - transform 방식을 대체 수단으로 제공 (일부 환경에서 zoom을 지원하지 않거나 호환성 문제가 있는 경우 전환 가능)
+ * - 창 resize / visualViewport 변경 및 DPR 미디어 쿼리 변경을 감지하여 동적으로 적용
+ * - 활성화/비활성화 인터페이스 제공, 언마운트 시 스타일 및 이벤트 복원 보장
+ * @param options 설정 옵션
  */
 export const useFixedScale = (options: UseFixedScaleOptions = {}): FixedScaleController => {
   const {
@@ -76,7 +76,7 @@ export const useFixedScale = (options: UseFixedScaleOptions = {}): FixedScaleCon
   const currentDPR = ref(window.devicePixelRatio || 1)
   const targetElement = ref<HTMLElement | null>(null)
 
-  // Windows缩放信息
+  // Windows 배율 정보
   const windowsScaleInfo = ref<{
     system_dpi: number
     system_scale: number
@@ -84,14 +84,14 @@ export const useFixedScale = (options: UseFixedScaleOptions = {}): FixedScaleCon
     has_text_scaling: boolean
   } | null>(null)
 
-  // 保存进入前的样式，便于恢复
+  // 진입 전 스타일 저장, 복원 용도
   const originalStyles: Partial<CSSStyleDeclaration> = {}
 
-  // 事件监听器管理 - 使用 Map 来跟踪监听器
+  // 이벤트 리스너 관리 - Map을 사용하여 리스너 추적
   const eventListeners = new Map<string, () => void>()
   const mediaQueryListeners = new Set<MediaQueryList>()
 
-  // Windows缩放检测函数
+  // Windows 배율 감지 함수
   const checkWindowsScale = async () => {
     if (!enableWindowsTextScaleDetection) return
 
@@ -103,13 +103,13 @@ export const useFixedScale = (options: UseFixedScaleOptions = {}): FixedScaleCon
         has_text_scaling: boolean
       }
 
-      // 检查是否有变化
+      // 변경 사항 확인
       const oldTextScale = windowsScaleInfo.value?.text_scale
       const newTextScale = scaleInfo.text_scale
 
       windowsScaleInfo.value = scaleInfo
 
-      // 如果text_scale发生变化，触发resize-needed事件
+      // text_scale이 변경되면 resize-needed 이벤트 트리거
       if (oldTextScale && Math.abs(newTextScale - oldTextScale) > 0.001) {
         window.dispatchEvent(
           new CustomEvent('resize-needed', {
@@ -127,7 +127,7 @@ export const useFixedScale = (options: UseFixedScaleOptions = {}): FixedScaleCon
     }
   }
 
-  // 改进的缩放计算逻辑 - 针对不同缩放比例的优化
+  // 개선된 배율 계산 로직 - 다양한 배율에 대한 최적화
   const calculateOptimalScale = (): number => {
     const dpr = currentDPR.value
 
@@ -135,38 +135,38 @@ export const useFixedScale = (options: UseFixedScaleOptions = {}): FixedScaleCon
       return getScale()
     }
 
-    // 如果启用了Windows文本缩放检测且有缩放信息
+    // Windows 텍스트 배율 감지가 활성화되어 있고 배율 정보가 있는 경우
     if (enableWindowsTextScaleDetection && windowsScaleInfo.value && windowsScaleInfo.value.has_text_scaling) {
       const textScaleCompensation = 1 / windowsScaleInfo.value.text_scale
       return textScaleCompensation
     }
 
-    // 针对常见系统缩放的优化计算
-    // 使用更精确的数值来处理浮点数精度问题
+    // 일반적인 시스템 배율에 대한 최적화 계산
+    // 부동 소수점 정밀도 문제를 처리하기 위해 더 정확한 값 사용
     if (Math.abs(dpr - 2.0) < 0.01) {
-      // 200% 缩放：精确的 0.5
+      // 200% 배율: 정확한 0.5
       return 0.5
     } else if (Math.abs(dpr - 1.5) < 0.01) {
-      // 150% 缩放：精确的 2/3
+      // 150% 배율: 정확한 2/3
       return 2 / 3
     } else if (Math.abs(dpr - 1.25) < 0.01) {
-      // 125% 缩放：精确的 0.8
+      // 125% 배율: 정확한 0.8
       return 0.8
     }
 
-    // 默认反向缩放，但使用更安全的计算
+    // 기본 역방향 축소, 하지만 더 안전한 계산 사용
     const scale = 1 / dpr
     return scale
   }
 
-  // 计算属性 - Vue 响应式系统的优势
+  // 계산된 속성 - Vue 반응형 시스템의 이점
   const currentScale = computed(() => clamp(calculateOptimalScale(), minScale, maxScale))
   const devicePixelRatio = computed(() => currentDPR.value)
 
   const applyZoom = (scale: number) => {
     if (!targetElement.value) return
     const el = targetElement.value
-    ;(el.style as any).zoom = String(scale)
+      ; (el.style as any).zoom = String(scale)
     el.style.transformOrigin = ''
     el.style.transform = ''
     el.style.width = ''
@@ -178,22 +178,22 @@ export const useFixedScale = (options: UseFixedScaleOptions = {}): FixedScaleCon
     const el = targetElement.value
     el.style.transformOrigin = '0 0'
     el.style.transform = `scale(${scale})`
-    // 为保持可视区域充满，需要反向扩大容器尺寸
+    // 가시 영역을 꽉 채우기 위해 컨테이너 크기를 역방향으로 확대해야 함
     el.style.width = `${100 / scale}%`
     el.style.height = `${100 / scale}%`
-    // 清理 zoom 以避免叠加
-    ;(el.style as any).zoom = ''
+      // 중첩 방지를 위해 zoom 정리
+      ; (el.style as any).zoom = ''
   }
 
   const apply = () => {
     if (!targetElement.value) return
 
     const scale = currentScale.value
-    // 设置 CSS 自定义属性供其他组件使用
+    // 다른 컴포넌트에서 사용할 수 있도록 CSS 사용자 정의 속성 설정
     document.documentElement.style.setProperty('--page-scale', String(scale))
     document.documentElement.style.setProperty('--device-pixel-ratio', String(currentDPR.value))
 
-    // 检查模式并应用相应的缩放方法
+    // 모드를 확인하고 해당 배율 방법 적용
     const effectiveMode = mode === 'zoom' && !supportsZoom ? 'transform' : mode
 
     if (effectiveMode === 'zoom') {
@@ -202,7 +202,7 @@ export const useFixedScale = (options: UseFixedScaleOptions = {}): FixedScaleCon
       applyTransform(scale)
     }
 
-    // 触发窗口尺寸调整事件
+    // 창 크기 조정 이벤트 트리거
     window.dispatchEvent(
       new CustomEvent('resize-needed', {
         detail: { scale, devicePixelRatio: currentDPR.value }
@@ -210,14 +210,14 @@ export const useFixedScale = (options: UseFixedScaleOptions = {}): FixedScaleCon
     )
   }
 
-  // 改进的 DPR 更新函数
+  // 개선된 DPR 업데이트 함수
   const updateDPR = () => {
     const newDPR = window.devicePixelRatio || 1
     if (Math.abs(newDPR - currentDPR.value) > 0.001) {
-      // 避免浮点数比较问题
+      // 부동 소수점 비교 문제 방지
       currentDPR.value = newDPR
       if (isEnabled.value) {
-        // 使用 nextTick 确保响应式更新完成后再应用
+        // nextTick을 사용하여 반응형 업데이트가 완료된 후 적용되도록 보장
         nextTick(() => {
           apply()
         })
@@ -226,7 +226,7 @@ export const useFixedScale = (options: UseFixedScaleOptions = {}): FixedScaleCon
   }
 
   const setupListeners = () => {
-    // 防抖函数，避免频繁触发
+    // 디바운스 함수, 빈번한 트리거 방지
     const debounceApply = useDebounceFn(() => {
       updateDPR()
     }, 100)
@@ -235,12 +235,12 @@ export const useFixedScale = (options: UseFixedScaleOptions = {}): FixedScaleCon
       checkWindowsScale()
     }, 200)
 
-    // 监听自定义的resize-needed事件
+    // 사용자 정의 resize-needed 이벤트 수신
     const customResizeHandler = (e: CustomEvent) => {
       if (e.detail?.type === 'text-scale-change') {
-        // 文本缩放变化时强制更新
+        // 텍스트 배율 변경 시 강제 업데이트
         nextTick(() => {
-          // 无论之前是否有文本缩放，现在都要应用新的缩放
+          // 이전에 텍스트 배율이 있었는지 여부에 관계없이 이제 새로운 배율 적용
           apply()
         })
       }
@@ -250,7 +250,7 @@ export const useFixedScale = (options: UseFixedScaleOptions = {}): FixedScaleCon
     })
     window.addEventListener('resize-needed', customResizeHandler as EventListener)
 
-    // window.resize 监听器
+    // window.resize 리스너
     const resizeHandler = () => {
       debounceApply()
       if (enableWindowsTextScaleDetection) {
@@ -260,7 +260,7 @@ export const useFixedScale = (options: UseFixedScaleOptions = {}): FixedScaleCon
     eventListeners.set('resize', resizeHandler)
     window.addEventListener('resize', resizeHandler, { passive: true })
 
-    // visualViewport 监听器
+    // visualViewport 리스너
     if (window.visualViewport) {
       const viewportHandler = () => {
         debounceApply()
@@ -278,7 +278,7 @@ export const useFixedScale = (options: UseFixedScaleOptions = {}): FixedScaleCon
       })
     }
 
-    // 更精确的 DPR 监听 - 使用更全面的范围
+    // 더 정확한 DPR 수신 - 더 포괄적인 범위 사용
     const dprValues = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.5, 3, 3.5, 4]
 
     dprValues.forEach((dpr) => {
@@ -297,7 +297,7 @@ export const useFixedScale = (options: UseFixedScaleOptions = {}): FixedScaleCon
           mql.addEventListener('change', handler)
           mediaQueryListeners.add(mql)
 
-          // 存储清理函数
+          // 정리 함수 저장
           eventListeners.set(`mql-${dpr}`, () => {
             mql.removeEventListener('change', handler)
           })
@@ -309,7 +309,7 @@ export const useFixedScale = (options: UseFixedScaleOptions = {}): FixedScaleCon
   }
 
   const removeListeners = () => {
-    // 移除所有事件监听器
+    // 모든 이벤트 리스너 제거
     eventListeners.forEach((cleanup, key) => {
       try {
         if (key === 'resize') {
@@ -342,11 +342,11 @@ export const useFixedScale = (options: UseFixedScaleOptions = {}): FixedScaleCon
     if (!targetElement.value) return
     const el = targetElement.value
 
-    // 移除 CSS 自定义属性
+    // CSS 사용자 정의 속성 제거
     document.documentElement.style.removeProperty('--page-scale')
     document.documentElement.style.removeProperty('--device-pixel-ratio')
 
-    // 恢复原始样式
+    // 원래 스타일 복원
     if (originalStyles.zoom !== undefined) (el.style as any).zoom = originalStyles.zoom
     if (originalStyles.transform !== undefined) el.style.transform = originalStyles.transform
     if (originalStyles.transformOrigin !== undefined) el.style.transformOrigin = originalStyles.transformOrigin
@@ -367,7 +367,7 @@ export const useFixedScale = (options: UseFixedScaleOptions = {}): FixedScaleCon
     targetElement.value = el
     currentDPR.value = window.devicePixelRatio || 1
 
-    // 如果启用Windows文本缩放检测，先获取缩放信息
+    // Windows 텍스트 배율 감지가 활성화된 경우 먼저 배율 정보 가져오기
     if (enableWindowsTextScaleDetection) {
       await checkWindowsScale()
     }
@@ -375,7 +375,7 @@ export const useFixedScale = (options: UseFixedScaleOptions = {}): FixedScaleCon
     saveOriginal()
     setupListeners()
 
-    // 只有当检测到文本缩放时才应用缩放，但监听器始终设置
+    // 텍스트 배율이 감지될 때만 배율을 적용하지만, 리스너는 항상 설정됨
     if (!enableWindowsTextScaleDetection || windowsScaleInfo.value?.has_text_scaling) {
       apply()
     }
@@ -394,7 +394,7 @@ export const useFixedScale = (options: UseFixedScaleOptions = {}): FixedScaleCon
     targetElement.value = null
   }
 
-  // Vue 生命周期管理
+  // Vue 수명 주기 관리
   onBeforeUnmount(() => {
     disable()
   })

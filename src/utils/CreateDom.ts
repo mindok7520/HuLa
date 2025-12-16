@@ -1,59 +1,59 @@
 import { formatBytes } from '@/utils/Formatting.ts'
 
 /**
- * 创建一个带有SVG图标的img标签
- * @param {File} file 文件对象
+ * SVG 아이콘이 있는 img 태그 생성
+ * @param {File} file 파일 객체
  */
 export const createFileOrVideoDom = (file: File) => {
-  // 获取文件的名称和大小
+  // 파일의 이름과 크기 가져오기
   const fileName = file.name
-  // 计算文件或者视频大小
+  // 파일 또는 비디오 크기 계산
   const fileSize = formatBytes(file.size)
 
   return new Promise((resolve, reject) => {
-    // 创建带有圆角和SVG图标的canvas元素
+    // 둥근 모서리와 SVG 아이콘이 있는 canvas 요소 생성
     const canvas = document.createElement('canvas')
     const ctx = canvas.getContext('2d')!
 
-    // 获取设备像素比
+    // 디바이스 픽셀 비율 가져오기
     const dpr = window.devicePixelRatio || 1
 
-    // canvas的实际尺寸
+    // canvas의 실제 크기
     const actualWidth = 225
     const actualHeight = 85
 
-    // 设置canvas的显示尺寸
+    // canvas의 표시 크기 설정
     canvas.style.width = `${actualWidth}px`
     canvas.style.height = `${actualHeight}px`
 
-    // 设置canvas的缓冲区尺寸
+    // canvas의 버퍼 크기 설정
     canvas.width = actualWidth * dpr
     canvas.height = actualHeight * dpr
 
-    // 根据dpr缩放上下文
+    // dpr에 따라 컨텍스트 크기 조정
     ctx.scale(dpr, dpr)
     const extension = file.name.split('.').pop()?.toLowerCase() || 'file'
-    // 加载SVG文件并绘制到canvas,根据文件类型，设置SVG图标
+    // SVG 파일을 로드하고 canvas에 그리기, 파일 타입에 따라 SVG 아이콘 설정
     loadSVG(`/file/${extension}.svg`)
       .then((svgImage: any) => {
-        // 圆角矩形的背景和边框，您可以根据需要调整样式
-        ctx.fillStyle = '#fdfdfd' // 背景颜色
-        ctx.strokeStyle = '#ccc' // 边框颜色
-        ctx.lineWidth = 2 // 边框宽度
-        const selectedBgColor = '#e4e4e4' // 点击时的背景颜色
-        const unselectedBgColor = '#fdfdfd' // 未点击时的背景颜色
-        let isImgSelected = false // 标记图片是否被选中
-        const maxTextWidth = 160 // 文件名称的最大宽度
+        // 둥근 모서리 직사각형의 배경과 테두리, 필요에 따라 스타일 조정 가능
+        ctx.fillStyle = '#fdfdfd' // 배경 색상
+        ctx.strokeStyle = '#ccc' // 테두리 색상
+        ctx.lineWidth = 2 // 테두리 너비
+        const selectedBgColor = '#e4e4e4' // 클릭 시 배경색
+        const unselectedBgColor = '#fdfdfd' // 클릭하지 않았을 때 배경색
+        let isImgSelected = false // 이미지가 선택되었는지 표시
+        const maxTextWidth = 160 // 파일명의 최대 너비
 
-        // 绘制圆角矩形背景
+        // 둥근 모서리 직사각형 배경 그리기
         roundRect(ctx, 0, 0, actualWidth, actualHeight, 8)
         ctx.fill()
 
-        // 绘制圆角矩形边框
+        // 둥근 모서리 직사각형 테두리 그리기
         roundRect(ctx, 0, 0, actualWidth, actualHeight, 8)
         ctx.stroke()
 
-        /** 文本过长时截取并使用省略号代替 */
+        /** 텍스트가 너무 길 때 잘라내고 생략 부호 사용 */
         function truncateText(text: string, maxWidth: number) {
           const ellipsis = '...'
           const ellipsisWidth = ctx.measureText(ellipsis).width
@@ -83,54 +83,54 @@ export const createFileOrVideoDom = (file: File) => {
           return currentText
         }
 
-        /** 更新canvas的背景颜色和边框 */
+        /** canvas의 배경색과 테두리 업데이트 */
         function updateCanvasBackground(
           canvas: HTMLCanvasElement,
           ctx: CanvasRenderingContext2D,
           isImgSelected: boolean
         ) {
-          // 清除之前的内容
+          // 이전 내용 지우기
           ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr)
 
-          // 更新canvas的背景颜色和边框
+          // canvas의 배경색과 테두리 업데이트
           ctx.fillStyle = isImgSelected ? selectedBgColor : unselectedBgColor
           ctx.strokeStyle = '#ccc'
           ctx.lineWidth = 2
 
-          // 重新绘制圆角矩形
+          // 둥근 모서리 직사각형 다시 그리기
           roundRect(ctx, 0, 0, actualWidth, actualHeight, 8)
           ctx.fill()
           roundRect(ctx, 0, 0, actualWidth, actualHeight, 8)
           ctx.stroke()
 
-          // 修改原来的文本绘制部分，使用truncateText函数来截断文本
-          ctx.fillStyle = '#333' // 文本颜色
-          ctx.font = 'bold 14px Arial' // 文本样式
+          // 기존 텍스트 그리기 부분 수정, truncateText 함수를 사용하여 텍스트 자르기
+          ctx.fillStyle = '#333' // 텍스트 색상
+          ctx.font = 'bold 14px Arial' // 텍스트 스타일
           const truncatedFileName = truncateText(fileName, maxTextWidth)
           ctx.fillText(truncatedFileName, 15, 25)
 
-          ctx.fillStyle = '#909090' // 文本颜色
-          ctx.font = 'normal 12px Arial' // 文本样式
+          ctx.fillStyle = '#909090' // 텍스트 색상
+          ctx.font = 'normal 12px Arial' // 텍스트 스타일
           ctx.fillText(fileSize, 15, actualHeight - 15)
 
-          // 在右边绘制SVG图标，需要根据dpr调整位置
+          // 오른쪽에 SVG 아이콘 그리기, dpr에 따라 위치 조정 필요
           ctx.drawImage(svgImage, actualWidth - svgImage.width / dpr - 25, (actualHeight - svgImage.height / dpr) / 2)
 
           return canvas.toDataURL('image/png')
         }
 
-        // Canvas 转化为 Data URL
+        // Canvas를 Data URL로 변환
         const dataURL = updateCanvasBackground(canvas, ctx, isImgSelected)
         const VIDEO_EXTENSIONS = ['mp4', 'mov', 'avi', 'wmv', 'mkv', 'flv']
         const imgStyle = 'border-radius: 8px; margin-right: 6px; cursor: pointer;'
         const isVideo = VIDEO_EXTENSIONS.includes(extension)
         if (isVideo) {
-          // 创建video元素
+          // video 요소 생성
           const video = document.createElement('video')
           try {
-            // 1. 先验证文件对象有效性
+            // 1. 먼저 파일 객체 유효성 검증
             if (!(file instanceof File) || file.size === 0) {
-              throw new Error('无效的视频文件')
+              throw new Error('유효하지 않은 비디오 파일')
             }
             video.src = URL.createObjectURL(file)
             video.dataset.type = 'video'
@@ -138,17 +138,17 @@ export const createFileOrVideoDom = (file: File) => {
             video.style.cssText = imgStyle
             video.width = actualWidth
             video.height = actualHeight
-            // 确保video元素不会干扰光标显示
+            // video 요소가 커서 표시를 방해하지 않도록 보장
             video.setAttribute('contenteditable', 'false')
             video.setAttribute('draggable', 'false')
             video.onloadeddata = () => resolve(video)
             video.onerror = reject
           } catch (error) {
             reject(error)
-            window.$message.error('视频处理失败: ' + error)
+            window.$message.error('비디오 처리 실패: ' + error)
           }
         } else {
-          // 创建Image DOM元素并指定src为canvas的data url
+          // Image DOM 요소를 생성하고 src를 canvas의 data url로 지정
           const img = new Image()
           img.src = dataURL
           img.dataset.type = 'file-canvas'
@@ -158,14 +158,14 @@ export const createFileOrVideoDom = (file: File) => {
           img.onload = () => resolve(img)
           img.onerror = reject
 
-          // img元素点击事件监听
+          // img 요소 클릭 이벤트 리스너
           img.addEventListener('click', (e) => {
             e.stopPropagation()
             isImgSelected = !isImgSelected
             img.src = updateCanvasBackground(canvas, ctx, isImgSelected)
           })
 
-          // document点击事件监听
+          // document 클릭 이벤트 리스너
           document.addEventListener(
             'click',
             () => {
@@ -180,17 +180,17 @@ export const createFileOrVideoDom = (file: File) => {
       })
       .catch((error) => {
         reject(error)
-        window.$message.error('暂不支持此类型文件')
+        window.$message.error('현재 이 타입의 파일은 지원되지 않습니다')
       })
   })
 }
 
 /**
- * 加载本地的SVG文件，并在加载完成后回调
- * @param {string} path SVG文件的路径
+ * 로컬 SVG 파일을 로드하고 로드 완료 후 콜백
+ * @param {string} path SVG 파일의 경로
  * @example
  * loadSVG('public/file/file.svg').then((svgImage) => {}
- * 使用时，将SVG文件放在public/file文件夹下，并且使用文件类型做svg名
+ * 사용 시 SVG 파일을 public/file 폴더에 넣고 파일 타입을 svg 이름으로 사용
  */
 const loadSVG = (path: string) => {
   return new Promise((resolve, reject) => {
@@ -202,13 +202,13 @@ const loadSVG = (path: string) => {
 }
 
 /**
- * 画一个带圆角的矩形
- * @param {CanvasRenderingContext2D} ctx Canvas绘图上下文
- * @param {number} x 矩形左上角x坐标
- * @param {number} y 矩形左上角y坐标
- * @param {number} width 矩形宽度
- * @param {number} height 矩形高度
- * @param {number} radius 圆角的半径
+ * 둥근 모서리 직사각형 그리기
+ * @param {CanvasRenderingContext2D} ctx Canvas 그리기 컨텍스트
+ * @param {number} x 직사각형 왼쪽 상단 x 좌표
+ * @param {number} y 직사각형 왼쪽 상단 y 좌표
+ * @param {number} width 직사각형 너비
+ * @param {number} height 직사각형 높이
+ * @param {number} radius 둥근 모서리의 반지름
  */
 const roundRect = (
   ctx: CanvasRenderingContext2D,

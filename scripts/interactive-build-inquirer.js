@@ -4,7 +4,7 @@ import { select } from '@inquirer/prompts'
 import { spawn } from 'child_process'
 import os from 'os'
 
-// 检测当前平台
+// 현재 플랫폼 감지
 function getCurrentPlatform() {
   const platform = os.platform()
   switch (platform) {
@@ -15,67 +15,67 @@ function getCurrentPlatform() {
     case 'linux':
       return { platform: 'linux', name: 'Linux' }
     default:
-      return { platform: 'unknown', name: '未知平台' }
+      return { platform: 'unknown', name: '알 수 없는 플랫폼' }
   }
 }
 
-// 获取平台选择选项
+// 플랫폼 선택 옵션 가져오기
 function getPlatformOptions() {
   const currentPlatform = getCurrentPlatform()
 
-  // 根据当前操作系统定义支持的平台
+  // 현재 운영체제에 따라 지원되는 플랫폼 정의
   const supportedPlatforms = {
-    macos: ['macos', 'ios', 'android'], // macOS 可以打包 macOS、iOS、Android
-    windows: ['windows', 'android'], // Windows 可以打包 Windows、Android
-    linux: ['linux', 'android'] // Linux 可以打包 Linux、Android
+    macos: ['macos', 'ios', 'android'], // macOS, iOS, Android 패키징 가능
+    windows: ['windows', 'android'], // Windows, Android 패키징 가능
+    linux: ['linux', 'android'] // Linux, Android 패키징 가능
   }
 
   const allPlatforms = [
     {
-      name: `MacOS${currentPlatform.platform === 'macos' ? ' (当前平台)' : ''}`,
+      name: `MacOS${currentPlatform.platform === 'macos' ? ' (현재 플랫폼)' : ''}`,
       value: 'macos',
-      description: '打包 macOS 应用',
+      description: 'macOS 앱 패키징',
       isCurrent: currentPlatform.platform === 'macos'
     },
     {
-      name: `Windows${currentPlatform.platform === 'windows' ? ' (当前平台)' : ''}`,
+      name: `Windows${currentPlatform.platform === 'windows' ? ' (현재 플랫폼)' : ''}`,
       value: 'windows',
-      description: '打包 Windows 应用',
+      description: 'Windows 앱 패키징',
       isCurrent: currentPlatform.platform === 'windows'
     },
     {
-      name: `Linux${currentPlatform.platform === 'linux' ? ' (当前平台)' : ''}`,
+      name: `Linux${currentPlatform.platform === 'linux' ? ' (현재 플랫폼)' : ''}`,
       value: 'linux',
-      description: '打包 Linux 应用',
+      description: 'Linux 앱 패키징',
       isCurrent: currentPlatform.platform === 'linux'
     },
     {
       name: 'Android',
       value: 'android',
-      description: '打包 Android APK',
+      description: 'Android APK 패키징',
       isCurrent: false
     },
     {
       name: 'IOS',
       value: 'ios',
-      description: '打包 IOS 应用',
+      description: 'IOS 앱 패키징',
       isCurrent: false
     },
     {
-      name: '取消',
+      name: '취소',
       value: 'cancel',
-      description: '退出打包',
+      description: '패키징 종료',
       isCurrent: false
     }
   ]
 
-  // 获取当前系统支持的平台列表
+  // 현재 시스템이 지원하는 플랫폼 목록 가져오기
   const supported = supportedPlatforms[currentPlatform.platform] || []
 
-  // 过滤出支持的平台，保留取消选项
+  // 지원되는 플랫폼 필터링, 취소 옵션 유지
   const platforms = allPlatforms.filter((platform) => supported.includes(platform.value) || platform.value === 'cancel')
 
-  // 将当前平台排在第一位
+  // 현재 플랫폼을 첫 번째로 정렬
   return platforms.sort((a, b) => {
     if (a.isCurrent && !b.isCurrent) return -1
     if (!a.isCurrent && b.isCurrent) return 1
@@ -83,33 +83,33 @@ function getPlatformOptions() {
   })
 }
 
-// 获取包格式选项
+// 패키지 형식 옵션 가져오기
 function getBundleOptions(platform) {
   switch (platform) {
     case 'macos':
       return [
         {
-          name: '📦  dmg 磁盘映像',
+          name: '📦  dmg 디스크 이미지',
           value: 'dmg',
-          description: '生成 .dmg 安装包 (推荐)',
+          description: '.dmg 설치 패키지 생성 (권장)',
           command: 'tauri build --bundles dmg'
         },
         {
-          name: '📁  app 应用包',
+          name: '📁  app 애플리케이션 패키지',
           value: 'app',
-          description: '生成 .app 应用包',
+          description: '.app 애플리케이션 패키지 생성',
           command: 'tauri build --bundles app'
         },
         {
-          name: '📦  全部格式',
+          name: '📦  모든 형식',
           value: 'all',
-          description: '生成所有支持的格式 (.app, .dmg)',
+          description: '지원되는 모든 형식 생성 (.app, .dmg)',
           command: 'tauri build'
         },
         {
-          name: '🔙  返回上一步',
+          name: '🔙  이전 단계로 돌아가기',
           value: 'back',
-          description: '返回平台选择',
+          description: '플랫폼 선택으로 돌아가기',
           command: null
         }
       ]
@@ -117,27 +117,27 @@ function getBundleOptions(platform) {
     case 'windows':
       return [
         {
-          name: '📦  msi 安装包',
+          name: '📦  msi 설치 패키지',
           value: 'msi',
-          description: '生成 .msi 安装包 (推荐)',
+          description: '.msi 설치 패키지 생성 (권장)',
           command: 'tauri build --bundles msi'
         },
         {
-          name: '📦  nsis 安装程序',
+          name: '📦  nsis 설치 프로그램',
           value: 'nsis',
-          description: '生成 NSIS 安装程序',
+          description: 'NSIS 설치 프로그램 생성',
           command: 'tauri build --bundles nsis'
         },
         {
-          name: '📦  全部格式',
+          name: '📦  모든 형식',
           value: 'all',
-          description: '生成所有支持的格式',
+          description: '지원되는 모든 형식 생성',
           command: 'tauri build'
         },
         {
-          name: '🔙  返回上一步',
+          name: '🔙  이전 단계로 돌아가기',
           value: 'back',
-          description: '返回平台选择',
+          description: '플랫폼 선택으로 돌아가기',
           command: null
         }
       ]
@@ -145,33 +145,33 @@ function getBundleOptions(platform) {
     case 'linux':
       return [
         {
-          name: '📦  deb 软件包',
+          name: '📦  deb 소프트웨어 패키지',
           value: 'deb',
-          description: '生成 .deb 软件包 (Ubuntu/Debian)',
+          description: '.deb 소프트웨어 패키지 생성 (Ubuntu/Debian)',
           command: 'tauri build --bundles deb'
         },
         {
           name: '📁  AppImage',
           value: 'appimage',
-          description: '生成 .AppImage 便携应用',
+          description: '.AppImage 휴대용 애플리케이션 생성',
           command: 'tauri build --bundles appimage'
         },
         {
-          name: '📦  rpm 软件包',
+          name: '📦  rpm 소프트웨어 패키지',
           value: 'rpm',
-          description: '生成 .rpm 软件包 (RedHat/CentOS)',
+          description: '.rpm 소프트웨어 패키지 생성 (RedHat/CentOS)',
           command: 'tauri build --bundles rpm'
         },
         {
-          name: '📦  全部格式',
+          name: '📦  모든 형식',
           value: 'all',
-          description: '生成所有支持的格式',
+          description: '지원되는 모든 형식 생성',
           command: 'tauri build'
         },
         {
-          name: '🔙  返回上一步',
+          name: '🔙  이전 단계로 돌아가기',
           value: 'back',
-          description: '返回平台选择',
+          description: '플랫폼 선택으로 돌아가기',
           command: null
         }
       ]
@@ -179,15 +179,15 @@ function getBundleOptions(platform) {
     case 'android':
       return [
         {
-          name: '📱  apk 安装包',
+          name: '📱  apk 설치 패키지',
           value: 'apk',
-          description: '生成 Android APK 安装包',
+          description: 'Android APK 설치 패키지 생성',
           command: 'tauri android build'
         },
         {
-          name: '🔙  返回上一步',
+          name: '🔙  이전 단계로 돌아가기',
           value: 'back',
-          description: '返回平台选择',
+          description: '플랫폼 선택으로 돌아가기',
           command: null
         }
       ]
@@ -195,15 +195,15 @@ function getBundleOptions(platform) {
     case 'ios':
       return [
         {
-          name: '📱  IOS 应用',
+          name: '📱  IOS 애플리케이션',
           value: 'ios',
-          description: '生成 IOS 应用包',
+          description: 'IOS 애플리케이션 패키지 생성',
           command: 'tauri ios build --export-method app-store-connect'
         },
         {
-          name: '🔙  返回上一步',
+          name: '🔙  이전 단계로 돌아가기',
           value: 'back',
-          description: '返回平台选择',
+          description: '플랫폼 선택으로 돌아가기',
           command: null
         }
       ]
@@ -213,65 +213,65 @@ function getBundleOptions(platform) {
   }
 }
 
-// 获取调试模式选项
+// 디버그 모드 옵션 가져오기
 function getDebugOptions() {
   return [
     {
-      name: '🚀  正式版本',
+      name: '🚀  정식 버전',
       value: 'release',
-      description: '生成正式版本',
+      description: '정식 버전 생성',
       isDebug: false
     },
     {
-      name: '🔧  调试版本',
+      name: '🔧  디버그 버전',
       value: 'debug',
-      description: '生成调试版本 (可弹出控制台)',
+      description: '디버그 버전 생성 (콘솔 팝업 가능)',
       isDebug: true
     },
     {
-      name: '🔙  返回上一步',
+      name: '🔙  이전 단계로 돌아가기',
       value: 'back',
-      description: '返回包格式选择',
+      description: '패키지 형식 선택으로 돌아가기',
       isDebug: null
     }
   ]
 }
 
-// 执行打包命令
+// 패키징 명령어 실행
 async function executeBuild(command, isDebug = false) {
-  // 如果是调试模式，添加 --debug 参数
+  // 디버그 모드인 경우 --debug 매개변수 추가
   const finalCommand = isDebug ? `${command} --debug` : command
   const [cmd, ...args] = finalCommand.split(' ')
 
   const child = spawn(cmd, args, {
-    stdio: 'inherit', // 直接继承父进程的 stdio，保留颜色输出
+    stdio: 'inherit', // 부모 프로세스의 stdio를 직접 상속하여 색상 출력 유지
     shell: true
   })
 
   return new Promise((resolve, reject) => {
     child.on('close', (code) => {
       if (code === 0) {
-        console.log('\n🎉 打包完成')
+        console.log('\n🎉 패키징 완료')
         resolve(code)
       } else {
-        console.log(`\n❌ 打包失败，退出代码: ${code}`)
+        console.log(`\n❌ 패키징 실패, 종료 코드: ${code}`)
         resolve(code)
       }
     })
 
     child.on('error', (error) => {
-      console.error(`\n❌ 执行错误: ${error.message}`)
+      console.error(`\n❌ 실행 오류: ${error.message}`)
       reject(error)
     })
   })
 }
 
-// 选择平台的函数
+// 플랫폼 선택 함수
 async function selectPlatform() {
   const platformOptions = getPlatformOptions()
 
   const selectedPlatform = await select({
-    message: '请选择要打包的平台:',
+    message: '패키징할 플랫폼을 선택하세요:',
     choices: platformOptions.map((option) => ({
       name: option.name,
       value: option.value,
@@ -282,19 +282,19 @@ async function selectPlatform() {
   })
 
   if (selectedPlatform === 'cancel') {
-    console.log('\n👋 已取消打包')
+    console.log('\n👋 패키징 취소됨')
     process.exit(0)
   }
 
   return { selectedPlatform, platformOptions }
 }
 
-// 选择调试模式的函数
+// 디버그 모드 선택 함수
 async function selectDebugMode() {
   const debugOptions = getDebugOptions()
 
   const selectedDebug = await select({
-    message: '第三步：请选择版本类型:',
+    message: '3단계: 버전 유형을 선택하세요:',
     choices: debugOptions.map((option) => ({
       name: option.name,
       value: option.value,
@@ -312,17 +312,17 @@ async function selectDebugMode() {
   return selectedOption.isDebug
 }
 
-// 选择包格式的函数
+// 패키지 형식 선택 함수
 async function selectBundle(selectedPlatform) {
   const bundleOptions = getBundleOptions(selectedPlatform)
 
   if (bundleOptions.length === 0) {
-    console.log('\n❌ 该平台暂不支持')
-    return 'back' // 返回平台选择
+    console.log('\n❌ 해당 플랫폼은 아직 지원되지 않습니다')
+    return 'back' // 플랫폼 선택으로 돌아가기
   }
 
   const selectedBundle = await select({
-    message: `请选择${selectedPlatform}的打包格式:`,
+    message: `${selectedPlatform}의 패키징 형식을 선택하세요:`,
     choices: bundleOptions.map((option) => ({
       name: option.name,
       value: option.value,
@@ -333,14 +333,14 @@ async function selectBundle(selectedPlatform) {
   })
 
   if (selectedBundle === 'back') {
-    return 'back' // 返回上一步
+    return 'back' // 이전 단계로 돌아가기
   }
 
-  // 找到选中的选项
+  // 선택된 옵션 찾기
   const selectedOption = bundleOptions.find((option) => option.value === selectedBundle)
 
   if (!selectedOption || !selectedOption.command) {
-    console.log('\n👋 已取消打包操作')
+    console.log('\n👋 패키징 작업 취소됨')
     process.exit(0)
   }
 
@@ -349,33 +349,33 @@ async function selectBundle(selectedPlatform) {
 
 async function main() {
   try {
-    // 主循环
+    // 메인 루프
     while (true) {
-      // 第一步：选择平台
+      // 1단계: 플랫폼 선택
       const { selectedPlatform } = await selectPlatform()
 
-      // 第二步:选择包格式
+      // 2단계: 패키지 형식 선택
       while (true) {
         const bundleResult = await selectBundle(selectedPlatform)
 
-        // 如果返回 'back'，返回平台选择
+        // 'back' 반환 시 플랫폼 선택으로 돌아가기
         if (bundleResult === 'back') {
           break
         }
 
-        // 移动端平台（iOS 和 Android）直接打包正式版本，不需要选择调试模式
+        // 모바일 플랫폼(iOS 및 Android)은 정식 버전을 직접 패키징하며 디버그 모드를 선택할 필요가 없음
         const isMobilePlatform = selectedPlatform === 'ios' || selectedPlatform === 'android'
 
         if (isMobilePlatform) {
           const exitCode = await executeBuild(bundleResult.command, false)
           process.exit(exitCode)
         } else {
-          // 桌面端平台需要选择调试模式
-          // 第三步：选择调试模式
+          // 데스크톱 플랫폼은 디버그 모드 선택 필요
+          // 3단계: 디버그 모드 선택
           while (true) {
             const debugResult = await selectDebugMode()
 
-            // 如果返回 'back'，返回包格式选择
+            // 'back' 반환 시 패키지 형식 선택으로 돌아가기
             if (debugResult === 'back') {
               break
             }
@@ -388,11 +388,11 @@ async function main() {
     }
   } catch (error) {
     if (error.name === 'ExitPromptError') {
-      // 用户按了 Ctrl+C
-      console.log('\n👋 已取消操作')
+      // 사용자가 Ctrl+C를 누름
+      console.log('\n👋 작업 취소됨')
       process.exit(0)
     } else {
-      console.error('发生错误:', error)
+      console.error('오류 발생:', error)
       process.exit(1)
     }
   }

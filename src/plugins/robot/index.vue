@@ -1,16 +1,16 @@
 <template>
   <div class="size-full rounded-8px bg-[--chat-right-bg]">
     <n-flex class="size-full" :size="0">
-      <!-- 左边侧边栏 -->
+      <!-- 왼쪽 사이드바 -->
       <Left />
-      <!--  右边主体  -->
+      <!-- 오른쪽 메인 -->
       <Right />
     </n-flex>
 
-    <!-- 角色管理弹窗 -->
+    <!-- 역할 관리 팝업 -->
     <ChatRoleManagement v-model="showRoleManagement" @refresh="handleRoleManagementRefresh" />
 
-    <!-- 模型管理弹窗 -->
+    <!-- 모델 관리 팝업 -->
     <ModelManagement v-model="showModelManagement" @refresh="handleModelManagementRefresh" />
   </div>
 </template>
@@ -26,32 +26,32 @@ import { initMarkdownRenderer } from '@/plugins/robot/utils/markdown'
 
 const showRoleManagement = ref(false)
 const showModelManagement = ref(false)
-/** 初始化 Markdown 渲染器 */
+/** Markdown 렌더러 초기화 */
 initMarkdownRenderer()
 
-// 监听打开角色管理事件
+// 역할 관리 열기 이벤트 감지
 useMitt.on('open-role-management', () => {
-  console.log('打开角色管理')
+  console.log('역할 관리 열기')
   showRoleManagement.value = true
 })
 
-// 监听打开模型管理事件
+// 모델 관리 열기 이벤트 감지
 useMitt.on('open-model-management', () => {
-  console.log('打开模型管理')
+  console.log('모델 관리 열기')
   showModelManagement.value = true
 })
 
-// 角色管理刷新后的回调
+// 역할 관리 새로고침 후 콜백
 const handleRoleManagementRefresh = () => {
-  console.log('角色管理刷新')
-  // 通知其他组件刷新角色列表
+  console.log('역할 관리 새로고침')
+  // 다른 컴포넌트에 역할 목록 새로고침 알림
   useMitt.emit('refresh-role-list')
 }
 
-// 模型管理刷新后的回调
+// 모델 관리 새로고침 후 콜백
 const handleModelManagementRefresh = () => {
-  console.log('模型管理刷新')
-  // 通知其他组件刷新模型列表
+  console.log('모델 관리 새로고침')
+  // 다른 컴포넌트에 모델 목록 새로고침 알림
   useMitt.emit('refresh-model-list')
 }
 

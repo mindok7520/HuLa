@@ -1,12 +1,12 @@
 /**
- * 坐标转换工具类
- * 用于在不同坐标系之间进行转换
+ * 좌표 변환 유틸리티 클래스
+ * 다른 좌표계 간 변환에 사용
  */
 
-// 坐标转换常量
+// 좌표 변환 상수
 const PI = Math.PI
-const A = 6378245.0 // 长半轴
-const EE = 0.006693421622965943 // 偏心率平方（保持JavaScript安全精度）
+const A = 6378245.0 // 장반축
+const EE = 0.006693421622965943 // 편심률 제곱 (JavaScript 안전 정밀도 유지)
 
 type Coordinate = {
   lat: number
@@ -14,20 +14,20 @@ type Coordinate = {
 }
 
 /**
- * 判断坐标是否在中国境内
- * @param lat 纬度
- * @param lng 经度
- * @returns 是否在中国境内
+ * 좌표가 중국 국내에 있는지 판단
+ * @param lat 위도
+ * @param lng 경도
+ * @returns 중국 국내에 있는지 여부
  */
 const isInChina = (lat: number, lng: number): boolean => {
   return lng > 73.66 && lng < 135.05 && lat > 3.86 && lat < 53.55
 }
 
 /**
- * 计算偏移量
- * @param lat 纬度
- * @param lng 经度
- * @returns 偏移坐标
+ * 오프셋 계산
+ * @param lat 위도
+ * @param lng 경도
+ * @returns 오프셋 좌표
  */
 const transformLat = (lat: number, lng: number): number => {
   let ret = -100.0 + 2.0 * lng + 3.0 * lat + 0.2 * lat * lat + 0.1 * lng * lat + 0.2 * Math.sqrt(Math.abs(lng))
@@ -46,13 +46,13 @@ const transformLng = (lat: number, lng: number): number => {
 }
 
 /**
- * WGS84转换为GCJ02(火星坐标系)
- * @param wgsLat WGS84纬度
- * @param wgsLng WGS84经度
- * @returns GCJ02坐标
+ * WGS84를 GCJ02(화성 좌표계)로 변환
+ * @param wgsLat WGS84 위도
+ * @param wgsLng WGS84 경도
+ * @returns GCJ02 좌표
  */
 export const wgs84ToGcj02 = (wgsLat: number, wgsLng: number): Coordinate => {
-  // 如果不在中国境内，直接返回原坐标
+  // 중국 국내가 아니면 원래 좌표 바로 반환
   if (!isInChina(wgsLat, wgsLng)) {
     return { lat: wgsLat, lng: wgsLng }
   }
@@ -75,10 +75,10 @@ export const wgs84ToGcj02 = (wgsLat: number, wgsLng: number): Coordinate => {
 }
 
 /**
- * GCJ02转换为BD09(百度坐标系)
- * @param gcjLat GCJ02纬度
- * @param gcjLng GCJ02经度
- * @returns BD09坐标
+ * GCJ02를 BD09(백도 좌표계)로 변환
+ * @param gcjLat GCJ02 위도
+ * @param gcjLng GCJ02 경도
+ * @returns BD09 좌표
  */
 export const gcj02ToBd09 = (gcjLat: number, gcjLng: number): Coordinate => {
   const z = Math.sqrt(gcjLng * gcjLng + gcjLat * gcjLat) + 0.00002 * Math.sin((gcjLat * PI * 3000.0) / 180.0)
@@ -91,10 +91,10 @@ export const gcj02ToBd09 = (gcjLat: number, gcjLng: number): Coordinate => {
 }
 
 /**
- * BD09转换为GCJ02
- * @param bdLat BD09纬度
- * @param bdLng BD09经度
- * @returns GCJ02坐标
+ * BD09를 GCJ02로 변환
+ * @param bdLat BD09 위도
+ * @param bdLng BD09 경도
+ * @returns GCJ02 좌표
  */
 export const bd09ToGcj02 = (bdLat: number, bdLng: number): Coordinate => {
   const x = bdLng - 0.0065
@@ -109,13 +109,13 @@ export const bd09ToGcj02 = (bdLat: number, bdLng: number): Coordinate => {
 }
 
 /**
- * GCJ02转换为WGS84
- * @param gcjLat GCJ02纬度
- * @param gcjLng GCJ02经度
- * @returns WGS84坐标
+ * GCJ02를 WGS84로 변환
+ * @param gcjLat GCJ02 위도
+ * @param gcjLng GCJ02 경도
+ * @returns WGS84 좌표
  */
 export const gcj02ToWgs84 = (gcjLat: number, gcjLng: number): Coordinate => {
-  // 如果不在中国境内，直接返回原坐标
+  // 중국 국내가 아니면 원래 좌표 바로 반환
   if (!isInChina(gcjLat, gcjLng)) {
     return { lat: gcjLat, lng: gcjLng }
   }
@@ -138,10 +138,10 @@ export const gcj02ToWgs84 = (gcjLat: number, gcjLng: number): Coordinate => {
 }
 
 /**
- * WGS84直接转换为BD09
- * @param wgsLat WGS84纬度
- * @param wgsLng WGS84经度
- * @returns BD09坐标
+ * WGS84를 BD09로 직접 변환
+ * @param wgsLat WGS84 위도
+ * @param wgsLng WGS84 경도
+ * @returns BD09 좌표
  */
 export const wgs84ToBd09 = (wgsLat: number, wgsLng: number): Coordinate => {
   const gcj02 = wgs84ToGcj02(wgsLat, wgsLng)
@@ -149,10 +149,10 @@ export const wgs84ToBd09 = (wgsLat: number, wgsLng: number): Coordinate => {
 }
 
 /**
- * BD09直接转换为WGS84
- * @param bdLat BD09纬度
- * @param bdLng BD09经度
- * @returns WGS84坐标
+ * BD09를 WGS84로 직접 변환
+ * @param bdLat BD09 위도
+ * @param bdLng BD09 경도
+ * @returns WGS84 좌표
  */
 export const bd09ToWgs84 = (bdLat: number, bdLng: number): Coordinate => {
   const gcj02 = bd09ToGcj02(bdLat, bdLng)
@@ -160,16 +160,16 @@ export const bd09ToWgs84 = (bdLat: number, bdLng: number): Coordinate => {
 }
 
 /**
- * 计算两个坐标点之间的距离（单位：米）
- * 使用Haversine公式
- * @param lat1 起点纬度
- * @param lng1 起点经度
- * @param lat2 终点纬度
- * @param lng2 终点经度
- * @returns 距离（米）
+ * 두 좌표점 간의 거리 계산 (단위: 미터)
+ * Haversine 공식 사용
+ * @param lat1 시작점 위도
+ * @param lng1 시작점 경도
+ * @param lat2 끝점 위도
+ * @param lng2 끝점 경도
+ * @returns 거리 (미터)
  */
 export const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
-  const R = 6371000 // 地球半径（米）
+  const R = 6371000 // 지구 반지름 (미터)
   const dLat = ((lat2 - lat1) * PI) / 180
   const dLng = ((lng2 - lng1) * PI) / 180
 
@@ -182,13 +182,13 @@ export const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2
 }
 
 /**
- * 坐标转换入口函数
- * 自动选择最佳转换方案
- * @param lat 原始纬度
- * @param lng 原始经度
- * @param fromType 原始坐标系类型
- * @param toType 目标坐标系类型
- * @returns 转换后的坐标
+ * 좌표 변환 진입 함수
+ * 최적의 변환 방안 자동 선택
+ * @param lat 원본 위도
+ * @param lng 원본 경도
+ * @param fromType 원본 좌표계 타입
+ * @param toType 목표 좌표계 타입
+ * @returns 변환된 좌표
  */
 export const transformCoordinate = (
   lat: number,
@@ -214,7 +214,7 @@ export const transformCoordinate = (
     case 'BD09_TO_GCJ02':
       return bd09ToGcj02(lat, lng)
     default:
-      console.warn(`不支持的坐标转换: ${fromType} -> ${toType}`)
+      console.warn(`지원되지 않는 좌표 변환: ${fromType} -> ${toType}`)
       return { lat, lng }
   }
 }

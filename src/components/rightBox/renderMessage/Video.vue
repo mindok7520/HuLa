@@ -35,14 +35,14 @@
       </template>
     </n-image>
 
-    <!-- 视频蒙层 -->
+    <!-- 비디오 오버레이 -->
     <div class="video-overlay">
-      <!-- 播放/下载按钮 -->
+      <!-- 재생/다운로드 버튼 -->
       <div
         class="play-button"
         @click="handlePlayButtonClick"
         :class="{ loading: isOpening || isDownloading || isUploading }">
-        <!-- 上传中显示进度 -->
+        <!-- 업로드 중 진행률 표시 -->
         <div v-if="isUploading" class="upload-progress">
           <div class="progress-circle">
             <svg class="progress-ring" width="44" height="44">
@@ -68,7 +68,7 @@
             <svg class="upload-icon"><use href="#Importing"></use></svg>
           </div>
         </div>
-        <!-- 下载中显示进度 -->
+        <!-- 다운로드 중 진행률 표시 -->
         <div v-else-if="isDownloading" class="download-progress">
           <div class="progress-circle">
             <svg class="progress-ring" width="44" height="44">
@@ -94,23 +94,23 @@
             <svg class="download-icon"><use href="#arrow-down"></use></svg>
           </div>
         </div>
-        <!-- 打开中显示加载动画 -->
+        <!-- 여는 중 로딩 애니메이션 표시 -->
         <div v-else-if="isOpening" class="loading-spinner"></div>
-        <!-- 未检查状态或未下载显示下载图标 -->
+        <!-- 미확인 상태 또는 미다운로드 시 다운로드 아이콘 표시 -->
         <svg v-else-if="isVideoDownloaded === null || !isVideoDownloaded" class="size-32px color-white">
           <use href="#Importing"></use>
         </svg>
-        <!-- 已下载显示播放图标 -->
+        <!-- 다운로드 완료 시 재생 아이콘 표시 -->
         <svg v-else class="size-full color-white"><use href="#play"></use></svg>
       </div>
 
-      <!-- 视频信息 -->
+      <!-- 비디오 정보 -->
       <div class="video-info">
         <div class="video-filename">{{ body?.filename || fallbackVideoName }}</div>
         <div class="video-filesize">{{ formatBytes(body?.size) }}</div>
       </div>
 
-      <!-- 加载提示 -->
+      <!-- 로딩 팁 -->
       <transition name="fade">
         <div v-if="isUploading" class="loading-tip upload-tip">
           <div class="loading-text">{{ uploadingTip }}</div>
@@ -121,7 +121,7 @@
       </transition>
     </div>
 
-    <!-- 移动端视频预览 -->
+    <!-- 모바일 비디오 미리보기 -->
     <component
       :is="VideoPreview"
       v-if="VideoPreview"
@@ -165,21 +165,21 @@ const props = defineProps<{
   message?: MsgType
 }>()
 
-// 视频容器引用
+// 비디오 컨테이너 참조
 const videoContainerRef = ref<HTMLElement | null>(null)
 const MOBILE_MAX_WIDTH_RATIO = 0.7
 const MAX_WIDTH = isMobile()
   ? Math.round((typeof window !== 'undefined' ? window.innerWidth : 0) * MOBILE_MAX_WIDTH_RATIO) || 320
   : 400
-// 错误状态控制
+// 오류 상태 제어
 const isError = ref(false)
-// 视频打开状态
+// 비디오 열기 상태
 const isOpening = ref(false)
-// 视频下载状态（延迟加载，只在需要时检查）
+// 비디오 다운로드 상태 (지연 로딩, 필요할 때만 확인)
 const isVideoDownloaded = ref<boolean | null>(null)
-// 是否已检查过下载状态
+// 다운로드 상태 확인 여부
 const hasCheckedDownloadStatus = ref(false)
-// 视频上传状态
+// 비디오 업로드 상태
 const isUploading = computed(() => props.messageStatus === MessageStatusEnum.SENDING)
 const uploadProgress = computed(() => {
   return props.uploadProgress || 0
@@ -208,25 +208,25 @@ const persistVideoLocalPath = async (absolutePath: string) => {
 }
 const localVideoThumbSrc = ref<string | null>(null)
 
-// 视频缩略图实际加载的尺寸（用于 props 中没有宽高的情况）
+// 실제 로드된 비디오 썸네일 크기 (props에 너비/높이가 없는 경우 사용)
 const loadedThumbWidth = ref(0)
 const loadedThumbHeight = ref(0)
 
 const imageStyle = computed(() => {
-  // 优先使用加载后的图片尺寸（更准确），如果没有则使用 props 中的原始尺寸
+  // 로드된 이미지 크기 우선 사용 (더 정확함), 없으면 props의 원본 크기 사용
   let width = loadedThumbWidth.value || props.body?.thumbWidth
   let height = loadedThumbHeight.value || props.body?.thumbHeight
 
-  // 基础最大尺寸配置
+  // 기본 최대 크기 설정
   const BASE_MAX_WIDTH = MAX_WIDTH
-  // 纵向视频固定尺寸（PC 高度再减 30px）
+  // 세로 비디오 고정 크기 (PC 높이에서 30px 차감)
   const VERTICAL_MAX_WIDTH = isMobile() ? 170 : 150
   const VERTICAL_MAX_HEIGHT = isMobile() ? 300 : 290
-  // 横向视频固定尺寸（保持横向，不变成正方形或纵向）
+  // 가로 비디오 고정 크기 (가로 유지, 정사각형이나 세로로 변하지 않음)
   const HORIZONTAL_FIXED_WIDTH = isMobile() ? 350 : 320
   const HORIZONTAL_FIXED_HEIGHT = isMobile() ? 160 : 170
 
-  // 如果没有原始尺寸，使用默认尺寸
+  // 원본 크기가 없으면 기본 크기 사용
   if (!width || !height) {
     width = HORIZONTAL_FIXED_WIDTH
     height = HORIZONTAL_FIXED_HEIGHT
@@ -234,19 +234,19 @@ const imageStyle = computed(() => {
 
   const isVertical = height > width
 
-  // 固定尺寸：纵向与横向分别锁定宽高，避免横向变成正方形或纵向
+  // 고정 크기: 세로와 가로 각각 너비/높이 고정, 가로가 정사각형이나 세로로 변하는 것 방지
   const limitedHorizontalWidth = Math.min(HORIZONTAL_FIXED_WIDTH, BASE_MAX_WIDTH)
   const limitedVerticalWidth = Math.min(VERTICAL_MAX_WIDTH, BASE_MAX_WIDTH)
   const finalWidth = isVertical ? limitedVerticalWidth : limitedHorizontalWidth
   const finalHeight = isVertical ? VERTICAL_MAX_HEIGHT : HORIZONTAL_FIXED_HEIGHT
-  // 向上取整避免小数导致的抖动
+  // 소수점으로 인한 떨림 방지를 위해 올림 처리
   return {
     width: `${Math.ceil(finalWidth)}px`,
     height: `${Math.ceil(finalHeight)}px`
   }
 })
 
-// 处理图片加载完成，获取实际宽高
+// 이미지 로드 완료 처리, 실제 너비/높이 가져오기
 const handleImageLoad = (e: Event) => {
   const target = e.target as HTMLImageElement
   if (target) {
@@ -288,7 +288,7 @@ const ensureLocalVideoThumbnail = async () => {
       return
     }
   } catch (error) {
-    console.warn('[Video] 检查缩略图文件失败:', error)
+    console.warn('[Video] 썸네일 파일 확인 실패:', error)
   }
 
   localVideoThumbSrc.value = null
@@ -317,7 +317,7 @@ watch(
         }
       }
     } catch (error) {
-      console.warn('[Video] 本地视频校验失败:', error)
+      console.warn('[Video] 로컬 비디오 검증 실패:', error)
     }
   },
   { immediate: true }
@@ -332,14 +332,14 @@ watch(
   }
 )
 
-// 检查视频下载状态（延迟加载）
+// 비디오 다운로드 상태 확인 (지연 로딩)
 const checkDownloadStatusLazy = async () => {
   if (!props.body?.url || hasCheckedDownloadStatus.value) return
   hasCheckedDownloadStatus.value = true
   isVideoDownloaded.value = await checkVideoDownloaded(props.body.url)
 }
 
-// 使用 IntersectionObserver 在视频进入视口时检查下载状态
+// IntersectionObserver를 사용하여 비디오가 뷰포트에 들어올 때 다운로드 상태 확인
 const setupIntersectionObserver = () => {
   if (!videoContainerRef.value || hasCheckedDownloadStatus.value) return
 
@@ -348,12 +348,12 @@ const setupIntersectionObserver = () => {
   })
 }
 
-// 处理图片加载错误
+// 이미지 로드 오류 처리
 const handleImageError = () => {
   isError.value = true
 }
 
-// 下载视频
+// 비디오 다운로드
 const downloadVideo = async () => {
   if (!props.body?.url || isDownloading.value) return
 
@@ -364,7 +364,7 @@ const downloadVideo = async () => {
       await downloadFile(props.body.url, localPath, baseDir)
       isVideoDownloaded.value = await checkVideoDownloaded(props.body.url)
 
-      // 下载完成后，更新videoViewer store中的视频路径
+      // 다운로드 완료 후 videoViewer store의 비디오 경로 업데이트
       if (isVideoDownloaded.value) {
         const baseDirPath = isMobile() ? await appDataDir() : await resourceDir()
         const path = await join(baseDirPath, localPath)
@@ -373,7 +373,7 @@ const downloadVideo = async () => {
       }
     }
   } catch (error) {
-    console.error('下载视频失败:', error)
+    console.error('비디오 다운로드 실패:', error)
   }
 }
 
@@ -391,33 +391,33 @@ const resolveMobilePlayableUrl = async () => {
   return convertFileSrc(absolute)
 }
 
-// 处理播放按钮点击
+// 재생 버튼 클릭 처리
 const handlePlayButtonClick = async () => {
   if (!props.body?.url) return
 
-  // 如果正在上传，不允许点击
+  // 업로드 중이면 클릭 허용 안 함
   if (isUploading.value) return
 
-  // 首次点击时检查下载状态
+  // 첫 클릭 시 다운로드 상태 확인
   if (!hasCheckedDownloadStatus.value) {
     await checkDownloadStatusLazy()
   }
 
-  // 如果视频未下载，先下载
+  // 비디오가 다운로드되지 않았으면 먼저 다운로드
   if (!isVideoDownloaded.value) {
     await downloadVideo()
     isVideoDownloaded.value = await checkVideoDownloaded(props.body.url)
     if (!isVideoDownloaded.value) return
   }
 
-  // 如果已下载，直接播放
+  // 이미 다운로드되었으면 바로 재생
   await handleOpenVideoViewer()
 }
 
-// 处理打开视频查看器
+// 비디오 뷰어 열기 처리
 const handleOpenVideoViewer = async () => {
   if (props.body?.url && !isOpening.value) {
-    // 如果有自定义视频点击处理函数，使用它
+    // 사용자 정의 비디오 클릭 처리 함수가 있으면 사용
     if (props.onVideoClick) {
       props.onVideoClick(props.body.url)
       return
@@ -426,19 +426,19 @@ const handleOpenVideoViewer = async () => {
     try {
       isOpening.value = true
 
-      // 检查视频是否已下载
+      // 비디오 다운로드 여부 확인
       const isDownloaded = await checkVideoDownloaded(props.body.url)
       isVideoDownloaded.value = isDownloaded
 
-      // 如果视频未下载，先下载
+      // 비디오가 다운로드되지 않았으면 먼저 다운로드
       if (!isDownloaded) {
         await downloadVideo()
-        // 下载完成后重新检查状态
+        // 다운로드 완료 후 상태 다시 확인
         isVideoDownloaded.value = await checkVideoDownloaded(props.body.url)
 
-        // 如果下载失败，不继续打开视频
+        // 다운로드 실패 시 비디오 열기 중단
         if (!isVideoDownloaded.value) {
-          console.error('视频下载失败，无法打开')
+          console.error('비디오 다운로드 실패, 열 수 없음')
           return
         }
       }
@@ -446,7 +446,7 @@ const handleOpenVideoViewer = async () => {
       if (isMobile()) {
         const playableUrl = await resolveMobilePlayableUrl()
         if (!playableUrl) {
-          console.error('未找到可播放的视频地址')
+          console.error('재생 가능한 비디오 주소를 찾을 수 없음')
           return
         }
         mobileVideoUrl.value = playableUrl
@@ -456,14 +456,14 @@ const handleOpenVideoViewer = async () => {
 
       await openVideoViewer(props.body.url, [MsgEnum.VIDEO])
     } catch (error) {
-      console.error('打开视频失败:', error)
+      console.error('비디오 열기 실패:', error)
     } finally {
       isOpening.value = false
     }
   }
 }
 
-// 监听视频下载状态更新事件
+// 비디오 다운로드 상태 업데이트 이벤트 수신
 const handleVideoDownloadStatusUpdate = (data: { url: string; downloaded: boolean }) => {
   if (data.url === props.body?.url) {
     isVideoDownloaded.value = data.downloaded
@@ -471,10 +471,10 @@ const handleVideoDownloadStatusUpdate = (data: { url: string; downloaded: boolea
 }
 
 onMounted(() => {
-  // 监听视频下载状态更新事件
+  // 비디오 다운로드 상태 업데이트 이벤트 수신
   useMitt.on(MittEnum.VIDEO_DOWNLOAD_STATUS_UPDATED, handleVideoDownloadStatusUpdate)
 
-  // 设置视口观察器
+  // 뷰포트 옵저버 설정
   nextTick(() => {
     setupIntersectionObserver()
   })
@@ -485,7 +485,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  // 清理事件监听
+  // 이벤트 리스너 정리
   useMitt.off(MittEnum.VIDEO_DOWNLOAD_STATUS_UPDATED, handleVideoDownloadStatusUpdate)
 
   disconnectVideoVisibility()

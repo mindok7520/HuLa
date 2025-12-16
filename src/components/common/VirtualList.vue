@@ -7,11 +7,11 @@
     @mouseenter="handleMouseEnter"
     @mouseleave="handleMouseLeave">
     <n-flex v-if="!isLoadingMore && isLast" justify="center" class="box-border absolute-x-center pt-10px">
-      <span class="text-(12px #909090)">以下是全部消息内容</span>
+      <span class="text-(12px #909090)">모든 메시지 내용을 표시했습니다</span>
     </n-flex>
     <n-flex v-if="isLoadingMore && !isLast" justify="center" class="box-border absolute-x-center pt-10px">
       <img class="size-16px" src="@/assets/img/loading.svg" alt="" />
-      <span class="text-(14px #909090)">加载中</span>
+      <span class="text-(14px #909090)">로딩 중</span>
     </n-flex>
     <div ref="phantomRef" class="virtual-list-phantom"></div>
     <div ref="contentRef" class="virtual-list-content">
@@ -47,53 +47,53 @@ const emit = defineEmits<{
   visibleItemsChange: [ids: string[]]
 }>()
 
-// 常量定义
-const DEFAULT_ESTIMATED_HEIGHT = 80 // 默认预估的每项高度
-const BUFFER_SIZE = props.buffer || 5 // 上下缓冲区域的数量
-const OVERSCAN_SIZE = 1000 // 预渲染区域的像素高度，防止滚动时出现空白
-const MAX_CACHE_SIZE = 100 // 高度缓存的最大数量
-const LOADING_OFFSET = 26 // 加载中需要的偏移量(26px是加载动画的高度)
-const ESTIMATED_ITEM_HEIGHT = props.estimatedItemHeight || DEFAULT_ESTIMATED_HEIGHT // 每项的预估高度
-const SCROLL_THRESHOLD = 26 // 滚动到顶部的阈值，用于触发加载更多
-const DOM_CLEANUP_INTERVAL = 60000 // DOM清理间隔，默认1分钟
+// 상수 정의
+const DEFAULT_ESTIMATED_HEIGHT = 80 // 항목당 예상 높이 기본값
+const BUFFER_SIZE = props.buffer || 5 // 상하 버퍼 영역 수량
+const OVERSCAN_SIZE = 1000 // 스크롤 시 공백 방지를 위한 사전 렌더링 영역 픽셀 높이
+const MAX_CACHE_SIZE = 100 // 높이 캐시 최대 수량
+const LOADING_OFFSET = 26 // 로딩 중 필요한 오프셋 (26px는 로딩 애니메이션 높이)
+const ESTIMATED_ITEM_HEIGHT = props.estimatedItemHeight || DEFAULT_ESTIMATED_HEIGHT // 항목당 예상 높이
+const SCROLL_THRESHOLD = 26 // 상단 스크롤 임계값, 더 불러오기 트리거용
+const DOM_CLEANUP_INTERVAL = 60000 // DOM 정리 간격, 기본 1분
 
-// 响应式引用
-const containerRef = ref<HTMLElement | null>(null) // 容器元素引用
-const phantomRef = ref<HTMLElement | null>(null) // phantom元素引用
-const contentRef = ref<HTMLElement | null>(null) // content元素引用
-// 普通变量（不需要响应式）
-let offset = 0 // 内容区域的偏移量
-let rafId: number | null = null // requestAnimationFrame的ID
-let lastScrollTop = 0 // 上次滚动位置
-let consecutiveStaticFrames = 0 // 连续静止帧计数
-let needsHeightRecalculation = true // 标记是否需要重新计算高度缓存
-let cleanupTimerId: number | null = null // 定时清理DOM的计时器ID
-let resizeObserver: ResizeObserver | null = null // ResizeObserver 实例
-let bottomLockRafId: number | null = null // 吸底稳定锁定的RAF ID
+// 반응형 참조
+const containerRef = ref<HTMLElement | null>(null) // 컨테이너 요소 참조
+const phantomRef = ref<HTMLElement | null>(null) // phantom 요소 참조
+const contentRef = ref<HTMLElement | null>(null) // content 요소 참조
+// 일반 변수 (반응형 불필요)
+let offset = 0 // 콘텐츠 영역 오프셋
+let rafId: number | null = null // requestAnimationFrame ID
+let lastScrollTop = 0 // 마지막 스크롤 위치
+let consecutiveStaticFrames = 0 // 연속 정지 프레임 카운트
+let needsHeightRecalculation = true // 높이 캐시 재계산 필요 여부 플래그
+let cleanupTimerId: number | null = null // DOM 정리 타이머 ID
+let resizeObserver: ResizeObserver | null = null // ResizeObserver 인스턴스
+let bottomLockRafId: number | null = null // 하단 고정 안정화 잠금 RAF ID
 
-// 响应式变量（需要响应式）
-const heights = ref<Map<string, number>>(new Map()) // 存储每个项目的实际高度，key为消息ID
-const visibleRange = ref({ start: 0, end: 0 }) // 当前可见区域的起始和结束索引
-const isScrolling = ref(false) // 是否正在滚动中
-const accumulatedHeights = ref<number[]>([]) // 缓存累积高度，优化二分查找
-const hideScrollbar = ref(true) // 滚动条显示/隐藏
-const previousVisibleIds = ref<Set<string>>(new Set()) // 上一次可见的项目ID集合
+// 반응형 변수 (반응형 필요)
+const heights = ref<Map<string, number>>(new Map()) // 각 항목의 실제 높이 저장, 키는 메시지 ID
+const visibleRange = ref({ start: 0, end: 0 }) // 현재 가시 영역의 시작 및 종료 인덱스
+const isScrolling = ref(false) // 스크롤 중 여부
+const accumulatedHeights = ref<number[]>([]) // 누적 높이 캐시, 이진 탐색 최적화
+const hideScrollbar = ref(true) // 스크롤바 표시/숨김
+const previousVisibleIds = ref<Set<string>>(new Set()) // 이전 가시 항목 ID 집합
 
-// 直接更新phantom元素高度的函数
+// phantom 요소 높이 직접 업데이트 함수
 const updatePhantomHeight = (height: number) => {
   if (phantomRef.value) {
     phantomRef.value.style.height = `${height}px`
   }
 }
 
-// 直接更新content元素偏移的函数
+// content 요소 오프셋 직접 업데이트 함수
 const updateContentOffset = (offsetValue: number) => {
   if (contentRef.value) {
     contentRef.value.style.transform = `translateY(${offsetValue}px)`
   }
 }
 
-// 取消底部锁定
+// 하단 고정 취소
 const cancelBottomLock = () => {
   if (bottomLockRafId !== null) {
     cancelAnimationFrame(bottomLockRafId)
@@ -101,7 +101,7 @@ const cancelBottomLock = () => {
   }
 }
 
-// 启动底部锁定，直到高度与位置稳定
+// 높이와 위치가 안정될 때까지 하단 고정 시작
 const lockBottomUntilStable = (timeoutMs = 450, stableFrames = 3) => {
   const container = containerRef.value
   if (!container) return
@@ -125,13 +125,13 @@ const lockBottomUntilStable = (timeoutMs = 450, stableFrames = 3) => {
       return
     }
 
-    // 强制吸底
+    // 강제 하단 고정
     const target = Math.max(0, el.scrollHeight - el.clientHeight)
     if (el.scrollTop !== target) {
       el.scrollTop = target
     }
 
-    // 判断高度与位置是否稳定
+    // 높이와 위치가 안정적인지 판단
     const currentHeight = el.scrollHeight
     const heightDelta = Math.abs(currentHeight - lastHeight)
     const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight
@@ -165,10 +165,10 @@ const handleMouseLeave = () => {
   hideScrollbar.value = true
 }
 
-// 清理过期的高度缓存
+// 만료된 높이 캐시 정리
 const cleanupHeightCache = () => {
   if (heights.value.size > MAX_CACHE_SIZE) {
-    // 获取所有键并按照最近使用时间排序
+    // 모든 키를 가져와 최근 사용 시간순으로 정렬
     const keys = Array.from(heights.value.keys())
     const visibleKeys = new Set(
       props.items
@@ -177,7 +177,7 @@ const cleanupHeightCache = () => {
         .filter(Boolean)
     )
 
-    // 保留可见区域的缓存
+    // 가시 영역 캐시 유지
     const keysToDelete = keys.filter((key) => !visibleKeys.has(key))
     const deleteCount = keysToDelete.length - MAX_CACHE_SIZE / 2
 
@@ -185,41 +185,41 @@ const cleanupHeightCache = () => {
       for (const key of keysToDelete.slice(0, deleteCount)) {
         heights.value.delete(key)
       }
-      // 标记需要重新计算高度缓存
+      // 높이 캐시 재계산 필요 표시
       needsHeightRecalculation = true
     }
   }
 }
 
-// 计算可见项目
+// 가시 항목 계산
 const visibleData = computed(() => {
-  // 根据可见范围切片并添加索引信息
+  // 가시 범위에 따라 슬라이스하고 인덱스 정보 추가
   return props.items.slice(visibleRange.value.start, visibleRange.value.end + 1).map((item, index) => ({
     ...item,
-    _index: visibleRange.value.start + index // 添加真实索引，用于渲染
+    _index: visibleRange.value.start + index // 렌더링용 실제 인덱스 추가
   }))
 })
 
-// 计算列表总高度 - 使用记忆化缓存优化性能
+// 목록 총 높이 계산 - 메모이제이션 캐시로 성능 최적화
 const totalHeight = computed(() => {
-  // 如果需要重新计算累积高度，则重置缓存
+  // 누적 높이 재계산이 필요한 경우 캐시 재설정
   if (needsHeightRecalculation) {
     updateAccumulatedHeights()
     needsHeightRecalculation = false
   }
 
-  // 如果有累积高度缓存，直接使用最后一个值
+  // 누적 높이 캐시가 있는 경우 마지막 값 직접 사용
   if (accumulatedHeights.value.length > 0 && accumulatedHeights.value.length === props.items.length) {
     return accumulatedHeights.value[accumulatedHeights.value.length - 1]
   }
 
-  // 回退到原始计算方法
+  // 원래 계산 방법으로 대체
   return props.items.reduce((total, item) => {
     return total + (heights.value.get(item.message?.id?.toString()) || ESTIMATED_ITEM_HEIGHT)
   }, 0)
 })
 
-// 更新累积高度缓存
+// 누적 높이 캐시 업데이트
 const updateAccumulatedHeights = () => {
   accumulatedHeights.value = []
   let totalHeight = 0
@@ -230,21 +230,21 @@ const updateAccumulatedHeights = () => {
   })
 }
 
-// 监听列表数据变化
+// 목록 데이터 변경 감지
 watch(
   () => props.items,
   (newItems, oldItems) => {
-    // 如果列表完全重置，清空高度缓存
+    // 목록이 완전히 재설정되면 높이 캐시 지우기
     if (newItems.length === 0 || oldItems.length === 0) {
       heights.value.clear()
       accumulatedHeights.value = []
       previousVisibleIds.value.clear()
     }
 
-    // 标记需要重新计算高度缓存
+    // 높이 캐시 재계산 필요 표시
     needsHeightRecalculation = true
 
-    // 数据变化时重新计算可见范围和更新高度
+    // 데이터 변경 시 가시 범위 재계산 및 높이 업데이트
     updateVisibleRange()
     nextTick(() => {
       updateItemHeight()
@@ -253,18 +253,18 @@ watch(
   { deep: false }
 )
 
-// 监听可见数据变化，更新可见项目ID集合
+// 가시 데이터 변경 감지, 가시 항목 ID 집합 업데이트
 watch(
   () => visibleData.value,
   (newVisibleData) => {
-    // 更新当前可见项目的ID集合
+    // 현재 가시 항목 ID 집합 업데이트
     const currentVisibleIds = new Set(newVisibleData.map((item) => item.message?.id?.toString()).filter(Boolean))
     previousVisibleIds.value = currentVisibleIds
   },
   { deep: false }
 )
 
-// 监听totalHeight变化，直接更新phantom元素高度
+// totalHeight 변경 감지, phantom 요소 높이 직접 업데이트
 watch(
   () => totalHeight.value,
   (newHeight) => {
@@ -273,49 +273,49 @@ watch(
   { immediate: true }
 )
 
-// 清理不可见的DOM节点
+// 보이지 않는 DOM 노드 정리
 const cleanupInvisibleDOMNodes = () => {
   if (!containerRef.value) return
   if (!containerRef.value) return
 
-  // 获取当前可见项目的ID集合
+  // 현재 가시 항목 ID 집합 가져오기
   const currentVisibleIds = new Set(visibleData.value.map((item) => item.message?.id?.toString()).filter(Boolean))
 
-  // 找出不再可见的项目ID
+  // 더 이상 보이지 않는 항목 ID 찾기
   const invisibleIds = Array.from(previousVisibleIds.value).filter((id) => !currentVisibleIds.has(id))
 
-  // 更新上一次可见的项目ID集合
+  // 이전 가시 항목 ID 집합 업데이트
   previousVisibleIds.value = currentVisibleIds
 
-  // 如果没有不可见的项目，直接返回
+  // 보이지 않는 항목이 없으면 바로 반환
   if (invisibleIds.length === 0) return
 
-  // 获取虚拟列表内容区域
+  // 가상 목록 콘텐츠 영역 가져오기
   const contentEl = containerRef.value.querySelector('.virtual-list-content')
   if (!contentEl) return
 
-  // 清理不可见的DOM节点
+  // 보이지 않는 DOM 노드 정리
   let removedCount = 0
   for (const id of invisibleIds) {
     const el = document.getElementById(`item-${id}`)
     if (el && !el.hasAttribute('data-preserved')) {
-      // 移除DOM节点
+      // DOM 노드 제거
       el.remove()
       removedCount++
     }
   }
 
-  // 如果移除了节点，触发垃圾回收
+  // 노드가 제거된 경우 가비지 컬렉션 트리거
   if (removedCount > 0 && window.gc) {
     try {
       window.gc()
     } catch (e) {
-      // 忽略错误，gc可能不可用
+      // 오류 무시, gc를 사용하지 못할 수 있음
     }
   }
 }
 
-// 定时清理DOM节点
+// DOM 노드 정리 타이머
 const startDOMCleanupTimer = () => {
   if (cleanupTimerId !== null) {
     clearInterval(cleanupTimerId)
@@ -326,11 +326,11 @@ const startDOMCleanupTimer = () => {
   }, DOM_CLEANUP_INTERVAL)
 }
 
-// 更新项目实际高度
+// 항목 실제 높이 업데이트
 const updateItemHeight = () => {
   if (!containerRef.value) return
 
-  // 遍历可见项目，测量并缓存实际高度
+  // 가시 항목 순회, 실제 높이 측정 및 캐시
   for (const item of visibleData.value) {
     const id = item.message?.id?.toString()
     if (!id) continue
@@ -340,7 +340,7 @@ const updateItemHeight = () => {
       const height = el.getBoundingClientRect().height
       const oldHeight = heights.value.get(id)
 
-      // 只有当高度发生变化时才更新缓存并标记需要重新计算
+      // 높이가 변경된 경우에만 캐시 업데이트 및 재계산 필요 표시
       if (oldHeight !== height) {
         heights.value.set(id, height)
         needsHeightRecalculation = true
@@ -348,24 +348,24 @@ const updateItemHeight = () => {
     }
   }
 
-  // 清理过期缓存
+  // 만료된 캐시 정리
   cleanupHeightCache()
 
-  // 非滚动状态下更新可见范围
+  // 비스크롤 상태에서 가시 범위 업데이트
   if (!isScrolling.value) {
     updateVisibleRange()
   }
 }
 
-// 根据滚动位置计算起始索引 - 使用缓存优化二分查找
+// 스크롤 위치에 따른 시작 인덱스 계산 - 캐시를 사용하여 이진 탐색 최적화
 const getStartIndex = (scrollTop: number) => {
-  // 如果需要重新计算累积高度，则更新缓存
+  // 누적 높이 재계산이 필요한 경우 캐시 업데이트
   if (needsHeightRecalculation) {
     updateAccumulatedHeights()
     needsHeightRecalculation = false
   }
 
-  // 二分查找 O(log n)
+  // 이진 탐색 O(log n)
   let left = 0
   let right = accumulatedHeights.value.length - 1
   const target = scrollTop - OVERSCAN_SIZE
@@ -382,20 +382,20 @@ const getStartIndex = (scrollTop: number) => {
   return Math.max(0, left - BUFFER_SIZE)
 }
 
-// 计算指定索引的偏移量 - 使用累积高度缓存优化
+// 지정된 인덱스의 오프셋 계산 - 누적 높이 캐시 최적화 사용
 const getOffsetForIndex = (index: number) => {
-  // 如果需要重新计算累积高度，则更新缓存
+  // 누적 높이 재계산이 필요한 경우 캐시 업데이트
   if (needsHeightRecalculation) {
     updateAccumulatedHeights()
     needsHeightRecalculation = false
   }
 
-  // 如果索引在缓存范围内，直接使用缓存值
+  // 인덱스가 캐시 범위 내에 있으면 캐시 값 직접 사용
   if (index > 0 && index < accumulatedHeights.value.length) {
     return accumulatedHeights.value[index - 1]
   }
 
-  // 回退到原始计算方法
+  // 원래 계산 방법으로 대체
   let total = 0
   for (let i = 0; i < index; i++) {
     const itemHeight = heights.value.get(props.items[i].message?.id?.toString()) || ESTIMATED_ITEM_HEIGHT
@@ -404,53 +404,53 @@ const getOffsetForIndex = (index: number) => {
   return total
 }
 
-// 更新可见范围
+// 가시 범위 업데이트
 const updateVisibleRange = () => {
   if (!containerRef.value) return
 
   const scrollTop = containerRef.value.scrollTop
   const clientHeight = containerRef.value.clientHeight
 
-  // 计算起始索引
+  // 시작 인덱스 계산
   const start = getStartIndex(scrollTop)
   let total = 0
   let end = start
 
-  // 累加高度直到超过可视区域加上预渲染区域
+  // 가시 영역 + 사전 렌더링 영역을 초과할 때까지 높이 누적
   while (total < clientHeight + OVERSCAN_SIZE * 2 && end < props.items.length) {
     const itemHeight = heights.value.get(props.items[end].message?.id?.toString()) || ESTIMATED_ITEM_HEIGHT
     total += itemHeight
     end++
   }
 
-  // 确保结束索引不超出范围，并添加缓冲区
+  // 종료 인덱스가 범위를 벗어나지 않도록 하고 버퍼 추가
   end = Math.min(props.items.length - 1, end + BUFFER_SIZE)
 
-  // 更新可见范围和偏移量
+  // 가시 범위 및 오프셋 업데이트
   visibleRange.value = { start, end }
-  // 计算偏移量，为顶部提示预留32px空间（当显示时）
+  // 오프셋 계산, 상단 팁을 위한 32px 공간 예약 (표시될 때)
   const topOffset = (!props.isLoadingMore && props.isLast) || (props.isLoadingMore && !props.isLast) ? 32 : 0
   const newOffset = getOffsetForIndex(start) + (props.isLoadingMore && !props.isLast ? LOADING_OFFSET : 0) + topOffset
   offset = newOffset
   updateContentOffset(newOffset)
 }
 
-// 更新可见范围的帧动画处理
+// 가시 범위 업데이트 프레임 애니메이션 처리
 const updateFrame = () => {
   if (!containerRef.value) return
 
   const currentScrollTop = containerRef.value.scrollTop
 
-  // 检查是否需要加载更多
+  // 더 불러오기 필요 여부 확인
   if (currentScrollTop < SCROLL_THRESHOLD && !props.isLoadingMore && !props.isLast) {
     emit('loadMore')
   }
 
-  // 检查滚动位置是否变化
+  // 스크롤 위치 변경 확인
   if (currentScrollTop !== lastScrollTop) {
-    // 发生滚动，重置静止帧计数
+    // 스크롤 발생, 정지 프레임 카운트 재설정
     consecutiveStaticFrames = 0
-    // 发出滚动方向变化事件
+    // 스크롤 방향 변경 이벤트 발생
     if (currentScrollTop < lastScrollTop) {
       emit('scrollDirectionChange', 'up')
     } else if (currentScrollTop > lastScrollTop) {
@@ -459,12 +459,12 @@ const updateFrame = () => {
     updateVisibleRange()
     lastScrollTop = currentScrollTop
   } else {
-    // 滚动位置未变化，增加静止帧计数
+    // 스크롤 위치 변경 없음, 정지 프레임 카운트 증가
     consecutiveStaticFrames++
 
-    // 如果连续3帧未发生滚动，认为滚动已结束
+    // 연속 3프레임 동안 스크롤이 없으면 스크롤 종료로 간주
     if (consecutiveStaticFrames >= 3) {
-      // 滚动结束，更新高度并停止动画
+      // 스크롤 종료, 높이 업데이트 및 애니메이션 중지
       isScrolling.value = false
       updateItemHeight()
       if (rafId !== null) {
@@ -475,22 +475,22 @@ const updateFrame = () => {
     }
   }
 
-  // 继续下一帧
+  // 다음 프레임 계속
   rafId = requestAnimationFrame(updateFrame)
 }
 
-// 使用防抖处理滚动事件
+// 디바운스를 사용하여 스크롤 이벤트 처리
 const debouncedEmitScroll = useDebounceFn((event: Event) => {
   emit('scroll', event)
   emitVisibleItems()
-}, 16) // 约60fps的频率
+}, 16) // 약 60fps 빈도
 
-// 滚动事件处理
+// 스크롤 이벤트 처리
 const handleScroll = (event: Event) => {
-  // 使用防抖发出滚动事件
+  // 디바운스를 사용하여 스크롤 이벤트 발생
   debouncedEmitScroll(event)
 
-  // 标记滚动状态并开始帧动画
+  // 스크롤 상태 표시 및 프레임 애니메이션 시작
   if (!isScrolling.value) {
     isScrolling.value = true
     consecutiveStaticFrames = 0
@@ -507,18 +507,18 @@ const emitVisibleItems = () => {
 }
 
 onMounted(() => {
-  // 初始化可见范围
+  // 가시 범위 초기화
   updateVisibleRange()
 
-  // 初始化DOM样式
+  // DOM 스타일 초기화
   nextTick(() => {
     updatePhantomHeight(totalHeight.value)
     updateContentOffset(offset)
   })
 
-  // 使用 ResizeObserver 监听容器大小变化
+  // ResizeObserver를 사용하여 컨테이너 크기 변경 감지
   if (containerRef.value) {
-    // 使用防抖优化 ResizeObserver 回调
+    // 디바운스를 사용하여 ResizeObserver 콜백 최적화
     const debouncedResize = useDebounceFn(() => {
       updateVisibleRange()
       nextTick(() => {
@@ -532,55 +532,55 @@ onMounted(() => {
     resizeObserver.observe(containerRef.value)
   }
 
-  // 初始化高度计算
+  // 높이 계산 초기화
   nextTick(() => {
     updateItemHeight()
-    // 初始化累积高度缓存
+    // 누적 높이 캐시 초기화
     updateAccumulatedHeights()
   })
 
-  // 启动DOM清理定时器
+  // DOM 정리 타이머 시작
   startDOMCleanupTimer()
 })
 
 onUnmounted(() => {
-  // 清理动画
+  // 애니메이션 정리
   if (rafId !== null) {
     cancelAnimationFrame(rafId)
     rafId = null
   }
 
-  // 清理底部锁定动画
+  // 하단 고정 애니메이션 정리
   if (bottomLockRafId !== null) {
     cancelAnimationFrame(bottomLockRafId)
     bottomLockRafId = null
   }
 
-  // 清理 ResizeObserver
+  // ResizeObserver 정리
   if (resizeObserver) {
     resizeObserver.disconnect()
     resizeObserver = null
   }
 
-  // 清理定时器
+  // 타이머 정리
   if (cleanupTimerId !== null) {
     clearInterval(cleanupTimerId)
     cleanupTimerId = null
   }
 
-  // 清理缓存
+  // 캐시 정리
   heights.value.clear()
   accumulatedHeights.value = []
   previousVisibleIds.value.clear()
 })
 
-// 类型定义
+// 타입 정의
 export type VirtualListExpose = {
   scrollTo: (options: { index?: number; position?: 'top' | 'bottom'; behavior?: ScrollBehavior }) => void
   getContainer: () => HTMLElement | null
 }
 
-// 暴露方法和引用
+// 메서드 및 참조 노출
 defineExpose<VirtualListExpose>({
   scrollTo: (options: { index?: number; position?: 'top' | 'bottom'; behavior?: ScrollBehavior }) => {
     if (!containerRef.value) return
@@ -589,17 +589,17 @@ defineExpose<VirtualListExpose>({
       if (!containerRef.value) return
 
       if (options.position === 'bottom') {
-        // 滚动到底部前确保高度已更新
+        // 하단으로 스크롤하기 전에 높이가 업데이트되었는지 확인
         nextTick(() => {
           updateItemHeight()
-          // 确保累积高度已更新
+          // 누적 높이가 업데이트되었는지 확인
           if (needsHeightRecalculation) {
             updateAccumulatedHeights()
             needsHeightRecalculation = false
           }
           nextTick(() => {
             if (containerRef.value) {
-              // 计算正确的滚动位置：scrollHeight - clientHeight
+              // 올바른 스크롤 위치 계산: scrollHeight - clientHeight
               const scrollHeight = containerRef.value.scrollHeight
               const clientHeight = containerRef.value.clientHeight
               const targetScrollTop = Math.max(0, scrollHeight - clientHeight)
@@ -609,20 +609,20 @@ defineExpose<VirtualListExpose>({
                 behavior: options.behavior || 'auto'
               })
 
-              // 启用底部锁定，直到高度稳定
+              // 높이가 안정될 때까지 하단 고정 활성화
               lockBottomUntilStable()
             }
           })
         })
       } else if (options.position === 'top') {
-        // 滚动到顶部
+        // 상단으로 스크롤
         containerRef.value.scrollTo({
           top: 0,
           behavior: options.behavior || 'auto'
         })
       } else if (typeof options.index === 'number') {
-        // 滚动到指定索引位置
-        // 确保累积高度已更新
+        // 지정된 인덱스 위치로 스크롤
+        // 누적 높이가 업데이트되었는지 확인
         if (needsHeightRecalculation) {
           updateAccumulatedHeights()
           needsHeightRecalculation = false
@@ -635,7 +635,7 @@ defineExpose<VirtualListExpose>({
       }
     }
 
-    // 立即执行一次；仅在平滑滚动时再补偿一次
+    // 즉시 한 번 실행; 부드러운 스크롤 시에만 한 번 더 보정
     executeScroll()
     if (options.behavior === 'smooth') {
       setTimeout(executeScroll, 100)
@@ -650,18 +650,18 @@ defineExpose<VirtualListExpose>({
   position: relative;
   overflow-y: auto;
   height: 100%;
-  -webkit-overflow-scrolling: touch; /* 在iOS上提供平滑滚动 */
-  overscroll-behavior: contain; /* 防止滚动传播到父元素 */
+  -webkit-overflow-scrolling: touch; /* iOS에서 부드러운 스크롤 제공 */
+  overscroll-behavior: contain; /* 스크롤이 부모 요소로 전파되는 것을 방지 */
   box-sizing: border-box;
-  /* 始终保留滚动条空间 */
+  /* 항상 스크롤바 공간 유지 */
   scrollbar-gutter: stable;
-  /* 为滚动条预留空间 */
+  /* 스크롤바 공간 예약 */
   padding-right: 6px;
-  /* 兼容性写法，确保在各种浏览器中都有一致的滚动条空间 */
+  /* 호환성 작성법, 다양한 브라우저에서 일관된 스크롤바 공간 확보 */
   overflow-y: scroll;
-  overscroll-behavior: none; /* 禁止mac的“触底反弹”效果 */
+  overscroll-behavior: none; /* mac의 "바운스" 효과 비활성화 */
 
-  /* 滚动条样式 */
+  /* 스크롤바 스타일 */
   &::-webkit-scrollbar {
     width: 6px;
     transition-property: opacity;
@@ -686,18 +686,18 @@ defineExpose<VirtualListExpose>({
     background: transparent;
   }
 
-  /* 使用WebKit兼容的方式隐藏滚动条 */
+  /* WebKit 호환 방식으로 스크롤바 숨기기 */
   &.hide-scrollbar {
-    /* 保持滚动功能但隐藏滚动条 */
+    /* 스크롤 기능은 유지하되 스크롤바는 숨김 */
     &::-webkit-scrollbar {
       background: transparent;
     }
     &::-webkit-scrollbar-thumb {
       background: transparent;
     }
-    /* 为了保持布局稳定 */
+    /* 레이아웃 안정성 유지 */
     margin-right: 0;
-    padding-right: 12px; /* 6px原始 + 6px补偿 */
+    padding-right: 12px; /* 6px 원본 + 6px 보정 */
   }
 
   &.show-scrollbar {
@@ -709,19 +709,19 @@ defineExpose<VirtualListExpose>({
   position: absolute;
   left: 0;
   top: 0;
-  right: 6px; /* 为滚动条预留空间 */
+  right: 6px; /* 스크롤바 공간 예약 */
   z-index: -1;
 }
 
 .virtual-list-content {
   position: absolute;
   left: 0;
-  right: 6px; /* 为滚动条预留空间 */
+  right: 6px; /* 스크롤바 공간 예약 */
   top: 0;
   will-change: transform;
-  transform: translateZ(0); /* 启用GPU加速 */
-  backface-visibility: hidden; /* 防止闪烁 */
-  perspective: 1000; /* 增强3D效果 */
-  z-index: 1; /* 确保内容在提示文字之上 */
+  transform: translateZ(0); /* GPU 가속 활성화 */
+  backface-visibility: hidden; /* 깜박임 방지 */
+  perspective: 1000; /* 3D 효과 강화 */
+  z-index: 1; /* 콘텐츠가 힌트 텍스트 위에 오도록 함 */
 }
 </style>

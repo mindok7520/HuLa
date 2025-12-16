@@ -1,6 +1,6 @@
 <template>
   <n-flex vertical :size="40">
-    <!-- 通用设置 -->
+    <!-- 일반 설정 -->
     <n-flex vertical class="text-(14px [--text-color])" :size="16">
       <span class="pl-10px">{{ t('setting.general.appearance.title') }}</span>
       <n-flex align="center" :size="20" class="item">
@@ -23,54 +23,54 @@
       </n-flex>
     </n-flex>
 
-    <!-- 系统设置 -->
+    <!-- 시스템 설정 -->
     <n-flex v-if="isWindows()" vertical class="text-(14px [--text-color])" :size="16">
-      <span class="pl-10px">系统</span>
+      <span class="pl-10px">시스템</span>
 
       <n-flex class="item" :size="12" vertical>
-        <!-- 关闭面板 -->
+        <!-- 패널 닫기 -->
         <n-flex v-if="isWindows()" align="center" justify="space-between">
-          <span>关闭主面板</span>
+          <span>메인 패널 닫기</span>
 
           <label class="text-(14px #707070) flex gap-6px lh-16px items-center">
             <n-radio :value="CloseBxEnum.HIDE" />
-            <span>最小化到系统托盘</span>
+            <span>시스템 트레이로 최소화</span>
           </label>
           <label class="text-(14px #707070) flex gap-6px lh-16px items-center">
             <n-radio :value="CloseBxEnum.CLOSE" />
-            <span>直接退出程序</span>
+            <span>프로그램 바로 종료</span>
           </label>
 
           <label class="text-(12px #909090) flex gap-6px justify-end items-center">
             <n-checkbox size="small" v-model:checked="tips.notTips" />
-            <span>是否关闭提示</span>
+            <span>알림 끄기</span>
           </label>
         </n-flex>
 
         <span v-if="isWindows()" class="w-full h-1px bg-[--line-color]"></span>
 
-        <!-- ESC关闭面板 -->
+        <!-- ESC로 패널 닫기 -->
         <n-flex v-if="isWindows()" align="center" justify="space-between">
-          <span>是否启用ESC关闭窗口</span>
+          <span>ESC로 창 닫기 활성화</span>
 
           <n-switch size="small" v-model:value="escClose" />
         </n-flex>
       </n-flex>
     </n-flex>
 
-    <!--  聊天设置  -->
+    <!-- 채팅 설정 -->
     <n-flex vertical class="text-(14px [--text-color])" :size="16">
       <span class="pl-10px">{{ t('setting.general.chat.title') }}</span>
 
       <n-flex class="item" :size="12" vertical>
-        <!-- 双击打开独立会话 -->
+        <!-- 더블 클릭으로 독립 세션 열기 -->
         <!-- <n-flex align="center" justify="space-between">
-          <span>双击会话列表打开独立聊天窗口</span>
+          <span>세션 목록 더블 클릭으로 독립 채팅 창 열기</span>
 
           <n-switch size="small" v-model:value="chat.isDouble" />
         </n-flex> -->
 
-        <!-- 翻译api选项 -->
+        <!-- 번역 API 옵션 -->
         <n-flex align="center" justify="space-between">
           <span>{{ t('setting.general.chat.translate_service') }}</span>
 
@@ -84,12 +84,12 @@
       </n-flex>
     </n-flex>
 
-    <!-- 界面设置 -->
+    <!-- 인터페이스 설정 -->
     <n-flex vertical class="text-(14px [--text-color])" :size="16">
       <span class="pl-10px">{{ t('setting.general.ui.title') }}</span>
 
       <n-flex class="item" :size="12" vertical>
-        <!-- 字体 -->
+        <!-- 폰트 -->
         <n-flex align="center" justify="space-between">
           <span>{{ t('setting.general.ui.language') }}</span>
           <n-select class="w-140px" size="small" label-field="label" v-model:value="page.lang" :options="langOptions" />
@@ -113,7 +113,7 @@
 
         <span class="w-full h-1px bg-[--line-color]"></span>
 
-        <!-- 字体 -->
+        <!-- 폰트 -->
         <n-flex align="center" justify="space-between">
           <span>{{ t('setting.general.ui.font') }}</span>
           <n-select
@@ -126,7 +126,7 @@
 
         <span class="w-full h-1px bg-[--line-color]"></span>
 
-        <!-- 菜单显示模式 -->
+        <!-- 메뉴 표시 모드 -->
         <n-flex align="center" justify="space-between">
           <span>{{ t('setting.general.ui.menu_name') }}</span>
 
@@ -167,13 +167,13 @@ const showText = computed({
   }
 })
 
-/** 切换主题 */
+/** 테마 전환 */
 const handleTheme = (code: string) => {
   if (code === themes.pattern) return
   settingStore.toggleTheme(code)
 }
 
-/** 调整主界面高度 */
+/** 메인 인터페이스 높이 조정 */
 const setHomeHeight = async () => {
   invoke('set_height', { height: showMode.value === ShowModeEnum.TEXT ? 505 : 423 })
 }

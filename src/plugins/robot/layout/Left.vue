@@ -5,7 +5,7 @@
     :size="0"
     class="bg-[--chat-left-bg] select-none w-300px h-full p-[40px_20px_6px_20px] box-border">
     <n-flex vertical :size="30" data-tauri-drag-region>
-      <!-- 标题 -->
+      <!-- 제목 -->
       <n-flex justify="space-between" align="center" :size="0">
         <n-flex :size="4" vertical>
           <n-flex :size="0" align="center">
@@ -15,44 +15,44 @@
               Beta
             </div>
           </n-flex>
-          <p class="text-(12px #909090)">建立一个属于自己AI</p>
+          <p class="text-(12px #909090)">나만의 AI 만들기</p>
         </n-flex>
         <svg class="size-44px color-#13987f opacity-20"><use href="#GPT"></use></svg>
       </n-flex>
 
-      <!-- 头像和插件 -->
+      <!-- 프로필 및 플러그인 -->
       <n-flex align="center" justify="space-between" :size="0">
         <n-flex align="center">
           <n-avatar bordered round :src="AvatarUtils.getAvatarUrl(userStore.userInfo!.avatar!)" :size="48" />
           <n-flex vertical>
             <p class="text-(14px [--chat-text-color]) font-500">{{ userStore.userInfo!.name }}</p>
-            <p class="text-(12px #909090)">剩余：28天过期</p>
+            <p class="text-(12px #909090)">남은 기간: 28일 후 만료</p>
           </n-flex>
         </n-flex>
 
-        <!-- 插件按钮已隐藏 -->
+        <!-- 플러그인 버튼 숨김 -->
         <!-- <div class="plugins">
           <svg class="size-22px"><use href="#plugins"></use></svg>
-          <p>插件</p>
+          <p>플러그인</p>
         </div> -->
       </n-flex>
-      <!-- 会话列表 -->
+      <!-- 대화 목록 -->
       <n-scrollbar
         ref="scrollbar"
         style="max-height: calc(100vh / var(--page-scale, 1) - 286px); padding-right: 8px"
         @scroll="handleScroll">
-        <!-- 加载状态 -->
+        <!-- 로딩 상태 -->
         <div v-if="loading && pageNo === 1" class="flex justify-center items-center py-20px">
           <n-spin size="small" />
-          <span class="ml-10px text-(12px #909090)">加载中...</span>
+          <span class="ml-10px text-(12px #909090)">로딩 중...</span>
         </div>
 
-        <!-- 空状态 -->
+        <!-- 빈 상태 -->
         <div
           v-else-if="chatList.length === 0"
           class="flex flex-col items-center justify-center py-20px text-(12px #909090)">
           <svg class="size-40px mb-10px opacity-50"><use href="#empty"></use></svg>
-          <p>暂无会话，点击下方按钮开始新的聊天</p>
+          <p>대화가 없습니다. 아래 버튼을 클릭하여 새로운 채팅을 시작하세요.</p>
         </div>
 
         <TransitionGroup
@@ -77,7 +77,7 @@
                     v-if="editingItemId !== item.id"
                     style="width: calc(100% - 20px)"
                     class="text-(14px [--chat-text-color]) truncate font-500 select-none">
-                    {{ item.title || `会话 ${index + 1}` }}
+                    {{ item.title || `대화 ${index + 1}` }}
                   </n-ellipsis>
                   <n-input
                     v-else
@@ -85,7 +85,7 @@
                     ref="inputInstRef"
                     v-model:value="item.title"
                     clearable
-                    placeholder="输入标题"
+                    placeholder="제목 입력"
                     type="text"
                     size="tiny"
                     spellCheck="false"
@@ -101,7 +101,7 @@
                   </svg>
                 </n-flex>
                 <n-flex justify="space-between" align="center" :size="0" class="text-(12px #909090)">
-                  <p>{{ item.messageCount || 0 }}条对话</p>
+                  <p>{{ item.messageCount || 0 }}개 대화</p>
                   <p>{{ formatTimestamp(item.createTime) }}</p>
                 </n-flex>
               </div>
@@ -109,23 +109,23 @@
           </div>
         </TransitionGroup>
 
-        <!-- 加载更多 -->
+        <!-- 더 보기 로드 -->
         <div v-if="hasMore" class="flex justify-center items-center py-16px">
-          <n-button v-if="!loadingMore" size="small" tertiary @click="loadMore">加载更多</n-button>
+          <n-button v-if="!loadingMore" size="small" tertiary @click="loadMore">더 보기</n-button>
           <n-spin v-else size="small" />
-          <span v-if="loadingMore" class="ml-10px text-(12px #909090)">加载中...</span>
+          <span v-if="loadingMore" class="ml-10px text-(12px #909090)">로딩 중...</span>
         </div>
 
-        <!-- 没有更多数据 -->
+        <!-- 더 이상 데이터 없음 -->
         <div v-else-if="chatList.length > 0" class="flex justify-center items-center py-16px text-(12px #909090)">
-          <span>没有更多会话了</span>
+          <span>더 이상 대화가 없습니다</span>
         </div>
       </n-scrollbar>
     </n-flex>
 
-    <!-- 底部选项栏 -->
+    <!-- 하단 옵션 바 -->
     <n-flex data-tauri-drag-region vertical :size="8" class="m-[auto_0_0_0]">
-      <!-- 管理按钮行 -->
+      <!-- 관리 버튼 행 -->
       <n-flex :size="4" align="center" justify="space-between">
         <n-flex :size="4" align="center">
           <div
@@ -146,34 +146,34 @@
           <div
             @click="openHistory"
             class="bg-[--chat-bt-color] border-(1px solid [--line-color]) color-[--chat-text-color] size-fit p-[8px_9px] rounded-8px custom-shadow cursor-pointer"
-            title="生成历史">
+            title="기록 생성">
             <Icon icon="mdi:history" class="text-18px" />
           </div>
           <div
             @click="openModelManagement"
             class="bg-[--chat-bt-color] border-(1px solid [--line-color]) color-[--chat-text-color] size-fit p-[8px_9px] rounded-8px custom-shadow cursor-pointer"
-            title="管理模型">
+            title="모델 관리">
             <Icon icon="mdi:robot-outline" class="text-18px" />
           </div>
           <div
             @click="openRoleManagement"
             class="bg-[--chat-bt-color] border-(1px solid [--line-color]) color-[--chat-text-color] size-fit p-[8px_9px] rounded-8px custom-shadow cursor-pointer"
-            title="管理角色">
+            title="역할 관리">
             <Icon icon="mdi:account-cog" class="text-18px" />
           </div>
         </n-flex>
       </n-flex>
 
-      <!-- 操作按钮行 -->
+      <!-- 작업 버튼 행 -->
       <n-flex :size="4" align="center" justify="space-between">
-        <!-- 提示信息或新建按钮 -->
-        <div v-if="!hasRoles" class="flex-1 text-(11px #d5304f) text-center">请先创建角色</div>
+        <!-- 힌트 메시지 또는 새로 만들기 버튼 -->
+        <div v-if="!hasRoles" class="flex-1 text-(11px #d5304f) text-center">먼저 역할을 생성하세요</div>
         <div
           v-else
           @click="add"
           class="flex items-center justify-center gap-4px bg-[--chat-bt-color] border-(1px solid [--line-color]) select-none text-(12px [--chat-text-color]) size-fit w-80px h-32px rounded-8px custom-shadow cursor-pointer">
           <svg class="size-15px pb-2px"><use href="#plus"></use></svg>
-          <p>新的聊天</p>
+          <p>새 채팅</p>
         </div>
 
         <n-popconfirm v-model:show="showDeleteConfirm">
@@ -181,17 +181,17 @@
             <svg class="size-22px"><use href="#explosion"></use></svg>
           </template>
           <template #action>
-            <n-button size="small" tertiary @click.stop="showDeleteConfirm = false">取消</n-button>
-            <n-button size="small" type="error" @click.stop="deleteAllChats">删除</n-button>
+            <n-button size="small" tertiary @click.stop="showDeleteConfirm = false">취소</n-button>
+            <n-button size="small" type="error" @click.stop="deleteAllChats">삭제</n-button>
           </template>
           <template #trigger>
             <div
               class="flex items-center justify-center gap-4px bg-[--chat-bt-color] border-(1px solid [--line-color]) select-none text-(12px [--chat-text-color]) size-fit w-80px h-32px rounded-8px custom-shadow cursor-pointer">
               <svg class="size-15px pb-2px"><use href="#delete"></use></svg>
-              <p>全部删除</p>
+              <p>모두 삭제</p>
             </div>
           </template>
-          你确定要删除全部会话吗？
+          모든 대화를 삭제하시겠습니까?
         </n-popconfirm>
       </n-flex>
     </n-flex>
@@ -221,21 +221,21 @@ const inputInstRef = ref<InputInst | null>(null)
 const editingItemId = ref<string | null>()
 const loading = ref(false)
 const loadingMore = ref(false)
-/** 原始标题 */
+/** 원본 제목 */
 const originalTitle = ref('')
 const showDeleteConfirm = ref(false)
-/** 是否有可用角色 */
+/** 사용 가능한 역할 존재 여부 */
 const hasRoles = ref(false)
-/** 第一个可用角色的ID */
+/** 첫 번째 사용 가능한 역할의 ID */
 const firstAvailableRoleId = ref<string | null>(null)
 
-// 分页参数
+// 페이지네이션 매개변수
 const pageNo = ref(1)
 const pageSize = ref(20)
 const hasMore = ref(true)
 const total = ref(0)
 
-// 会话列表数据
+// 대화 목록 데이터
 interface ChatItem {
   id: string
   title?: string
@@ -248,7 +248,7 @@ interface ChatItem {
 
 const chatList = ref<ChatItem[]>([])
 
-// 获取会话列表
+// 대화 목록 가져오기
 const fetchConversationList = async (isLoadMore = false) => {
   if (isLoadMore) {
     loadingMore.value = true
@@ -269,7 +269,7 @@ const fetchConversationList = async (isLoadMore = false) => {
         const parsedCreateTime = Number(item.createTime)
         return {
           id: item.id,
-          title: item.title || `会话 ${item.id}`,
+          title: item.title || `대화 ${item.id}`,
           createTime: Number.isFinite(parsedCreateTime) ? parsedCreateTime : Date.now(),
           messageCount: item.messageCount || 0,
           isPinned: item.isPinned || false,
@@ -279,57 +279,57 @@ const fetchConversationList = async (isLoadMore = false) => {
       })
 
       if (isLoadMore) {
-        // 加载更多时追加数据
+        // 더 보기 로드 시 데이터 추가
         chatList.value = [...chatList.value, ...newChats]
       } else {
-        // 首次加载时替换数据
+        // 처음 로드 시 데이터 교체
         chatList.value = newChats
 
-        // 首次加载且有会话时，自动选择第一个会话
+        // 처음 로드하고 대화가 있을 때 자동으로 첫 번째 대화 선택
         if (newChats.length > 0) {
-          // 延迟发送事件，确保 Chat.vue 的列表已加载
+          // Chat.vue 목록이 로드되도록 이벤트 전송 지연
           setTimeout(() => {
             handleActive(newChats[0])
           }, 500)
         }
       }
 
-      // 更新分页信息
+      // 페이지네이션 정보 업데이트
       total.value = data.total || 0
       hasMore.value = chatList.value.length < total.value
 
-      // 如果还有更多数据，增加页码
+      // 데이터가 더 있으면 페이지 번호 증가
       if (hasMore.value) {
         pageNo.value++
       }
     }
   } catch (error) {
-    console.error('获取会话列表失败:', error)
-    window.$message.error('获取会话列表失败')
+    console.error('대화 목록 가져오기 실패:', error)
+    window.$message.error('대화 목록 가져오기 실패')
   } finally {
     loading.value = false
     loadingMore.value = false
   }
 }
 
-// 加载更多
+// 더 보기 로드
 const loadMore = async () => {
   if (loadingMore.value || !hasMore.value) return
   await fetchConversationList(true)
 }
 
-// 滚动事件处理
+// 스크롤 이벤트 처리
 const handleScroll = (e: Event) => {
   const scrollElement = e.target as HTMLElement
   const { scrollTop, scrollHeight, clientHeight } = scrollElement
 
-  // 滚动到底部时自动加载更多（距离底部100px时触发）
+  // 하단으로 스크롤 시 자동으로 더 보기 로드 (하단에서 100px 거리일 때 트리거)
   if (scrollHeight - scrollTop - clientHeight < 100 && !loadingMore.value && hasMore.value) {
     loadMore()
   }
 }
 
-// 刷新会话列表
+// 대화 목록 새로고침
 const refreshConversationList = async () => {
   pageNo.value = 1
   await fetchConversationList(false)
@@ -337,7 +337,7 @@ const refreshConversationList = async () => {
 
 const menuList = ref<OPT.RightMenu[]>([
   {
-    label: '置顶',
+    label: '상단 고정',
     icon: 'topping',
     click: (item: ChatItem) => {
       const index = chatList.value.findIndex((e) => e.id === item.id)
@@ -349,14 +349,14 @@ const menuList = ref<OPT.RightMenu[]>([
     }
   },
   {
-    label: '打开独立聊天窗口',
+    label: '독립 채팅 창 열기',
     icon: 'freezing-line-column',
     click: (item: ChatItem) => {
-      console.log('打开独立窗口:', item)
+      console.log('독립 창 열기:', item)
     }
   },
   {
-    label: '重命名',
+    label: '이름 변경',
     icon: 'edit',
     click: (item: ChatItem) => {
       renameChat(item)
@@ -366,7 +366,7 @@ const menuList = ref<OPT.RightMenu[]>([
 
 const specialMenuList = ref<OPT.RightMenu[]>([
   {
-    label: '删除',
+    label: '삭제',
     icon: 'delete',
     click: (item: ChatItem) => {
       deleteChat(item)
@@ -374,13 +374,13 @@ const specialMenuList = ref<OPT.RightMenu[]>([
   }
 ])
 
-/** 跳转到设置 */
+/** 설정으로 이동 */
 const jump = () => {
   router.push('/chatSettings')
   activeItem.value = null
 }
 
-/** 选中会话 */
+/** 대화 선택 */
 const handleActive = (item: ChatItem) => {
   activeItem.value = item
 
@@ -391,49 +391,49 @@ const handleActive = (item: ChatItem) => {
       })
     })
   } else {
-    // 已经在 /chat 路由，直接触发事件
+    // 이미 /chat 라우트에 있으면 이벤트 직접 트리거
     nextTick(() => {
       useMitt.emit('chat-active', item)
     })
   }
 }
 
-// 检查是否有可用角色
+// 사용 가능한 역할이 있는지 확인
 const checkHasRoles = async () => {
   try {
     const data = await chatRolePage({ pageNo: 1, pageSize: 100 })
-    // 检查是否有可用的角色（status === 0）
+    // 사용 가능한 역할 확인 (status === 0)
     const availableRoles = (data.list || []).filter((item: any) => item.status === 0)
     hasRoles.value = availableRoles.length > 0
-    // 保存第一个可用角色的ID
+    // 첫 번째 사용 가능한 역할의 ID 저장
     firstAvailableRoleId.value = availableRoles.length > 0 ? availableRoles[0].id : null
   } catch (error) {
-    console.error('检查角色失败:', error)
+    console.error('역할 확인 실패:', error)
     hasRoles.value = false
     firstAvailableRoleId.value = null
   }
 }
 
-// 打开角色管理
+// 역할 관리 열기
 const openRoleManagement = () => {
   useMitt.emit('open-role-management')
 }
 
-// 打开模型管理
+// 모델 관리 열기
 const openModelManagement = () => {
   useMitt.emit('open-model-management')
 }
 
-// 打开生成历史
+// 생성 기록 열기
 const openHistory = () => {
   useMitt.emit('open-generation-history')
 }
 
-/** 添加会话 */
+/** 대화 추가 */
 const add = async () => {
-  // 检查是否有可用角色
+  // 사용 가능한 역할이 있는지 확인
   if (!hasRoles.value || !firstAvailableRoleId.value) {
-    window.$message.warning('请先创建角色')
+    window.$message.warning('먼저 역할을 생성하세요')
     openRoleManagement()
     return
   }
@@ -442,14 +442,14 @@ const add = async () => {
     const data = await conversationCreateMy({
       roleId: firstAvailableRoleId.value,
       knowledgeId: undefined,
-      title: '新的会话'
+      title: '새로운 대화'
     })
 
     if (data) {
       const rawCreateTime = Number(data.createTime)
       const newChat: ChatItem = {
         id: data.id || data,
-        title: data.title || '新的会话',
+        title: data.title || '새로운 대화',
         createTime: Number.isFinite(rawCreateTime) ? rawCreateTime : Date.now(),
         messageCount: data.messageCount || 0,
         isPinned: data.pinned || false,
@@ -457,26 +457,26 @@ const add = async () => {
         modelId: data.modelId
       }
 
-      // 新会话添加到列表顶部
+      // 새 대화를 목록 상단에 추가
       chatList.value.unshift(newChat)
 
-      // 滚动到顶部
+      // 상단으로 스크롤
       nextTick(() => {
         scrollbar.value?.scrollTo({ position: 'top' })
       })
 
-      // 激活新会话
+      // 새 대화 활성화
       handleActive(newChat)
 
-      window.$message.success('会话创建成功')
+      window.$message.success('대화 생성 성공')
     }
   } catch (error) {
-    console.error('❌ 创建会话失败:', error)
-    window.$message.error('创建会话失败')
+    console.error('❌ 대화 생성 실패:', error)
+    window.$message.error('대화 생성 실패')
   }
 }
 
-/** 删除单个会话 */
+/** 단일 대화 삭제 */
 const deleteChat = async (item: ChatItem) => {
   try {
     await conversationDeleteMy({ conversationIdList: [item.id] })
@@ -485,35 +485,35 @@ const deleteChat = async (item: ChatItem) => {
     if (index !== -1) {
       chatList.value.splice(index, 1)
 
-      // 如果删除的是当前选中的会话，需要重新选择
+      // 현재 선택된 대화를 삭제하는 경우 다시 선택해야 함
       if (activeItem.value?.id === item.id) {
         if (chatList.value.length > 0) {
-          // 选中第一个会话
+          // 첫 번째 대화 선택
           const firstChat = chatList.value[0]
           activeItem.value = firstChat
 
-          // 跳转到聊天页面
+          // 채팅 페이지로 이동
           router.push('/chat')
         } else {
-          // 如果没有会话了，跳转到欢迎页
+          // 대화가 없으면 환영 페이지로 이동
           activeItem.value = null
           router.push('/welcome')
         }
       }
 
-      window.$message.success('会话删除成功')
+      window.$message.success('대화 삭제 성공')
     }
   } catch (error) {
-    console.error('❌ 删除会话失败:', error)
-    window.$message.error('删除会话失败')
+    console.error('❌ 대화 삭제 실패:', error)
+    window.$message.error('대화 삭제 실패')
   }
 }
 
-/** 删除全部会话 */
+/** 모든 대화 삭제 */
 const deleteAllChats = async () => {
   try {
     if (chatList.value.length === 0) {
-      window.$message.warning('没有会话可删除')
+      window.$message.warning('삭제할 대화가 없습니다')
       showDeleteConfirm.value = false
       return
     }
@@ -521,22 +521,22 @@ const deleteAllChats = async () => {
     const allChatIds = chatList.value.map((chat) => chat.id)
     await conversationDeleteMy({ conversationIdList: allChatIds })
 
-    // 清空本地列表
+    // 로컬 목록 지우기
     chatList.value = []
     activeItem.value = null
     showDeleteConfirm.value = false
 
-    // 跳转到欢迎页
+    // 환영 페이지로 이동
     router.push('/welcome')
 
-    window.$message.success('全部会话已删除')
+    window.$message.success('모든 대화가 삭제되었습니다')
   } catch (error) {
-    console.error('删除全部会话失败:', error)
-    window.$message.error('删除全部会话失败')
+    console.error('모든 대화 삭제 실패:', error)
+    window.$message.error('모든 대화 삭제 실패')
   }
 }
 
-/** 重命名 */
+/** 이름 변경 */
 const renameChat = (item: ChatItem) => {
   originalTitle.value = item.title || ''
   editingItemId.value = item.id
@@ -549,7 +549,7 @@ const handleBlur = async (item: ChatItem, index: number) => {
   editingItemId.value = null
 
   const trimmedTitle = item.title?.trim() || ''
-  const fallbackTitle = `会话 ${item.id}`
+  const fallbackTitle = `대화 ${item.id}`
   const nextTitle = trimmedTitle !== '' ? trimmedTitle : fallbackTitle
 
   if (originalTitle.value === nextTitle) {
@@ -571,11 +571,11 @@ const handleBlur = async (item: ChatItem, index: number) => {
     })
 
     originalTitle.value = nextTitle
-    window.$message.success(`已重命名为 ${nextTitle}`)
+    window.$message.success(`${nextTitle}로 이름이 변경되었습니다`)
     useMitt.emit('left-chat-title', { id: item.id, title: nextTitle })
     useMitt.emit('update-chat-title', { id: item.id, title: nextTitle })
   } catch (error) {
-    console.error('❌ 重命名会话失败:', error)
+    console.error('❌ 대화 이름 변경 실패:', error)
     item.title = previousTitle
     chatList.value[index].title = previousTitle
     originalTitle.value = previousTitle
@@ -586,13 +586,13 @@ const handleBlur = async (item: ChatItem, index: number) => {
 }
 
 onMounted(async () => {
-  // 加载会话列表
+  // 대화 목록 로드
   await fetchConversationList()
 
-  // 检查是否有可用角色
+  // 사용 가능한 역할이 있는지 확인
   checkHasRoles()
 
-  // 如果没有会话，跳转到欢迎页面
+  // 대화가 없으면 환영 페이지로 이동
   if (chatList.value.length === 0) {
     router.push('/welcome')
   }
@@ -611,20 +611,20 @@ onMounted(async () => {
     }
   })
 
-  // 监听会话刷新事件
+  // 대화 새로고침 이벤트 감지
   useMitt.on('refresh-conversations', () => {
     refreshConversationList()
   })
 
-  // 监听角色管理刷新事件
+  // 역할 관리 새로고침 이벤트 감지
   useMitt.on('refresh-roles', () => {
     checkHasRoles()
   })
 
-  // ✅ 监听添加会话事件
+  // ✅ 대화 추가 이벤트 감지
   useMitt.on('add-conversation', (newChat: any) => {
     if (newChat && newChat.id) {
-      // 检查是否已存在
+      // 이미 존재하는지 확인
       const exists = chatList.value.some((chat) => chat.id === newChat.id)
       if (!exists) {
         const rawCreateTime = Number(newChat.createTime)
@@ -638,10 +638,10 @@ onMounted(async () => {
           modelId: newChat.modelId
         }
 
-        // 添加到列表顶部
+        // 목록 상단에 추가
         chatList.value.unshift(normalizedChat)
 
-        // 滚动到顶部
+        // 상단으로 스크롤
         nextTick(() => {
           scrollbar.value?.scrollTo({ position: 'top' })
         })
@@ -710,7 +710,7 @@ onMounted(async () => {
   box-shadow: 0 0 0 1px rgba(19, 152, 127, 0.1) inset;
 }
 
-.list-move, /* 对移动中的元素应用的过渡 */
+.list-move, /* 이동 중인 요소에 적용되는 전환 */
 .list-enter-active,
 .list-leave-active {
   transition: all 0.5s ease;

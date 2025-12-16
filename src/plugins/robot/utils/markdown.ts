@@ -64,7 +64,7 @@ const RobotMarkdownCodeBlockNode = defineComponent({
   }
 })
 
-// 配置默认的代码块组件和主题
+// 기본 코드 블록 컴포넌트 및 테마 설정
 export function initMarkdownRenderer() {
   if (initialized) return
 

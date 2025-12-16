@@ -37,40 +37,40 @@ const feedStore = useFeedStore()
 const { unreadCount: feedUnreadCount } = storeToRefs(feedStore)
 
 const getUnReadCount = (label: string) => {
-  if (label === '社区') {
+  if (label === '커뮤니티') {
     return feedUnreadCount.value
   }
   return 0
 
-  // 其他未读计数暂时关闭（message页面有问题）
-  // if (label === '消息') {
+  // 기타 읽지 않은 카운트는 일시적으로 비활성화 (메시지 페이지 문제)
+  // if (label === '메시지') {
   //   return unReadMark.value.newMsgUnreadCount
-  // } else if (label === '联系人') {
+  // } else if (label === '연락처') {
   //   return unReadMark.value.newFriendUnreadCount
   // }
 }
 
 const navItems: NavItem[] = [
   {
-    label: '消息',
+    label: '메시지',
     path: '/mobile/message',
     icon: 'message',
     actionIcon: 'message-action'
   },
   {
-    label: '联系人',
+    label: '연락처',
     path: '/mobile/friends',
     icon: 'avatar',
     actionIcon: 'avatar-action'
   },
   {
-    label: '社区',
+    label: '커뮤니티',
     path: '/mobile/community',
     icon: 'fire',
     actionIcon: 'fire-action'
   },
   {
-    label: '我的',
+    label: '마이',
     path: '/mobile/my',
     icon: 'wode',
     actionIcon: 'wode-action'

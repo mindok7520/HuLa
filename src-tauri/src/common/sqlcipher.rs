@@ -20,12 +20,12 @@ fn generate_sqlcipher_key() -> String {
 
 fn is_plaintext_sqlite_file(db_path: &Path) -> Result<bool, CommonError> {
     let mut file = File::open(db_path).map_err(|e| {
-        CommonError::RequestError(format!("无法读取 sqlite 文件 {:?}: {}", db_path, e))
+        CommonError::RequestError(format!("sqlite 파일을 읽을 수 없습니다 {:?}: {}", db_path, e))
     })?;
 
     let mut header = [0u8; 16];
     let bytes_read = file.read(&mut header).map_err(|e| {
-        CommonError::RequestError(format!("无法读取 sqlite 文件头 {:?}: {}", db_path, e))
+        CommonError::RequestError(format!("sqlite 파일 헤더를 읽을 수 없습니다 {:?}: {}", db_path, e))
     })?;
 
     Ok(bytes_read >= SQLITE_HEADER.len() && header.starts_with(SQLITE_HEADER))
@@ -60,7 +60,7 @@ fn get_or_create_sqlcipher_key_from_secure_storage(
     let response = app_handle
         .hula()
         .get_or_create_sqlite_key(payload)
-        .map_err(|e| CommonError::RequestError(format!("获取移动端 SQLite 密钥失败: {}", e)))?;
+        .map_err(|e| CommonError::RequestError(format!("모바일 SQLite 키 가져오기 실패: {}", e)))?;
 
     Ok(response.key)
 }
@@ -70,7 +70,7 @@ fn get_or_create_sqlcipher_key_from_secure_storage(
     _app_handle: &AppHandle,
 ) -> Result<String, CommonError> {
     let entry = keyring::Entry::new(SQLCIPHER_KEY_SERVICE, SQLCIPHER_KEY_ACCOUNT)
-        .map_err(|e| CommonError::RequestError(format!("初始化系统密钥存储失败: {}", e)))?;
+        .map_err(|e| CommonError::RequestError(format!("시스템 키 저장소 초기화 실패: {}", e)))?;
 
     if let Ok(value) = entry.get_password() {
         if !value.trim().is_empty() {
@@ -81,7 +81,7 @@ fn get_or_create_sqlcipher_key_from_secure_storage(
     let value = generate_sqlcipher_key();
     entry
         .set_password(&value)
-        .map_err(|e| CommonError::RequestError(format!("写入系统密钥存储失败: {}", e)))?;
+        .map_err(|e| CommonError::RequestError(format!("시스템 키 저장소 쓰기 실패: {}", e)))?;
     Ok(value)
 }
 
@@ -99,7 +99,7 @@ pub async fn ensure_sqlite_encrypted(db_path: &Path, key: &str) -> Result<(), Co
     }
 
     tracing::info!(
-        "检测到明文 SQLite 数据库，将迁移为 SQLCipher 加密库: {:?}",
+        "일반 텍스트 SQLite 데이터베이스가 감지되었습니다. SQLCipher 암호화 데이터베이스로 마이그레이션합니다: {:?}",
         db_path
     );
 
@@ -107,7 +107,7 @@ pub async fn ensure_sqlite_encrypted(db_path: &Path, key: &str) -> Result<(), Co
     if encrypted_path.exists() {
         std::fs::remove_file(&encrypted_path).map_err(|e| {
             CommonError::RequestError(format!(
-                "删除旧的临时加密数据库失败 {:?}: {}",
+                "이전 임시 암호화 데이터베이스 삭제 실패 {:?}: {}",
                 encrypted_path, e
             ))
         })?;
@@ -116,14 +116,14 @@ pub async fn ensure_sqlite_encrypted(db_path: &Path, key: &str) -> Result<(), Co
     cleanup_sqlite_sidecar_files(db_path);
     cleanup_sqlite_sidecar_files(&encrypted_path);
 
-    // 部分 SQLCipher/平台组合下 ATTACH 不会自动创建新文件，提前创建可避免 SQLITE_CANTOPEN
+    // 일부 SQLCipher/플랫폼 조합에서는 ATTACH가 새 파일을 자동으로 생성하지 않으므로, SQLITE_CANTOPEN을 방지하기 위해 미리 생성합니다.
     std::fs::OpenOptions::new()
         .create(true)
         .write(true)
         .open(&encrypted_path)
         .map_err(|e| {
             CommonError::RequestError(format!(
-                "创建临时加密数据库失败 {:?}: {}",
+                "임시 암호화 데이터베이스 생성 실패 {:?}: {}",
                 encrypted_path, e
             ))
         })?;
@@ -131,10 +131,10 @@ pub async fn ensure_sqlite_encrypted(db_path: &Path, key: &str) -> Result<(), Co
     let plain_url = format!("sqlite:{}?mode=rw", db_path.display());
     let db = Database::connect(plain_url).await?;
 
-    // WAL 模式下可能存在未落盘的数据，尽量先 checkpoint
+    // WAL 모드에서는 디스크에 기록되지 않은 데이터가 있을 수 있으므로 먼저 체크포인트를 수행합니다.
     let _ = db.execute_unprepared("PRAGMA wal_checkpoint(FULL);").await;
 
-    // 将明文库导出到加密库（SQLCipher 扩展能力）
+    // 일반 텍스트 데이터베이스를 암호화된 데이터베이스로 내보내기 (SQLCipher 확장 기능)
     let encrypted_path_sql = escape_sqlite_single_quoted(&encrypted_path.display().to_string());
     let key_sql = escape_sqlite_single_quoted(key);
     let attach_sql = format!(
@@ -155,8 +155,8 @@ pub async fn ensure_sqlite_encrypted(db_path: &Path, key: &str) -> Result<(), Co
     cleanup_sqlite_sidecar_files(db_path);
     cleanup_sqlite_sidecar_files(&encrypted_path);
 
-    // 不再保留明文备份文件，迁移完成后直接用加密库替换原文件。
-    // 注意：部分平台（如 Windows）当目标文件已存在时 rename 会失败，因此需要先删除明文文件再重命名。
+    // 더 이상 일반 텍스트 백업 파일을 유지하지 않고, 마이그레이션 완료 후 암호화된 데이터베이스로 원본 파일을 직접 교체합니다.
+    // 주의: 일부 플랫폼(예: Windows)에서는 대상 파일이 이미 존재할 때 이름 변경이 실패할 수 있으므로, 먼저 일반 텍스트 파일을 삭제한 다음 이름을 변경해야 합니다.
     if let Err(rename_err) = std::fs::rename(&encrypted_path, db_path) {
         let should_retry = matches!(
             rename_err.kind(),
@@ -165,25 +165,25 @@ pub async fn ensure_sqlite_encrypted(db_path: &Path, key: &str) -> Result<(), Co
 
         if !should_retry {
             return Err(CommonError::RequestError(format!(
-                "替换为加密数据库失败 {:?} -> {:?}: {}",
+                "암호화된 데이터베이스로 교체 실패 {:?} -> {:?}: {}",
                 encrypted_path, db_path, rename_err
             )));
         }
 
         std::fs::remove_file(db_path).map_err(|e| {
-            CommonError::RequestError(format!("删除明文数据库失败 {:?}: {}", db_path, e))
+            CommonError::RequestError(format!("일반 텍스트 데이터베이스 삭제 실패 {:?}: {}", db_path, e))
         })?;
 
         std::fs::rename(&encrypted_path, db_path).map_err(|e| {
             CommonError::RequestError(format!(
-                "替换为加密数据库失败 {:?} -> {:?}: {}",
+                "암호화된 데이터베이스로 교체 실패 {:?} -> {:?}: {}",
                 encrypted_path, db_path, e
             ))
         })?;
     }
 
     tracing::info!(
-        "SQLite 加密迁移完成，已替换为 SQLCipher 加密库: {:?}",
+        "SQLite 암호화 마이그레이션 완료, SQLCipher 암호화 데이터베이스로 교체됨: {:?}",
         db_path
     );
     Ok(())

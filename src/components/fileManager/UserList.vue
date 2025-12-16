@@ -2,7 +2,7 @@
   <div
     v-show="shouldShowUserList"
     class="w-240px flex-shrink-0 flex flex-col bg-[--center-bg-color] border-r border-solid border-[--line-color]">
-    <!-- 搜索栏 -->
+    <!-- 검색창 -->
     <div class="p-16px pb-12px">
       <n-input
         v-model:value="searchKeyword"
@@ -23,7 +23,7 @@
       </n-input>
     </div>
 
-    <!-- 动态内容区域 -->
+    <!-- 동적 콘텐츠 영역 -->
     <div class="flex-1 px-8px overflow-hidden">
       <div class="pl-4px mb-12px">
         <span class="text-14px font-500 text-[--text-color]">{{ getSectionTitle() }}</span>
@@ -31,14 +31,14 @@
 
       <n-scrollbar style="height: calc(100vh / var(--page-scale, 1) - 110px)">
         <div class="pr-12px">
-          <!-- 全部选项 -->
+          <!-- 전체 옵션 -->
           <UserItem
             :user="getAllOption()"
             :is-selected="selectedUser === '' && selectedRoom === ''"
             @click="handleItemClick"
             class="mb-8px" />
 
-          <!-- 动态列表内容 -->
+          <!-- 동적 목록 내용 -->
           <component
             :is="getItemComponent()"
             v-for="item in filteredList"
@@ -50,7 +50,7 @@
             @click="handleItemClick"
             class="mb-8px" />
 
-          <!-- 空状态 -->
+          <!-- 빈 상태 -->
           <div v-if="filteredList.length === 0 && searchKeyword && !loading" class="flex-center h-200px">
             <div class="flex-col-center">
               <svg class="size-48px text-[--text-color] opacity-30 mb-12px">
@@ -60,10 +60,10 @@
             </div>
           </div>
 
-          <!-- 加载状态 -->
+          <!-- 로딩 상태 -->
           <div v-if="loading" class="flex-center h-200px">
             <n-spin size="small" />
-            <span class="ml-8px text-14px text-[--text-color] opacity-60">加载中</span>
+            <span class="ml-8px text-14px text-[--text-color] opacity-60">로딩 중</span>
           </div>
         </div>
       </n-scrollbar>
@@ -93,22 +93,22 @@ const { t } = useI18n()
 const fileManagerState = inject<FileManagerState>('fileManagerState')!
 const { activeNavigation, selectedUser, selectedRoom, setSelectedUser, setSelectedRoom } = fileManagerState
 
-// Store 实例
+// Store 인스턴스
 const contactStore = useContactStore()
 const groupStore = useGroupStore()
 
-// 本地状态
+// 로컬 상태
 const searchKeyword = ref('')
 const loading = ref(false)
 const contactList = ref<any[]>([])
 const sessionList = ref<any[]>([])
 
-// 是否显示用户列表
+// 사용자 목록 표시 여부
 const shouldShowUserList = computed(() => {
   return activeNavigation.value !== 'myFiles'
 })
 
-// 获取当前显示的列表
+// 현재 표시된 목록 가져오기
 const currentList = computed(() => {
   switch (activeNavigation.value) {
     case 'senders':
@@ -122,7 +122,7 @@ const currentList = computed(() => {
   }
 })
 
-// 丰富好友数据
+// 친구 데이터 보강
 const enrichedContactsList = computed(() => {
   return contactStore.contactsList.map((item) => {
     const userInfo = groupStore.getUserInfo(item.uid)
@@ -135,7 +135,7 @@ const enrichedContactsList = computed(() => {
   })
 })
 
-// 群聊列表
+// 그룹 채팅 목록
 const groupChatList = computed(() => {
   return [...groupStore.groupDetails]
     .map((item) => ({
@@ -143,14 +143,14 @@ const groupChatList = computed(() => {
       avatar: AvatarUtils.getAvatarUrl(item.avatar)
     }))
     .sort((a, b) => {
-      // 将roomId为'1'的群聊排在最前面
+      // roomId가 '1'인 그룹 채팅을 맨 앞에 배치
       if (a.roomId === '1' && b.roomId !== '1') return -1
       if (a.roomId !== '1' && b.roomId === '1') return 1
       return 0
     })
 })
 
-// 过滤后的列表
+// 필터링된 목록
 const filteredList = computed(() => {
   if (!searchKeyword.value) {
     return currentList.value
@@ -162,7 +162,7 @@ const filteredList = computed(() => {
   })
 })
 
-// 获取搜索占位符
+// 검색 플레이스홀더 가져오기
 const getSearchPlaceholder = () => {
   switch (activeNavigation.value) {
     case 'senders':
@@ -176,7 +176,7 @@ const getSearchPlaceholder = () => {
   }
 }
 
-// 获取区域标题
+// 섹션 제목 가져오기
 const getSectionTitle = () => {
   const count = filteredList.value.length
   switch (activeNavigation.value) {
@@ -191,7 +191,7 @@ const getSectionTitle = () => {
   }
 }
 
-// 获取全部选项
+// 전체 옵션 가져오기
 const getAllOption = () => {
   switch (activeNavigation.value) {
     case 'senders':
@@ -205,13 +205,13 @@ const getAllOption = () => {
   }
 }
 
-// 获取列表项组件
+// 목록 항목 컴포넌트 가져오기
 const getItemComponent = () => {
-  // 都使用 UserItem 组件，但传入不同的数据
+  // 모두 UserItem 컴포넌트를 사용하지만 다른 데이터를 전달
   return UserItem
 }
 
-// 判断项目是否被选中
+// 항목 선택 여부 확인
 const isItemSelected = (item: any) => {
   switch (activeNavigation.value) {
     case 'senders':
@@ -224,7 +224,7 @@ const isItemSelected = (item: any) => {
   }
 }
 
-// 获取空状态消息
+// 빈 상태 메시지 가져오기
 const getEmptyMessage = () => {
   switch (activeNavigation.value) {
     case 'senders':
@@ -238,7 +238,7 @@ const getEmptyMessage = () => {
   }
 }
 
-// 处理项目点击
+// 항목 클릭 처리
 const handleItemClick = (item: any) => {
   switch (activeNavigation.value) {
     case 'senders':
@@ -251,61 +251,61 @@ const handleItemClick = (item: any) => {
   }
 }
 
-// 加载联系人列表
+// 연락처 목록 로드
 const loadContacts = async () => {
   try {
     loading.value = true
     await contactStore.getContactList()
   } catch (error) {
-    console.error('加载联系人失败:', error)
+    console.error('연락처 로드 실패:', error)
   } finally {
     loading.value = false
   }
 }
 
-// 加载联系人列表 (恢复原始方式)
+// 연락처 목록 로드 (원래 방식으로 복원)
 const loadContactsOriginal = async () => {
   try {
     loading.value = true
     const contacts = (await invoke('list_contacts_command')) as any[]
     contactList.value = contacts
   } catch (error) {
-    console.error('加载联系人失败:', error)
+    console.error('연락처 로드 실패:', error)
   } finally {
     loading.value = false
   }
 }
 
-// 加载会话列表 (恢复原始方式)
+// 세션 목록 로드 (원래 방식으로 복원)
 const loadSessions = async () => {
   try {
     loading.value = true
-    // 使用联系人作为会话列表，并处理头像
+    // 연락처를 세션 목록으로 사용하고 아바타 처리
     sessionList.value = contactList.value.map((item) => ({
       ...item,
       avatar: AvatarUtils.getAvatarUrl(item.avatar)
     }))
   } catch (error) {
-    console.error('加载会话失败:', error)
+    console.error('세션 로드 실패:', error)
   } finally {
     loading.value = false
   }
 }
 
-// 加载群聊列表 (群组数据通过 groupStore 获取)
+// 그룹 채팅 목록 로드 (그룹 데이터는 groupStore를 통해 가져옴)
 const loadGroups = async () => {
   try {
     loading.value = true
-    // 群组数据已经在 groupStore 中管理，无需额外加载
-    // 如果需要刷新群组数据，可以调用相应的 store 方法
+    // 그룹 데이터는 이미 groupStore에서 관리되므로 추가 로드 불필요
+    // 그룹 데이터를 새로 고쳐야 하는 경우 해당 store 메서드 호출 가능
   } catch (error) {
-    console.error('加载群聊失败:', error)
+    console.error('그룹 채팅 로드 실패:', error)
   } finally {
     loading.value = false
   }
 }
 
-// 监听导航变化
+// 내비게이션 변경 감지
 watch(
   activeNavigation,
   async (newNav) => {
@@ -313,7 +313,7 @@ watch(
 
     switch (newNav) {
       case 'senders':
-        // 发送人列表使用好友列表，确保联系人数据已加载
+        // 보낸 사람 목록은 친구 목록을 사용, 연락처 데이터가 로드되었는지 확인
         if (contactStore.contactsList.length === 0) {
           await loadContacts()
         }

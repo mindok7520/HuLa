@@ -18,16 +18,16 @@ type ChatConfig = {
   }[]
 }
 
-/** chat 设置面板配置 */
+/** chat 설정 패널 구성 */
 export const content: ChatConfig = {
   system: [
     {
-      title: `当前版本：v${pkg.version}`,
-      description: '已是最新版本',
-      features: <Button title={'检查更新'} icon={'refresh'} />
+      title: `현재 버전: v${pkg.version}`,
+      description: '최신 버전입니다',
+      features: <Button title={'업데이트 확인'} icon={'refresh'} />
     },
     {
-      title: '发送键',
+      title: '전송 키',
       features: (
         <Select
           content={[
@@ -38,73 +38,73 @@ export const content: ChatConfig = {
       )
     },
     {
-      title: '主题',
+      title: '테마',
       features: (
         <Select
           content={[
-            { label: '亮色', value: 'light' },
-            { label: '暗黑模式', value: 'dark' },
-            { label: '跟随系统', value: 'auto' }
+            { label: '라이트 모드', value: 'light' },
+            { label: '다크 모드', value: 'dark' },
+            { label: '시스템 설정 따름', value: 'auto' }
           ]}
         />
       )
     },
     {
-      title: '字体大小',
-      description: '聊天内容的字体大小',
+      title: '글꼴 크기',
+      description: '채팅 내용의 글꼴 크기',
       features: <Slider min={12} max={20} value={14} />
     },
     {
-      title: '自动生成标题',
-      description: '根据对话内容生成合适的标题',
+      title: '제목 자동 생성',
+      description: '대화 내용에 따라 적절한 제목 생성',
       features: <Switch active={false} />
     }
   ],
   record: [
     {
-      title: '云端数据',
-      description: '还没有进行同步',
-      features: <Button title={'配置'} icon={'setting-config'} />
+      title: '클라우드 데이터',
+      description: '동기화되지 않음',
+      features: <Button title={'구성'} icon={'setting-config'} />
     },
     {
-      title: '本地数据',
-      description: '1 次对话，0条消息，0条提示词，0个身份',
+      title: '로컬 데이터',
+      description: '대화 1개, 메시지 0개, 프롬프트 0개, 신원 0개',
       features: (
         <NFlex align={'center'}>
-          <Button title={'导入'} icon={'Export'} />
-          <Button title={'导出'} icon={'Importing'} />
+          <Button title={'가져오기'} icon={'Export'} />
+          <Button title={'내보내기'} icon={'Importing'} />
         </NFlex>
       )
     }
   ],
   identity: [
     {
-      title: '身份启动页',
-      description: '新建聊天时，展示身份启动页',
+      title: '신원 시작 페이지',
+      description: '새 채팅 시작 시 신원 시작 페이지 표시',
       features: <Switch active={true} />
     },
     {
-      title: '隐藏内置身份',
-      description: '在所有身份列表中隐藏内置身份',
+      title: '내장 신원 숨기기',
+      description: '모든 신원 목록에서 내장 신원 숨기기',
       features: <Switch active={false} />
     }
   ],
   cueWords: [
     {
-      title: '禁用提示词自动补全',
-      description: '在输入框开头输入/即可触发自动补全',
+      title: '프롬프트 자동 완성 비활성화',
+      description: '입력 상자 시작 부분에 /를 입력하여 자동 완성 트리거',
       features: <Switch active={false} />
     },
     {
-      title: '自定义提示词列表',
-      description: '内置 285 条，用户定义0条',
-      features: <Button title={'编辑'} icon={'edit'} />
+      title: '사용자 정의 프롬프트 목록',
+      description: '내장 285개, 사용자 정의 0개',
+      features: <Button title={'편집'} icon={'edit'} />
     }
   ],
   APIAddress: [
     {
-      title: '模型服务商',
-      description: '切换不同的服务商',
+      title: '모델 서비스 제공자',
+      description: '다른 서비스 제공자로 전환',
       features: (
         <Select
           content={[
@@ -116,19 +116,19 @@ export const content: ChatConfig = {
       )
     },
     {
-      title: '接口地址',
-      description: '除默认地址外，必须包含 http(s)://',
+      title: 'API 주소',
+      description: '기본 주소 외에 http(s)://를 포함해야 합니다',
       features: <Input value={'www.baidu.com'} />
     },
     {
-      title: 'API Key',
-      description: '使用自定义 OpenAI key 统过密码访问限制',
+      title: 'API 키',
+      description: '사용자 정의 OpenAI 키를 사용하여 비밀번호 액세스 제한 통과',
       features: <Input value={'123456'} isPassword={true} />
     }
   ],
   model: [
     {
-      title: '模型(model)',
+      title: '모델(model)',
       features: (
         <Select
           content={[
@@ -141,66 +141,66 @@ export const content: ChatConfig = {
       )
     },
     {
-      title: '随机性(temperature)',
-      description: '值越大，回复越随机',
+      title: '무작위성(temperature)',
+      description: '값이 클수록 응답이 더 무작위가 됩니다',
       features: <Slider min={0} max={10} value={5} />
     },
     {
-      title: '核采样(top_p)',
-      description: '与随机性类似，但不要和随机性一起更改',
+      title: '핵 샘플링(top_p)',
+      description: '무작위성과 유사하지만 무작위성과 함께 변경하지 마십시오',
       features: <Slider min={0} max={10} value={5} />
     },
     {
-      title: '单次回复限制(max_tokens)',
-      description: '单次交互所用的最大 Token 数',
+      title: '단일 응답 제한(max_tokens)',
+      description: '단일 상호 작용에 사용되는 최대 토큰 수',
       features: <InputNumber value={4000} min={2000} max={10000} />
     },
     {
-      title: '话题新鲜度(presence_penalty)',
-      description: '值越大，越有可能扩展到新话题',
+      title: '주제 신선도(presence_penalty)',
+      description: '값이 클수록 새로운 주제로 확장될 가능성이 높습니다',
       features: <Slider min={0} max={10} value={5} />
     },
     {
-      title: '频率惩罚度(frequency_penalty)',
-      description: '值越大，越有可能降低重复字词',
+      title: '빈도 페널티(frequency_penalty)',
+      description: '값이 클수록 반복되는 단어를 줄일 가능성이 높습니다',
       features: <Slider min={0} max={10} value={5} />
     },
     {
-      title: '注入系统级提示信息',
-      description: '强制给每次请求的消息列表开头添加一个模拟 ChatGPT 的系统提示',
+      title: '시스템 수준 프롬프트 정보 주입',
+      description: '각 요청의 메시지 목록 시작 부분에 ChatGPT를 모방하는 시스템 프롬프트를 강제로 추가',
       features: <Switch active={false} />
     },
     {
-      title: '用户输入预处理',
-      description: '用户最新的一条消息会埴充到此模板',
+      title: '사용자 입력 전처리',
+      description: '사용자의 최신 메시지가 이 템플릿에 채워집니다',
       features: <Input value={'input'} />
     },
     {
-      title: '附带历史消息数',
-      description: '每次请求携带的历史消息数',
+      title: '포함된 기록 메시지 수',
+      description: '각 요청에 포함되는 기록 메시지 수',
       features: <Slider min={0} max={10} value={5} />
     },
     {
-      title: '历史消息长度压缩阈值',
-      description: '当未压缩的历史消息超过该值时，将进行压缩',
+      title: '기록 메시지 길이 압축 임계값',
+      description: '압축되지 않은 기록 메시지가 이 값을 초과하면 압축됩니다',
       features: <InputNumber value={1000} min={0} max={5000} />
     },
     {
-      title: '历史摘要',
-      description: '自动压缩聊天记录并作为上下文发送',
+      title: '기록 요약',
+      description: '채팅 기록을 자동으로 압축하여 컨텍스트로 전송',
       features: <Switch active={true} />
     }
   ],
   clear: [
     {
-      title: '重置所有设置',
-      description: '重置所有设置项回默认值',
-      features: <Button title={'立即重置'} isSecondary={true} />
+      title: '모든 설정 초기화',
+      description: '모든 설정 항목을 기본값으로 초기화',
+      features: <Button title={'즉시 초기화'} isSecondary={true} />
     },
     {
-      title: '清除所有数据',
-      description: '清除所有聊天、设置数据',
-      features: <Button title={'立即清除'} isSecondary={true} />
+      title: '모든 데이터 지우기',
+      description: '모든 채팅 및 설정 데이터 지우기',
+      features: <Button title={'즉시 지우기'} isSecondary={true} />
     }
   ]
 }

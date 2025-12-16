@@ -41,7 +41,7 @@
   "app": {
     "windows": [
       {
-        "title": "登录",
+        "title": "로그인",
         "label": "mobile-home",
         "url": "/mobile/splashscreen",
         "width": 800,

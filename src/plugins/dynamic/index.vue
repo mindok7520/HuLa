@@ -1,6 +1,6 @@
 <template>
   <main class="size-full rounded-8px bg-#fff dark:bg-#303030" data-tauri-drag-region>
-    <!-- 头像栏 -->
+    <!-- 프로필 섹션 -->
     <div class="flex flex-col h-32vh relative" data-tauri-drag-region>
       <div class="flex h-95% w-full relative" data-tauri-drag-region>
         <ActionBar
@@ -46,7 +46,7 @@
           </div>
         </ActionBar>
         <div data-tauri-drag-region class="size-full flex-center bg-#90909048 dark:bg-[#202020]">
-          <!-- TODO: 默认的图片是这个格式，如果动态替换需要更改对应其他的格式 -->
+          <!-- TODO: 기본 이미지는 이 형식이며, 동적으로 교체할 경우 다른 형식으로 변경해야 함 -->
           <img data-tauri-drag-region class="size-76% object-contain" src="/hula.png" alt="" />
         </div>
       </div>
@@ -60,7 +60,7 @@
       </div>
     </div>
 
-    <!-- 动态列表 -->
+    <!-- 게시물 목록 -->
     <div class="flex flex-col items-center h-full mt-15px">
       <n-scrollbar style="max-height: calc(100vh / var(--page-scale, 1) - 272px)" class="w-full">
         <DynamicList
@@ -85,7 +85,7 @@
       </n-scrollbar>
     </div>
 
-    <!-- 添加动态弹窗 -->
+    <!-- 게시물 추가 팝업 -->
     <n-modal v-model:show="showAddFeedModal" class="w-80vw border-rd-8px">
       <div class="bg-[--bg-popover] p-20px box-border flex flex-col">
         <div class="flex justify-between items-center mb-20px">
@@ -101,7 +101,7 @@
           </n-button>
         </div>
 
-        <!-- 动态内容输入 -->
+        <!-- 게시물 내용 입력 -->
         <n-input
           v-model:value="newFeedContent"
           type="textarea"
@@ -111,7 +111,7 @@
           show-count
           class="mb-15px" />
 
-        <!-- 权限选择 -->
+        <!-- 권한 선택 -->
         <div class="mb-15px">
           <p class="text-14px text-[--text-color] mb-10px">{{ t('dynamic.list.modal.visibility_label') }}</p>
           <n-select
@@ -121,7 +121,7 @@
             @update:value="handlePermissionChange" />
         </div>
 
-        <!-- 选择用户列表 -->
+        <!-- 사용자 목록 선택 -->
         <div v-if="permission === 'partVisible' || permission === 'notAnyone'" class="mb-15px">
           <p class="text-14px text-[--text-color] mb-10px">
             {{
@@ -145,7 +145,7 @@
           </div>
         </div>
 
-        <!-- 操作按钮 -->
+        <!-- 작업 버튼 -->
         <n-flex justify="end" :size="10">
           <n-button @click="handleCloseModal">{{ t('dynamic.list.buttons.cancel') }}</n-button>
           <n-button type="primary" :loading="isPublishing" :disabled="!isPublishValid" @click="handlePublishFeed">
@@ -155,7 +155,7 @@
       </div>
     </n-modal>
 
-    <!-- 用户选择弹窗 -->
+    <!-- 사용자 선택 팝업 -->
     <n-modal v-model:show="showUserSelectModal" class="w-75vw border-rd-8px">
       <div class="bg-[--bg-popover] p-20px box-border flex flex-col">
         <div class="flex justify-between items-center mb-20px">
@@ -171,7 +171,7 @@
           </n-button>
         </div>
 
-        <!-- 搜索框 -->
+        <!-- 검색창 -->
         <n-input
           v-model:value="userSearchKeyword"
           :placeholder="t('dynamic.list.modal.user_search_placeholder')"
@@ -186,7 +186,7 @@
           </template>
         </n-input>
 
-        <!-- 用户列表 -->
+        <!-- 사용자 목록 -->
         <n-scrollbar style="max-height: 400px">
           <n-checkbox-group v-model:value="selectedUserIds">
             <n-flex vertical :size="8">
@@ -213,7 +213,7 @@
           </n-checkbox-group>
         </n-scrollbar>
 
-        <!-- 确认按钮 -->
+        <!-- 확인 버튼 -->
         <n-flex justify="end" :size="10" class="mt-15px">
           <n-button @click="showUserSelectModal = false">{{ t('dynamic.list.buttons.cancel') }}</n-button>
           <n-button type="primary" @click="confirmUserSelection">
@@ -223,7 +223,7 @@
       </div>
     </n-modal>
 
-    <!-- 评论通知弹出框 - 只显示远程推送过来的评论记录 -->
+    <!-- 댓글 알림 팝업 - 원격으로 푸시된 댓글 기록만 표시 -->
     <n-modal v-model:show="showCommentModal" class="w-75vw border-rd-8px">
       <div class="bg-[--bg-popover] h-full p-6px box-border flex flex-col">
         <div class="flex justify-between items-center mb-15px">
@@ -237,7 +237,7 @@
           </n-button>
         </div>
 
-        <!-- 评论列表 -->
+        <!-- 댓글 목록 -->
         <n-scrollbar style="max-height: 500px">
           <div v-if="currentComments.length === 0" class="text-center text-gray-500 py-40px">
             <div class="text-16px mb-10px">{{ t('dynamic.list.modal.comment_notice_empty_title') }}</div>
@@ -291,15 +291,15 @@ const { unreadCount } = storeToRefs(feedStore)
 const showCommentModal = ref(false)
 const currentComments = ref<CommentItem[]>([])
 
-// 添加动态相关状态
+// 게시물 추가 관련 상태
 const showAddFeedModal = ref(false)
 const newFeedContent = ref('')
 const isPublishing = ref(false)
 
-// 媒体类型: 固定为纯文本
+// 미디어 타입: 순수 텍스트로 고정
 const mediaType = ref(0)
 
-// 权限设置
+// 권한 설정
 const permission = ref<'open' | 'partVisible' | 'notAnyone'>('open')
 const permissionOptions = computed(() => [
   { label: t('dynamic.list.permission.open'), value: 'open' },
@@ -307,7 +307,7 @@ const permissionOptions = computed(() => [
   { label: t('dynamic.list.permission.not_anyone'), value: 'notAnyone' }
 ])
 
-// 用户选择相关
+// 사용자 선택 관련
 const showUserSelectModal = ref(false)
 const selectedUserIds = ref<string[]>([])
 const selectedUsers = ref<FriendItem[]>([])
@@ -336,14 +336,14 @@ interface CommentItem {
   userAvatar: string
 }
 
-// 验证发布内容是否有效（只验证文本内容）
+// 게시물 내용 유효성 검사 (텍스트 내용만 검증)
 const isPublishValid = computed(() => {
   return newFeedContent.value.trim().length > 0
 })
 
-// 过滤后的联系人列表（排除 uid 为 1 的好友）
+// 필터링된 연락처 목록 (uid가 1인 친구 제외)
 const filteredContactsList = computed(() => {
-  // 先过滤掉 uid 为 1 的好友
+  // uid가 1인 친구 먼저 필터링
   const validContacts = contactStore.contactsList.filter((user) => user.uid !== '1')
 
   if (!userSearchKeyword.value.trim()) {
@@ -357,7 +357,7 @@ const filteredContactsList = computed(() => {
   })
 })
 
-// 丰富selectedUsers数据，添加name属性
+// selectedUsers 데이터 보강, name 속성 추가
 const enrichedSelectedUsers = computed(() => {
   return selectedUsers.value.map((user) => {
     const userInfo = groupStore.getUserInfo(user.uid)
@@ -368,94 +368,94 @@ const enrichedSelectedUsers = computed(() => {
   })
 })
 
-// 格式化时间显示（评论弹窗使用） - 使用项目统一的时间格式化函数
+// 시간 표시 형식 지정 (댓글 팝업 사용) - 프로젝트 통일 시간 포맷 함수 사용
 const formatTime = (timestamp: number) => {
   return formatTimestamp(timestamp)
 }
 
 /**
- * 加载更多朋友圈
+ * 타임라인 더 불러오기
  */
 const loadMore = async () => {
   await feedStore.loadMore()
 }
 
-// 图片预览
+// 이미지 미리보기
 const previewImage = (images: string[], index: number) => {
-  // 实现图片预览逻辑
-  console.log('预览图片:', images, index)
+  // 이미지 미리보기 로직 구현
+  console.log('이미지 미리보기:', images, index)
 }
 
-// 视频播放
+// 동영상 재생
 const handleVideoPlay = (url: string) => {
-  // 实现视频播放逻辑
-  console.log('播放视频:', url)
+  // 동영상 재생 로직 구현
+  console.log('동영상 재생:', url)
 }
 
-// 处理信息提示
+// 정보 팁 처리
 const handleInfoTip = () => {
   showCommentModal.value = true
 }
 
-// 处理刷新
+// 새로고침 처리
 const handleRefresh = async () => {
   try {
     await feedStore.refresh()
-    // 刷新后清空未读数量
+    // 새로고침 후 읽지 않은 수 초기화
     feedStore.clearUnreadCount()
     window.$message.success(t('dynamic.messages.refresh_success'))
   } catch (error) {
-    console.error('刷新动态失败:', error)
+    console.error('게시물 새로고침 실패:', error)
     window.$message.error(t('dynamic.messages.refresh_fail'))
   }
 }
 
-// 处理动态项点击 - 在新窗口中打开
+// 게시물 항목 클릭 처리 - 새 창에서 열기
 const handleItemClick = async (feedId: string) => {
   const windowLabel = `dynamicDetail`
 
-  // 先检查窗口是否已存在
+  // 윈도우가 이미 존재하는지 먼저 확인
   const existingWindow = await WebviewWindow.getByLabel(windowLabel)
   if (existingWindow) {
-    // 如果窗口已存在，激活它并更新内容
+    // 윈도우가 이미 존재하면 활성화하고 내용 업데이트
     await checkWinExist(windowLabel)
-    // 发送事件通知窗口更新内容
+    // 윈도우 내용 업데이트 이벤트 전송
     await existingWindow.emit('window-payload-updated', { feedId })
     return
   }
 
-  // 创建新的webview窗口来显示动态详情
+  // 게시물 상세 내용을 표시할 새 webview 윈도우 생성
   const webview = await createWebviewWindow(
-    t('dynamic.page.detail.title'), // 窗口标题
-    windowLabel, // 窗口标签
-    800, // 宽度
-    900, // 高度
-    undefined, // 不需要关闭其他窗口
-    true, // 可调整大小
-    600, // 最小宽度
-    700, // 最小高度
-    false, // 不透明
-    false // 初始不显示（等待加载完成）
+    t('dynamic.page.detail.title'), // 윈도우 제목
+    windowLabel, // 윈도우 라벨
+    800, // 너비
+    900, // 높이
+    undefined, // 다른 윈도우 닫지 않음
+    true, // 크기 조절 가능
+    600, // 최소 너비
+    700, // 최소 높이
+    false, // 투명하지 않음
+    false // 초기 표시 안 함 (로딩 완료 대기)
   )
 
-  // 窗口创建后，发送payload
+  // 윈도우 생성 후 payload 전송
   if (webview) {
     await sendWindowPayload(windowLabel, { feedId })
   }
 }
 
-// 权限选择相关方法
+// 권한 선택 관련 메서드
 const handlePermissionChange = (value: string) => {
-  // 如果切换到公开，清空已选用户
+  // 공개로 전환 시 선택된 사용자 초기화
   if (value === 'open') {
     selectedUserIds.value = []
     selectedUsers.value = []
   }
 }
 
-// 用户选择相关方法
+// 사용자 선택 관련 메서드
 const confirmUserSelection = () => {
-  // 更新选中的用户列表
+  // 선택된 사용자 목록 업데이트
   selectedUsers.value = contactStore.contactsList.filter((user) => selectedUserIds.value.includes(user.uid))
   showUserSelectModal.value = false
 }
@@ -468,13 +468,13 @@ const removeSelectedUser = (uid: string) => {
   selectedUsers.value = selectedUsers.value.filter((user) => user.uid !== uid)
 }
 
-// 关闭弹窗
+// 팝업 닫기
 const handleCloseModal = () => {
   showAddFeedModal.value = false
   resetAddFeedForm()
 }
 
-// 重置添加动态表单
+// 게시물 추가 폼 초기화
 const resetAddFeedForm = () => {
   newFeedContent.value = ''
   mediaType.value = 0
@@ -484,15 +484,15 @@ const resetAddFeedForm = () => {
   userSearchKeyword.value = ''
 }
 
-// 发布动态
+// 게시물 게시
 const handlePublishFeed = async () => {
-  // 验证内容
+  // 내용 검증
   if (!newFeedContent.value.trim()) {
     window.$message.warning(t('dynamic.messages.publish_empty'))
     return
   }
 
-  // 验证权限设置
+  // 권한 설정 검증
   if ((permission.value === 'partVisible' || permission.value === 'notAnyone') && selectedUsers.value.length === 0) {
     window.$message.warning(
       permission.value === 'partVisible'
@@ -506,54 +506,54 @@ const handlePublishFeed = async () => {
 
   try {
     const feedData: any = {
-      uid: userStore.userInfo?.uid, // 发布人id
+      uid: userStore.userInfo?.uid, // 게시자 id
       content: newFeedContent.value,
-      mediaType: mediaType.value, // 固定为 0 (纯文本)
+      mediaType: mediaType.value, // 0으로 고정 (순수 텍스트)
       permission: permission.value
     }
 
-    // 添加权限限制的用户ID列表
+    // 권한 제한 사용자 ID 목록 추가
     if (permission.value === 'partVisible' || permission.value === 'notAnyone') {
       feedData.uidList = selectedUsers.value.map((user) => Number(user.uid))
     }
 
-    // 调用发布接口
+    // 게시 인터페이스 호출
     const response = await feedStore.publishFeed(feedData)
 
-    // 后端会返回生成的朋友圈ID
-    console.log('发布成功，返回数据:', response)
+    // 백엔드에서 생성된 타임라인 ID 반환
+    console.log('게시 성공, 반환 데이터:', response)
 
     window.$message.success(t('dynamic.messages.publish_success'))
 
-    // 关闭弹窗
+    // 팝업 닫기
     showAddFeedModal.value = false
 
-    // 重置表单
+    // 폼 초기화
     resetAddFeedForm()
   } catch (error) {
-    console.error('发布动态失败:', error)
+    console.error('게시물 게시 실패:', error)
     window.$message.error(t('dynamic.messages.publish_fail'))
   } finally {
     isPublishing.value = false
   }
 }
 
-// 初始化数据
+// 데이터 초기화
 onMounted(async () => {
-  // 初始加载朋友圈列表
+  // 타임라인 목록 초기 로드
   await feedStore.getFeedList(true)
 
-  // 打开朋友圈时清空未读数量
+  // 타임라인 열 때 읽지 않은 수 초기화
   feedStore.clearUnreadCount()
 
-  // 加载联系人列表
+  // 연락처 목록 로드
   try {
     await contactStore.getContactList(true)
   } catch (error) {
-    console.error('加载联系人列表失败:', error)
+    console.error('연락처 목록 로드 실패:', error)
   }
 
-  // 显示窗口
+  // 윈도우 표시
   const currentWindow = WebviewWindow.getCurrent()
   if (currentWindow) {
     await currentWindow.show()
@@ -574,7 +574,7 @@ onMounted(async () => {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-// 用户选择项样式
+// 사용자 선택 항목 스타일
 .user-item {
   transition: all 0.3s;
 
@@ -583,7 +583,7 @@ onMounted(async () => {
   }
 }
 
-// 响应式设计
+// 반응형 디자인
 @media (max-width: 768px) {
   .login-box {
     height: 120px;

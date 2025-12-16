@@ -1,13 +1,13 @@
 <template>
   <n-config-provider :theme="naiveTheme" data-tauri-drag-region class="login-box size-full rounded-8px select-none">
-    <!--顶部操作栏-->
+    <!--상단 작업 표시줄-->
     <ActionBar :max-w="false" :shrink="false" proxy data-tauri-drag-region />
 
     <n-flex justify="center" class="mt-15px" data-tauri-drag-region>
       <img src="/hula.png" class="w-140px h-60px drop-shadow-xl" alt="" data-tauri-drag-region />
     </n-flex>
 
-    <!-- 二维码 -->
+    <!-- QR 코드 -->
     <n-flex justify="center" class="mt-25px" data-tauri-drag-region>
       <n-skeleton v-if="loading" style="border-radius: 12px" :width="204" :height="204" :sharp="false" size="medium" />
       <div v-else class="relative">
@@ -24,7 +24,7 @@
           :icon-margin="2"
           :error-correction-level="qrErrorCorrectionLevel"
           @click="refreshQRCode" />
-        <!-- 二维码状态 -->
+        <!-- QR 코드 상태 -->
         <n-flex
           v-if="scanStatus.show"
           vertical
@@ -55,7 +55,7 @@
       {{ loadText }}
     </n-flex>
 
-    <!-- 底部操作栏 -->
+    <!-- 하단 작업 표시줄 -->
     <n-flex justify="center" class="text-14px mt-48px" data-tauri-drag-region>
       <div class="color-#13987f cursor-pointer" @click="router.push('/login')">
         {{ t('login.qr.actions.account_login') }}
@@ -95,7 +95,7 @@ type ScanStatusTextKey = 'success' | 'error' | 'auth' | 'expired' | 'fetch_faile
 const loadTextKey = ref<LoadTextKey>('loading')
 const loadText = computed(() => t(`login.qr.load_text.${loadTextKey.value}`))
 const loading = ref(true)
-const refreshing = ref(false) // 是否正在刷新
+const refreshing = ref(false) // 새로고침 중 여부
 const qrCodeValue = ref('')
 const qrCodeResp = ref()
 const qrCodeColor = ref('#000000')
@@ -105,7 +105,7 @@ const qrCodeIcon = ref('/logo.png')
 const qrErrorCorrectionLevel = ref('H' as const)
 const pollInterval = ref<NodeJS.Timeout | null>(null)
 const pollStartAt = ref<number | null>(null)
-const MAX_POLL_DURATION = 5 * 60 * 1000 // 5分钟超时，防止长时间占用内存
+const MAX_POLL_DURATION = 5 * 60 * 1000 // 5분 타임아웃, 장시간 메모리 점유 방지
 const pollingRequesting = ref(false)
 const confirmedHandled = ref(false)
 
@@ -120,7 +120,7 @@ const scanStatusText = computed(() =>
   scanStatus.value.textKey ? t(`login.qr.overlay.${scanStatus.value.textKey}`) : ''
 )
 
-/** 刷新二维码 */
+/** QR 코드 새로고침 */
 const refreshQRCode = () => {
   if (scanStatus.value.status !== 'error' && scanStatus.value.status !== 'auth') {
     return
@@ -136,7 +136,7 @@ const refreshQRCode = () => {
     show: false
   }
 
-  // 先清除之前的轮询
+  // 이전 폴링 먼저 지우기
   if (pollInterval.value) {
     clearInterval(pollInterval.value)
     pollInterval.value = null
@@ -144,7 +144,7 @@ const refreshQRCode = () => {
   pollStartAt.value = null
   pollingRequesting.value = false
   confirmedHandled.value = false
-  // 重新生成二维码
+  // QR 코드 재생성
   handleQRCodeLogin()
 }
 
@@ -181,7 +181,7 @@ const handleConfirmed = async (res: any) => {
       loadTextKey.value = 'login'
     })
   } catch (error) {
-    console.error('获取用户详情失败:', error)
+    console.error('사용자 상세 정보 가져오기 실패:', error)
     confirmedHandled.value = false
     handleError('fetch_failed')
   }
@@ -193,7 +193,7 @@ const startPolling = () => {
   }
   pollStartAt.value = Date.now()
   pollInterval.value = setInterval(async () => {
-    // 超时保护：超过 5 分钟自动停止并提示
+    // 타임아웃 보호: 5분 초과 시 자동 중지 및 팁 표시
     if (pollStartAt.value && Date.now() - pollStartAt.value > MAX_POLL_DURATION) {
       clearPolling()
       handleError('expired')
@@ -213,10 +213,10 @@ const startPolling = () => {
       })
       switch (res.status) {
         case 'PENDING':
-          // 等待中
+          // 대기 중
           break
         case 'SCANNED':
-          // 已扫描，等待确认
+          // 스캔됨, 확인 대기 중
           handleAuth()
           break
         case 'CONFIRMED':
@@ -241,7 +241,7 @@ const startPolling = () => {
   }, 2000)
 }
 
-/** 处理二维码显示和刷新 */
+/** QR 코드 표시 및 새로고침 처리 */
 const handleQRCodeLogin = async () => {
   try {
     qrCodeResp.value = await generateQRCode()
@@ -255,7 +255,7 @@ const handleQRCodeLogin = async () => {
       scanStatus.value.textKey = ''
     }
 
-    // 启动轮询
+    // 폴링 시작
     confirmedHandled.value = false
     pollingRequesting.value = false
     startPolling()
@@ -264,7 +264,7 @@ const handleQRCodeLogin = async () => {
   }
 }
 
-/** 处理失败场景 */
+/** 실패 시나리오 처리 */
 const handleError = (key: ScanStatusTextKey = 'general_error') => {
   loading.value = false
   scanStatus.value = {
@@ -277,11 +277,11 @@ const handleError = (key: ScanStatusTextKey = 'general_error') => {
 }
 
 onUnmounted(() => {
-  // 组件卸载时清除轮询
+  // 컴포넌트 언마운트 시 폴링 지우기
   clearPolling()
 })
 
-/** 处理授权场景 */
+/** 권한 부여 시나리오 처리 */
 const handleAuth = () => {
   loading.value = false
   scanStatus.value = {
@@ -295,7 +295,7 @@ const handleAuth = () => {
 
 onMounted(async () => {
   isTrayMenuShow.value = false
-  // 存储此次登陆设备指纹
+  // 이번 로그인 장치 지문 저장
   const clientId = await getEnhancedFingerprint()
   localStorage.setItem('clientId', clientId)
 

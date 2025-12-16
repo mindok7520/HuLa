@@ -1,124 +1,157 @@
-/** 气泡样式 */
+/** 말풍선 스타일 */
 @mixin bubble {
   @apply w-fit min-h-1em p-[8px_12px] line-height-22px bg-[--bg-bubble] rounded-[2px_18px_18px] custom-shadow;
-  max-width: var(--bubble-max-width, 32vw); /** 默认为群聊宽度 */
-  white-space: pre-wrap; /** 保留空白符号并正常换行，支持特殊字符 */
-  word-break: break-word; /** 优先在单词边界换行，必要时在单词内换行 */
-  overflow-wrap: anywhere; /** 在任何位置都可以换行，包括特殊字符 */
-  word-wrap: break-word; /** 兼容旧版浏览器 */
-  -webkit-white-space: pre-wrap; /** 兼容webkit浏览器 */
+  max-width: var(--bubble-max-width, 32vw);
+  /** 기본값은 그룹 채팅 너비 */
+  white-space: pre-wrap;
+  /** 공백 문자 유지 및 정상 줄바꿈, 특수 문자 지원 */
+  word-break: break-word;
+  /** 단어 경계에서 우선 줄바꿈, 필요시 단어 내부에서 줄바꿈 */
+  overflow-wrap: anywhere;
+  /** 특수 문자 포함 모든 위치에서 줄바꿈 가능 */
+  word-wrap: break-word;
+  /** 구버전 브라우저 호환 */
+  -webkit-white-space: pre-wrap;
+  /** webkit 브라우저 호환 */
   -webkit-word-break: break-word;
   -webkit-overflow-wrap: anywhere;
-  hyphens: auto; /** 行尾自动断开长单词 */
+  hyphens: auto;
+  /** 행 끝에서 긴 단어 자동 분리 */
   -webkit-hyphens: auto;
   line-height: 1.7;
-  line-break: anywhere; /** 支持任意位置换行，包括特殊字符和符号 */
+  line-break: anywhere;
+
+  /** 특수 문자 및 기호 포함 모든 위치에서 줄바꿈 지원 */
   &.active {
     background-color: var(--bg-bubble-active);
     color: var(--text-color);
   }
 }
+
 @mixin float($position: top) {
-  @if $position == bottom {
+  @if $position ==bottom {
     @apply fixed z-10 w-fit select-none text-#13987f cursor-pointer;
-  } @else {
+  }
+
+  @else {
     @apply fixed z-10 top-80px w-fit select-none text-#13987f cursor-pointer;
   }
 }
+
 .bubble {
   @include bubble;
 }
+
 .bubble-oneself {
   @include bubble;
   @apply rounded-[18px_2px_18px_18px] color-#fff;
   background-color: var(--bg-active-msg);
 }
 
-/* 选中文本时的高亮颜色（包含根节点与后代，避免被全局 ::selection 覆盖） */
+/* 텍스트 선택 시 하이라이트 색상 (루트 노드와 하위 포함, 전역 ::selection에 덮어쓰기 방지) */
 .bubble::selection,
 .bubble *::selection {
   background: var(--select-bg-color, rgba(19, 152, 127, 0.3));
 }
+
 .bubble-oneself::selection,
 .bubble-oneself *::selection {
   background: var(--select-bg-color-self, rgba(255, 255, 255, 0.3));
 }
+
 .photo-wall {
   @extend .bubble-oneself;
   @apply flex flex-col items-start gap-6px flex-1;
 }
+
 .float-header {
   @include float;
 }
+
 .float-footer {
   @include float(bottom);
 }
+
 .float-box {
   background-color: var(--right-bg-color);
   border-radius: 50px;
   padding: 6px 8px;
   box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.16);
   transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
   &:hover {
     background-color: var(--float-hover-bg-color);
   }
 }
+
 .mac-close:hover {
   svg {
     display: block;
   }
 }
-/** 浮标达到最大值时候的样式 */
+
+/** 플로팅 버튼이 최대값에 도달했을 때의 스타일 */
 .max:hover {
   background-color: #f5dce1;
 }
-/** 回复气泡的样式 */
+
+/** 답장 말풍선 스타일 */
 .reply-bubble {
   @apply text-[--reply-color] rounded-8px p-4px cursor-pointer select-none;
+
   svg,
   span {
     transition: color 0.4s ease-in-out;
   }
+
   .reply-avatar {
     filter: grayscale(60%);
     transition: filter 0.4s ease-in-out;
   }
+
   &:hover {
     .reply-avatar {
       filter: grayscale(0);
     }
+
     svg {
       color: #13987f;
     }
+
     span {
       color: var(--reply-hover);
     }
   }
+
   .content-span {
     @apply max-w-232px w-fit truncate flex-1;
   }
-  /** 回复图片的计数器样式 */
+
+  /** 답장 이미지 카운터 스타일 */
   .reply-img-sub {
     @apply absolute bottom-8px right-6px color-#13987f bg-[--bg-reply-img-count] p-[2px_4px] rounded-6px text-10px;
   }
 }
-/** emoji回复气泡的样式 */
+
+/** 이모지 답장 말풍선 스타일 */
 .emoji-reply-bubble {
   @apply relative flex-y-center gap-4px rounded-50px p-[4px_8px] cursor-pointer select-none bg-#13987F66 text-14px w-fit border-(1px solid #13987F) custom-shadow;
 }
 
-/** 当前用户标记消息的样式 */
+/** 현재 사용자가 표시한 메시지 스타일 */
 .emoji-reply-bubble--active {
   @apply dark:bg-[#fbb99020] bg-[#fbb99030] dark:border-(1px solid #fbb99050) border-(1px solid #fbb99090);
 }
-/** 跳转到回复内容时候显示的样式 */
+
+/** 답장 콘텐츠로 이동 시 표시되는 스타일 */
 .active-reply {
   background-color: var(--right-chat-reply-active-color);
   border-radius: 8px;
   margin: 0 8px;
   transition: all 0.4s ease-in-out;
 }
-/**  跳转到回复内容时候的退出动画 */
+
+/**  답장 콘텐츠로 이동 시 종료 애니메이션 */
 .reply-exit {
   margin: 0;
   background-color: inherit;
@@ -126,7 +159,7 @@
   transition: all 0.4s ease-in-out;
 }
 
-/** 翻译气泡的样式 */
+/** 번역 말풍선 스타일 */
 .translated-text {
   font-size: 12px;
   padding: 4px 8px;
@@ -138,64 +171,70 @@
   width: fit-content;
 }
 
-/** 时间搓显示时候的动画(单聊) */
+/** 타임스탬프 표시 시 애니메이션 (단체 채팅) */
 .fade-single-enter-active,
 .fade-single-leave-active {
   transition: opacity 0.4s ease-in-out;
 }
+
 .fade-single-enter-from,
 .fade-single-leave-to {
   opacity: 0;
 }
 
-/** 时间搓显示时候的动画(群聊) */
+/** 타임스탬프 표시 시 애니메이션 (그룹 채팅) */
 .fade-group-enter-active,
 .fade-group-leave-active {
   transition: opacity 0.4s ease-in-out;
 }
+
 .fade-group-enter-from,
 .fade-group-leave-to {
   opacity: 0;
 }
 
-/** 初始化加载动画 */
+/** 초기 로드 애니메이션 */
 .chat-init-enter-active,
 .chat-init-leave-active {
   transition: opacity 0.4s ease-in-out;
 }
+
 .chat-init-enter-from,
 .fchat-init-leave-to {
   opacity: 0;
 }
 
-/** 翻译动画 */
+/** 번역 애니메이션 */
 .fade-translate-enter-active,
 .fade-translate-leave-active {
   transition: opacity 0.4s ease-in-out;
 }
+
 .fade-translate-enter-from,
 .fade-translate-leave-to {
   opacity: 0;
 }
 
-/** 公告显示/隐藏动画 */
+/** 공지사항 표시/숨기기 애니메이션 */
 .announcement-enter-active,
 .announcement-leave-active {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   transform-origin: top;
 }
+
 .announcement-enter-from,
 .announcement-leave-to {
   opacity: 0;
   transform: scaleY(0.8) translateY(-10px);
 }
+
 .announcement-enter-to,
 .announcement-leave-from {
   opacity: 1;
   transform: scaleY(1) translateY(0);
 }
 
-// 置顶公告样式
+// 상단 고정 공지사항 스타일
 .custom-announcement {
   display: flex;
   justify-content: space-between;
@@ -215,12 +254,12 @@
   background-color: var(--bg-notice-hover, rgba(19, 152, 127, 0.14));
 }
 
-/**! 替换ait的字体颜色 */
+/**! ait 폰트 색상 교체 */
 :deep(#aitSpan) {
   @apply text-inherit cursor-pointer;
 }
 
-/** 确保文本可选中的通用类 */
+/** 텍스트 선택 가능하도록 하는 공통 클래스 */
 .select-text {
   user-select: text !important;
   -webkit-user-select: text !important;
@@ -229,7 +268,7 @@
   -khtml-user-select: text !important;
 }
 
-/** 默认禁选外层，避免选中空白区域；具体内容元素再单独开启 */
+/** 기본적으로 외부 레이어 선택 금지, 공백 영역 선택 방지; 특정 콘텐츠 요소는 개별적으로 활성화 */
 .chat-message-max-width {
   user-select: none;
 
@@ -242,7 +281,7 @@
   }
 }
 
-/* 桌面端全局：禁选消息容器，只有气泡内部允许选中，避免在 mac WebKit 上拖拽时染色到上下 padding */
+/* 데스크톱 전역: 메시지 컨테이너 선택 금지, 말풍선 내부만 선택 허용, mac WebKit에서 드래그 시 상하 패딩에 색상 묻는 것 방지 */
 :global(#image-chat-main .message-list) {
   user-select: none;
   -webkit-user-select: none;

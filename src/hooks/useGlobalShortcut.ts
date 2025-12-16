@@ -6,36 +6,36 @@ import { register, unregister } from '@tauri-apps/plugin-global-shortcut'
 import { useSettingStore } from '@/stores/setting.ts'
 import { isMac } from '@/utils/PlatformConstants'
 
-// 快捷键配置接口
+// 단축키 설정 인터페이스
 type ShortcutConfig = {
-  /** 配置键名，用于从 store 中读取设置 */
+  /** 설정 키 이름, store에서 설정을 읽는 데 사용 */
   key: keyof NonNullable<ReturnType<typeof useSettingStore>['shortcuts']>
-  /** 默认快捷键值 */
+  /** 기본 단축키 값 */
   defaultValue: string
-  /** 快捷键处理函数 */
+  /** 단축키 처리 함수 */
   handler: () => Promise<void>
-  /** 监听的更新事件名 */
+  /** 수신할 업데이트 이벤트 이름 */
   updateEventName: string
-  /** 发送注册状态的事件名 */
+  /** 등록 상태를 보낼 이벤트 이름 */
   registrationEventName: string
 }
 
-// 全局快捷键状态管理
+// 전역 단축키 상태 관리
 const globalShortcutStates = new Map<string, string>()
 
-// 防抖状态管理
+// 디바운스 상태 관리
 let togglePanelTimeout: ReturnType<typeof setTimeout> | null = null
 let lastToggleTime = 0
 const isMacPlatform = isMac()
 
 /**
- * 全局快捷键管理 Hook
- * 负责注册、取消注册和管理全局快捷键
- * 使用配置驱动的方式，方便扩展新快捷键
+ * 전역 단축키 관리 Hook
+ * 전역 단축키 등록, 등록 취소 및 관리를 담당
+ * 설정 기반 방식을 사용하여 새로운 단축키 확장이 용이함
  */
 export const useGlobalShortcut = () => {
   const settingStore = useSettingStore()
-  // 获取平台对应的默认快捷键
+  // 플랫폼에 맞는 기본 단축키 가져오기
   const getDefaultShortcuts = () => {
     return {
       screenshot: isMac() ? 'Cmd+Ctrl+H' : 'Ctrl+Alt+H',
@@ -44,21 +44,21 @@ export const useGlobalShortcut = () => {
   }
 
   /**
-   * 确保capture窗口存在
-   * 如果不存在则创建，如果存在则确保设置了关闭拦截
+   * capture 창이 존재하는지 확인
+   * 존재하지 않으면 생성하고, 존재하면 닫기 차단이 설정되어 있는지 확인
    */
   const ensureCaptureWindow = async () => {
     const captureWindow = await WebviewWindow.getByLabel('capture')
 
     if (captureWindow) {
-      // 设置关闭拦截 - 将关闭转为隐藏
+      // 닫기 차단 설정 - 닫기를 숨기기로 전환
       captureWindow.onCloseRequested(async (event) => {
         event.preventDefault()
         await captureWindow.hide()
-        // 触发重置事件，让Screenshot组件重新初始化
+        // 초기화 이벤트 트리거, Screenshot 컴포넌트가 다시 초기화되도록 함
         await captureWindow.emit('capture-reset', {})
       })
-      // 初始状态为隐藏
+      // 초기 상태는 숨김
       await captureWindow.hide()
     }
 
@@ -66,7 +66,7 @@ export const useGlobalShortcut = () => {
   }
 
   /**
-   * 截图处理函数
+   * 스크린샷 처리 함수
    */
   const handleScreenshot = async () => {
     try {
@@ -76,22 +76,22 @@ export const useGlobalShortcut = () => {
       const captureWindow = await WebviewWindow.getByLabel('capture')
       if (!captureWindow) return
 
-      // 检查是否需要隐藏home窗口
+      // home 창을 숨겨야 하는지 확인
       if (settingStore.screenshot.isConceal) {
         await homeWindow.hide()
-        // 等待窗口隐藏完成
+        // 창이 숨겨질 때까지 대기
         await new Promise((resolve) => setTimeout(resolve, 100))
       }
 
-      // 设置窗口覆盖整个屏幕（包括菜单栏）
+      // 창이 전체 화면을 덮도록 설정 (메뉴바 포함)
       const screenWidth = window.screen.width * window.devicePixelRatio
       const screenHeight = window.screen.height * window.devicePixelRatio
 
-      // 依靠窗口级别设置来确保覆盖菜单栏
+      // 창 수준 설정을 통해 메뉴바를 덮도록 보장
       await captureWindow.setSize(new LogicalSize(screenWidth, screenHeight))
       await captureWindow.setPosition(new LogicalPosition(0, 0))
 
-      // 在 macOS 上设置窗口级别以覆盖菜单栏
+      // macOS에서 메뉴바를 덮도록 창 수준 설정
       if (isMacPlatform) {
         await invoke('set_window_level_above_menubar', { windowLabel: 'capture' })
       }
@@ -100,26 +100,26 @@ export const useGlobalShortcut = () => {
       await captureWindow.setFocus()
       await captureWindow.emit('capture', true)
 
-      console.log('截图窗口已启动')
+      console.log('스크린샷 창이 시작되었습니다')
     } catch (error) {
       console.error('Failed to open screenshot window:', error)
     }
   }
 
   /**
-   * 切换主面板显示状态
-   * - 如果窗口已显示，则隐藏
-   * - 如果窗口隐藏或最小化，则显示并聚焦
+   * 메인 패널 표시 상태 전환
+   * - 창이 이미 표시되어 있으면 숨김
+   * - 창이 숨겨져 있거나 최소화되어 있으면 표시하고 포커스
    */
   const handleOpenMainPanel = async () => {
     const currentTime = Date.now()
 
-    // 防抖：如果距离上次操作少于500ms，则忽略
+    // 디바운스: 마지막 작업 후 500ms 미만이면 무시
     if (currentTime - lastToggleTime < 500) {
       return
     }
 
-    // 清除之前的延时操作
+    // 이전 지연 작업 지우기
     if (togglePanelTimeout) {
       clearTimeout(togglePanelTimeout)
       togglePanelTimeout = null
@@ -134,25 +134,25 @@ export const useGlobalShortcut = () => {
         return
       }
 
-      // 获取当前窗口状态
+      // 현재 창 상태 가져오기
       const isVisible = await homeWindow.isVisible()
       const isMinimized = await homeWindow.isMinimized()
 
-      console.log(`快捷键触发 - 窗口状态: 可见=${isVisible}, 最小化=${isMinimized}`)
+      console.log(`단축키 트리거 - 창 상태: 표시됨=${isVisible}, 최소화됨=${isMinimized}`)
 
       if (isVisible && !isMinimized) {
-        // 窗口当前可见且未最小化，直接隐藏
+        // 창이 현재 표시되어 있고 최소화되지 않은 경우 바로 숨김
         await homeWindow.hide()
       } else {
-        // 处理最小化状态
+        // 최소화 상태 처리
         if (isMinimized) {
           await homeWindow.unminimize()
         }
 
-        // 显示窗口
+        // 창 표시
         await homeWindow.show()
 
-        // 延迟设置焦点，确保窗口已完全显示
+        // 포커스 설정 지연, 창이 완전히 표시되도록 보장
         togglePanelTimeout = setTimeout(async () => {
           await homeWindow.setFocus()
         }, 50)
@@ -162,7 +162,7 @@ export const useGlobalShortcut = () => {
     }
   }
 
-  // 快捷键配置数组 - 新增快捷键只需在此处添加配置即可
+  // 단축키 설정 배열 - 새 단축키는 여기에 설정을 추가하기만 하면 됨
   const shortcutConfigs: ShortcutConfig[] = [
     {
       key: 'screenshot',
@@ -181,219 +181,219 @@ export const useGlobalShortcut = () => {
   ]
 
   /**
-   * 通用快捷键注册函数
-   * @param config 快捷键配置
-   * @param shortcut 快捷键字符串
+   * 일반 단축키 등록 함수
+   * @param config 단축키 설정
+   * @param shortcut 단축키 문자열
    */
   const registerShortcut = async (config: ShortcutConfig, shortcut: string): Promise<boolean> => {
     try {
       const currentShortcut = globalShortcutStates.get(config.key)
 
-      // 清理当前快捷键
+      // 현재 단축키 정리
       if (currentShortcut) {
         await unregister(currentShortcut)
-        console.log(`清理快捷键 [${config.key}]: ${currentShortcut}`)
+        console.log(`단축키 정리 [${config.key}]: ${currentShortcut}`)
       }
 
-      // 预防性清理目标快捷键
+      // 대상 단축키 예방적 정리
       if (!currentShortcut) {
         try {
           await unregister(shortcut)
-          console.log(`预清理快捷键 [${config.key}]: ${shortcut}`)
+          console.log(`단축키 예방적 정리 [${config.key}]: ${shortcut}`)
         } catch (_e) {
-          console.log(`快捷键 [${config.key}] 未注册: ${shortcut}`)
+          console.log(`단축키 [${config.key}] 미등록: ${shortcut}`)
         }
       }
 
-      // 注册新快捷键
+      // 새 단축키 등록
       await register(shortcut, config.handler)
       globalShortcutStates.set(config.key, shortcut)
-      console.log(`快捷键已注册 [${config.key}]: ${shortcut}`)
+      console.log(`단축키 등록됨 [${config.key}]: ${shortcut}`)
       return true
     } catch (error) {
-      console.error(`注册快捷键失败 [${config.key}]:`, error)
+      console.error(`단축키 등록 실패 [${config.key}]:`, error)
       return false
     }
   }
 
   /**
-   * 取消注册快捷键
-   * @param shortcut 要取消注册的快捷键字符串
+   * 단축키 등록 취소
+   * @param shortcut 등록 취소할 단축키 문자열
    */
   const unregisterShortcut = async (shortcut: string) => {
     try {
       await unregister(shortcut)
-      console.log(`成功取消注册快捷键: ${shortcut}`)
+      console.log(`단축키 등록 취소 성공: ${shortcut}`)
     } catch (error) {
-      console.error(`取消注册快捷键失败: ${shortcut}`, error)
+      console.error(`단축키 등록 취소 실패: ${shortcut}`, error)
     }
   }
 
   /**
-   * 强制清理快捷键残留
+   * 단축키 잔여물 강제 정리
    */
   const forceCleanupShortcuts = async (shortcuts: string[]) => {
     for (const shortcut of shortcuts) {
       try {
         await unregister(shortcut)
       } catch (_e) {
-        console.log(`强制清理 ${shortcut} (可能未注册)`)
+        console.log(`${shortcut} 강제 정리 (미등록 상태일 수 있음)`)
       }
     }
   }
 
   /**
-   * 通用快捷键更新处理函数
-   * @param config 快捷键配置
-   * @param newShortcut 新快捷键
+   * 일반 단축키 업데이트 처리 함수
+   * @param config 단축키 설정
+   * @param newShortcut 새 단축키
    */
   const handleShortcutUpdate = async (config: ShortcutConfig, newShortcut: string) => {
     const oldShortcut = globalShortcutStates.get(config.key)
 
-    // 强制清理旧快捷键
+    // 이전 단축키 강제 정리
     const shortcutsToClean = [oldShortcut, newShortcut].filter(Boolean) as string[]
     await forceCleanupShortcuts(shortcutsToClean)
 
-    // 清除状态，准备重新注册
+    // 상태 지우기, 재등록 준비
     globalShortcutStates.delete(config.key)
 
-    // 尝试注册新快捷键
-    console.log(`[Home] 开始注册新快捷键 [${config.key}]: ${newShortcut}`)
+    // 새 단축키 등록 시도
+    console.log(`[Home] 새 단축키 등록 시작 [${config.key}]: ${newShortcut}`)
     const success = await registerShortcut(config, newShortcut)
 
-    // 如果注册失败且有旧快捷键，尝试回滚
+    // 등록 실패 및 이전 단축키가 있는 경우 롤백 시도
     if (!success && oldShortcut) {
       globalShortcutStates.delete(config.key)
       const rollbackSuccess = await registerShortcut(config, oldShortcut)
-      console.log(`[Home] 快捷键回滚结果 [${config.key}]: ${rollbackSuccess ? '成功' : '失败'}`)
+      console.log(`[Home] 단축키 롤백 결과 [${config.key}]: ${rollbackSuccess ? '성공' : '실패'}`)
     }
 
-    // 通知设置页面注册状态更新
+    // 설정 페이지에 등록 상태 업데이트 알림
     await emitTo('settings', config.registrationEventName, {
       shortcut: newShortcut,
       registered: success
     })
-    console.log(`[Home] 已通知 settings 窗口快捷键状态更新 [${config.key}]: ${success ? '已注册' : '未注册'}`)
+    console.log(`[Home] settings 창에 단축키 상태 업데이트 알림 [${config.key}]: ${success ? '등록됨' : '미등록'}`)
   }
 
   /**
-   * 处理全局快捷键开关状态变化
-   * @param enabled 是否启用全局快捷键
+   * 전역 단축키 스위치 상태 변경 처리
+   * @param enabled 전역 단축키 활성화 여부
    */
   const handleGlobalShortcutToggle = async (enabled: boolean) => {
     if (enabled) {
-      // 开启时重新注册所有快捷键并通知设置页面
+      // 켜져 있을 때 모든 단축키를 다시 등록하고 설정 페이지에 알림
       for (const config of shortcutConfigs) {
         const savedShortcut = settingStore.shortcuts?.[config.key] || config.defaultValue
         const success = await registerShortcut(config, savedShortcut as string)
 
-        // 通知设置页面注册状态更新
+        // 설정 페이지에 등록 상태 업데이트 알림
         await emitTo('settings', config.registrationEventName, {
           shortcut: savedShortcut,
           registered: success
         })
       }
     } else {
-      // 关闭时取消注册所有快捷键并通知设置页面状态为未绑定
+      // 꺼져 있을 때 모든 단축키 등록 취소 및 설정 페이지에 미바인딩 상태 알림
       for (const config of shortcutConfigs) {
         const savedShortcut = settingStore.shortcuts?.[config.key] || config.defaultValue
 
-        // 通知设置页面注册状态更新为未绑定
+        // 설정 페이지에 등록 상태를 미바인딩으로 업데이트 알림
         await emitTo('settings', config.registrationEventName, {
           shortcut: savedShortcut,
           registered: false
         })
       }
 
-      // 取消注册所有快捷键
+      // 모든 단축키 등록 취소
       await cleanupGlobalShortcut()
     }
   }
 
   /**
-   * 初始化全局快捷键
-   * 根据配置自动注册所有快捷键并监听更新事件
+   * 전역 단축키 초기화
+   * 설정에 따라 모든 단축키를 자동 등록하고 업데이트 이벤트 수신
    */
   const initializeGlobalShortcut = async () => {
-    // 确保capture窗口存在
+    // capture 창 존재 확인
     await ensureCaptureWindow()
 
-    // 检查全局快捷键是否开启，默认为关闭
+    // 전역 단축키 활성화 여부 확인, 기본값은 비활성화
     const globalEnabled = settingStore.shortcuts?.globalEnabled ?? false
 
-    // 只有开启时才注册快捷键
+    // 활성화된 경우에만 단축키 등록
     if (globalEnabled) {
-      // 批量注册所有配置的快捷键
+      // 설정된 모든 단축키 일괄 등록
       for (const config of shortcutConfigs) {
         const savedShortcut = settingStore.shortcuts?.[config.key] || config.defaultValue
         await registerShortcut(config, savedShortcut as string)
       }
     }
 
-    // 监听全局快捷键开关变化
+    // 전역 단축키 스위치 변경 감지
     listen('global-shortcut-enabled-changed', (event) => {
       const enabled = (event.payload as any)?.enabled
       if (typeof enabled === 'boolean') {
         handleGlobalShortcutToggle(enabled)
       } else {
-        console.warn(`[Home] 收到无效的全局快捷键开关事件:`, event.payload)
+        console.warn(`[Home] 유효하지 않은 전역 단축키 스위치 이벤트 수신:`, event.payload)
       }
     })
 
-    // 监听每个快捷键的更新事件
+    // 각 단축키 업데이트 이벤트 감지
     for (const config of shortcutConfigs) {
       listen(config.updateEventName, (event) => {
         const newShortcut = (event.payload as any)?.shortcut
         if (newShortcut) {
-          // 只有全局快捷键开启时才处理更新
+          // 전역 단축키가 켜져 있을 때만 업데이트 처리
           const globalEnabled = settingStore.shortcuts?.globalEnabled ?? false
           if (globalEnabled) {
             handleShortcutUpdate(config, newShortcut)
           } else {
-            console.log(`[Home] 全局快捷键已关闭，跳过快捷键更新 [${config.key}]`)
+            console.log(`[Home] 전역 단축키가 꺼져 있어 단축키 업데이트 건너뜀 [${config.key}]`)
           }
         } else {
-          console.warn(`[Home] 收到无效的快捷键更新事件 [${config.key}]:`, event.payload)
+          console.warn(`[Home] 유효하지 않은 단축키 업데이트 이벤트 수신 [${config.key}]:`, event.payload)
         }
       })
     }
   }
 
   /**
-   * 清理全局快捷键
-   * 取消注册所有快捷键并清理状态
+   * 전역 단축키 정리
+   * 모든 단축키 등록 취소 및 상태 정리
    */
   const cleanupGlobalShortcut = async () => {
-    // 清理防抖定时器
+    // 디바운스 타이머 정리
     if (togglePanelTimeout) {
       clearTimeout(togglePanelTimeout)
       togglePanelTimeout = null
     }
 
-    // 取消注册所有已注册的快捷键
+    // 등록된 모든 단축키 등록 취소
     for (const shortcut of globalShortcutStates.values()) {
       await unregisterShortcut(shortcut)
     }
-    // 清理状态
+    // 상태 정리
     globalShortcutStates.clear()
   }
 
   return {
-    // 处理函数
+    // 처리 함수
     handleScreenshot,
     handleOpenMainPanel,
 
-    // 核心功能
+    // 핵심 기능
     initializeGlobalShortcut,
     cleanupGlobalShortcut,
     ensureCaptureWindow,
 
-    // 工具函数
+    // 도구 함수
     registerShortcut: (config: ShortcutConfig, shortcut: string) => registerShortcut(config, shortcut),
     unregisterShortcut,
     getDefaultShortcuts,
 
-    // 配置信息（用于外部访问）
+    // 설정 정보 (외부 접근용)
     shortcutConfigs
   }
 }

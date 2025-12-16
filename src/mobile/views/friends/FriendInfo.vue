@@ -5,7 +5,7 @@
       :hidden-right="true"
       :enable-default-background="false"
       :enable-shadow="false"
-      room-name="用户资料" />
+      room-name="사용자 프로필" />
 
     <img src="@/assets/mobile/chat-home/background.webp" class="w-100% fixed top-0" alt="hula" />
 
@@ -24,36 +24,36 @@
             :options="tabOptions"
             active-tab-name="find">
             <template #find>
-              <!-- 加载状态 -->
+              <!-- 로딩 상태 -->
               <div
                 v-if="feedOptions.isLoading && feedList.length === 0"
                 class="flex justify-center items-center py-20px">
                 <n-spin size="large" />
               </div>
 
-              <!-- 空状态 -->
+              <!-- 빈 상태 -->
               <div v-else-if="feedList.length === 0" class="flex justify-center items-center py-40px text-gray-500">
-                暂无动态
+                피드 없음
               </div>
 
-              <!-- 动态列表 -->
+              <!-- 피드 목록 -->
               <template v-else>
                 <CommunityContent v-for="item in feedList" :key="item.id" :feed-item="item" />
 
-                <!-- 加载更多 -->
+                <!-- 더 보기 로드 -->
                 <div v-if="!feedOptions.isLast" class="flex justify-center py-15px">
                   <n-button :loading="feedOptions.isLoading" @click="loadMore" type="primary" text size="small">
-                    {{ feedOptions.isLoading ? '加载中...' : '加载更多' }}
+                    {{ feedOptions.isLoading ? '로딩 중...' : '더 보기' }}
                   </n-button>
                 </div>
 
-                <!-- 已加载全部 -->
-                <div v-else class="flex justify-center py-15px text-12px text-gray-400">已加载全部</div>
+                <!-- 모두 로드됨 -->
+                <div v-else class="flex justify-center py-15px text-12px text-gray-400">모두 로드됨</div>
               </template>
             </template>
 
             <template #follow>
-              <!-- 赞过的动态 -->
+              <!-- 좋아요한 피드 -->
               <div
                 v-if="feedOptions.isLoading && feedList.length === 0"
                 class="flex justify-center items-center py-20px">
@@ -61,7 +61,7 @@
               </div>
 
               <div v-else-if="feedList.length === 0" class="flex justify-center items-center py-40px text-gray-500">
-                暂无赞过的动态
+                좋아요한 피드 없음
               </div>
 
               <template v-else>
@@ -69,11 +69,11 @@
 
                 <div v-if="!feedOptions.isLast" class="flex justify-center py-15px">
                   <n-button :loading="feedOptions.isLoading" @click="loadMore" type="primary" text size="small">
-                    {{ feedOptions.isLoading ? '加载中...' : '加载更多' }}
+                    {{ feedOptions.isLoading ? '로딩 중...' : '더 보기' }}
                   </n-button>
                 </div>
 
-                <div v-else class="flex justify-center py-15px text-12px text-gray-400">已加载全部</div>
+                <div v-else class="flex justify-center py-15px text-12px text-gray-400">모두 로드됨</div>
               </template>
             </template>
           </CommunityTab>
@@ -113,7 +113,7 @@ const uid = route.params.uid as string
 const isMyPage = ref(false)
 
 const onUpdate = (newTab: string) => {
-  console.log('已更新：', newTab)
+  console.log('업데이트됨:', newTab)
 }
 
 const loadMore = async () => {
@@ -123,11 +123,11 @@ const loadMore = async () => {
 
 const tabOptions = reactive([
   {
-    tab: '动态',
+    tab: '피드',
     name: 'find'
   },
   {
-    tab: '赞过',
+    tab: '좋아요',
     name: 'follow'
   }
 ])
@@ -140,7 +140,7 @@ watch(isShow, (show) => {
   box.style.transition = 'all 0.3s ease'
 
   if (show) {
-    // 显示：从缩小恢复到原始高度
+    // 표시: 축소에서 원래 높이로 복원
     box.style.height = box.scrollHeight + 'px'
     box.style.opacity = '1'
     box.style.transform = 'scale(1) translateY(0)'
@@ -148,16 +148,16 @@ watch(isShow, (show) => {
     box.addEventListener(
       'transitionend',
       () => {
-        box.style.height = 'auto' // 回归自适应高度
+        box.style.height = 'auto' // 자동 높이로 복귀
         box.style.overflow = ''
       },
       { once: true }
     )
   } else {
-    // 隐藏：缩小并收起高度
-    box.style.height = box.scrollHeight + 'px' // 先设置为当前高度
+    // 숨김: 축소하고 높이 접기
+    box.style.height = box.scrollHeight + 'px' // 먼저 현재 높이로 설정
     requestAnimationFrame(() => {
-      box.style.height = '58px' // 保持略小的高度（你原图是 86px，缩放 0.65 后约为 56px）
+      box.style.height = '58px' // 약간 작은 높이 유지 (원본 86px, 0.65 축소 후 약 56px)
       box.style.transform = 'scale(1) translateY(0)'
     })
   }
@@ -167,13 +167,13 @@ watch(isShow, (show) => {
   const info = infoBox.value
   if (!info) return
 
-  // 添加动画过渡（也可直接写在 class 里）
+  // 애니메이션 전환 추가 (class에 직접 작성 가능)
   info.style.transition = 'transform 0.3s ease'
 
   if (show) {
     info.style.transform = 'translateX(0)'
   } else {
-    info.style.transform = 'translateX(-20px)' // 👈 向左移动一点
+    info.style.transform = 'translateX(-20px)' // 👈 왼쪽으로 약간 이동
   }
 })
 
@@ -188,7 +188,7 @@ onMounted(async () => {
     isMyPage.value = false
   }
 
-  // 初始加载动态列表
+  // 피드 목록 초기 로드
   await feedStore.getFeedList(true)
 })
 
@@ -204,7 +204,7 @@ const handleScroll = (event: Event) => {
 
   const scrollTop = target.scrollTop
 
-  // 向上滑动
+  // 위로 스크롤
   if (scrollTop - lastScrollTop.value > 0) {
     if (scrollTop > 700 && isShow.value && !hasTriggeredHide.value) {
       requestAnimationFrame(() => {
@@ -216,7 +216,7 @@ const handleScroll = (event: Event) => {
     }
   }
 
-  // 向下滑回顶部区域
+  // 아래로 스크롤하여 상단 영역으로 복귀
   if (scrollTop < 580) {
     requestAnimationFrame(() => {
       isShow.value = true
@@ -258,7 +258,7 @@ $font-family-sans: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
 .custom-rounded {
-  border-top-left-radius: 20px; /* 左上角 */
+  border-top-left-radius: 20px; /* 왼쪽 상단 */
   border-top-right-radius: 20px;
   overflow: hidden;
 }
@@ -300,7 +300,7 @@ $font-family-sans: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
 .medal-fade-enter-to {
-  max-height: 24px; // 和你容器展开时的高度一致
+  max-height: 24px; // 컨테이너가 펼쳐졌을 때의 높이와 일치
   opacity: 1;
 }
 

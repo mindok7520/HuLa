@@ -15,13 +15,13 @@
           :style="{ height: `${itemHeight}px` }"
           @mouseenter="handleItemMouseEnter(index)">
           <slot name="item" :item="item" :index="index">
-            <!-- 默认渲染内容 -->
+            <!-- 기본 렌더링 내용 -->
             <div class="p-[8px_10px] rounded-lg">{{ item }}</div>
           </slot>
         </div>
       </template>
     </n-virtual-list>
-    <!-- 悬浮效果层 -->
+    <!-- 호버 효과 레이어 -->
     <div
       v-show="hoverPosition !== null"
       class="hover-effect"
@@ -35,51 +35,51 @@
 </template>
 
 <script setup lang="ts">
-// 定义组件的属性
+// 컴포넌트 속성 정의
 const props = defineProps({
-  // 数据源
+  // 데이터 소스
   dataSource: {
     type: Array as () => any[],
     required: true
   },
-  // 数据项唯一标识字段名
+  // 데이터 항목 고유 식별자 필드명
   itemKey: {
     type: String,
     default: ''
   },
-  // 项目高度
+  // 항목 높이
   itemHeight: {
     type: Number,
     default: 64
   },
-  // 最大高度
+  // 최대 높이
   maxHeight: {
     type: String,
     default: 'calc(100vh / var(--page-scale, 1) - 132px)'
   },
-  // 悬浮项的透明度
+  // 호버 항목의 투명도
   hoverOpacity: {
     type: Number,
     default: 0.06
   }
 })
 
-// 引用和状态
+// 참조 및 상태
 const containerRef = ref<HTMLElement | null>(null)
 const virtualListRef = ref<any>(null)
 const hoverPosition = ref<number | null>(null)
 const currentHoverIndex = ref<number | null>(null)
 const containerHeight = ref<number>(0)
 
-// 计算属性：判断悬浮位置是否有效（是否在容器范围内）
+// 계산된 속성: 호버 위치가 유효한지 확인 (컨테이너 범위 내인지)
 const isHoverPositionValid = computed(() => {
   if (hoverPosition.value === null) return false
 
-  // 确保悬浮位置 + 项目高度不超过容器高度
+  // 호버 위치 + 항목 높이가 컨테이너 높이를 초과하지 않도록 확인
   return hoverPosition.value >= 0 && hoverPosition.value + props.itemHeight <= containerHeight.value
 })
 
-// 更新容器高度
+// 컨테이너 높이 업데이트
 const updateContainerHeight = () => {
   if (virtualListRef.value?.$el) {
     const pageScale = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--page-scale') || '1')
@@ -87,117 +87,117 @@ const updateContainerHeight = () => {
   }
 }
 
-// 处理滚动事件
+// 스크롤 이벤트 처리
 const handleScroll = () => {
-  // 更新容器高度
+  // 컨테이너 높이 업데이트
   updateContainerHeight()
 
-  // 如果当前有悬浮项，更新其位置
+  // 현재 호버 항목이 있으면 위치 업데이트
   if (currentHoverIndex.value !== null) {
     updateHoverPositionByIndex(currentHoverIndex.value)
   }
 }
 
-// 处理列表项的鼠标进入事件
+// 목록 항목의 마우스 진입 이벤트 처리
 const handleItemMouseEnter = (index: number) => {
-  // 设置当前悬停的索引
+  // 현재 호버 인덱스 설정
   currentHoverIndex.value = index
 
-  // 获取当前悬停项的DOM元素
+  // 현재 호버 항목의 DOM 요소 가져오기
   const item =
     (event?.target as HTMLElement)?.closest('.float-block') || document.activeElement?.closest('.float-block')
 
   if (item) {
-    // 获取元素相对于列表容器的位置
+    // 목록 컨테이너에 대한 요소의 상대 위치 가져오기
     const listEl = virtualListRef.value?.$el
     if (!listEl) return
 
     const itemRect = item.getBoundingClientRect()
     const listRect = listEl.getBoundingClientRect()
 
-    // 设置悬浮效果的位置
+    // 호버 효과 위치 설정
     const pageScale = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--page-scale') || '1')
     hoverPosition.value = (itemRect.top - listRect.top) / pageScale
 
-    // 更新容器高度
+    // 컨테이너 높이 업데이트
     updateContainerHeight()
   } else {
-    // 如果找不到DOM元素，使用索引计算位置
+    // DOM 요소를 찾을 수 없는 경우 인덱스를 사용하여 위치 계산
     updateHoverPositionByIndex(index)
   }
 }
 
-// 根据索引获取实际渲染的DOM元素并更新悬浮效果位置
+// 인덱스에 따라 실제 렌더링된 DOM 요소를 가져오고 호버 효과 위치 업데이트
 const updateHoverPositionByIndex = (index: number) => {
   if (!virtualListRef.value?.$el) return
 
-  // 获取所有渲染的列表项元素
+  // 렌더링된 모든 목록 항목 요소 가져오기
   const items = virtualListRef.value.$el.querySelectorAll('.float-block')
   if (!items.length) return
 
-  // 获取虚拟列表的起始索引
+  // 가상 목록의 시작 인덱스 가져오기
   const startIndex = virtualListRef.value?.getOffset?.() || 0
 
-  // 计算目标项在当前可视区域中的相对位置
+  // 현재 가시 영역에서 대상 항목의 상대 위치 계산
   const relativeIndex = index - startIndex
 
-  // 确保索引在可视范围内
+  // 인덱스가 가시 범위 내에 있는지 확인
   if (relativeIndex < 0 || relativeIndex >= items.length) {
-    // 如果不在可视范围内，隐藏悬浮效果
+    // 가시 범위 내에 없으면 호버 효과 숨기기
     hoverPosition.value = null
     return
   }
 
-  // 获取目标元素
+  // 대상 요소 가져오기
   const targetItem = items[relativeIndex]
   if (!targetItem) {
     hoverPosition.value = null
     return
   }
 
-  // 获取目标元素相对于虚拟列表容器的位置
+  // 가상 목록 컨테이너에 대한 대상 요소의 상대 위치 가져오기
   const listContainer = virtualListRef.value.$el
   const targetRect = targetItem.getBoundingClientRect()
   const listRect = listContainer.getBoundingClientRect()
 
-  // 计算目标元素相对于列表容器的顶部偏移量
+  // 목록 컨테이너에 대한 대상 요소의 상단 오프셋 계산
   const pageScale = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--page-scale') || '1')
   hoverPosition.value = (targetRect.top - listRect.top) / pageScale
 
-  // 更新容器高度
+  // 컨테이너 높이 업데이트
   updateContainerHeight()
 }
 
-// 处理容器的鼠标离开事件
+// 컨테이너의 마우스 이탈 이벤트 처리
 const handleMouseLeave = () => {
   hoverPosition.value = null
   currentHoverIndex.value = null
 }
 
-// 在组件挂载时添加事件监听
+// 컴포넌트 마운트 시 이벤트 리스너 추가
 onMounted(() => {
   if (containerRef.value) {
     containerRef.value.addEventListener('mouseleave', handleMouseLeave)
   }
 
-  // 初始化容器高度
+  // 컨테이너 높이 초기화
   updateContainerHeight()
 
-  // 监听窗口大小变化
+  // 창 크기 변경 감지
   window.addEventListener('resize', updateContainerHeight)
 })
 
-// 在组件卸载时移除事件监听
+// 컴포넌트 언마운트 시 이벤트 리스너 제거
 onUnmounted(() => {
   if (containerRef.value) {
     containerRef.value.removeEventListener('mouseleave', handleMouseLeave)
   }
 
-  // 移除窗口大小变化监听
+  // 창 크기 변경 리스너 제거
   window.removeEventListener('resize', updateContainerHeight)
 })
 
-// 暴露滚动到顶部/底部方法
+// 상단/하단으로 스크롤하는 메서드 노출
 defineExpose({
   scrollToTop: () => {
     if (virtualListRef.value) {

@@ -1,5 +1,5 @@
 <template>
-  <!-- 好友详情 -->
+  <!-- 친구 상세 정보 -->
   <n-flex v-if="content.type === RoomTypeEnum.SINGLE" vertical align="center" :size="30" class="mt-60px">
     <n-image
       object-fit="cover"
@@ -38,7 +38,7 @@
           </template>
         </n-flex>
       </n-flex>
-      <!-- 选项按钮 -->
+      <!-- 옵션 버튼 -->
       <n-flex align="center" justify="space-between" :size="60">
         <n-icon-wrapper
           v-for="(item, index) in footerOptions"
@@ -61,11 +61,11 @@
     </template>
   </n-flex>
 
-  <!-- 群聊详情 -->
+  <!-- 그룹 채팅 상세 정보 -->
   <div
     v-else-if="content.type === RoomTypeEnum.GROUP && item"
     class="flex flex-col flex-1 mt-60px gap-30px select-none p-[0_40px] box-border">
-    <!-- 群聊头像及名称 -->
+    <!-- 그룹 채팅 아바타 및 이름 -->
     <n-flex align="center" justify="space-between" class="px-30px box-border">
       <n-flex align="center" :size="30">
         <n-image
@@ -118,7 +118,7 @@
       </n-icon-wrapper>
     </n-flex>
 
-    <!-- 群信息列表 -->
+    <!-- 그룹 정보 목록 -->
     <n-flex vertical class="select-none w-full px-30px box-border">
       <n-flex
         align="center"
@@ -189,7 +189,7 @@
       </n-flex>
     </n-flex>
 
-    <!-- 群成员 -->
+    <!-- 그룹 멤버 -->
     <n-flex vertical :size="10" class="px-30px box-border">
       <n-flex align="center" justify="space-between" class="text-(14px [--chat-text-color])">
         <span>{{ t('home.chat_details.group.members.count', { count: item.memberNum }) }}</span>
@@ -234,11 +234,11 @@ const { content } = defineProps<{
 const item = ref<any>(null)
 const options = ref<Array<{ name: string; src: string }>>([])
 
-// 编辑群备注相关状态
+// 그룹 메모 편집 관련 상태
 const isEditingRemark = ref(false)
 const remarkInputRef = useTemplateRef('remarkInputRef')
 
-// 编辑本群昵称相关状态
+// 그룹 닉네임 편집 관련 상태
 const isEditingNickname = ref(false)
 const nicknameValue = ref('')
 const nicknameInputRef = useTemplateRef('nicknameInputRef')
@@ -266,7 +266,7 @@ const loadAnnouncement = async (roomId: string) => {
       announcementContent.value = ''
     }
   } catch (error) {
-    console.error('获取群公告失败:', error)
+    console.error('그룹 공지 가져오기 실패:', error)
     announcementContent.value = ''
   }
 }
@@ -285,7 +285,7 @@ const displayNickname = computed(() =>
   resolveMyRoomNickname({ roomId: item.value?.roomId, myName: item.value?.myName })
 )
 
-// 判断是否为 BOT 用户
+// BOT 사용자인지 확인
 const isBotUser = computed(() => {
   if (content.type !== RoomTypeEnum.SINGLE || !item.value?.uid) return false
   return groupStore.getUserInfo(item.value.uid)?.account === UserType.BOT
@@ -313,13 +313,13 @@ watchEffect(async () => {
         }
       })
       .catch((e) => {
-        console.error('获取群组详情失败:', e)
+        console.error('그룹 상세 정보 가져오기 실패:', e)
         announcementContent.value = ''
       })
   }
 })
 
-// 开始编辑群备注
+// 그룹 메모 편집 시작
 const startEditRemark = () => {
   remarkSnapshot.value = item.value?.remark || ''
   isEditingRemark.value = true
@@ -328,7 +328,7 @@ const startEditRemark = () => {
   })
 }
 
-// 处理群备注更新
+// 그룹 메모 업데이트 처리
 const handleRemarkUpdate = async () => {
   if (!item.value?.roomId) {
     isEditingRemark.value = false
@@ -359,7 +359,7 @@ const handleRemarkUpdate = async () => {
   }
 }
 
-// 开始编辑本群昵称
+// 그룹 닉네임 편집 시작
 const startEditNickname = () => {
   const resolved = displayNickname.value || ''
   nicknameSnapshot.value = resolved
@@ -370,7 +370,7 @@ const startEditNickname = () => {
   })
 }
 
-// 处理本群昵称更新
+// 그룹 닉네임 업데이트 처리
 const handleNicknameUpdate = async () => {
   if (!item.value?.roomId) {
     isEditingNickname.value = false
@@ -413,7 +413,7 @@ const handleNicknameUpdate = async () => {
   }
 }
 
-// 复制
+// 복사
 const handleCopy = (account: string) => {
   if (account) {
     navigator.clipboard.writeText(account)
@@ -421,10 +421,10 @@ const handleCopy = (account: string) => {
   }
 }
 
-// 获取群组详情和成员信息
+// 그룹 상세 정보 및 멤버 정보 가져오기
 const fetchGroupMembers = async (roomId: string) => {
   try {
-    // 使用每个成员的uid获取详细信息
+    // 각 멤버의 uid를 사용하여 상세 정보 가져오기
     const userList = groupStore.getUserListByRoomId(roomId)
     const memberDetails = userList.map((member: UserItem) => {
       const userInfo = groupStore.getUserInfo(member.uid)!
@@ -436,7 +436,7 @@ const fetchGroupMembers = async (roomId: string) => {
 
     options.value = memberDetails
   } catch (error) {
-    console.error('获取群成员失败:', error)
+    console.error('그룹 멤버 가져오기 실패:', error)
   }
 }
 
@@ -502,14 +502,14 @@ const footerOptions = computed<OPT.Details[]>(() => {
   ]
 })
 
-// 打开图片查看器
+// 이미지 뷰어 열기
 const openImageViewer = async () => {
   try {
     const imageViewerStore = useImageViewer()
-    // 设置为单图模式并传入图片URL
+    // 단일 이미지 모드로 설정하고 이미지 URL 전달
     imageViewerStore.setSingleImage(AvatarUtils.getAvatarUrl(item.value.avatar))
 
-    // 创建窗口，使用计算后的尺寸
+    // 계산된 크기를 사용하여 창 생성
     await createWebviewWindow(
       t('home.chat_details.window.image_viewer'),
       'imageViewer',
@@ -521,7 +521,7 @@ const openImageViewer = async () => {
       IMAGEHEIGHT
     )
   } catch (error) {
-    console.error('打开图片查看器失败:', error)
+    console.error('이미지 뷰어 열기 실패:', error)
   }
 }
 </script>

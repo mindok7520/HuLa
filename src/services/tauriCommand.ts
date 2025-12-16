@@ -73,7 +73,7 @@ export const loginCommand = async (
   const settingStore = useSettingStore()
 
   const loginInfo = settingStore.login.autoLogin ? (userStore.userInfo as UserInfoType) : info
-  // 存储此次登陆设备指纹
+  // 이번 로그인 장치 지문 저장
   const clientId = await getEnhancedFingerprint()
 
   await ensureAppStateReady()
@@ -91,7 +91,7 @@ export const loginCommand = async (
       uid: info.uid
     }
   }).then(async (res: any) => {
-    // 开启 ws 连接
+    // ws 연결 시작
     await rustWebSocketClient.initConnect()
     await loginProcess(res.token, res.refreshToken, res.client)
   })
@@ -118,14 +118,14 @@ const loginProcess = async (token: string, refreshToken: string, client: string)
 
   loginHistoriesStore.addLoginHistory(account)
 
-  // 在 sqlite 中存储用户信息
+  // sqlite에 사용자 정보 저장
   await invokeWithErrorHandler(
     TauriCommand.SAVE_USER_INFO,
     {
       userInfo: userDetail
     },
     {
-      customErrorMessage: '保存用户信息失败',
+      customErrorMessage: '사용자 정보 저장 실패',
       errorType: ErrorType.Client
     }
   )
@@ -139,7 +139,7 @@ const openHomeWindow = async () => {
   const registerWindow = await WebviewWindow.getByLabel('register')
   if (registerWindow) {
     await registerWindow.close().catch((error) => {
-      console.warn('关闭注册窗口失败:', error)
+      console.warn('등록 창 닫기 실패:', error)
     })
   }
   await createWebviewWindow('HuLa', 'home', 960, 720, 'login', true, 330, 480, undefined, false)

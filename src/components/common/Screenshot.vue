@@ -6,9 +6,9 @@
     <div ref="magnifier" class="magnifier">
       <canvas ref="magnifierCanvas"></canvas>
     </div>
-    <!-- 选区拖动区域 -->
+    <!-- 선택 영역 드래그 영역 -->
     <div ref="selectionArea" class="selection-area" v-show="showButtonGroup" :style="selectionAreaStyle">
-      <!-- 内部拖动区域 -->
+      <!-- 내부 드래그 영역 -->
       <div
         :class="['drag-area', currentDrawTool ? 'cannot-drag' : 'can-drag']"
         :title="t('message.screenshot.tooltip_drag')"
@@ -17,7 +17,7 @@
         @mouseup="handleSelectionDragEnd"
         @dblclick="confirmSelection"></div>
 
-      <!-- resize控制点 - 四个角 -->
+      <!-- 크기 조절 핸들 - 네 모서리 -->
       <div
         :class="['resize-handle', 'resize-nw', { disabled: currentDrawTool }]"
         :title="t('message.screenshot.tooltip_resize')"
@@ -35,7 +35,7 @@
         :title="t('message.screenshot.tooltip_resize')"
         @mousedown.stop="handleResizeStart($event, 'se')"></div>
 
-      <!-- resize控制点 - 四条边的中间 -->
+      <!-- 크기 조절 핸들 - 네 변의 중간 -->
       <div
         :class="['resize-handle', 'resize-n', { disabled: currentDrawTool }]"
         :title="t('message.screenshot.tooltip_resize')"
@@ -53,7 +53,7 @@
         :title="t('message.screenshot.tooltip_resize')"
         @mousedown.stop="handleResizeStart($event, 'w')"></div>
 
-      <!-- 圆角控制器 -->
+      <!-- 테두리 반경 컨트롤러 -->
       <div class="border-radius-controller" :style="borderRadiusControllerStyle" @click.stop>
         <label>{{ t('message.screenshot.border_radius') }}:</label>
         <input type="range" :value="borderRadius" @input="handleBorderRadiusChange" min="0" max="100" step="1" />
@@ -86,11 +86,11 @@
         @click="drawImgCanvas('mosaic')">
         <svg><use href="#mosaic"></use></svg>
       </span>
-      <!-- 重做 -->
+      <!-- 다시 실행 -->
       <span :title="t('message.screenshot.redo')" @click="drawImgCanvas('redo')">
         <svg><use href="#refresh"></use></svg>
       </span>
-      <!-- 撤回：当没有涂鸦时禁用 -->
+      <!-- 실행 취소: 낙서가 없을 때 비활성화 -->
       <span
         :class="{ disabled: !canUndo }"
         :aria-disabled="!canUndo"
@@ -130,48 +130,48 @@ type ScreenConfig = {
   height: number
 }
 
-// 获取当前窗口实例
+// 현재 창 인스턴스 가져오기
 const { t } = useI18n()
 const appWindow = WebviewWindow.getCurrent()
 const canvasbox: Ref<HTMLDivElement | null> = ref(null)
 
-// 图像层
+// 이미지 레이어
 const imgCanvas: Ref<HTMLCanvasElement | null> = ref(null)
 const imgCtx: Ref<CanvasRenderingContext2D | null> = ref(null)
 
-// 蒙版层
+// 마스크 레이어
 const maskCanvas: Ref<HTMLCanvasElement | null> = ref(null)
 const maskCtx: Ref<CanvasRenderingContext2D | null> = ref(null)
 
-// 绘图层
+// 그리기 레이어
 const drawCanvas: Ref<HTMLCanvasElement | null> = ref(null)
 const drawCtx: Ref<CanvasRenderingContext2D | null> = ref(null)
 let drawTools: any
-// 是否可撤回
+// 실행 취소 가능 여부
 const canUndo = ref(false)
 
-// 放大镜
+// 돋보기
 const magnifier: Ref<HTMLDivElement | null> = ref(null)
 const magnifierCanvas: Ref<HTMLCanvasElement | null> = ref(null)
 const magnifierCtx: Ref<CanvasRenderingContext2D | null> = ref(null)
-const magnifierWidth: number = 120 // 放大镜的宽度
-const magnifierHeight: number = 120 // 放大镜的高度
-const zoomFactor: number = 3 // 放大的倍数
+const magnifierWidth: number = 120 // 돋보기 너비
+const magnifierHeight: number = 120 // 돋보기 높이
+const zoomFactor: number = 3 // 확대 배율
 
-// 按钮组
+// 버튼 그룹
 const buttonGroup: Ref<HTMLDivElement | null> = ref(null)
-const showButtonGroup: Ref<boolean> = ref(false) // 控制按钮组显示
+const showButtonGroup: Ref<boolean> = ref(false) // 버튼 그룹 표시 제어
 
-// 选区拖动区域
+// 선택 영역 드래그 영역
 const selectionArea: Ref<HTMLDivElement | null> = ref(null)
 const selectionAreaStyle: Ref<any> = ref({})
 const isDragging: Ref<boolean> = ref(false)
 const dragOffset: Ref<{ x: number; y: number }> = ref({ x: 0, y: 0 })
 
-// 圆角控制器样式
+// 테두리 반경 컨트롤러 스타일
 const borderRadiusControllerStyle: Ref<any> = ref({})
 
-// resize相关
+// 크기 조절 관련
 const isResizing: Ref<boolean> = ref(false)
 const resizeDirection: Ref<string> = ref('')
 const resizeStartPosition: Ref<{ x: number; y: number; width: number; height: number; left: number; top: number }> =
@@ -184,10 +184,10 @@ const resizeStartPosition: Ref<{ x: number; y: number; width: number; height: nu
     top: 0
   })
 
-// 圆角控制
+// 테두리 반경 제어
 const borderRadius: Ref<number> = ref(0)
 
-// 截屏信息
+// 스크린샷 정보
 const screenConfig: Ref<ScreenConfig> = ref({
   startX: 0,
   startY: 0,
@@ -200,76 +200,76 @@ const screenConfig: Ref<ScreenConfig> = ref({
   height: 0
 })
 
-// 截屏图片
+// 스크린샷 이미지
 let screenshotImage: HTMLImageElement
 let isImageLoaded: boolean = false
 
-// 当前选择的绘图工具
+// 현재 선택된 그리기 도구
 const currentDrawTool: Ref<string | null> = ref(null)
 
-// 性能优化：鼠标移动事件节流（仅 macOS）
+// 성능 최적화: 마우스 이동 이벤트 스로틀링 (macOS 전용)
 let mouseMoveThrottleId: number | null = null
-const mouseMoveThrottleDelay = 16 // 约60FPS，在菜单栏区域降低频率
+const mouseMoveThrottleDelay = 16 // 약 60FPS, 메뉴바 영역에서 빈도 낮춤
 
-// 窗口状态恢复函数
+// 창 상태 복원 함수
 const restoreWindowState = async () => {
   await appWindow.hide()
 }
 
 /**
- * 绘制图形
- * @param {string} type - 图形类型
+ * 도형 그리기
+ * @param {string} type - 도형 유형
  */
 const drawImgCanvas = (type: string) => {
   if (!drawTools) {
-    console.warn('绘图工具未初始化')
+    console.warn('그리기 도구가 초기화되지 않음')
     return
   }
 
   const drawableTypes = ['rect', 'circle', 'arrow', 'mosaic']
 
   if (drawableTypes.includes(type)) {
-    // 如果点击的是当前已激活的工具，保持选中，不进行任何操作（不可取消，只能切换其他选项）
+    // 현재 활성화된 도구를 클릭한 경우 선택 유지, 아무 작업도 수행하지 않음 (취소 불가, 다른 옵션으로만 전환 가능)
     if (currentDrawTool.value === type) {
       return
     }
 
-    // 先停止之前的工具
+    // 이전 도구 중지
     if (currentDrawTool.value) {
       drawTools.stopDrawing && drawTools.stopDrawing()
     }
 
-    // 激活新的绘图工具
+    // 새 그리기 도구 활성화
     currentDrawTool.value = type
 
-    // 启用绘图Canvas事件接收
+    // 그리기 Canvas 이벤트 수신 활성화
     if (drawCanvas.value) {
       drawCanvas.value.style.pointerEvents = 'auto'
     }
 
-    // 绘制马赛克时设置笔宽
+    // 모자이크 그리기 시 브러시 크기 설정
     if (type === 'mosaic') {
       drawTools.drawMosaicBrushSize && drawTools.drawMosaicBrushSize(20)
     }
 
-    // 调用绘图方法，确保绘图工具被正确激活
+    // 그리기 메서드 호출, 그리기 도구가 올바르게 활성화되었는지 확인
     try {
       drawTools.draw(type)
-      console.log(`绘图工具已激活: ${type}`)
+      console.log(`그리기 도구 활성화됨: ${type}`)
     } catch (error) {
-      console.error(`绘图工具激活失败: ${type}`, error)
+      console.error(`그리기 도구 활성화 실패: ${type}`, error)
       currentDrawTool.value = null
-      // 激活失败时也要禁用事件
+      // 활성화 실패 시 이벤트 비활성화
       if (drawCanvas.value) {
         drawCanvas.value.style.pointerEvents = 'none'
       }
     }
   } else if (type === 'redo') {
-    // 需求：点击“重做”清空绘图画布的全部涂鸦
+    // 요구사항: "다시 실행" 클릭 시 그리기 캔버스의 모든 낙서 지우기
     if (drawTools.clearAll) {
       drawTools.clearAll()
     }
-    // 清空后重置工具状态并禁用绘图事件穿透
+    // 지운 후 도구 상태 재설정 및 그리기 이벤트 통과 비활성화
     currentDrawTool.value = null
     drawTools.resetState && drawTools.resetState()
     drawTools.clearEvents && drawTools.clearEvents()
@@ -277,59 +277,59 @@ const drawImgCanvas = (type: string) => {
       drawCanvas.value.style.pointerEvents = 'none'
       drawCanvas.value.style.zIndex = '5'
     }
-    console.log('已清空全部涂鸦 (通过重做按钮)')
+    console.log('모든 낙서 지워짐 (다시 실행 버튼)')
   } else if (type === 'undo') {
-    // 没有可撤回的内容时直接忽略点击
+    // 실행 취소할 내용이 없으면 클릭 무시
     if (!canUndo.value) return
-    // 先停止可能正在进行的绘制，确保一次点击立即生效
+    // 진행 중일 수 있는 그리기 중지, 한 번의 클릭이 즉시 적용되도록 함
     drawTools.stopDrawing && drawTools.stopDrawing()
     drawTools.undo && drawTools.undo()
-    console.log('执行撤销')
+    console.log('실행 취소 수행')
   }
 }
 
-// 重置绘图工具状态
+// 그리기 도구 상태 재설정
 const resetDrawTools = () => {
   currentDrawTool.value = null
   if (drawTools) {
-    // 停止当前绘图操作
+    // 현재 그리기 작업 중지
     drawTools.stopDrawing && drawTools.stopDrawing()
-    // 重置绘图工具到默认状态
+    // 그리기 도구를 기본 상태로 재설정
     drawTools.resetState && drawTools.resetState()
-    // 清除绘图工具的事件监听
+    // 그리기 도구의 이벤트 리스너 제거
     drawTools.clearEvents && drawTools.clearEvents()
   }
 
-  // 清除绘图canvas的内容
+  // 그리기 canvas 내용 지우기
   if (drawCtx.value && drawCanvas.value) {
     drawCtx.value.clearRect(0, 0, drawCanvas.value.width, drawCanvas.value.height)
-    console.log('绘图内容已清除')
+    console.log('그리기 내용 지워짐')
   }
 
-  // 重置时禁用绘图canvas事件，让事件穿透到选区
+  // 재설정 시 그리기 canvas 이벤트 비활성화, 이벤트가 선택 영역으로 통과하도록 함
   if (drawCanvas.value) {
     drawCanvas.value.style.pointerEvents = 'none'
     drawCanvas.value.style.zIndex = '5'
   }
 
-  console.log('绘图工具已重置')
+  console.log('그리기 도구 재설정됨')
 }
 
 /**
- * 初始化canvas
+ * canvas 초기화
  */
 const initCanvas = async () => {
-  // 在截图前隐藏放大镜，避免被截进去
+  // 스크린샷 전 돋보기 숨김, 캡처되지 않도록 함
   if (magnifier.value) {
     magnifier.value.style.display = 'none'
   }
-  // 重置绘图工具状态
+  // 그리기 도구 상태 재설정
   resetDrawTools()
 
-  // 重置图像加载状态
+  // 이미지 로딩 상태 재설정
   isImageLoaded = false
 
-  // 重置其他状态
+  // 기타 상태 재설정
   borderRadius.value = 0
   isDragging.value = false
   isResizing.value = false
@@ -345,7 +345,7 @@ const initCanvas = async () => {
   }
 
   const screenshotData = await invokeWithErrorHandler('screenshot', config, {
-    customErrorMessage: '截图失败',
+    customErrorMessage: '스크린샷 실패',
     errorType: ErrorType.Client
   })
 
@@ -361,13 +361,13 @@ const initCanvas = async () => {
     maskCtx.value = maskCanvas.value.getContext('2d')
     drawCtx.value = drawCanvas.value!.getContext('2d', { willReadFrequently: true })
 
-    // 清除绘图canvas的内容
+    // 그리기 canvas 내용 지우기
     if (drawCtx.value) {
       drawCtx.value.clearRect(0, 0, canvasWidth, canvasHeight)
-      console.log('绘图canvas已清除')
+      console.log('그리기 canvas 지워짐')
     }
 
-    // 获取屏幕缩放比例
+    // 화면 배율 가져오기
     const { clientWidth: containerWidth, clientHeight: containerHeight } = imgCanvas.value!
     screenConfig.value.scaleX = canvasWidth / containerWidth
     screenConfig.value.scaleY = canvasHeight / containerHeight
@@ -379,7 +379,7 @@ const initCanvas = async () => {
         try {
           imgCtx.value.drawImage(screenshotImage, 0, 0, canvasWidth, canvasHeight)
 
-          // 绘制全屏绿色边框
+          // 전체 화면 녹색 테두리 그리기
           if (maskCtx.value) {
             drawRectangle(
               maskCtx.value,
@@ -393,39 +393,39 @@ const initCanvas = async () => {
 
           if (drawCanvas.value && drawCtx.value && imgCtx.value) {
             drawTools = useCanvasTool(drawCanvas, drawCtx, imgCtx, screenConfig)
-            // 初始化时禁用绘图canvas事件，让事件穿透到选区
+            // 초기화 시 그리기 canvas 이벤트 비활성화, 이벤트가 선택 영역으로 통과하도록 함
             drawCanvas.value.style.pointerEvents = 'none'
             drawCanvas.value.style.zIndex = '5'
-            // 同步 canUndo 状态到本组件用于禁用撤回按钮
+            // canUndo 상태를 이 컴포넌트에 동기화하여 실행 취소 버튼 비활성화
             if (drawTools?.canUndo) {
               watch(drawTools.canUndo, (val: boolean) => (canUndo.value = val), { immediate: true })
             }
-            console.log('绘图工具初始化完成 (备用方式)')
+            console.log('그리기 도구 초기화 완료 (대체 방법)')
           }
           isImageLoaded = true
         } catch (error) {
-          console.error('绘制图像到canvas失败:', error)
+          console.error('이미지를 canvas에 그리기 실패:', error)
         }
       } else {
-        console.error('imgCtx.value为空')
+        console.error('imgCtx.value가 비어 있음')
       }
     }
 
-    // 直接将原始buffer绘制到canvas，不使用Image对象
+    // 원본 버퍼를 canvas에 직접 그리기, Image 객체 사용 안 함
     if (screenshotData && imgCtx.value) {
       try {
-        // 解码base64数据
+        // base64 데이터 디코딩
         const binaryString = atob(screenshotData)
         const bytes = new Uint8Array(binaryString.length)
         for (let i = 0; i < binaryString.length; i++) {
           bytes[i] = binaryString.charCodeAt(i)
         }
 
-        // 创建ImageData并绘制到canvas
+        // ImageData 생성 및 canvas에 그리기
         const imageData = new ImageData(new Uint8ClampedArray(bytes), canvasWidth, canvasHeight)
         imgCtx.value.putImageData(imageData, 0, 0)
 
-        // 绘制全屏绿色边框
+        // 전체 화면 녹색 테두리 그리기
         if (maskCtx.value) {
           drawRectangle(
             maskCtx.value,
@@ -439,18 +439,18 @@ const initCanvas = async () => {
 
         if (drawCanvas.value && drawCtx.value && imgCtx.value) {
           drawTools = useCanvasTool(drawCanvas, drawCtx, imgCtx, screenConfig)
-          // 初始化时禁用绘图canvas事件，让事件穿透到选区
+          // 초기화 시 그리기 canvas 이벤트 비활성화, 이벤트가 선택 영역으로 통과하도록 함
           drawCanvas.value.style.pointerEvents = 'none'
           drawCanvas.value.style.zIndex = '5'
-          // 同步 canUndo 状态到本组件用于禁用撤回按钮
+          // canUndo 상태를 이 컴포넌트에 동기화하여 실행 취소 버튼 비활성화
           if (drawTools?.canUndo) {
             watch(drawTools.canUndo, (val: boolean) => (canUndo.value = val), { immediate: true })
           }
-          console.log('绘图工具初始化完成')
+          console.log('그리기 도구 초기화 완료')
         }
         isImageLoaded = true
       } catch (error) {
-        // 如果直接绘制失败，回退到Image对象方式
+        // 직접 그리기 실패 시 Image 객체 방식으로 대체
         screenshotImage.src = `data:image/png;base64,${screenshotData}`
       }
     } else {
@@ -458,44 +458,44 @@ const initCanvas = async () => {
     }
   }
 
-  // 添加鼠标监听事件
+  // 마우스 리스너 이벤트 추가
   maskCanvas.value?.addEventListener('mousedown', handleMaskMouseDown)
   maskCanvas.value?.addEventListener('mousemove', handleMaskMouseMove)
   maskCanvas.value?.addEventListener('mouseup', handleMaskMouseUp)
   maskCanvas.value?.addEventListener('contextmenu', handleRightClick)
 
-  // 添加键盘监听事件
+  // 키보드 리스너 이벤트 추가
   document.addEventListener('keydown', handleKeyDown)
 
-  // 添加全局右键监听事件
+  // 전역 우클릭 리스너 이벤트 추가
   document.addEventListener('contextmenu', handleRightClick)
 
-  // 添加全局点击监听，用于取消绘图工具
+  // 전역 클릭 리스너 추가, 그리기 도구 취소용
   document.addEventListener('mousedown', handleGlobalMouseDown)
 }
 
 const handleMagnifierMouseMove = (event: MouseEvent) => {
   if (!magnifier.value || !imgCanvas.value || !imgCtx.value) return
 
-  // 在拖动选区时隐藏放大镜，仅在调整大小和绘制时显示
+  // 선택 영역 드래그 시 돋보기 숨김, 크기 조절 및 그리기 시에만 표시
   if (isDragging.value) {
     magnifier.value.style.display = 'none'
     return
   }
 
-  // 如果已经选择了区域，但当前不在拖动或调整大小，则隐藏放大镜
+  // 영역을 선택했지만 현재 드래그하거나 크기 조절 중이 아니면 돋보기 숨김
   if (showButtonGroup.value && !isDragging.value && !isResizing.value) {
     magnifier.value.style.display = 'none'
     return
   }
 
-  // 确保图像已加载
+  // 이미지 로드 확인
   if (!isImageLoaded) {
     magnifier.value.style.display = 'none'
     return
   }
 
-  // 初始化放大镜画布
+  // 돋보기 캔버스 초기화
   if (magnifierCanvas.value && magnifierCtx.value === null) {
     magnifierCanvas.value.width = magnifierWidth
     magnifierCanvas.value.height = magnifierHeight
@@ -506,14 +506,14 @@ const handleMagnifierMouseMove = (event: MouseEvent) => {
 
   magnifier.value.style.display = 'block'
 
-  // 统一使用 clientX/clientY + canvas 的 boundingClientRect 计算相对画布的坐标
+  // clientX/clientY + canvas의 boundingClientRect를 사용하여 캔버스 상대 좌표 계산 통일
   const clientX = (event as MouseEvent).clientX
   const clientY = (event as MouseEvent).clientY
   const rect = imgCanvas.value.getBoundingClientRect()
   const mouseX = clientX - rect.left
   const mouseY = clientY - rect.top
 
-  // 定位放大镜（使用视口坐标放置，避免偏移）
+  // 돋보기 위치 지정 (뷰포트 좌표 사용, 오프셋 방지)
   let magnifierTop = clientY + 20
   let magnifierLeft = clientX + 20
 
@@ -527,16 +527,16 @@ const handleMagnifierMouseMove = (event: MouseEvent) => {
   magnifier.value.style.top = `${magnifierTop}px`
   magnifier.value.style.left = `${magnifierLeft}px`
 
-  // 计算源图像中的采样区域（相对画布坐标再乘缩放因子）
+  // 원본 이미지에서 샘플링 영역 계산 (상대 캔버스 좌표에 배율 곱함)
   const sourceX = mouseX * screenConfig.value.scaleX - magnifierWidth / zoomFactor / 2
   const sourceY = mouseY * screenConfig.value.scaleY - magnifierHeight / zoomFactor / 2
   const sourceWidth = magnifierWidth / zoomFactor
   const sourceHeight = magnifierHeight / zoomFactor
 
-  // 清除放大镜画布
+  // 돋보기 캔버스 지우기
   magnifierCtx.value.clearRect(0, 0, magnifierWidth, magnifierHeight)
 
-  // 绘制放大的图像
+  // 확대된 이미지 그리기
   magnifierCtx.value.drawImage(
     imgCanvas.value,
     sourceX,
@@ -549,7 +549,7 @@ const handleMagnifierMouseMove = (event: MouseEvent) => {
     magnifierHeight
   )
 
-  // 在放大镜中心绘制十字线
+  // 돋보기 중앙에 십자선 그리기
   magnifierCtx.value.strokeStyle = '#13987f'
   magnifierCtx.value.lineWidth = 1
   magnifierCtx.value.beginPath()
@@ -561,7 +561,7 @@ const handleMagnifierMouseMove = (event: MouseEvent) => {
 }
 
 const handleMaskMouseDown = (event: MouseEvent) => {
-  // 如果已经显示按钮组，则不执行任何操作
+  // 버튼 그룹이 이미 표시된 경우 아무 작업도 수행하지 않음
   if (showButtonGroup.value) return
   const offsetEvent = event as any
   screenConfig.value.startX = offsetEvent.offsetX * screenConfig.value.scaleX
@@ -569,7 +569,7 @@ const handleMaskMouseDown = (event: MouseEvent) => {
   screenConfig.value.isDrawing = true
   if (!screenConfig.value.isDrawing) {
     drawMask()
-  } // 先绘制遮罩层
+  } // 마스크 레이어 먼저 그리기
 }
 
 const handleMaskMouseMove = (event: MouseEvent) => {
@@ -578,12 +578,12 @@ const handleMaskMouseMove = (event: MouseEvent) => {
 
   const offsetEvent = event as any
 
-  // 只在 macOS 上应用性能优化
+  // macOS에서만 성능 최적화 적용
   if (isMac()) {
-    // 在菜单栏区域（y < 30）使用更强的节流来减少卡顿
+    // 메뉴바 영역(y < 30)에서 더 강력한 스로틀링을 사용하여 끊김 현상 감소
     const currentY = offsetEvent.offsetY * screenConfig.value.scaleY
-    const isInMenuBar = currentY < 30 // 菜单栏区域
-    const throttleDelay = isInMenuBar ? 32 : mouseMoveThrottleDelay // 菜单栏区域降低到30FPS
+    const isInMenuBar = currentY < 30 // 메뉴바 영역
+    const throttleDelay = isInMenuBar ? 32 : mouseMoveThrottleDelay // 메뉴바 영역에서 30FPS로 낮춤
 
     if (mouseMoveThrottleId) {
       return
@@ -599,19 +599,19 @@ const handleMaskMouseMove = (event: MouseEvent) => {
       const width = mouseX - screenConfig.value.startX
       const height = mouseY - screenConfig.value.startY
 
-      // 优化：使用 save/restore 来减少重绘开销
+      // 최적화: save/restore를 사용하여 다시 그리기 오버헤드 감소
       maskCtx.value.save()
 
-      // 清除之前的矩形区域
+      // 이전 사각형 영역 지우기
       maskCtx.value.clearRect(0, 0, maskCanvas.value.width, maskCanvas.value.height)
 
-      // 重新绘制整个遮罩层
+      // 전체 마스크 레이어 다시 그리기
       drawMask()
 
-      // 清除矩形区域内的遮罩，实现透明效果
+      // 사각형 영역 내의 마스크를 지워 투명 효과 구현
       maskCtx.value.clearRect(screenConfig.value.startX, screenConfig.value.startY, width, height)
 
-      // 绘制矩形边框
+      // 사각형 테두리 그리기
       drawRectangle(maskCtx.value, screenConfig.value.startX, screenConfig.value.startY, width, height)
 
       maskCtx.value.restore()
@@ -622,16 +622,16 @@ const handleMaskMouseMove = (event: MouseEvent) => {
     const width = mouseX - screenConfig.value.startX
     const height = mouseY - screenConfig.value.startY
 
-    // 清除之前的矩形区域
+    // 이전 사각형 영역 지우기
     maskCtx.value.clearRect(0, 0, maskCanvas.value.width, maskCanvas.value.height)
 
-    // 重新绘制整个遮罩层
+    // 전체 마스크 레이어 다시 그리기
     drawMask()
 
-    // 清除矩形区域内的遮罩，实现透明效果
+    // 사각형 영역 내의 마스크를 지워 투명 효과 구현
     maskCtx.value.clearRect(screenConfig.value.startX, screenConfig.value.startY, width, height)
 
-    // 绘制矩形边框
+    // 사각형 테두리 그리기
     drawRectangle(maskCtx.value, screenConfig.value.startX, screenConfig.value.startY, width, height)
   }
 }
@@ -639,36 +639,36 @@ const handleMaskMouseMove = (event: MouseEvent) => {
 const handleMaskMouseUp = (event: MouseEvent) => {
   if (!screenConfig.value.isDrawing) return
   screenConfig.value.isDrawing = false
-  // 记录矩形区域的结束坐标
+  // 사각형 영역의 종료 좌표 기록
   const offsetEvent = event as any
   screenConfig.value.endX = offsetEvent.offsetX * screenConfig.value.scaleX
   screenConfig.value.endY = offsetEvent.offsetY * screenConfig.value.scaleY
 
-  // 记录矩形区域的宽高
+  // 사각형 영역의 너비와 높이 기록
   screenConfig.value.width = Math.abs(screenConfig.value.endX - screenConfig.value.startX)
   screenConfig.value.height = Math.abs(screenConfig.value.endY - screenConfig.value.startY)
-  // 判断矩形区域是否有效
+  // 사각형 영역이 유효한지 판단
   if (screenConfig.value.width > 5 && screenConfig.value.height > 5) {
-    // 隐藏放大镜，避免干扰后续操作
+    // 후속 작업 방해를 피하기 위해 돋보기 숨김
     if (magnifier.value) {
       magnifier.value.style.display = 'none'
     }
 
-    // 重绘蒙版
+    // 마스크 다시 그리기
     redrawSelection()
 
-    showButtonGroup.value = true // 显示按钮组
+    showButtonGroup.value = true // 버튼 그룹 표시
     nextTick(() => {
       updateButtonGroupPosition()
     })
   }
 }
 
-// 计算矩形区域工具栏位置
+// 사각형 영역 도구 모음 위치 계산
 const updateButtonGroupPosition = () => {
   if (!buttonGroup.value) return
 
-  // 按钮组不可见、正在拖动或正在调整大小时，不进行尺寸测量和定位
+  // 버튼 그룹이 보이지 않거나, 드래그 중이거나, 크기 조절 중일 때는 크기 측정 및 위치 지정 안 함
   if (!showButtonGroup.value || isDragging.value || isResizing.value) {
     updateSelectionAreaPosition()
     return
@@ -676,12 +676,12 @@ const updateButtonGroupPosition = () => {
 
   const { scaleX, scaleY, startX, startY, endX, endY } = screenConfig.value
 
-  // 矩形的边界
+  // 사각형 경계
   const minY = Math.min(startY, endY) / scaleY
   const maxX = Math.max(startX, endX) / scaleX
   const maxY = Math.max(startY, endY) / scaleY
 
-  // 可用屏幕尺寸
+  // 사용 가능한 화면 크기
   const availableHeight = window.innerHeight
   const availableWidth = window.innerWidth
 
@@ -698,47 +698,47 @@ const updateButtonGroupPosition = () => {
   const maxAllowedWidth = availableWidth - 20
   const finalWidth = Math.min(contentWidth, maxAllowedWidth)
 
-  // 判断是否能放在选区下方
+  // 선택 영역 아래에 놓을 수 있는지 판단
   const spaceBelow = availableHeight - maxY
-  const canFitBelow = spaceBelow >= measuredHeight + 10 // 留10px缓冲
+  const canFitBelow = spaceBelow >= measuredHeight + 10 // 10px 버퍼 유지
 
   let leftPosition: number
   let topPosition: number
 
   if (canFitBelow) {
-    // 优先放在选区下方
+    // 선택 영역 아래에 우선 배치
     topPosition = maxY + 4
 
-    // 与选区右对齐
+    // 선택 영역 오른쪽 정렬
     leftPosition = maxX - finalWidth
     leftPosition = Math.max(10, Math.min(leftPosition, availableWidth - finalWidth - 10))
   } else {
-    // 选区下方空间不足，放在选区上方
+    // 선택 영역 아래 공간 부족 시, 선택 영역 위에 배치
     topPosition = minY - (measuredHeight + 4)
     if (topPosition < 0) topPosition = 10
 
-    // 与选区右对齐
+    // 선택 영역 오른쪽 정렬
     leftPosition = maxX - finalWidth
     leftPosition = Math.max(10, Math.min(leftPosition, availableWidth - finalWidth - 10))
   }
 
-  // 应用最终位置与宽度
+  // 최종 위치 및 너비 적용
   el.style.top = `${topPosition}px`
   el.style.left = `${leftPosition}px`
   el.style.width = `${finalWidth}px`
   el.style.boxSizing = 'border-box'
 
-  // 更新选区拖动区域位置
+  // 선택 영역 드래그 영역 위치 업데이트
   updateSelectionAreaPosition()
 }
 
-// 更新选区拖动区域位置
+// 선택 영역 드래그 영역 위치 업데이트
 const updateSelectionAreaPosition = () => {
   if (!selectionArea.value) return
 
   const { scaleX, scaleY, startX, startY, endX, endY } = screenConfig.value
 
-  // 矩形的边界
+  // 사각형 경계
   const minX = Math.min(startX, endX) / scaleX
   const minY = Math.min(startY, endY) / scaleY
   const maxX = Math.max(startX, endX) / scaleX
@@ -753,49 +753,49 @@ const updateSelectionAreaPosition = () => {
     border: '2px solid #13987f'
   }
 
-  // 更新圆角控制器位置，确保不超出屏幕边界
+  // 테두리 반경 컨트롤러 위치 업데이트, 화면 경계를 벗어나지 않도록 함
   updateBorderRadiusControllerPosition(minX, minY)
 }
 
-// 更新圆角控制器位置
+// 테두리 반경 컨트롤러 위치 업데이트
 const updateBorderRadiusControllerPosition = (selectionLeft: number, selectionTop: number) => {
-  const controllerHeight = 35 // 控制器高度
-  const controllerWidth = 120 // 控制器宽度
+  const controllerHeight = 35 // 컨트롤러 높이
+  const controllerWidth = 120 // 컨트롤러 너비
 
   let left = selectionLeft
   let top = selectionTop - controllerHeight
 
-  // 确保控制器不超出屏幕左边界
+  // 컨트롤러가 화면 왼쪽 경계를 벗어나지 않도록 함
   if (left < 0) {
     left = 0
   }
 
-  // 确保控制器不超出屏幕右边界
+  // 컨트롤러가 화면 오른쪽 경계를 벗어나지 않도록 함
   if (left + controllerWidth > window.innerWidth) {
     left = window.innerWidth - controllerWidth - 10
   }
 
-  // 确保控制器不超出屏幕上边界
+  // 컨트롤러가 화면 위쪽 경계를 벗어나지 않도록 함
   if (top < 0) {
-    top = selectionTop + 4 // 如果超出上边界，显示在选区内部
+    top = selectionTop + 4 // 위쪽 경계를 벗어나면 선택 영역 내부에 표시
   }
 
   borderRadiusControllerStyle.value = {
-    left: `${left - selectionLeft}px`, // 相对于选区的位置
+    left: `${left - selectionLeft}px`, // 선택 영역에 대한 상대 위치
     top: `${top - selectionTop}px`
   }
 }
 
-// 选区拖动开始
+// 선택 영역 드래그 시작
 const handleSelectionDragStart = (event: MouseEvent) => {
-  // 如果有绘图工具处于激活状态，禁止拖动
+  // 그리기 도구가 활성화된 경우 드래그 금지
   if (currentDrawTool.value) {
     event.preventDefault()
     event.stopPropagation()
-    return // 直接返回，不执行拖动
+    return // 드래그 실행하지 않고 반환
   }
 
-  // 确保拖动功能不受绘图工具状态影响
+  // 드래그 기능이 그리기 도구 상태의 영향을 받지 않도록 함
   event.preventDefault()
   event.stopPropagation()
 
@@ -805,24 +805,24 @@ const handleSelectionDragStart = (event: MouseEvent) => {
     y: event.clientY - parseFloat(selectionAreaStyle.value.top)
   }
 
-  // 添加全局鼠标事件监听
+  // 전역 마우스 이벤트 리스너 추가
   document.addEventListener('mousemove', handleSelectionDragMove)
   document.addEventListener('mouseup', handleSelectionDragEnd)
 
-  console.log('开始拖动，隐藏按钮组')
+  console.log('드래그 시작, 버튼 그룹 숨김')
 }
 
-// 选区拖动移动
+// 선택 영역 드래그 이동
 const handleSelectionDragMove = (event: MouseEvent) => {
   if (!isDragging.value) return
 
   event.preventDefault()
 
-  // 拖动选区时不显示放大镜
+  // 선택 영역 드래그 시 돋보기 표시 안 함
   const newLeft = event.clientX - dragOffset.value.x
   const newTop = event.clientY - dragOffset.value.y
 
-  // 确保选区不超出屏幕边界
+  // 선택 영역이 화면 경계를 벗어나지 않도록 함
   const selectionWidth = parseFloat(selectionAreaStyle.value.width)
   const selectionHeight = parseFloat(selectionAreaStyle.value.height)
   const maxLeft = window.innerWidth - selectionWidth
@@ -836,30 +836,30 @@ const handleSelectionDragMove = (event: MouseEvent) => {
   selectionAreaStyle.value.borderRadius = `${borderRadius.value}px`
   selectionAreaStyle.value.border = '2px solid #13987f'
 
-  // 更新screenConfig
+  // screenConfig 업데이트
   const { scaleX, scaleY } = screenConfig.value
   screenConfig.value.startX = constrainedLeft * scaleX
   screenConfig.value.startY = constrainedTop * scaleY
   screenConfig.value.endX = (constrainedLeft + selectionWidth) * scaleX
   screenConfig.value.endY = (constrainedTop + selectionHeight) * scaleY
 
-  // 重新绘制矩形
+  // 사각형 다시 그리기
   redrawSelection()
-  // 拖动过程中不定位按钮组
+  // 드래그 중에는 버튼 그룹 위치 지정 안 함
   if (!isDragging.value) {
     updateButtonGroupPosition()
   }
 }
 
-// 选区拖动结束
+// 선택 영역 드래그 종료
 const handleSelectionDragEnd = () => {
   isDragging.value = false
 
-  // 移除全局鼠标事件监听
+  // 전역 마우스 이벤트 리스너 제거
   document.removeEventListener('mousemove', handleSelectionDragMove)
   document.removeEventListener('mouseup', handleSelectionDragEnd)
 
-  // 结束拖动后隐藏放大镜
+  // 드래그 종료 후 돋보기 숨김
   if (magnifier.value) {
     magnifier.value.style.display = 'none'
   }
@@ -868,16 +868,16 @@ const handleSelectionDragEnd = () => {
     updateButtonGroupPosition()
   })
 
-  console.log('拖动结束，显示按钮组')
+  console.log('드래그 종료, 버튼 그룹 표시')
 }
 
-// resize开始
+// 크기 조절 시작
 const handleResizeStart = (event: MouseEvent, direction: string) => {
-  // 如果有绘图工具处于激活状态，禁止resize
+  // 그리기 도구가 활성화된 경우 크기 조절 금지
   if (currentDrawTool.value) {
     event.preventDefault()
     event.stopPropagation()
-    return // 直接返回，不执行resize
+    return // 직접 반환, 크기 조절 실행 안 함
   }
 
   event.preventDefault()
@@ -895,18 +895,18 @@ const handleResizeStart = (event: MouseEvent, direction: string) => {
     top: parseFloat(selectionAreaStyle.value.top)
   }
 
-  // 添加全局鼠标事件监听
+  // 전역 마우스 이벤트 리스너 추가
   document.addEventListener('mousemove', handleResizeMove)
   document.addEventListener('mouseup', handleResizeEnd)
 }
 
-// resize移动
+// 크기 조절 이동
 const handleResizeMove = (event: MouseEvent) => {
   if (!isResizing.value) return
 
   event.preventDefault()
 
-  // 调整大小时也显示放大镜，辅助精确定位
+  // 크기 조절 시에도 돋보기 표시, 정밀한 위치 지정 보조
   handleMagnifierMouseMove(event)
 
   const deltaX = event.clientX - resizeStartPosition.value.x
@@ -917,45 +917,45 @@ const handleResizeMove = (event: MouseEvent) => {
   let newWidth = resizeStartPosition.value.width
   let newHeight = resizeStartPosition.value.height
 
-  // 根据resize方向调整位置和尺寸
+  // 크기 조절 방향에 따라 위치 및 크기 조정
   switch (resizeDirection.value) {
-    case 'nw': // 左上角
+    case 'nw': // 왼쪽 상단
       newLeft += deltaX
       newTop += deltaY
       newWidth -= deltaX
       newHeight -= deltaY
       break
-    case 'ne': // 右上角
+    case 'ne': // 오른쪽 상단
       newTop += deltaY
       newWidth += deltaX
       newHeight -= deltaY
       break
-    case 'sw': // 左下角
+    case 'sw': // 왼쪽 하단
       newLeft += deltaX
       newWidth -= deltaX
       newHeight += deltaY
       break
-    case 'se': // 右下角
+    case 'se': // 오른쪽 하단
       newWidth += deltaX
       newHeight += deltaY
       break
-    case 'n': // 上边
+    case 'n': // 위쪽
       newTop += deltaY
       newHeight -= deltaY
       break
-    case 'e': // 右边
+    case 'e': // 오른쪽
       newWidth += deltaX
       break
-    case 's': // 下边
+    case 's': // 아래쪽
       newHeight += deltaY
       break
-    case 'w': // 左边
+    case 'w': // 왼쪽
       newLeft += deltaX
       newWidth -= deltaX
       break
   }
 
-  // 确保最小尺寸
+  // 최소 크기 보장
   const minSize = 20
   if (newWidth < minSize) {
     if (resizeDirection.value.includes('w')) {
@@ -970,11 +970,11 @@ const handleResizeMove = (event: MouseEvent) => {
     newHeight = minSize
   }
 
-  // 确保不超出屏幕边界
+  // 화면 경계를 벗어나지 않도록 함
   newLeft = Math.max(0, Math.min(newLeft, window.innerWidth - newWidth))
   newTop = Math.max(0, Math.min(newTop, window.innerHeight - newHeight))
 
-  // 更新样式
+  // 스타일 업데이트
   selectionAreaStyle.value = {
     left: `${newLeft}px`,
     top: `${newTop}px`,
@@ -984,35 +984,35 @@ const handleResizeMove = (event: MouseEvent) => {
     border: '2px solid #13987f'
   }
 
-  // 更新screenConfig
+  // screenConfig 업데이트
   const { scaleX, scaleY } = screenConfig.value
   screenConfig.value.startX = newLeft * scaleX
   screenConfig.value.startY = newTop * scaleY
   screenConfig.value.endX = (newLeft + newWidth) * scaleX
   screenConfig.value.endY = (newTop + newHeight) * scaleY
 
-  // 重新绘制选区
+  // 선택 영역 다시 그리기
   redrawSelection()
   if (showButtonGroup.value) {
     updateButtonGroupPosition()
   }
 }
 
-// resize结束
+// 크기 조절 종료
 const handleResizeEnd = () => {
   isResizing.value = false
   resizeDirection.value = ''
 
-  // 移除全局鼠标事件监听
+  // 전역 마우스 이벤트 리스너 제거
   document.removeEventListener('mousemove', handleResizeMove)
   document.removeEventListener('mouseup', handleResizeEnd)
 
-  // 结束调整后隐藏放大镜
+  // 조절 종료 후 돋보기 숨김
   if (magnifier.value) {
     magnifier.value.style.display = 'none'
   }
 
-  // 调整结束后再定位按钮组
+  // 조절 종료 후 버튼 그룹 위치 지정
   nextTick(() => {
     if (showButtonGroup.value) {
       updateButtonGroupPosition()
@@ -1020,17 +1020,17 @@ const handleResizeEnd = () => {
   })
 }
 
-// 圆角变化处理
+// 테두리 반경 변경 처리
 const handleBorderRadiusChange = (event: Event) => {
   const target = event.target as HTMLInputElement
   borderRadius.value = parseInt(target.value, 10)
 
-  // 更新选区样式，包括边框显示
+  // 선택 영역 스타일 업데이트, 테두리 표시 포함
   updateSelectionAreaPosition()
 }
 
 /**
- * 绘制矩形（支持圆角）
+ * 사각형 그리기 (테두리 반경 지원)
  */
 const drawRectangle = (
   context: CanvasRenderingContext2D,
@@ -1043,20 +1043,20 @@ const drawRectangle = (
   context.strokeStyle = '#13987f'
   context.lineWidth = lineWidth
 
-  // 如果有圆角，绘制圆角矩形
+  // 테두리 반경이 있는 경우 둥근 사각형 그리기
   if (borderRadius.value > 0) {
-    const radius = borderRadius.value * screenConfig.value.scaleX // 根据缩放调整圆角大小
+    const radius = borderRadius.value * screenConfig.value.scaleX // 배율에 따라 테두리 반경 조정
     const adjustedRadius = Math.min(radius, Math.abs(width) / 2, Math.abs(height) / 2)
 
     context.beginPath()
 
-    // 确保坐标正确（处理负宽高的情况）
+    // 좌표 확인 (음수 너비/높이 처리)
     const rectX = width >= 0 ? x : x + width
     const rectY = height >= 0 ? y : y + height
     const rectWidth = Math.abs(width)
     const rectHeight = Math.abs(height)
 
-    // 绘制圆角矩形路径
+    // 둥근 사각형 경로 그리기
     context.moveTo(rectX + adjustedRadius, rectY)
     context.lineTo(rectX + rectWidth - adjustedRadius, rectY)
     context.quadraticCurveTo(rectX + rectWidth, rectY, rectX + rectWidth, rectY + adjustedRadius)
@@ -1075,7 +1075,7 @@ const drawRectangle = (
 
     context.stroke()
   } else {
-    // 普通矩形
+    // 일반 사각형
     context.strokeRect(x, y, width, height)
   }
 
@@ -1083,31 +1083,31 @@ const drawRectangle = (
 }
 
 /**
- * 绘制矩形尺寸文本
+ * 사각형 크기 텍스트 그리기
  */
 const drawSizeText = (context: CanvasRenderingContext2D, x: number, y: number, width: number, height: number) => {
   if (context) {
-    // 对宽度和高度进行取整
+    // 너비와 높이 반올림
     const roundedWidth = Math.round(Math.abs(width))
     const roundedHeight = Math.round(Math.abs(height))
     const sizeText = `${roundedWidth} x ${roundedHeight}`
 
-    // 确保文本始终显示在矩形的左上角
+    // 텍스트가 항상 사각형의 왼쪽 상단에 표시되도록 함
     const textX = width >= 0 ? x : x + width
     const textY = height >= 0 ? y : y + height
 
-    // 设置字体和样式
+    // 글꼴 및 스타일 설정
     context.font = '14px Arial'
     context.fillStyle = 'white'
-    // 设置图像插值质量
+    // 이미지 보간 품질 설정
     context.imageSmoothingEnabled = true
     context.imageSmoothingQuality = 'high'
-    context.fillText(sizeText, textX + 5, textY - 10) // 在矩形左上角并稍微偏移的位置绘制文本
+    context.fillText(sizeText, textX + 5, textY - 10) // 사각형 왼쪽 상단에서 약간 떨어진 위치에 텍스트 그리기
   }
 }
 
 /**
- * 绘制蒙版
+ * 마스크 그리기
  */
 const drawMask = () => {
   if (maskCtx.value && maskCanvas.value) {
@@ -1116,7 +1116,7 @@ const drawMask = () => {
   }
 }
 
-// 重绘蒙版为透明选区 + 无描边，避免与 DOM 选区边框重复
+// 마스크를 투명 선택 영역 + 테두리 없음으로 다시 그려 DOM 선택 영역 테두리와 중복 방지
 const redrawSelection = () => {
   if (!maskCtx.value || !maskCanvas.value) return
 
@@ -1126,7 +1126,7 @@ const redrawSelection = () => {
   const width = Math.abs(endX - startX)
   const height = Math.abs(endY - startY)
 
-  // 清空并重绘蒙版
+  // 마스크 지우고 다시 그리기
   maskCtx.value.clearRect(0, 0, maskCanvas.value.width, maskCanvas.value.height)
   drawMask()
 
@@ -1134,7 +1134,7 @@ const redrawSelection = () => {
 }
 
 /**
- * 初始化放大镜
+ * 돋보기 초기화
  */
 const initMagnifier = () => {
   if (magnifierCanvas.value) {
@@ -1145,14 +1145,14 @@ const initMagnifier = () => {
 }
 
 const confirmSelection = async () => {
-  // 立即隐藏放大镜，防止被截取到
+  // 캡처되지 않도록 돋보기 즉시 숨김
   if (magnifier.value) {
     magnifier.value.style.display = 'none'
   }
 
-  // 检查图像是否已加载
+  // 이미지가 로드되었는지 확인
   if (!isImageLoaded) {
-    console.error('图像尚未加载完成，请稍后再试')
+    console.error('이미지가 아직 로드되지 않았습니다. 잠시 후 다시 시도해 주세요')
     await resetScreenshot()
     return
   }
@@ -1162,65 +1162,65 @@ const confirmSelection = async () => {
   const height = Math.abs(endY - startY)
 
   if (width < 1 || height < 1) {
-    console.error('❌选区尺寸无效:', { width, height })
+    console.error('❌선택 영역 크기 무효:', { width, height })
     await resetScreenshot()
     return
   }
 
-  // 计算选区的左上角位置
+  // 선택 영역의 왼쪽 상단 위치 계산
   const rectX = Math.min(startX, endX)
   const rectY = Math.min(startY, endY)
 
-  // 创建一个临时 canvas 来合成最终图像
+  // 최종 이미지를 합성할 임시 캔버스 생성
   const mergedCanvas = document.createElement('canvas')
   const mergedCtx = mergedCanvas.getContext('2d')
 
-  // 设置合成canvas的尺寸与imgCanvas相同
+  // 합성 캔버스의 크기를 imgCanvas와 동일하게 설정
   mergedCanvas.width = imgCanvas.value!.width
   mergedCanvas.height = imgCanvas.value!.height
 
   if (mergedCtx) {
     try {
-      // 先绘制原始截图（从imgCanvas）
+      // 원본 스크린샷 먼저 그리기 (imgCanvas에서)
       mergedCtx.drawImage(imgCanvas.value!, 0, 0)
 
-      // 然后绘制用户的绘图内容（从drawCanvas），使用source-over模式确保正确合成
+      // 그 다음 사용자의 그리기 내용 그리기 (drawCanvas에서), source-over 모드를 사용하여 올바른 합성 보장
       mergedCtx.globalCompositeOperation = 'source-over'
       mergedCtx.drawImage(drawCanvas.value!, 0, 0)
 
-      // 创建最终的裁剪canvas
+      // 최종 자르기 캔버스 생성
       const offscreenCanvas = document.createElement('canvas')
       const offscreenCtx = offscreenCanvas.getContext('2d')
 
-      // 设置临时 canvas 的尺寸
+      // 임시 캔버스 크기 설정
       offscreenCanvas.width = width
       offscreenCanvas.height = height
 
       if (offscreenCtx) {
-        // 从合成后的canvas裁剪选区
+        // 합성된 캔버스에서 선택 영역 자르기
         offscreenCtx.drawImage(
           mergedCanvas,
           rectX,
           rectY,
           width,
-          height, // 裁剪区域
+          height, // 자르기 영역
           0,
           0,
           width,
-          height // 绘制到临时 canvas 的区域
+          height // 임시 캔버스에 그리기 영역
         )
 
-        // 如果设置了圆角，则将裁剪结果应用圆角蒙版，导出带透明圆角的 PNG
+        // 테두리 반경이 설정된 경우 자르기 결과에 둥근 마스크를 적용하여 투명한 둥근 모서리가 있는 PNG 내보내기
         if (borderRadius.value > 0) {
           const scale = screenConfig.value.scaleX || 1
           const r = Math.min(borderRadius.value * scale, width / 2, height / 2)
           if (r > 0) {
             offscreenCtx.save()
-            // 仅保留圆角矩形内的内容
+            // 둥근 사각형 내의 내용만 유지
             offscreenCtx.globalCompositeOperation = 'destination-in'
 
             offscreenCtx.beginPath()
-            // 在 (0,0,width,height) 上构建圆角矩形路径
+            // (0,0,width,height)에 둥근 사각형 경로 생성
             offscreenCtx.moveTo(r, 0)
             offscreenCtx.lineTo(width - r, 0)
             offscreenCtx.quadraticCurveTo(width, 0, width, r)
@@ -1237,17 +1237,17 @@ const confirmSelection = async () => {
           }
         }
 
-        // 测试：检查canvas数据是否有效
+        // 테스트: 캔버스 데이터가 유효한지 확인
         try {
           offscreenCtx.getImageData(0, 0, Math.min(10, width), Math.min(10, height))
         } catch (error) {
-          console.error('获取ImageData失败,可能是安全限制:', error)
+          console.error('ImageData 가져오기 실패, 보안 제한일 수 있음:', error)
         }
 
         offscreenCanvas.toBlob(async (blob) => {
           if (blob && blob.size > 0) {
             try {
-              // 将 Blob 转换为 ArrayBuffer 以便通过 Tauri 事件传递
+              // Tauri 이벤트를 통해 전달하기 위해 Blob을 ArrayBuffer로 변환
               const arrayBuffer = await blob.arrayBuffer()
               const buffer = new Uint8Array(arrayBuffer)
 
@@ -1258,14 +1258,14 @@ const confirmSelection = async () => {
                   mimeType: 'image/png'
                 })
               } catch (e) {
-                console.warn('发送截图到主窗口失败:', e)
+                console.warn('메인 창으로 스크린샷 전송 실패:', e)
               }
 
               try {
                 await writeImage(buffer)
                 window.$message?.success(t('message.screenshot.save_success'))
               } catch (clipboardError) {
-                console.error('复制到剪贴板失败:', clipboardError)
+                console.error('클립보드 복사 실패:', clipboardError)
                 window.$message?.error(t('message.screenshot.save_failed'))
               }
 
@@ -1281,7 +1281,7 @@ const confirmSelection = async () => {
         }, 'image/png')
       }
     } catch (error) {
-      console.error('Canvas操作失败:', error)
+      console.error('Canvas 작업 실패:', error)
       window.$message?.error(t('message.screenshot.save_failed'))
       await resetScreenshot()
     }
@@ -1290,19 +1290,19 @@ const confirmSelection = async () => {
 
 const resetScreenshot = async () => {
   try {
-    // 清理性能优化相关的定时器（仅 macOS）
+    // 성능 최적화 관련 타이머 정리 (macOS 전용)
     if (isMac() && mouseMoveThrottleId) {
       clearTimeout(mouseMoveThrottleId)
       mouseMoveThrottleId = null
     }
 
-    // 重置绘图工具状态
+    // 그리기 도구 상태 재설정
     resetDrawTools()
 
-    // 重置所有状态
+    // 모든 상태 재설정
     showButtonGroup.value = false
     isImageLoaded = false
-    borderRadius.value = 0 // 重置圆角
+    borderRadius.value = 0 // 테두리 반경 재설정
     isDragging.value = false
     isResizing.value = false
 
@@ -1318,7 +1318,7 @@ const resetScreenshot = async () => {
       height: 0
     }
 
-    // 清除所有canvas内容
+    // 모든 캔버스 내용 지우기
     if (imgCtx.value && imgCanvas.value) {
       imgCtx.value.clearRect(0, 0, imgCanvas.value.width, imgCanvas.value.height)
     }
@@ -1327,29 +1327,29 @@ const resetScreenshot = async () => {
     }
     if (drawCtx.value && drawCanvas.value) {
       drawCtx.value.clearRect(0, 0, drawCanvas.value.width, drawCanvas.value.height)
-      // 重置时禁用绘图canvas事件
+      // 재설정 시 그리기 캔버스 이벤트 비활성화
       drawCanvas.value.style.pointerEvents = 'none'
     }
 
-    // 隐藏放大镜
+    // 돋보기 숨김
     if (magnifier.value) {
       magnifier.value.style.display = 'none'
     }
 
-    // 恢复窗口状态（macOS需要退出全屏）
+    // 창 상태 복원 (macOS는 전체 화면 종료 필요)
     await restoreWindowState()
   } catch (error) {
-    // 即使出错也要尝试恢复窗口状态
+    // 오류가 발생하더라도 창 상태 복원 시도
     await restoreWindowState()
   }
 }
 
-// 全局鼠标点击处理，用于取消绘图工具
+// 그리기 도구 취소를 위한 전역 마우스 클릭 처리
 const handleGlobalMouseDown = (event: MouseEvent) => {
-  // 只有在绘图工具激活且按钮组显示时才考虑处理
+  // 그리기 도구가 활성화되고 버튼 그룹이 표시될 때만 처리 고려
   if (!currentDrawTool.value || !showButtonGroup.value) return
 
-  // 如果点击发生在按钮组内，直接返回，避免误操作
+  // 클릭이 버튼 그룹 내에서 발생한 경우 오작동 방지를 위해 바로 반환
   if (buttonGroup.value && buttonGroup.value.contains(event.target as Node)) {
     return
   }
@@ -1362,7 +1362,7 @@ const handleKeyDown = (event: KeyboardEvent) => {
 }
 
 const handleRightClick = (event: MouseEvent) => {
-  // 阻止默认右键菜单
+  // 기본 우클릭 메뉴 방지
   event.preventDefault()
   resetScreenshot()
 }
@@ -1371,9 +1371,9 @@ const cancelSelection = () => {
   resetScreenshot()
 }
 
-// 截图处理函数
+// 스크린샷 처리 함수
 const handleScreenshot = () => {
-  // 每次开始截图时重置所有状态
+  // 스크린샷 시작 시마다 모든 상태 재설정
   resetDrawTools()
   appWindow.show()
   initCanvas()
@@ -1387,39 +1387,39 @@ onMounted(async () => {
     initMagnifier()
   })
 
-  // 监听窗口隐藏时的重置事件
+  // 창 숨김 시 재설정 이벤트 감지
   appWindow.listen('capture-reset', () => {
     resetDrawTools()
     resetScreenshot()
-    console.log('📷 Screenshot组件已重置')
+    console.log('📷 Screenshot 컴포넌트 재설정됨')
   })
 
-  // 监听自定义截图事件
+  // 사용자 정의 스크린샷 이벤트 감지
   window.addEventListener('trigger-screenshot', handleScreenshot)
 })
 
 onUnmounted(async () => {
-  // 清理性能优化相关的定时器（仅 macOS）
+  // 성능 최적화 관련 타이머 정리 (macOS 전용)
   if (isMac() && mouseMoveThrottleId) {
     clearTimeout(mouseMoveThrottleId)
     mouseMoveThrottleId = null
   }
 
-  // 清理键盘监听事件
+  // 키보드 리스너 이벤트 정리
   document.removeEventListener('keydown', handleKeyDown)
 
-  // 清理全局右键监听事件
+  // 전역 우클릭 리스너 이벤트 정리
   document.removeEventListener('contextmenu', handleRightClick)
 
-  // 清理全局点击监听事件
+  // 전역 클릭 리스너 이벤트 정리
   document.removeEventListener('mousedown', handleGlobalMouseDown)
 
-  // 清理右键监听事件
+  // 우클릭 리스너 이벤트 정리
   if (maskCanvas.value) {
     maskCanvas.value.removeEventListener('contextmenu', handleRightClick)
   }
 
-  // 清理自定义事件监听
+  // 사용자 정의 이벤트 리스너 정리
   window.removeEventListener('trigger-screenshot', handleScreenshot)
 })
 </script>
@@ -1513,7 +1513,7 @@ canvas {
   opacity: 0.5;
 }
 
-/* 四个角的控制点 */
+/* 네 모서리 제어점 */
 .resize-nw {
   top: -4px;
   left: -4px;
@@ -1538,7 +1538,7 @@ canvas {
   cursor: se-resize;
 }
 
-/* 四条边中间的控制点 */
+/* 네 변 중간 제어점 */
 .resize-n {
   top: -6px;
   left: 50%;

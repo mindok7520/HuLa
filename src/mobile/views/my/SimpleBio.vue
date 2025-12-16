@@ -9,7 +9,7 @@
               <div class="py-15px flex gap-10px w-full items-center justify-end">
                 <div class="bg-#E7EFE6 flex flex-wrap ps-2 items-center rounded-full gap-1 w-50px h-24px">
                   <span class="w-12px h-12px rounded-15px bg-#079669"></span>
-                  <span class="text-bold-style" style="font-size: 12px; color: #373838">在线</span>
+                  <span class="text-bold-style" style="font-size: 12px; color: #373838">온라인</span>
                 </div>
                 <svg @click="toSettings" class="iconpark-icon h-32px w-32px block"><use href="#wode-shezhi"></use></svg>
                 <svg @click="toScanQRCode" class="iconpark-icon h-32px w-32px block"><use href="#saoma"></use></svg>
@@ -27,7 +27,7 @@
                 <div @click="toMyInfo" class="flex flex-col flex-1 py-10px">
                   <div class="font-bold text-18px text-#373838">{{ userStore.userInfo!.name }}</div>
                   <div class="mt-2 text-bold-style line-height-22px line-clamp-2">
-                    {{ userStore.userInfo!.resume || '用户很懒没写简介~' }}
+                    {{ userStore.userInfo!.resume || '사용자가 게을러서 소개를 작성하지 않았습니다~' }}
                   </div>
                 </div>
 
@@ -68,38 +68,38 @@ const userStore = useUserStore()
 const options = ref([
   {
     icon: 'xiangce',
-    label: '相册',
+    label: '앨범',
     onClick: () => {
       router.push('/mobile/mobileMy/myAlbum')
     }
   },
   {
     icon: 'shoucang',
-    label: '收藏',
+    label: '즐겨찾기',
     onClick: () => {
-      // TODO: 跳转到收藏页面
-      console.log('收藏')
+      // TODO: 즐겨찾기 페이지로 이동
+      console.log('즐겨찾기')
     }
   },
   {
     icon: 'wenjian',
-    label: '文件',
+    label: '파일',
     onClick: () => {
-      // TODO: 跳转到文件页面
-      console.log('文件')
+      // TODO: 파일 페이지로 이동
+      console.log('파일')
     }
   },
   {
     icon: 'gexingzhuangban',
-    label: '个性装扮',
+    label: '개성 꾸미기',
     onClick: () => {
-      // TODO: 跳转到个性装扮页面
-      console.log('个性装扮')
+      // TODO: 개성 꾸미기 페이지로 이동
+      console.log('개성 꾸미기')
     }
   },
   {
     icon: 'robot',
-    label: 'AI助手',
+    label: 'AI 도우미',
     onClick: () => {
       router.push('/mobile/mobileMy/aiAssistant')
     }
@@ -122,11 +122,11 @@ const handleBack = async () => {
   // const result = await invoke('plugin:hula|ping', {
   //   payload: { value: 'hello world' }
   // })
-  // console.log('插件测试结果：', result)
+  // console.log('플러그인 테스트 결과:', result)
 
-  // TODO 返回上一页
+  // TODO 이전 페이지로 돌아가기
   router.back()
-  console.log('返回')
+  console.log('돌아가기')
 }
 </script>
 

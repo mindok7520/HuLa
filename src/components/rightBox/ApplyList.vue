@@ -115,7 +115,7 @@
       </template>
     </n-virtual-list>
 
-    <!-- 空数据提示 -->
+    <!-- 빈 데이터 팁 -->
     <n-flex v-if="applyList.length === 0" vertical justify="center" align="center" class="py-40px">
       <n-empty
         :description="t(props.type === 'friend' ? 'home.apply_list.empty_friend' : 'home.apply_list.empty_group')" />
@@ -146,11 +146,11 @@ const props = defineProps<{
   type: 'friend' | 'group'
 }>()
 
-// 新增：存储群组信息的响应式对象
+// 신규: 그룹 정보를 저장하는 반응형 객체
 const groupDetailsMap = ref<Record<string, any>>({})
 const loadingGroups = ref<Set<string>>(new Set())
 
-// 检查好友申请是否已被接受
+// 친구 신청이 수락되었는지 확인
 const isAccepted = (item: any) => {
   return item.status !== RequestNoticeAgreeStatus.UNTREATED
 }
@@ -165,21 +165,21 @@ const applyList = computed(() => {
   })
 })
 
-// 新增：获取群组信息的函数
+// 신규: 그룹 정보 가져오기 함수
 const getGroupDetail = async (roomId: string) => {
   if (!roomId) return null
 
-  // 如果已经在加载中，直接返回
+  // 이미 로드 중인 경우 바로 반환
   if (loadingGroups.value.has(roomId)) {
     return null
   }
 
-  // 如果已经有缓存，直接返回
+  // 캐시가 있는 경우 바로 반환
   if (groupDetailsMap.value[roomId]) {
     return groupDetailsMap.value[roomId]
   }
 
-  // 开始加载
+  // 로드 시작
   loadingGroups.value.add(roomId)
   try {
     const groupInfo = await getGroupInfo(roomId)
@@ -188,7 +188,7 @@ const getGroupDetail = async (roomId: string) => {
       return groupInfo
     }
   } catch (error) {
-    console.error('获取群组信息失败:', error)
+    console.error('그룹 정보 가져오기 실패:', error)
   } finally {
     loadingGroups.value.delete(roomId)
   }
@@ -196,7 +196,7 @@ const getGroupDetail = async (roomId: string) => {
   return null
 }
 
-// 异步获取群组信息的计算属性
+// 비동기 그룹 정보 가져오기 계산 속성
 const applyMsg = computed(() => (item: NoticeItem) => {
   if (props.type === 'friend') {
     return isCurrentUser(item.senderId)
@@ -246,7 +246,7 @@ const applyMsg = computed(() => (item: NoticeItem) => {
   return ''
 })
 
-// 下拉菜单选项
+// 드롭다운 메뉴 옵션
 const dropdownOptions = computed(() => [
   {
     label: t('home.apply_list.dropdown.reject'),
@@ -260,14 +260,14 @@ const dropdownOptions = computed(() => [
 
 const avatarSrc = (url: string) => AvatarUtils.getAvatarUrl(url)
 
-// 判断是否为当前登录用户
+// 현재 로그인한 사용자인지 확인
 const isCurrentUser = (uid: string) => {
   return uid === userStore.userInfo!.uid
 }
 
 /**
- * 获取当前用户查询视角
- * @param item 通知消息
+ * 현재 사용자 조회 관점 가져오기
+ * @param item 알림 메시지
  */
 const getUserInfo = (item: any) => {
   switch (item.eventType) {
@@ -284,7 +284,7 @@ const getUserInfo = (item: any) => {
   }
 }
 
-// 判断是否为好友申请或者群申请、群邀请
+// 친구 신청, 그룹 신청 또는 그룹 초대인지 확인
 const isFriendApplyOrGroupInvite = (item: any) => {
   return (
     item.eventType === NoticeType.FRIEND_APPLY ||
@@ -295,20 +295,20 @@ const isFriendApplyOrGroupInvite = (item: any) => {
   )
 }
 
-// 处理滚动事件
+// 스크롤 이벤트 처리
 const handleScroll = (e: Event) => {
   if (isLoadingMore.value) return
 
   const { scrollTop, scrollHeight, clientHeight } = e.target as HTMLElement
-  // 当滚动到距离底部20px以内时触发加载更多
+  // 하단에서 20px 이내로 스크롤될 때 더 불러오기 트리거
   if (scrollHeight - scrollTop - clientHeight < 20) {
     loadMoreFriendRequests()
   }
 }
 
-// 加载更多好友申请
+// 친구 신청 더 불러오기
 const loadMoreFriendRequests = async () => {
-  // 如果已经是最后一页或正在加载中，则不再加载
+  // 이미 마지막 페이지이거나 로드 중인 경우 더 이상 로드하지 않음
   if (contactStore.applyPageOptions.isLast) {
     return
   }
@@ -340,7 +340,7 @@ const handleAgree = async (item: NoticeItem) => {
   }
 }
 
-// 处理好友请求操作（拒绝或忽略）
+// 친구 요청 작업 처리 (거절 또는 무시)
 const handleFriendAction = async (action: string, applyId: string) => {
   loadingMap.value[applyId] = true
   try {
@@ -367,18 +367,18 @@ const handleFriendAction = async (action: string, applyId: string) => {
 }
 
 onMounted(() => {
-  // 组件挂载时刷新一次列表
+  // 컴포넌트 마운트 시 목록 새로고침
   contactStore.getApplyPage(props.type, true)
 })
 
-// 监听applyList变化，批量加载群组信息
+// applyList 변경 감지, 그룹 정보 일괄 로드
 watch(
   () => applyList.value,
   (newList) => {
     const roomIds = uniq(newList.filter((item) => item.roomId && Number(item.roomId) > 0).map((item) => item.roomId))
 
     if (roomIds.length > 0) {
-      // 批量加载群组信息
+      // 그룹 정보 일괄 로드
       roomIds.forEach((roomId) => {
         if (!groupDetailsMap.value[roomId] && !loadingGroups.value.has(roomId)) {
           getGroupDetail(roomId)

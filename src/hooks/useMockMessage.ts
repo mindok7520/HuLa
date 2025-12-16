@@ -5,24 +5,24 @@ import { useGlobalStore } from '@/stores/global'
 import { useGroupStore } from '@/stores/group'
 
 /**
- * Mock 消息 Hook
+ * Mock 메시지 Hook
  */
 export const useMockMessage = () => {
   const globalStore = useGlobalStore()
-  // 获取本地存储的用户信息
+  // 로컬 저장소의 사용자 정보 가져오기
   const userInfo = computed(() => JSON.parse(localStorage.getItem('user') || '{}'))
 
   /**
-   * 模拟消息生成
-   * @param type 消息类型
-   * @param body 消息体
-   * @param messageMarks 互动信息
-   * @returns 服务器格式消息
+   * 메시지 모의 생성
+   * @param type 메시지 유형
+   * @param body 메시지 본문
+   * @param messageMarks 상호 작용 정보
+   * @returns 서버 형식 메시지
    */
   const mockMessage = (type: number, body: any, messageMarks?: any): MessageType => {
     const currentTimeStamp: number = Date.now()
     const random: number = Math.floor(Math.random() * 15)
-    // 唯一id 后五位时间戳+随机数
+    // 고유 id: 타임스탬프 마지막 5자리 + 난수
     const uniqueId: string = String(currentTimeStamp + random).slice(-7)
     const { uid = 0, name: username = '', avatar = '' } = userInfo.value || {}
     const groupStore = useGroupStore()

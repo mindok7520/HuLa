@@ -43,21 +43,21 @@ const startScan = async () => {
 
     const res = (await Promise.race([scanTask, cancelTask])) as any
 
-    // 为空或已取消
+    // 비어 있거나 취소됨
     if (!res) {
-      result.value = '扫码已取消'
+      result.value = 'QR 스캔 취소됨'
       return
     }
 
-    console.log('扫码结果：', res)
+    console.log('QR 스캔 결과:', res)
 
     if (res && typeof res === 'object' && 'content' in res && typeof res.content === 'string') {
       try {
         const jsonData = JSON.parse(res.content)
-        console.log('扫码json:', jsonData)
+        console.log('QR 스캔 json:', jsonData)
         useMitt.emit(MittEnum.QR_SCAN_EVENT, jsonData)
       } catch (error) {
-        console.log('扫码结果不是JSON，按纯文本处理：', error)
+        console.log('QR 스캔 결과가 JSON이 아닙니다. 일반 텍스트로 처리:', error)
         useMitt.emit(MittEnum.QR_SCAN_EVENT, { raw: res.content })
       }
 
@@ -68,25 +68,25 @@ const startScan = async () => {
       }
       result.value = res.content
     } else if (typeof res === 'string') {
-      // 某些平台可能直接返回字符串内容
+      // 일부 플랫폼은 문자열 내용을 직접 반환할 수 있음
       useMitt.emit(MittEnum.QR_SCAN_EVENT, { raw: res })
       result.value = res
       if (window.history.length > 1) window.history.back()
       else window.close()
     } else {
-      result.value = '扫码失败或已取消'
+      result.value = 'QR 스캔 실패 또는 취소됨'
     }
   } catch (err: any) {
-    console.error('扫码异常:', err)
+    console.error('QR 스캔 예외:', err)
 
     if (err && typeof err === 'object' && 'message' in err && /permission/i.test(err.message)) {
-      alert('没有相机权限，请在系统设置中开启权限')
-      router.back() // 用户点 OK 后会执行这里
-      result.value = '缺少权限'
+      alert('카메라 권한이 없습니다. 시스템 설정에서 권한을 켜주세요')
+      router.back() // 사용자가 OK를 클릭하면 실행됨
+      result.value = '권한 부족'
     } else {
-      alert('扫码过程中发生错误')
-      router.back() // 其他错误也返回上一页
-      result.value = '扫码过程中发生错误'
+      alert('QR 스캔 중 오류가 발생했습니다')
+      router.back() // 다른 오류도 이전 페이지로 반환
+      result.value = 'QR 스캔 중 오류가 발생했습니다'
     }
   }
 }
@@ -95,7 +95,7 @@ let unlistenAndroidBack: (() => void) | null = null
 let originalAppBg = ''
 
 onMounted(async () => {
-  // 使相机预览可见：将根容器背景设为透明，避免遮挡
+  // 카메라 미리보기 표시: 루트 컨테이너 배경을 투명하게 설정하여 가림 방지
   const appContainer = document.querySelector('.appContainer') as HTMLElement | null
   if (appContainer) {
     originalAppBg = appContainer.style.backgroundColor || ''
@@ -105,18 +105,18 @@ onMounted(async () => {
   isActive.value = true
   startScan()
 
-  // 仅在 Android 设备监听返回键，避免在 iOS/Safari 环境报错
+  // Android 장치에서만 뒤로 가기 버튼 수신, iOS/Safari 환경 오류 방지
   const isAndroid = /Android/i.test(navigator.userAgent)
   if (isAndroid) {
     try {
       unlistenAndroidBack = await listen('tauri://android-back', () => {
         isActive.value = false
         cancel().catch((e) => {
-          console.warn('cancel() 调用失败:', e)
+          console.warn('cancel() 호출 실패:', e)
         })
       })
     } catch (e) {
-      console.warn('监听 Android 返回键失败:', e)
+      console.warn('Android 뒤로 가기 버튼 수신 실패:', e)
     }
   }
 })
@@ -127,13 +127,13 @@ onUnmounted(() => {
     unlistenAndroidBack()
     unlistenAndroidBack = null
   }
-  // 恢复应用根容器背景色
+  // 앱 루트 컨테이너 배경색 복원
   const appContainer = document.querySelector('.appContainer') as HTMLElement | null
   if (appContainer) {
     appContainer.style.backgroundColor = originalAppBg
   }
   cancel().catch((e) => {
-    console.warn('cancel() 调用失败:', e)
+    console.warn('cancel() 호출 실패:', e)
   })
 })
 </script>
@@ -147,19 +147,19 @@ onUnmounted(() => {
 
 .scanner-header {
   position: relative;
-  z-index: 10; /* 确保头部在扫码层之上 */
+  z-index: 10; /* 헤더가 스캔 레이어 위에 오도록 설정 */
 }
 
 .scanner {
   position: fixed;
   inset: 0;
-  background: transparent; /* 保持透明，透出相机预览 */
+  background: transparent; /* 투명 유지, 카메라 미리보기 투과 */
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 18px;
   text-align: center;
-  pointer-events: none; /* 不拦截点击，避免遮挡返回按钮 */
+  pointer-events: none; /* 클릭 차단 안 함, 뒤로 가기 버튼 가림 방지 */
 }
 
 .scanner > div {

@@ -15,7 +15,7 @@ interface TriggerStrategy {
 }
 
 /**
- * 特殊符号唤起的触发策略抽象类(已经用hooks实现，暂时不用，后续有多种唤起才使用)
+ * 특수 기호로 호출되는 트리거 전략 추상 클래스 (이미 hooks로 구현됨, 현재 사용 안 함, 향후 여러 호출 방식이 있을 때 사용)
  */
 abstract class AbstractTriggerStrategy implements TriggerStrategy {
   protected readonly triggerSymbol: string
@@ -82,10 +82,10 @@ class UnifiedTriggerStrategy extends AbstractTriggerStrategy {
   }
 }
 
-/** 触发策略映射实例 */
+/** 트리거 전략 매핑 인스턴스 */
 let triggerStrategyMap: Record<TriggerEnum, TriggerStrategy> | null = null
 
-/** 创建触发策略映射工厂函数 */
+/** 트리거 전략 매핑 팩토리 함수 생성 */
 export const createTriggerStrategyMap = (
   personList: Ref<unknown[]>,
   aiModelList: Ref<unknown[]>,
@@ -120,7 +120,7 @@ export const createTriggerStrategyMap = (
   return triggerStrategyMap
 }
 
-/** 重置所有触发状态 */
+/** 모든 트리거 상태 초기화 */
 export const resetAllTriggerStates = () => {
   if (triggerStrategyMap) {
     Object.values(triggerStrategyMap).forEach((strategy) => strategy.resetState())

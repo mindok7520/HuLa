@@ -6,7 +6,7 @@ use windows::{
     core::BOOL,
 };
 
-/// Windows 运行时防护：清理敏感环境变量 + 调试器检测
+/// Windows 런타임 보호: 민감한 환경 변수 정리 + 디버거 감지
 pub fn apply_runtime_guards() {
     sanitize_sensitive_env();
     enforce_debugger_policy();
@@ -27,7 +27,7 @@ fn sanitize_sensitive_env() {
 
 fn enforce_debugger_policy() {
     if debugger_attached() {
-        eprintln!("[HuLa] 检测到调试器或远程调试会话，出于安全考虑终止启动。");
+        eprintln!("[HuLa] 디버거 또는 원격 디버깅 세션이 감지되었습니다. 보안상의 이유로 시작을 종료합니다.");
 
         #[cfg(not(debug_assertions))]
         {

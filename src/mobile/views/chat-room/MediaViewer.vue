@@ -1,20 +1,20 @@
 <template>
   <div class="flex flex-col h-full">
-    <!-- 头部 -->
+    <!-- 헤더 -->
     <div class="flex justify-between items-center p-4">
       <div @click="() => router.back()">
         <svg class="iconpark-icon w-24px h-24px"><use href="#fanhui"></use></svg>
       </div>
       <div>
         <n-dropdown trigger="click" :options="options" :show-arrow="true">
-          <n-button>选择类型</n-button>
+          <n-button>유형 선택</n-button>
         </n-dropdown>
       </div>
-      <n-button text type="primary">选择</n-button>
+      <n-button text type="primary">선택</n-button>
     </div>
-    <!-- 内容 -->
+    <!-- 콘텐츠 -->
     <div class="flex-1 p-4 overflow-auto">
-      <!-- 图片网格 -->
+      <!-- 이미지 그리드 -->
       <div class="grid grid-cols-4 gap-1">
         <div
           v-for="(image, index) in imageList"
@@ -31,7 +31,7 @@
       </div>
     </div>
 
-    <!-- 图片预览组件 -->
+    <!-- 이미지 미리보기 컴포넌트 -->
     <component
       :is="ImagePreview"
       v-if="ImagePreview"
@@ -51,29 +51,29 @@ const router = useRouter()
 const fileStore = useFileStore()
 const globalStore = useGlobalStore()
 
-// 图片预览状态
+// 이미지 미리보기 상태
 const showImagePreviewRef = ref(false)
 const activeImage = ref<{ url: string }>()
 
 const options = [
   {
-    label: '图片与视频',
+    label: '사진 및 동영상',
     key: 'image_video',
     disabled: false
   },
   {
-    label: '图片',
+    label: '사진',
     key: 'image',
     disabled: false
   },
   {
-    label: '视频',
+    label: '동영상',
     key: 'video',
     disabled: false
   }
 ]
 
-// 从 fileDownload store 获取图片数据
+// fileDownload store에서 이미지 데이터 가져오기
 const imageList = ref<
   {
     url: string

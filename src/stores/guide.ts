@@ -4,18 +4,18 @@ import { StoresEnum } from '@/enums'
 export const useGuideStore = defineStore(
   StoresEnum.GUIDE,
   () => {
-    /** 引导完成状态 */
+    /** 가이드 완료 상태 */
     const isGuideCompleted = ref(false)
 
     /**
-     * 标记引导为已完成
+     * 가이드를 완료로 표시
      */
     const markGuideCompleted = () => {
       isGuideCompleted.value = true
     }
 
     /**
-     * 重置引导状态
+     * 가이드 상태 초기화
      */
     const resetGuideStatus = () => {
       isGuideCompleted.value = false

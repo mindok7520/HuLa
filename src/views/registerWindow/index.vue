@@ -1,21 +1,21 @@
 <template>
-  <!-- 单独使用n-config-provider来包裹不需要主题切换的界面 -->
+  <!-- n-config-provider를 별도로 사용하여 테마 전환이 필요 없는 인터페이스를 감쌈 -->
   <n-config-provider
     :theme="naiveTheme"
     data-tauri-drag-region
     class="login-box size-full rounded-8px select-none flex flex-col">
-    <!--顶部操作栏-->
+    <!--상단 작업 표시줄-->
     <ActionBar :max-w="false" :shrink="false" />
 
     <n-flex vertical justify="center" :size="25" class="w-full mt--40px flex-1 pointer-events-none">
-      <!-- 注册菜单 -->
+      <!-- 회원가입 메뉴 -->
       <n-flex class="ma text-center w-260px pointer-events-auto" vertical :size="16">
         <n-flex justify="center" align="center">
           <span class="text-(24px #70938c) textFont">{{ t('auth.register.title') }}</span>
           <img class="w-100px h-40px" src="/hula.png" alt="" />
         </n-flex>
         <n-form :model="info" :rules="rules" ref="registerForm">
-          <!-- 注册信息 -->
+          <!-- 회원가입 정보 -->
           <div>
             <n-form-item path="name">
               <n-input
@@ -110,7 +110,7 @@
               </n-auto-complete>
             </n-form-item>
 
-            <!-- 密码提示信息 -->
+            <!-- 비밀번호 힌트 정보 -->
             <n-flex vertical v-if="info.password">
               <n-flex vertical :size="4">
                 <Validation
@@ -128,7 +128,7 @@
               </n-flex>
             </n-flex>
 
-            <!-- 协议 -->
+            <!-- 약관 -->
             <n-flex align="center" justify="center" :size="6" class="mt-10px">
               <n-checkbox v-model:checked="protocol" />
               <div class="text-12px color-#909090 cursor-default lh-14px">
@@ -160,7 +160,7 @@
       </n-flex>
     </n-flex>
 
-    <!-- 底部栏 -->
+    <!-- 하단 바 -->
     <n-flex
       class="text-(12px #909090) w-full absolute bottom-20px left-1/2 transform -translate-x-1/2"
       :size="8"
@@ -168,7 +168,7 @@
       <span>Copyright {{ currentYear - 1 }}-{{ currentYear }} HuLaSpark All Rights Reserved.</span>
     </n-flex>
 
-    <!-- 星标提示框 -->
+    <!-- 별표 팁 모달 -->
     <n-modal v-model:show="starTipsModal" :mask-closable="false" class="rounded-8px" transform-origin="center">
       <div class="bg-[--bg-edit] w-380px h-fit box-border flex flex-col">
         <n-flex vertical class="w-full h-fit">
@@ -192,7 +192,7 @@
       </div>
     </n-modal>
 
-    <!-- 邮箱验证码输入弹窗 -->
+    <!-- 이메일 인증 코드 입력 팝업 -->
     <n-modal v-model:show="emailCodeModal" :mask-closable="false" class="rounded-8px" transform-origin="center">
       <div class="bg-#f0f0f0 w-380px h-fit box-border flex flex-col">
         <div
@@ -217,7 +217,7 @@
               {{ t('auth.register.email_modal.desc', { email: info.email }) }}
             </p>
 
-            <!-- PIN 输入框 -->
+            <!-- PIN 입력 상자 -->
             <div class="mb-20px">
               <PinInput v-model="emailCode" @complete="register" ref="pinInputRef" />
             </div>
@@ -253,7 +253,7 @@ import * as ImRequestUtils from '@/utils/ImRequestUtils'
 import { isMac, isWindows } from '@/utils/PlatformConstants'
 import { validateAlphaNumeric, validateSpecialChar } from '@/utils/Validate'
 
-// 输入框类型定义
+// 입력 상자 유형 정의
 type InputType = 'nickName' | 'email' | 'password' | 'confirmPassword'
 
 const settingStore = useSettingStore()
@@ -261,7 +261,7 @@ const { themes } = storeToRefs(settingStore)
 const naiveTheme = computed(() => (themes.value.content === 'dark' ? darkTheme : lightTheme))
 const { t } = useI18n()
 
-/** 注册信息 */
+/** 회원가입 정보 */
 const info = unref(
   ref<RegisterUserReq>({
     avatar: '',
@@ -276,23 +276,23 @@ const info = unref(
   })
 )
 
-/** 确认密码 */
+/** 비밀번호 확인 */
 const confirmPassword = ref('')
 
-/** 协议 */
+/** 약관 */
 const protocol = ref(true)
 const btnEnable = ref(false)
 const loading = ref(false)
 const registerLoading = ref(false)
 
-// 占位符
-// 前缀显示状态
+// 플레이스홀더
+// 접두사 표시 상태
 const showNamePrefix = ref(false)
 const showemailPrefix = ref(false)
 const showPasswordPrefix = ref(false)
 const showConfirmPasswordPrefix = ref(false)
 const { createModalWindow } = useWindow()
-// 常用邮箱后缀
+// 자주 사용하는 이메일 접미사
 const commonEmailDomains = computed(() => {
   return ['gmail.com', '163.com', 'qq.com'].map((suffix) => {
     return {
@@ -302,13 +302,13 @@ const commonEmailDomains = computed(() => {
   })
 })
 
-/** 发送验证码冷却时间(秒) */
+/** 인증 코드 전송 쿨타임(초) */
 const sendCodeCooldown = ref(0)
-/** 验证码倒计时消息ID */
+/** 인증 코드 카운트다운 메시지 ID */
 const EMAIL_TIMER_ID = 'register_window_email_timer'
-/** 倒计时定时器 Worker */
+/** 카운트다운 타이머 Worker */
 const timerWorker = new Worker(new URL('@/workers/timer.worker.ts', import.meta.url))
-/** 发送验证码按钮文本 */
+/** 인증 코드 전송 버튼 텍스트 */
 const btnText = computed(() => {
   if (loading.value) {
     return t('auth.register.actions.sending')
@@ -318,20 +318,20 @@ const btnText = computed(() => {
   }
   return t('auth.register.actions.send_code')
 })
-// 使用day.js获取当前年份
+// day.js를 사용하여 현재 연도 가져오기
 const currentYear = dayjs().year()
 const registerForm = ref<FormInst | null>(null)
 const starTipsModal = ref(false)
 const emailCodeModal = ref(false)
 
-// 邮箱验证码PIN输入
+// 이메일 인증 코드 PIN 입력
 const emailCode = ref('')
 const pinInputRef = ref()
 const isEmailCodeComplete = computed(() => emailCode.value.length === 6)
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const isEmailValid = computed(() => emailPattern.test(info.email.trim()))
 
-// 校验规则
+// 유효성 검사 규칙
 const rules = {
   nickName: {
     required: true,
@@ -377,29 +377,29 @@ const getShow = (value: string) => {
   return false
 }
 
-/** 打开服务协议窗口 */
+/** 서비스 약관 창 열기 */
 const openServiceAgreement = async () => {
   await createModalWindow(t('login.term.checkout.text2'), 'modal-serviceAgreement', 600, 600, 'login')
 }
 
-/** 打开隐私保护协议窗口 */
+/** 개인정보 보호 정책 창 열기 */
 const openPrivacyAgreement = async () => {
   await createModalWindow(t('login.term.checkout.text4'), 'modal-privacyAgreement', 600, 600, 'login')
 }
 
-/** 不允许输入空格 */
+/** 공백 입력 허용 안 함 */
 const noSideSpace = (value: string) => !value.startsWith(' ') && !value.endsWith(' ')
 
-/** 密码验证函数 */
+/** 비밀번호 검증 함수 */
 const validateMinLength = (value: string) => value.length >= 6
 
-/** 检查密码是否满足所有条件 */
+/** 비밀번호가 모든 조건을 충족하는지 확인 */
 const isPasswordValid = computed(() => {
   const password = info.password
   return validateMinLength(password) && validateAlphaNumeric(password) && validateSpecialChar(password)
 })
 
-/** 检查是否可以发送邮箱验证码 */
+/** 이메일 인증 코드를 전송할 수 있는지 확인 */
 const canSendCode = computed(() => {
   return (
     !!info.nickName &&
@@ -415,9 +415,9 @@ watchEffect(() => {
 })
 
 /**
- * 处理输入框状态变化
- * @param type 输入框类型：name-昵称 / email-邮箱 / password-密码 / confirmPassword-确认密码
- * @param event 事件对象
+ * 입력 상자 상태 변경 처리
+ * @param type 입력 상자 유형: name-닉네임 / email-이메일 / password-비밀번호 / confirmPassword-비밀번호 확인
+ * @param event 이벤트 객체
  */
 const handleInputState = (event: FocusEvent, type: InputType): void => {
   const prefixMap: Record<InputType, Ref<boolean>> = {
@@ -429,7 +429,7 @@ const handleInputState = (event: FocusEvent, type: InputType): void => {
   prefixMap[type].value = event.type === 'focus'
 }
 
-/** 处理步骤操作 */
+/** 단계 작업 처리 */
 const handleStepAction = async () => {
   if (btnEnable.value || loading.value) return
 
@@ -464,7 +464,7 @@ const handleStepAction = async () => {
       pinInputRef.value?.focus()
     })
   } catch (error) {
-    console.error('发送验证码失败', error)
+    console.error('인증 코드 전송 실패', error)
   } finally {
     loading.value = false
   }
@@ -494,27 +494,27 @@ timerWorker.onerror = () => {
   sendCodeCooldown.value = 0
 }
 
-/** 邮箱注册 */
+/** 이메일 회원가입 */
 const register = async () => {
   registerLoading.value = true
 
-  // 合并验证码
+  // 인증 코드 병합
   info.code = emailCode.value
   info.email = info.email.trim()
 
   try {
-    // 随机生成头像编号
+    // 아바타 번호 무작위 생성
     const avatarNum = Math.floor(Math.random() * 21) + 1
     const avatarId = avatarNum.toString().padStart(3, '0')
     info.avatar = avatarId
 
     info.confirmPassword = confirmPassword.value
 
-    // 注册
+    // 회원가입
     await ImRequestUtils.register({ ...info })
     window.$message.success(t('auth.register.messages.register_success'))
 
-    // 关闭弹窗并跳转到登录页
+    // 팝업 닫기 및 로그인 페이지로 이동
     emailCodeModal.value = false
     setTimeout(() => {
       WebviewWindow.getByLabel('login').then((win) => {
@@ -541,7 +541,7 @@ onMounted(async () => {
   })
 })
 
-// 组件卸载时清理计时器
+// 컴포넌트 언마운트 시 타이머 정리
 onUnmounted(() => {
   timerWorker.postMessage({
     type: 'clearTimer',

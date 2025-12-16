@@ -10,7 +10,7 @@
 
     <p class="w-full h-1px bg-#e3e3e3 dark:bg-#80808050 my-6px select-none"></p>
 
-    <p class="text-(10px [--chat-text-color]) ml-4px select-none">查看 {{ msgIds.length }} 条转发消息</p>
+    <p class="text-(10px [--chat-text-color]) ml-4px select-none">{{ msgIds.length }}개의 전달된 메시지 보기</p>
   </main>
 </template>
 
@@ -36,28 +36,28 @@ const userStore = useUserStore()
 const chatStore = useChatStore()
 const groupStore = useGroupStore()
 
-// 计算聊天记录标题
+// 채팅 기록 제목 계산
 const chatRecordTitle = computed(() => {
   if (globalStore.currentSession?.type === RoomTypeEnum.GROUP) {
-    return '群聊的聊天记录'
+    return '그룹 채팅 기록'
   } else {
-    // 单聊显示好友名称和自己名称的拼接
+    // 1:1 채팅은 친구 이름과 내 이름을 연결하여 표시
     const friendName = globalStore.currentSession?.name || ''
     const myName = userStore.userInfo?.name || ''
-    return `${friendName}和${myName}的聊天记录`
+    return `${friendName}님과 ${myName}님의 채팅 기록`
   }
 })
 
-// 根据消息类型处理显示内容
+// 메시지 유형에 따라 표시 내용 처리
 const processedContentList = computed(() => {
-  // 如果没有msgIds，直接返回原contentList
+  // msgIds가 없으면 원래 contentList 반환
   if (!msgIds || msgIds.length === 0) {
     return contentList
   }
 
-  // 尝试通过msgIds获取完整消息信息
+  // msgIds를 통해 전체 메시지 정보 가져오기 시도
   return msgIds.map((msgId, index) => {
-    // 尝试从当前聊天消息中找到对应消息
+    // 현재 채팅 메시지에서 해당 메시지 찾기 시도
     const message = chatStore.currentMessageMap?.[msgId.msgId]
 
     if (message) {
@@ -65,23 +65,23 @@ const processedContentList = computed(() => {
       const userName = userInfo?.name || ''
       const msgType = message.message.type
 
-      // 获取消息显示内容
+      // 메시지 표시 내용 가져오기
       let content = ''
 
-      // 排除不需要显示的消息类型
+      // 표시할 필요 없는 메시지 유형 제외
       if (msgType === MsgEnum.UNKNOWN || msgType === MsgEnum.RECALL || msgType === MsgEnum.BOT) {
         content = message.message.body.content || ''
       } else if (MSG_REPLY_TEXT_MAP[msgType]) {
-        // 对于特殊类型消息，显示对应的文本提示
+        // 특수 유형 메시지의 경우 해당 텍스트 힌트 표시
         content = MSG_REPLY_TEXT_MAP[msgType]
       } else {
-        // 文本消息或其他消息
+        // 텍스트 메시지 또는 기타 메시지
         content = message.message.body.content || ''
       }
 
       return userName + ': ' + content
     } else {
-      // 如果找不到消息详情，使用原始contentList
+      // 메시지 세부 정보를 찾을 수 없는 경우 원래 contentList 사용
       return contentList[index] || ''
     }
   })
@@ -90,16 +90,16 @@ const processedContentList = computed(() => {
 const openMultiMsgWindow = async () => {
   const label = msgId ? `${EventEnum.MULTI_MSG}${msgId}` : EventEnum.MULTI_MSG
   try {
-    // 创建窗口
-    await createWebviewWindow('聊天记录', label, 600, 600, undefined, true, 600, 400, undefined, undefined, {
+    // 창 생성
+    await createWebviewWindow('채팅 기록', label, 600, 600, undefined, true, 600, 400, undefined, undefined, {
       key: label
     })
 
-    // 向窗口发送消息数据
+    // 창으로 메시지 데이터 전송
     await sendWindowPayload(label, msgIds)
   } catch (e) {
-    console.error('创建聊天记录窗口失败:', e)
-    window.$message?.error('打开聊天记录失败')
+    console.error('채팅 기록 창 생성 실패:', e)
+    window.$message?.error('채팅 기록 열기 실패')
   }
 }
 </script>

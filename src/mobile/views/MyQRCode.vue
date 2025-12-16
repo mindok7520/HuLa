@@ -7,9 +7,9 @@
       :hidden-right="true"
       :enable-default-background="false"
       :enable-shadow="false"
-      room-name="个人二维码" />
+      room-name="개인 QR 코드" />
 
-    <!-- 页面全部内容 -->
+    <!-- 페이지 전체 콘텐츠 -->
     <div class="flex flex-col flex-1 items-center p-15px z-2 my-15">
       <div class="flex flex-col rounded-15px bg-white py-10">
         <div class="flex flex-1 flex-col px-5 gap-10px">
@@ -21,7 +21,7 @@
             <div
               class="flex flex-col text-#4e4e4e h-auto gap-8px overflow-hidden justify-center text-18px whitespace-normal break-words max-w-46">
               <div class="font-bold">{{ userInfo?.name }}</div>
-              <div class="text-16px">账号:{{ userInfo?.account }}</div>
+              <div class="text-16px">계정:{{ userInfo?.account }}</div>
             </div>
           </div>
 
@@ -39,7 +39,7 @@
               :error-correction-level="qrErrorCorrectionLevel" />
           </div>
 
-          <div class="flex justify-center text-gray">扫我添加好友哦~</div>
+          <div class="flex justify-center text-gray">저를 스캔하여 친구 추가하세요~</div>
         </div>
       </div>
     </div>
@@ -60,7 +60,7 @@ const userInfo = computed(() => {
   return userStore.userInfo
 })
 
-// 取随机字符
+// 랜덤 문자 가져오기
 const randomStr = crypto.randomUUID().split('-')[0]
 
 const qrCodeValue = ref(

@@ -8,13 +8,13 @@
       :style="`background: linear-gradient(to bottom, ${RGBA} 0%, #f1f1f1 100%)`"
       class="size-full p-20px box-border"
       data-tauri-drag-region>
-      <!-- 当前选中的状态 -->
+      <!-- 현재 선택된 상태 -->
       <n-flex justify="center" align="center" class="pt-80px" data-tauri-drag-region>
         <img class="w-34px h-34px" :src="statusIcon" alt="" />
         <span class="text-22px ml-8px" :title="statusTitle">{{ displayStatusTitle }}</span>
       </n-flex>
 
-      <!-- 状态 -->
+      <!-- 상태 -->
       <n-flex vertical class="w-full h-100vh bg-#f1f1f1 rounded-6px box-border p-13px" data-tauri-drag-region>
         <n-scrollbar style="max-height: 215px">
           <n-flex align="center" :size="10">
@@ -75,7 +75,7 @@ const translateStateTitle = (title?: string) => {
 }
 const displayStatusTitle = computed(() => translateStateTitle(statusTitle.value))
 const handleResetState = () => handleActive(resetState.value)
-/** 这里不写入activeItem中是因为v-bind要绑定的值是响应式的 */
+/** v-bind에 바인딩할 값이 반응형이어야 하므로 activeItem에 쓰지 않음 */
 const RGBA = ref(statusBgColor.value)
 
 watchEffect(() => {
@@ -83,8 +83,8 @@ watchEffect(() => {
 })
 
 /**
- * 处理选中的状态
- * @param { UserState } item 状态
+ * 선택된 상태 처리
+ * @param { UserState } item 상태
  */
 const handleActive = async (item: UserState) => {
   try {
@@ -95,7 +95,7 @@ const handleActive = async (item: UserState) => {
 
     window.$message?.success(t('auth.onlineStatus.messages.success'))
   } catch (error) {
-    console.error('更新状态失败:', error)
+    console.error('상태 업데이트 실패:', error)
     window.$message?.error(t('auth.onlineStatus.messages.error'))
   }
 }
@@ -149,7 +149,7 @@ onMounted(async () => {
     color: #404040;
   }
 }
-/** 隐藏naive UI的滚动条 */
+/** naive UI 스크롤바 숨기기 */
 :deep(
   .n-scrollbar > .n-scrollbar-rail.n-scrollbar-rail--vertical > .n-scrollbar-rail__scrollbar,
   .n-scrollbar + .n-scrollbar-rail.n-scrollbar-rail--vertical > .n-scrollbar-rail__scrollbar

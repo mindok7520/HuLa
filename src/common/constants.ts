@@ -1,8 +1,8 @@
-/** 底部选项栏高度 */
+/** 하단 옵션 바 높이 */
 export const FOOTER_HEIGHT = 260
-/** 底部选项栏最大高度 */
+/** 하단 옵션 바 최대 높이 */
 export const MAX_FOOTER_HEIGHT = 390
-/** 底部选项栏最小高度 */
+/** 하단 옵션 바 최소 높이 */
 export const MIN_FOOTER_HEIGHT = 200
-/** 顶部选项栏高度 */
+/** 상단 툴바 높이 */
 export const TOOLBAR_HEIGHT = 40

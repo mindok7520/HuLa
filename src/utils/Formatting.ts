@@ -2,7 +2,7 @@ import DOMPurify from 'dompurify'
 import { compact } from 'es-toolkit'
 
 /**
- * 文件大小格式化
+ * 파일 크기 포맷팅
  */
 export const formatBytes = (bytes: number): string => {
   if (bytes <= 0 || isNaN(bytes)) {
@@ -17,7 +17,7 @@ export const formatBytes = (bytes: number): string => {
   return size + ' ' + units[unitIndex]
 }
 
-/** 文件图标映射关系表 */
+/** 파일 아이콘 매핑 테이블 */
 const fileSuffixMap: Record<string, string> = {
   jpg: 'jpg',
   jpeg: 'jpg',
@@ -50,9 +50,9 @@ const fileSuffixMap: Record<string, string> = {
   ts: 'ts'
 }
 /**
- * 获取文件对应的Icon
- * @param fileName 文件名
- * @returns Icon
+ * 파일에 해당하는 아이콘 가져오기
+ * @param fileName 파일명
+ * @returns 아이콘
  */
 export const getFileSuffix = (fileName: string): string => {
   if (!fileName) return 'other'
@@ -64,20 +64,20 @@ export const getFileSuffix = (fileName: string): string => {
 }
 
 /**
- * 从文件路径中提取文件名
- * @param path 文件路径
- * @returns 文件名
+ * 파일 경로에서 파일명 추출
+ * @param path 파일 경로
+ * @returns 파일명
  */
 export const extractFileName = (path: string): string => {
-  // 同时处理 Unix 和 Windows 路径分隔符
+  // Unix 및 Windows 경로 구분 기호 모두 처리
   const fileName = path.split(/[/\\]/).pop()
   return fileName || 'file'
 }
 
 /**
- * 根据文件扩展名获取MIME类型
- * @param fileName 文件名
- * @returns MIME类型
+ * 파일 확장자에 따른 MIME 타입 가져오기
+ * @param fileName 파일명
+ * @returns MIME 타입
  */
 export const getMimeTypeFromExtension = (fileName: string): string => {
   const ext = fileName.split('.').pop()?.toLowerCase() || ''
@@ -94,8 +94,8 @@ export const getMimeTypeFromExtension = (fileName: string): string => {
 }
 
 /**
- * @param fragment 字符串
- * @returns 去除元素标记后的字符串
+ * @param fragment 문자열
+ * @returns 요소 태그가 제거된 문자열
  * */
 export const removeTag = (fragment: string) => {
   const sanitizedFragment = DOMPurify.sanitize(fragment)
@@ -111,7 +111,7 @@ export const removeTag = (fragment: string) => {
 }
 
 /**
- * 非中文文本超过指定非空格字符数时截断并追加省略号
+ * 중국어가 아닌 텍스트가 지정된 공백이 아닌 문자 수를 초과할 경우 잘라내고 줄임표 추가
  */
 export const formatBottomText = (text: string, maxLength = 6, omission = '...') => {
   const pureText = text.replace(/\s/g, '')

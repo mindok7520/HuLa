@@ -28,7 +28,7 @@ pub async fn set_complete(
         "backend" => *state.backend_task.lock().await = true,
         _ => panic!("invalid task completed!"),
     }
-    // 不再自动隐藏启动画面，由前端页面渲染完成后主动调用 hide_splash_screen
+    // 시작 화면을 자동으로 숨기지 않음, 프론트엔드 페이지 렌더링이 완료된 후 능동적으로 hide_splash_screen 호출
     tracing::info!("set_complete {}: {:?}", task, state.frontend_task);
     tracing::info!("set_complete {}: {:?}", task, state.backend_task);
     Ok(())

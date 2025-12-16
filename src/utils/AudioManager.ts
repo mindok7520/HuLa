@@ -1,6 +1,6 @@
 /**
- * 全局音频管理器
- * 确保同时只有一个音频在播放
+ * 전역 오디오 관리자
+ * 동시에 하나의 오디오만 재생되도록 보장
  */
 class AudioManager {
   private static instance: AudioManager
@@ -8,7 +8,7 @@ class AudioManager {
   private currentAudioId: string | null = null
   private listeners: Set<() => void> = new Set()
 
-  private constructor() {}
+  private constructor() { }
 
   static getInstance(): AudioManager {
     if (!AudioManager.instance) {
@@ -18,17 +18,17 @@ class AudioManager {
   }
 
   /**
-   * 播放音频
-   * @param audio 音频元素
-   * @param audioId 音频唯一标识
+   * 오디오 재생
+   * @param audio 오디오 요소
+   * @param audioId 오디오 고유 식별자
    */
   async play(audio: HTMLAudioElement, audioId: string): Promise<void> {
     if (this.currentAudio) {
       if (this.currentAudioId !== audioId) {
-        // 不同音频直接停止当前播放
+        // 다른 오디오는 현재 재생을 직접 중지
         this.stop()
       } else {
-        // 相同音频需要先复位，避免并行播放
+        // 동일한 오디오는 병렬 재생을 피하기 위해 먼저 리셋
         if (!this.currentAudio.paused) {
           this.currentAudio.pause()
         }
@@ -42,13 +42,13 @@ class AudioManager {
     try {
       await audio.play()
     } catch (error) {
-      // 网络重连或快速切换时，audio.play 可能被中断抛出 AbortError，这里忽略此类错误
+      // 네트워크 재연결 또는 빠른 전환 시 audio.play가 중단되어 AbortError를 발생시킬 수 있으므로 여기서는 이러한 오류를 무시
       if (error instanceof DOMException && error.name === 'AbortError') {
         this.currentAudio = null
         this.currentAudioId = null
         return
       }
-      console.error('音频播放失败:', error)
+      console.error('오디오 재생 실패:', error)
       this.currentAudio = null
       this.currentAudioId = null
       throw error
@@ -56,7 +56,7 @@ class AudioManager {
   }
 
   /**
-   * 暂停当前音频
+   * 현재 오디오 일시 중지
    */
   pause(): void {
     if (this.currentAudio) {
@@ -65,8 +65,8 @@ class AudioManager {
           this.currentAudio.pause()
         }
       } catch (error) {
-        // 忽略音频元素已被销毁或状态异常的错误
-        console.warn('暂停音频时出现错误:', error)
+        // 오디오 요소가 이미 파괴되었거나 상태 이상인 오류 무시
+        console.warn('오디오 일시 중지 시 오류 발생:', error)
         this.currentAudio = null
         this.currentAudioId = null
       }
@@ -74,7 +74,7 @@ class AudioManager {
   }
 
   /**
-   * 停止当前音频并重置
+   * 현재 오디오 중지 및 리셋
    */
   stop(): void {
     if (this.currentAudio) {
@@ -84,8 +84,8 @@ class AudioManager {
         }
         this.currentAudio.currentTime = 0
       } catch (error) {
-        // 忽略音频元素已被销毁或状态异常的错误
-        console.warn('停止音频时出现错误:', error)
+        // 오디오 요소가 이미 파괴되었거나 상태 이상인 오류 무시
+        console.warn('오디오 중지 시 오류 발생:', error)
       } finally {
         this.currentAudio = null
         this.currentAudioId = null
@@ -95,13 +95,13 @@ class AudioManager {
   }
 
   /**
-   * 停止所有音频（用于会话切换等场景）
+   * 모든 오디오 중지 (세션 전환 등의 시나리오에 사용)
    */
   stopAll(): void {
-    // 停止当前管理的音频
+    // 현재 관리 중인 오디오 중지
     this.stop()
 
-    // 停止页面中所有其他音频元素
+    // 페이지의 모든 다른 오디오 요소 중지
     document.querySelectorAll('audio').forEach((audio) => {
       try {
         if (!audio.paused) {
@@ -109,8 +109,8 @@ class AudioManager {
           audio.currentTime = 0
         }
       } catch (error) {
-        // 忽略音频元素已被销毁或状态异常的错误
-        console.warn('停止页面音频时出现错误:', error)
+        // 오디오 요소가 이미 파괴되었거나 상태 이상인 오류 무시
+        console.warn('페이지 오디오 중지 시 오류 발생:', error)
       }
     })
 
@@ -118,36 +118,36 @@ class AudioManager {
   }
 
   /**
-   * 检查指定音频是否正在播放
-   * @param audioId 音频唯一标识
+   * 지정된 오디오가 재생 중인지 확인
+   * @param audioId 오디오 고유 식별자
    */
   isPlaying(audioId: string): boolean {
     return !!(this.currentAudioId === audioId && this.currentAudio && !this.currentAudio.paused)
   }
 
   /**
-   * 获取当前播放的音频ID
+   * 현재 재생 중인 오디오 ID 가져오기
    */
   getCurrentAudioId(): string | null {
     return this.currentAudioId
   }
 
   /**
-   * 添加状态变化监听器
+   * 상태 변경 리스너 추가
    */
   addListener(callback: () => void): void {
     this.listeners.add(callback)
   }
 
   /**
-   * 移除状态变化监听器
+   * 상태 변경 리스너 제거
    */
   removeListener(callback: () => void): void {
     this.listeners.delete(callback)
   }
 
   /**
-   * 通知所有监听器状态已变化
+   * 모든 리스너에게 상태 변경 알림
    */
   private notifyListeners(): void {
     this.listeners.forEach((callback) => callback())

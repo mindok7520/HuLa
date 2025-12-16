@@ -10,7 +10,7 @@ import {
   NSwitch
 } from 'naive-ui'
 
-/** 单独设置数字输入框的主题 */
+/** 숫자 입력 상자 테마 개별 설정 */
 const commonTheme: GlobalThemeOverrides = {
   Input: {
     borderRadius: '10px',
@@ -105,8 +105,8 @@ export const Switch = defineComponent(
     return () => (
       <NSwitch v-model:value={v.value} class={'text-(12px [--chat-text-color])'} size={'small'}>
         {{
-          checked: () => '开启',
-          unchecked: () => '关闭'
+          checked: () => '켜짐',
+          unchecked: () => '꺼짐'
         }}
       </NSwitch>
     )

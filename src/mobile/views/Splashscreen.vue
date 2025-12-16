@@ -1,5 +1,5 @@
 <template>
-  <!-- 🚀 加载页 DOM -->
+  <!-- 🚀 로딩 페이지 DOM -->
   <div id="loading-page" class="h-100vh"></div>
 </template>
 

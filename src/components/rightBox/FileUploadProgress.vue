@@ -3,7 +3,7 @@
     v-if="(queue.isActive || queue.endTime) && queue.totalFiles > 1"
     class="file-upload-progress"
     :class="{ 'is-completed': !queue.isActive && queue.endTime }">
-    <!-- 进度条头部信息 -->
+    <!-- 진행률 표시줄 헤더 정보 -->
     <div class="flex-y-center pb-10px">
       <div class="flex-center gap-8px">
         <svg class="size-16px color-[--text-color]">
@@ -16,7 +16,7 @@
       </div>
     </div>
 
-    <!-- 主进度条 -->
+    <!-- 메인 진행률 표시줄 -->
     <n-progress
       type="line"
       :percentage="progress"
@@ -39,10 +39,10 @@ const { t } = useI18n()
 const settingStore = useSettingStore()
 const { themes } = storeToRefs(settingStore)
 
-// 队列状态
+// 대기열 상태
 const { queue, progress, isUploading } = globalFileUploadQueue
 
-// 状态文本
+// 상태 텍스트
 const getStatusText = () => {
   if (queue.isActive) {
     if (isUploading.value) {

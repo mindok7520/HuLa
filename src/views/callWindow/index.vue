@@ -1,9 +1,9 @@
 <template>
-  <!-- 通知样式窗口 (接收方且未接听) -->
+  <!-- 알림 스타일 창 (수신자이며 아직 응답하지 않음) -->
   <div
     v-if="isReceiver && !isCallAccepted"
     class="w-360px h-full bg-white dark:bg-gray-800 flex-y-center px-12px select-none">
-    <!-- 用户头像 -->
+    <!-- 사용자 아바타 -->
     <div class="relative mr-12px">
       <n-avatar
         :size="56"
@@ -11,7 +11,7 @@
         :color="themes.content === ThemeEnum.DARK ? '' : '#fff'"
         :fallback-src="themes.content === ThemeEnum.DARK ? '/logoL.png' : '/logoD.png'"
         class="rounded-12px shadow-md" />
-      <!-- 通话类型指示器 -->
+      <!-- 통화 유형 표시기 -->
       <div class="absolute -bottom-2px -right-2px w-20px h-20px rounded-full bg-blue-500 flex-center shadow-lg">
         <svg class="size-14px color-#fff">
           <use :href="callType === CallTypeEnum.VIDEO ? '#video-one' : '#phone-telephone'"></use>
@@ -19,7 +19,7 @@
       </div>
     </div>
 
-    <!-- 用户信息和状态 -->
+    <!-- 사용자 정보 및 상태 -->
     <div class="flex-1 min-w-0">
       <div class="text-15px font-semibold text-gray-900 dark:text-white mb-12px truncate">
         {{ remoteUserInfo?.name || t('message.call_window.unknown_user') }}
@@ -33,9 +33,9 @@
       </div>
     </div>
 
-    <!-- 操作按钮 -->
+    <!-- 작업 버튼 -->
     <div class="flex gap-16px mr-8">
-      <!-- 拒绝按钮 -->
+      <!-- 거절 버튼 -->
       <div
         @click="hangUp(CallResponseStatus.REJECTED)"
         class="size-40px rounded-full bg-#d5304f hover:bg-#d5304f flex-center cursor-pointer shadow-lg">
@@ -43,7 +43,7 @@
           <use href="#PhoneHangup"></use>
         </svg>
       </div>
-      <!-- 接听按钮 -->
+      <!-- 응답 버튼 -->
       <div
         @click="acceptCall"
         class="size-40px rounded-full bg-#13987f hover:bg-#13987f flex-center cursor-pointer shadow-lg">
@@ -54,9 +54,9 @@
     </div>
   </div>
 
-  <!-- 正常通话窗口 -->
+  <!-- 정상 통화 창 -->
   <div v-else data-tauri-drag-region class="h-full flex flex-col select-none relative bg-#161616">
-    <!-- 背景羽化模糊层 -->
+    <!-- 배경 페더링 흐림 레이어 -->
     <div
       :style="{
         backgroundImage: `url(${avatarSrc})`,
@@ -65,10 +65,10 @@
         backgroundRepeat: 'no-repeat'
       }"
       class="absolute inset-0 blur-xl opacity-40"></div>
-    <!-- 深色遮罩 -->
+    <!-- 어두운 마스크 -->
     <div class="absolute inset-0 bg-black/20"></div>
 
-    <!-- 窗口控制栏 -->
+    <!-- 창 제어 막대 -->
     <ActionBar
       v-if="!isMobileDevice"
       ref="actionBarRef"
@@ -76,14 +76,14 @@
       :top-win-label="WebviewWindow.getCurrent().label"
       :shrink="false" />
 
-    <!-- 主要内容区域 -->
+    <!-- 주요 내용 영역 -->
     <div
       :class="[
         'relative z-10 flex flex-col min-h-0 flex-1',
         isMobileDevice ? 'p-0' : 'px-8px pt-6px',
         !isMobileDevice || callType !== CallTypeEnum.VIDEO ? 'items-center justify-center' : ''
       ]">
-      <!-- 视频通话时显示视频 (只有在双方都开启视频时才显示) -->
+      <!-- 영상 통화 시 비디오 표시 (양쪽 모두 비디오를 켰을 때만 표시) -->
       <div
         v-if="callType === CallTypeEnum.VIDEO && localStream && (isVideoEnabled || hasRemoteVideo)"
         class="w-full flex-1 relative min-h-0 overflow-hidden">
@@ -94,7 +94,7 @@
             {{ callStatusText }}
           </div>
         </div>
-        <!-- 主视频 -->
+        <!-- 메인 비디오 -->
         <video
           ref="mainVideoRef"
           autoplay
@@ -104,7 +104,7 @@
             isMobileDevice ? 'rounded-none' : 'rounded-8px'
           ]"></video>
 
-        <!-- 画中画视频 -->
+        <!-- PIP 비디오 -->
         <div :class="isMobileDevice ? 'top-100px' : 'top-12px'" class="absolute right-8px group z-30">
           <video
             ref="pipVideoRef"
@@ -113,7 +113,7 @@
             :class="pipVideoSizeClass"
             class="scale-x-[-1] rounded-8px bg-black object-cover border-2 border-white cursor-pointer"
             @click="toggleVideoLayout"></video>
-          <!-- 切换提示 -->
+          <!-- 전환 팁 -->
           <div
             class="absolute inset-0 flex-center opacity-0 group-hover:opacity-100 transition-opacity bg-black bg-opacity-30 rounded-8px pointer-events-none">
             <svg class="text-#fff size-20px">
@@ -122,7 +122,7 @@
           </div>
         </div>
 
-        <!-- 底部控制按钮悬浮层（仅移动端） -->
+        <!-- 하단 제어 버튼 플로팅 레이어 (모바일 전용) -->
         <div
           v-if="isMobileDevice"
           class="absolute inset-x-0 bottom-0 z-30 px-24px pb-24px pointer-events-none"
@@ -130,7 +130,7 @@
             background: 'linear-gradient(180deg, rgba(15, 15, 15, 0) 0%, rgba(15, 15, 15, 0.88) 100%)',
             paddingBottom: 'calc(24px + env(safe-area-inset-bottom))'
           }">
-          <!-- 通话时长 -->
+          <!-- 통화 시간 -->
           <div v-if="connectionStatus === RTCCallStatus.ACCEPT" class="pb-16px text-center pointer-events-none">
             <div class="inline-block rounded-full bg-black/50 px-16px py-6px text-14px text-#fff">
               {{ formattedCallDuration }}
@@ -138,7 +138,7 @@
           </div>
 
           <div class="flex-center gap-24px pointer-events-auto">
-            <!-- 静音按钮 -->
+            <!-- 음소거 버튼 -->
             <div class="flex-center">
               <div
                 @click="toggleMute"
@@ -150,7 +150,7 @@
               </div>
             </div>
 
-            <!-- 扬声器按钮 -->
+            <!-- 스피커 버튼 -->
             <div class="flex-center">
               <div
                 @click="toggleSpeaker"
@@ -162,7 +162,7 @@
               </div>
             </div>
 
-            <!-- 摄像头翻转按钮（仅移动端视频通话显示） -->
+            <!-- 카메라 전환 버튼 (모바일 영상 통화만 표시) -->
             <div v-if="callType === CallTypeEnum.VIDEO" class="flex-center">
               <div
                 @click="switchCameraFacing"
@@ -173,7 +173,7 @@
               </div>
             </div>
 
-            <!-- 摄像头按钮 -->
+            <!-- 카메라 버튼 -->
             <div class="flex-center">
               <div
                 @click="toggleVideo"
@@ -185,7 +185,7 @@
               </div>
             </div>
 
-            <!-- 挂断按钮 -->
+            <!-- 끊기 버튼 -->
             <div class="flex-center">
               <div
                 @click="hangUp()"
@@ -199,7 +199,7 @@
         </div>
       </div>
 
-      <!-- 语音通话或其他状态时显示头像 -->
+      <!-- 음성 통화 또는 기타 상태일 때 아바타 표시 -->
       <div
         v-else
         :class="['mb-24px flex flex-col items-center', shouldCenterPreparingAvatar ? 'absolute-center' : 'relative']">
@@ -210,18 +210,18 @@
           :fallback-src="themes.content === ThemeEnum.DARK ? '/logoL.png' : '/logoD.png'"
           class="rounded-22px mb-16px" />
 
-        <!-- 用户名 -->
+        <!-- 사용자 이름 -->
         <div class="text-20px font-medium text-white mb-8px text-center">
           {{ remoteUserInfo?.name }}
         </div>
 
-        <!-- 状态文本 -->
+        <!-- 상태 텍스트 -->
         <div class="text-14px text-gray-300 text-center">
           {{ callStatusText }}
         </div>
       </div>
 
-      <!-- 通话时长 -->
+      <!-- 통화 시간 -->
       <div
         v-if="connectionStatus === RTCCallStatus.ACCEPT && (!isMobileDevice || callType !== CallTypeEnum.VIDEO)"
         class="inline-block rounded-full bg-black/50 px-16px py-6px text-16px text-gray-300 my-12px text-center">
@@ -229,10 +229,10 @@
       </div>
     </div>
 
-    <!-- 底部控制按钮（视频通话-桌面端） -->
+    <!-- 하단 제어 버튼 (영상 통화 - 데스크톱) -->
     <div v-if="callType === CallTypeEnum.VIDEO && !isMobileDevice" class="relative z-10">
       <div class="py-14px flex-center gap-32px">
-        <!-- 静音按钮 -->
+        <!-- 음소거 버튼 -->
         <div class="flex-col-x-center gap-8px w-80px">
           <div
             @click="toggleMute"
@@ -247,7 +247,7 @@
           </div>
         </div>
 
-        <!-- 扬声器按钮 -->
+        <!-- 스피커 버튼 -->
         <div class="flex-col-x-center gap-8px w-80px">
           <div
             @click="toggleSpeaker"
@@ -262,7 +262,7 @@
           </div>
         </div>
 
-        <!-- 摄像头按钮 -->
+        <!-- 카메라 버튼 -->
         <div class="flex-col-x-center gap-8px w-80px">
           <div
             @click="toggleVideo"
@@ -277,7 +277,7 @@
           </div>
         </div>
 
-        <!-- 挂断按钮 -->
+        <!-- 끊기 버튼 -->
         <div class="flex-col-x-center gap-8px w-80px">
           <div
             @click="hangUp()"
@@ -291,12 +291,12 @@
       </div>
     </div>
 
-    <!-- 底部控制按钮（语音通话） -->
+    <!-- 하단 제어 버튼 (음성 통화) -->
     <div v-if="callType !== CallTypeEnum.VIDEO" class="relative z-10">
       <div :class="isMobileDevice ? 'pb-120px' : 'pb-30px'" class="flex-col-x-center">
-        <!-- 上排按钮：静音、扬声器、摄像头 -->
+        <!-- 상단 버튼: 음소거, 스피커, 카메라 -->
         <div class="flex-center gap-40px mb-32px">
-          <!-- 静音按钮 -->
+          <!-- 음소거 버튼 -->
           <div class="flex-col-x-center gap-8px w-80px">
             <div
               @click="toggleMute"
@@ -311,7 +311,7 @@
             </div>
           </div>
 
-          <!-- 扬声器按钮 -->
+          <!-- 스피커 버튼 -->
           <div class="flex-col-x-center gap-8px w-80px">
             <div
               @click="toggleSpeaker"
@@ -327,7 +327,7 @@
           </div>
         </div>
 
-        <!-- 下排按钮：挂断 -->
+        <!-- 하단 버튼: 끊기 -->
         <div class="flex-x-center">
           <div
             @click="hangUp()"
@@ -376,7 +376,7 @@ const resolveCallType = (value?: string | null): CallTypeEnum => {
 const remoteUserId = (route.query.remoteUserId as string) || ''
 const roomId = (route.query.roomId as string) || ''
 const callType = resolveCallType(route.query.callType as string | null)
-// 是否是接受方，true 代表接受方
+// 수신자인지 여부, true는 수신자
 const isReceiver = route.query.isIncoming === 'true'
 const shouldAutoAccept = isReceiver && route.query.autoAccept === '1'
 const isMobileDevice = isMobile()
@@ -403,19 +403,19 @@ const {
 const remoteAudioRef = ref<HTMLAudioElement>()
 const isMuted = ref(false)
 const isSpeakerOn = ref(true)
-// 视频通话时默认开启视频，语音通话时默认关闭
+// 영상 통화 시 기본적으로 비디오 켜기, 음성 통화 시 기본적으로 끄기
 const isVideoOn = ref(callType === CallTypeEnum.VIDEO)
 const groupStore = useGroupStore()
-// 获取远程用户信息
+// 원격 사용자 정보 가져오기
 const remoteUserInfo = groupStore.getUserInfo(remoteUserId)!
-// 视频元素引用
+// 비디오 요소 참조
 const mainVideoRef = ref<HTMLVideoElement>()
 const pipVideoRef = ref<HTMLVideoElement>()
-// ActionBar 组件引用
+// ActionBar 컴포넌트 참조
 const actionBarRef = useTemplateRef<typeof ActionBar>('actionBarRef')
-// 视频布局状态：false=远程视频主画面，true=本地视频主画面
+// 비디오 레이아웃 상태: false=원격 비디오 메인, true=로컬 비디오 메인
 const isLocalVideoMain = ref(true)
-// 通话接听状态
+// 통화 수락 상태
 const isCallAccepted = ref(!isReceiver)
 
 const createSize = (width: number, height: number) => {
@@ -424,7 +424,7 @@ const createSize = (width: number, height: number) => {
 }
 
 const hangUp = (status: CallResponseStatus = CallResponseStatus.DROPPED) => {
-  // 立即停止铃声
+  // 즉시 벨소리 중지
   stopBell()
   if (isMobileDevice) {
     if (router.currentRoute.value.path === '/mobile/rtcCall') {
@@ -455,7 +455,7 @@ const callStatusText = computed(() => {
   }
 })
 
-// 格式化通话时长
+// 통화 시간 포맷팅
 const formattedCallDuration = computed(() => {
   const duration = callDuration.value
   const hours = Math.floor(duration / 3600)
@@ -469,19 +469,19 @@ const formattedCallDuration = computed(() => {
   }
 })
 
-// 检测远程流是否有视频轨道且启用
+// 원격 스트림에 비디오 트랙이 있고 활성화되어 있는지 확인
 const hasRemoteVideo = computed(() => {
   if (!remoteStream.value) return false
   const videoTracks = remoteStream.value.getVideoTracks()
   return videoTracks.length > 0 && videoTracks.some((track) => track.enabled)
 })
 
-// 检测本地视频是否启用
+// 로컬 비디오 활성화 여부 확인
 const hasLocalVideo = computed(() => {
   return isVideoEnabled.value && !!localStream.value
 })
 
-// 获取窗口最大化状态
+// 창 최대화 상태 가져오기
 const isWindowMaximized = computed(() => {
   return actionBarRef.value?.windowMaximized
 })
@@ -493,7 +493,7 @@ const pipVideoSizeClass = computed(() => {
   return 'w-140px h-160px'
 })
 
-// 是否显示准备中的头像
+// 준비 중인 아바타 표시 여부
 const shouldCenterPreparingAvatar = computed(() => {
   if (!isMobileDevice) {
     return false
@@ -506,54 +506,54 @@ const shouldCenterPreparingAvatar = computed(() => {
   return connectionStatus.value !== RTCCallStatus.END && connectionStatus.value !== RTCCallStatus.ERROR
 })
 
-// 视频流分配工具函数
+// 비디오 스트림 할당 유틸리티 함수
 const assignVideoStreams = async () => {
   await nextTick()
 
   if (!hasLocalVideo.value && !hasRemoteVideo.value) {
-    // 双方都没有视频，清空所有视频元素
+    // 양쪽 모두 비디오가 없으면 모든 비디오 요소 지우기
     clearVideoElements()
     return
   }
 
   if (hasLocalVideo.value && hasRemoteVideo.value) {
-    // 双方都有视频，按布局分配
+    // 양쪽 모두 비디오가 있으면 레이아웃에 따라 할당
     assignDualVideoStreams()
   } else if (hasLocalVideo.value) {
-    // 只有本地视频
+    // 로컬 비디오만 있음
     assignSingleVideoStream(localStream.value, true)
   } else if (hasRemoteVideo.value) {
-    // 只有远程视频
+    // 원격 비디오만 있음
     assignSingleVideoStream(remoteStream.value, false)
   }
 }
 
-// 清空视频元素
+// 비디오 요소 지우기
 const clearVideoElements = () => {
   if (mainVideoRef.value) mainVideoRef.value.srcObject = null
   if (pipVideoRef.value) pipVideoRef.value.srcObject = null
 }
 
-// 分配双视频流
+// 듀얼 비디오 스트림 할당
 const assignDualVideoStreams = () => {
   if (isLocalVideoMain.value) {
-    // 本地视频作为主视频
+    // 로컬 비디오를 메인 비디오로 설정
     setVideoElement(mainVideoRef.value, localStream.value, true)
     setVideoElement(pipVideoRef.value, remoteStream.value)
   } else {
-    // 远程视频作为主视频
+    // 원격 비디오를 메인 비디오로 설정
     setVideoElement(mainVideoRef.value, remoteStream.value)
     setVideoElement(pipVideoRef.value, localStream.value, true)
   }
 }
 
-// 分配单视频流
+// 단일 비디오 스트림 할당
 const assignSingleVideoStream = (stream: MediaStream | null, isMuted: boolean) => {
   setVideoElement(mainVideoRef.value, stream, isMuted)
   setVideoElement(pipVideoRef.value, null, isMuted)
 }
 
-// 设置视频元素
+// 비디오 요소 설정
 const setVideoElement = (
   videoElement: HTMLVideoElement | undefined,
   stream: MediaStream | null,
@@ -564,7 +564,7 @@ const setVideoElement = (
   videoElement.srcObject = stream
   videoElement.muted = isMuted
 
-  // 设置完成后统一更新音频状态
+  // 설정 완료 후 오디오 상태 일괄 업데이트
   if (stream) {
     nextTick(() => updateRemoteVideoAudio())
   }
@@ -575,23 +575,23 @@ const toggleMute = () => {
   toggleMuteWebRtc()
 }
 
-// 更新所有远程视频元素的音频状态
+// 모든 원격 비디오 요소의 오디오 상태 업데이트
 const updateRemoteVideoAudio = () => {
   const shouldMute = !isSpeakerOn.value
   info(`updateRemoteVideoAudio, shouldMute: ${shouldMute}`)
 
-  // 更新专用的音频元素
+  // 전용 오디오 요소 업데이트
   if (remoteAudioRef.value && remoteStream.value) {
     remoteAudioRef.value.srcObject = remoteStream.value
     remoteAudioRef.value.muted = shouldMute
   }
 
-  // 检查主视频是否是远程流
+  // 메인 비디오가 원격 스트림인지 확인
   if (mainVideoRef.value && mainVideoRef.value.srcObject === remoteStream.value) {
     mainVideoRef.value.muted = shouldMute
   }
 
-  // 检查画中画视频是否是远程流
+  // PIP 비디오가 원격 스트림인지 확인
   if (pipVideoRef.value && pipVideoRef.value.srcObject === remoteStream.value) {
     pipVideoRef.value.muted = shouldMute
   }
@@ -600,7 +600,7 @@ const updateRemoteVideoAudio = () => {
 const toggleSpeaker = () => {
   isSpeakerOn.value = !isSpeakerOn.value
   updateRemoteVideoAudio()
-  console.log('切换扬声器状态:', isSpeakerOn.value, '远程视频静音:', !isSpeakerOn.value)
+  console.log('스피커 상태 전환:', isSpeakerOn.value, '원격 비디오 음소거:', !isSpeakerOn.value)
 
   if (connectionStatus.value === RTCCallStatus.CALLING && !isSpeakerOn.value) {
     pauseBell()
@@ -611,50 +611,50 @@ const toggleSpeaker = () => {
 
 const toggleVideo = async () => {
   try {
-    // 调用WebRTC层面的视频开关
+    // WebRTC 수준의 비디오 스위치 호출
     await toggleVideoWebRtc()
 
-    // 同步UI状态
+    // UI 상태 동기화
     isVideoOn.value = isVideoEnabled.value
 
-    // 重新分配视频流
+    // 비디오 스트림 재할당
     await assignVideoStreams()
   } catch (error) {
-    console.error('切换视频失败:', error)
+    console.error('비디오 전환 실패:', error)
   }
 }
 
-// 切换视频布局
+// 비디오 레이아웃 전환
 const toggleVideoLayout = async () => {
   isLocalVideoMain.value = !isLocalVideoMain.value
-  // 重新分配视频流
+  // 비디오 스트림 재할당
   await assignVideoStreams()
 }
 
-// 接听通话
+// 통화 수락
 const acceptCall = async () => {
-  // 立即停止铃声
+  // 즉시 벨소리 중지
   stopBell()
   isCallAccepted.value = true
-  // 调用接听响应函数
+  // 수락 응답 함수 호출
   sendRtcCall2VideoCallResponse(1)
 
-  // 调整窗口大小为正常通话大小
+  // 창 크기를 정상 통화 크기로 조정
   try {
     const currentWindow = WebviewWindow.getCurrent()
     const isVideo = callType === CallTypeEnum.VIDEO
     await currentWindow.setSize(createSize(isVideo ? 850 : 500, isVideo ? 580 : 650))
     await currentWindow.center()
 
-    // 取消窗口置顶
+    // 창 상단 고정 취소
     await currentWindow.setAlwaysOnTop(false)
 
-    // 恢复标题栏按钮显示
+    // 제목 표시줄 버튼 표시 복원
     if (isMac()) {
       await invokeSilently('show_title_bar_buttons', { windowLabel: currentWindow.label })
     }
 
-    // 确保窗口获得焦点
+    // 창에 포커스 확인
     try {
       await currentWindow.setFocus()
     } catch (error) {
@@ -665,10 +665,10 @@ const acceptCall = async () => {
   }
 }
 
-// 监听视频状态变化，自动更新视频显示
+// 비디오 상태 변경 감지, 비디오 표시 자동 업데이트
 watch([hasLocalVideo, hasRemoteVideo, localStream, remoteStream], assignVideoStreams, { deep: true })
 
-// 监听远程流变化，自动设置音频
+// 원격 스트림 변경 감지, 오디오 자동 설정
 watch(
   remoteStream,
   (newStream) => {
@@ -680,7 +680,7 @@ watch(
   { immediate: true }
 )
 
-// 同步初始视频状态
+// 초기 비디오 상태 동기화
 watch(
   isVideoEnabled,
   (newVal) => {
@@ -689,7 +689,7 @@ watch(
   { immediate: true }
 )
 
-// 生命周期
+// 수명 주기
 onMounted(async () => {
   if (isMobileDevice) {
     if (isReceiver && !isCallAccepted.value && !shouldAutoAccept) {
@@ -705,33 +705,33 @@ onMounted(async () => {
 
   const currentWindow = WebviewWindow.getCurrent()
 
-  // 监听窗口关闭事件，确保关闭窗口时挂断通话
+  // 창 닫기 이벤트 감지, 창 닫을 때 통화 끊기 확인
   const unlistenCloseRequested = await currentWindow.onCloseRequested(async (_event) => {
     try {
-      // 如果是通话状态，先发送挂断消息
+      // 통화 상태인 경우 먼저 끊기 메시지 전송
       if (connectionStatus.value === RTCCallStatus.CALLING || connectionStatus.value === RTCCallStatus.ACCEPT) {
         await sendRtcCall2VideoCallResponse(CallResponseStatus.DROPPED)
         unlistenCloseRequested()
       }
     } catch (error) {
-      console.error('发送挂断消息失败:', error)
+      console.error('끊기 메시지 전송 실패:', error)
     }
   })
 
   if (isDesktop()) {
     if (isReceiver && !isCallAccepted.value) {
-      // 接收方立即开始播放铃声
+      // 수신자는 즉시 벨소리 재생 시작
       startBell()
 
-      // 设置来电通知窗口的正确大小和位置
+      // 수신 알림 창의 올바른 크기와 위치 설정
       await currentWindow.setSize(createSize(360, 90))
 
-      // 隐藏标题栏和设置窗口不可移动
+      // 제목 표시줄 숨기기 및 창 이동 불가 설정
       if (isMac()) {
         await invokeSilently('hide_title_bar_buttons', { windowLabel: currentWindow.label, hideCloseButton: true })
       }
 
-      // 获取屏幕尺寸并定位
+      // 화면 크기 가져오기 및 위치 지정
       const monitor = await primaryMonitor()
       if (monitor) {
         const margin = 20
@@ -743,14 +743,14 @@ onMounted(async () => {
         let y: number
 
         if (isWindows()) {
-          // Windows使用逻辑像素进行计算，窗口在右下角
+          // Windows는 논리 픽셀을 사용하여 계산, 창은 오른쪽 하단에 위치
           screenWidth = monitor.size.width / (monitor.scaleFactor || 1)
           screenHeight = monitor.size.height / (monitor.scaleFactor || 1)
           x = Math.max(0, screenWidth - 360 - margin)
           y = Math.max(0, screenHeight - 90 - margin - taskbarHeight)
           await currentWindow.setPosition(new LogicalPosition(x, y))
         } else {
-          // Mac使用物理像素进行计算，窗口在右上角
+          // Mac은 물리 픽셀을 사용하여 계산, 창은 오른쪽 상단에 위치
           screenWidth = monitor.size.width
           screenHeight = monitor.size.height
           x = Math.max(0, screenWidth - 360 - margin)
@@ -758,22 +758,22 @@ onMounted(async () => {
           await currentWindow.setPosition(new PhysicalPosition(x, y))
         }
       } else {
-        // 如果无法获取主显示器信息，使用屏幕右下角的估算位置
+        // 기본 모니터 정보를 가져올 수 없는 경우 화면 오른쪽 하단의 예상 위치 사용
         await currentWindow.setPosition(new LogicalPosition(800, 600))
       }
       await currentWindow.setAlwaysOnTop(true)
     } else {
-      // 正常通话窗口设置
+      // 정상 통화 창 설정
       await currentWindow.center()
       await currentWindow.setAlwaysOnTop(false)
 
-      // 确保标题栏按钮显示（非来电通知状态）
+      // 제목 표시줄 버튼 표시 확인 (수신 알림 상태 아님)
       if (isMac()) {
         await invokeSilently('show_title_bar_buttons', { windowLabel: currentWindow.label })
       }
     }
 
-    // 确保窗口显示
+    // 창 표시 확인
     await currentWindow.show()
     await currentWindow.setFocus()
   }

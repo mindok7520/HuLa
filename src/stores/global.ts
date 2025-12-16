@@ -16,7 +16,7 @@ export const useGlobalStore = defineStore(
     const chatStore = useChatStore()
     const feedStore = useFeedStore()
 
-    // 未读消息标记：好友请求未读数和新消息未读数
+    // 읽지 않은 메시지 표시: 친구 요청 읽지 않은 수 및 새 메시지 읽지 않은 수
     const unReadMark = reactive<{
       newFriendUnreadCount: number
       newMsgUnreadCount: number
@@ -28,7 +28,7 @@ export const useGlobalStore = defineStore(
     })
     const unreadReady = ref<boolean>(true)
 
-    // 当前阅读未读列表状态
+    // 현재 읽음/읽지 않음 목록 상태
     const currentReadUnreadList = reactive<{ show: boolean; msgId: number | null }>({
       show: false,
       msgId: null
@@ -42,7 +42,7 @@ export const useGlobalStore = defineStore(
       const { roomId: _omit, ...rest } = session
       return rest
     }
-    // 当前会话信息：不暴露 roomId，统一从 currentSessionRoomId 读取
+    // 현재 세션 정보: roomId를 노출하지 않고 currentSessionRoomId에서 통합적으로 읽음
     const currentSession = computed((): CurrentSessionView | null => {
       const cachedRoomId = currentSessionRoomId.value
       if (!cachedRoomId) {
@@ -64,16 +64,16 @@ export const useGlobalStore = defineStore(
         : null
     })
 
-    /** 当前选中的联系人信息 */
+    /** 현재 선택된 연락처 정보 */
     const currentSelectedContact = ref<FriendItem | RequestFriendItem>()
 
-    // 添加好友模态框信息 TODO: 虚拟列表添加好友有时候会不展示对应的用户信息
+    // 친구 추가 모달 정보 TODO: 가상 목록 친구 추가 시 해당 사용자 정보가 표시되지 않는 경우가 있음
     const addFriendModalInfo = ref<{ show: boolean; uid?: string }>({
       show: false,
       uid: void 0
     })
 
-    // 添加群聊模态框信息
+    // 그룹 채팅 추가 모달 정보
     const addGroupModalInfo = ref<{ show: boolean; name?: string; avatar?: string; account?: string }>({
       show: false,
       name: '',
@@ -81,41 +81,41 @@ export const useGlobalStore = defineStore(
       account: ''
     })
 
-    // 创建群聊模态框信息
+    // 그룹 채팅 생성 모달 정보
     const createGroupModalInfo = reactive<{
       show: boolean
-      isInvite: boolean // 是否为邀请模式
-      selectedUid: number[] // 选中的用户ID列表
+      isInvite: boolean // 초대 모드 여부
+      selectedUid: number[] // 선택된 사용자 ID 목록
     }>({
       show: false,
       isInvite: false,
       selectedUid: []
     })
 
-    /** 提示框显示状态 */
+    /** 팁 표시 상태 */
     const tipVisible = ref<boolean>(false)
-    /** 系统托盘菜单显示的状态 */
+    /** 시스템 트레이 메뉴 표시 상태 */
     const isTrayMenuShow = ref<boolean>(false)
 
-    // 设置提示框显示状态
+    // 팁 표시 상태 설정
     const setTipVisible = (visible: boolean) => {
       tipVisible.value = visible
     }
 
-    // 更新全局未读消息计数
+    // 전역 읽지 않은 메시지 수 업데이트
     const updateGlobalUnreadCount = () => {
-      info('[global]更新全局未读消息计数')
-      // 使用统一的计数管理器，避免重复逻辑（包含朋友圈未读数）
+      info('[global]전역 읽지 않은 메시지 수 업데이트')
+      // 통합 카운트 관리자 사용, 중복 로직 방지 (타임라인 읽지 않은 수 포함)
       unreadCountManager.calculateTotal(chatStore.sessionList, unReadMark, feedStore.unreadCount)
     }
 
-    // 兜底同步 Dock/角标，防止未读数与徽章不同步
+    // Dock/배지 동기화 폴백, 읽지 않은 수와 배지 비동기화 방지
     watch(
       () => ({
         msg: unReadMark.newMsgUnreadCount,
         friend: unReadMark.newFriendUnreadCount,
         group: unReadMark.newGroupUnreadCount,
-        feed: feedStore.unreadCount // 添加朋友圈未读数监听
+        feed: feedStore.unreadCount // 타임라인 읽지 않은 수 리스너 추가
       }),
       () => {
         if (!unreadReady.value) return
@@ -123,7 +123,7 @@ export const useGlobalStore = defineStore(
       }
     )
 
-    // 监听当前会话变化，添加防重复触发逻辑
+    // 현재 세션 변경 감지, 중복 트리거 방지 로직 추가
     watch(currentSessionRoomId, async (val, oldVal) => {
       if (!val || val === oldVal) {
         return
@@ -132,7 +132,7 @@ export const useGlobalStore = defineStore(
       try {
         await chatStore.changeRoom()
       } catch (error) {
-        console.error('[global] 切换会话时加载消息失败:', error)
+        console.error('[global] 세션 전환 시 메시지 로드 실패:', error)
         return
       }
 
@@ -147,14 +147,14 @@ export const useGlobalStore = defineStore(
 
       const session = chatStore.getSession(val)
       if (session?.unreadCount) {
-        info(`[global]当前会话发生实际变化: ${oldVal} -> ${val}`)
-        // 清理已读数查询队列
+        info(`[global]현재 세션 실제 변경: ${oldVal} -> ${val}`)
+        // 읽은 수 조회 대기열 정리
         clearQueue()
-        // 延攱1秒后开始查询已读数
+        // 1초 지연 후 읽은 수 조회 시작
         setTimeout(readCountQueue, 1000)
-        // 先清空本地未读标记（立即更新UI），再异步上报已读（不阻塞）
+        // 로컬 읽지 않음 마크 먼저 지우기 (UI 즉시 업데이트), 그 후 비동기 읽음 보고 (차단 안 함)
         chatStore.markSessionRead(val)
-        markMsgRead(val).catch((err) => console.error('[global] 已读上报失败:', err))
+        markMsgRead(val).catch((err) => console.error('[global] 읽음 보고 실패:', err))
       }
 
       useMitt.emit(MittEnum.SESSION_CHANGED, {

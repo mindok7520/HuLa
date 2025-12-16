@@ -24,7 +24,7 @@ mod platform {
         let mut env = vm.attach_current_thread()?;
         let activity = unsafe { JObject::from_raw(ctx.context() as jni::sys::jobject) };
 
-        // 直接调用Activity实例的方法，不使用静态方法
+        // 정적 메서드를 사용하지 않고 Activity 인스턴스의 메서드를 직접 호출
         let result = env.call_method(&activity, method, "()V", &[]);
 
         let _ = activity.into_raw();
@@ -65,7 +65,7 @@ pub fn hide() {
     platform::hide();
 }
 
-/// Tauri command: 隐藏启动画面（由前端调用）
+/// Tauri 명령: 시작 화면 숨기기 (프론트엔드에서 호출)
 #[tauri::command]
 pub fn hide_splash_screen() -> Result<(), String> {
     tracing::info!("hide_splash_screen called from frontend");

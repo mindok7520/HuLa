@@ -31,7 +31,7 @@ interface MessageStrategy {
 }
 
 /**
- * 消息策略抽象类，所有消息策略都必须实现这个接口
+ * 메시지 전략 추상 클래스, 모든 메시지 전략은 이 인터페이스를 구현해야 함
  */
 abstract class AbstractMessageStrategy implements MessageStrategy {
   public readonly msgType: MsgEnum
@@ -73,17 +73,17 @@ abstract class AbstractMessageStrategy implements MessageStrategy {
     options?: { provider?: UploadProviderEnum }
   ): Promise<{ uploadUrl: string; downloadUrl: string }> {
     console.log('Base uploadFile method called with:', path, options)
-    throw new AppException('该消息类型不支持文件上传')
+    throw new AppException('해당 메시지 유형은 파일 업로드를 지원하지 않음')
   }
 
   doUpload(path: string, uploadUrl: string, options?: any): Promise<{ qiniuUrl?: string } | void> {
     console.log('Base doUpload method called with:', path, uploadUrl, options)
-    throw new AppException('该消息类型不支持文件上传')
+    throw new AppException('해당 메시지 유형은 파일 업로드를 지원하지 않음')
   }
 }
 
 /**
- * 处理文本消息
+ * 텍스트 메시지 처리
  */
 class TextMessageStrategyImpl extends AbstractMessageStrategy {
   constructor() {
@@ -91,7 +91,7 @@ class TextMessageStrategyImpl extends AbstractMessageStrategy {
   }
 
   getMsg(msgInputValue: string, replyValue: any): any {
-    // 处理&nbsp;为空格
+    // &nbsp;를 공백으로 처리
     let content = removeTag(msgInputValue)
     if (content && typeof content === 'string') {
       content = content.replace(/&nbsp;/g, ' ')
@@ -102,12 +102,12 @@ class TextMessageStrategyImpl extends AbstractMessageStrategy {
       content: content,
       reply: replyValue.content
         ? {
-            content: replyValue.content,
-            key: replyValue.key
-          }
+          content: replyValue.content,
+          key: replyValue.key
+        }
         : undefined
     }
-    // 处理回复内容
+    // 답장 내용 처리
     if (replyValue.content) {
       const tempDiv = document.createElement('div')
       tempDiv.innerHTML = DOMPurify.sanitize(msg.content)
@@ -117,15 +117,15 @@ class TextMessageStrategyImpl extends AbstractMessageStrategy {
       }
       tempDiv.innerHTML = DOMPurify.sanitize(removeTag(tempDiv.innerHTML), { RETURN_DOM: false })
 
-      // 确保所有的&nbsp;都被替换为空格
+      // 모든 &nbsp;가 공백으로 교체되도록 보장
       msg.content = tempDiv.innerHTML
         .replace(/&nbsp;/g, ' ')
         .replace(/\n+/g, '\n')
         .trim()
     }
-    // 验证消息长度
+    // 메시지 길이 검증
     if (msg.content.length > 500) {
-      throw new AppException('消息内容超过限制500，请分段发送')
+      throw new AppException('메시지 내용이 제한 500자를 초과했습니다. 분할하여 전송하세요')
     }
     return msg
   }
@@ -136,21 +136,21 @@ class TextMessageStrategyImpl extends AbstractMessageStrategy {
       replyMsgId: msg.reply?.key || void 0,
       reply: reply.value.content
         ? {
-            body: reply.value.content,
-            id: reply.value.key,
-            username: reply.value.accountName,
-            type: msg.type
-          }
+          body: reply.value.content,
+          id: reply.value.key,
+          username: reply.value.accountName,
+          type: msg.type
+        }
         : void 0
     }
   }
 }
 
-/** 处理图片消息 */
+/** 이미지 메시지 처리 */
 class ImageMessageStrategyImpl extends AbstractMessageStrategy {
-  // 最大上传图片大小 2MB
+  // 최대 업로드 이미지 크기 2MB
   private readonly MAX_UPLOAD_SIZE = 2 * 1024 * 1024
-  // 支持的图片类型
+  // 지원되는 이미지 유형
   private readonly ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
   private _uploadHook: ReturnType<typeof useUpload> | null = null
 
@@ -166,31 +166,31 @@ class ImageMessageStrategyImpl extends AbstractMessageStrategy {
   }
 
   /**
-   * 验证图片文件是否符合上传条件要求
-   * @param file 图片文件
-   * @returns 验证后的图片文件
+   * 이미지 파일이 업로드 조건을 충족하는지 검증
+   * @param file 이미지 파일
+   * @returns 검증된 이미지 파일
    */
   private async validateImage(file: File): Promise<File> {
-    // 先修复可能缺失或错误的MIME类型
+    // 먼저 누락되거나 잘못된 MIME 유형 수정
     const fixedFile = fixFileMimeType(file)
 
-    // 检查文件类型
+    // 파일 유형 확인
     if (!this.ALLOWED_TYPES.includes(fixedFile.type)) {
-      throw new AppException('仅支持 JPEG、PNG、WebP 格式的图片')
+      throw new AppException('JPEG, PNG, WebP 형식의 이미지만 지원합니다')
     }
 
-    // 检查文件大小
+    // 파일 크기 확인
     if (fixedFile.size > this.MAX_UPLOAD_SIZE) {
-      throw new AppException('图片大小不能超过2MB', { showError: true })
+      throw new AppException('이미지 크기는 2MB를 초과할 수 없습니다', { showError: true })
     }
 
     return fixedFile
   }
 
   /**
-   * 获取图片信息(宽度、高度、预览地址)
-   * @param file 图片文件
-   * @returns 图片信息
+   * 이미지 정보 가져오기 (너비, 높이, 미리보기 주소)
+   * @param file 이미지 파일
+   * @returns 이미지 정보
    */
   private async getImageInfo(file: File): Promise<{ width: number; height: number; previewUrl: string }> {
     try {
@@ -201,20 +201,20 @@ class ImageMessageStrategyImpl extends AbstractMessageStrategy {
         previewUrl: result.previewUrl!
       }
     } catch (_error) {
-      throw new AppException('图片加载失败')
+      throw new AppException('이미지 로드 실패')
     }
   }
 
   /**
-   * 检查是否是有效的图片URL
-   * @param url 图片地址
-   * @returns 是否是有效的图片URL
+   * 유효한 이미지 URL인지 확인
+   * @param url 이미지 주소
+   * @returns 유효한 이미지 URL 여부
    */
   private isImageUrl(url: string): boolean {
-    // 检查是否是有效的URL
+    // 유효한 URL인지 확인
     try {
       new URL(url)
-      // 检查是否以常见图片扩展名结尾
+      // 일반적인 이미지 확장자로 끝나는지 확인
       return /\.(jpg|jpeg|png|webp|gif)$/i.test(url)
     } catch {
       return false
@@ -222,9 +222,9 @@ class ImageMessageStrategyImpl extends AbstractMessageStrategy {
   }
 
   /**
-   * 获取表情图片信息(宽度、高度、大小)
-   * @param url 图片地址
-   * @returns 图片信息
+   * 이모티콘 이미지 정보 가져오기 (너비, 높이, 크기)
+   * @param url 이미지 주소
+   * @returns 이미지 정보
    */
   private async getRemoteImageInfo(url: string): Promise<{ width: number; height: number; size: number }> {
     try {
@@ -235,29 +235,29 @@ class ImageMessageStrategyImpl extends AbstractMessageStrategy {
         size: result.size || 0
       }
     } catch (_error) {
-      throw new AppException('图片加载失败')
+      throw new AppException('이미지 로드 실패')
     }
   }
 
   /**
-   * 处理图片消息
-   * @param msgInputValue 图片消息内容
-   * @param replyValue 回复消息
-   * @param fileList 附件文件列表
-   * @returns 处理后的消息
+   * 이미지 메시지 처리
+   * @param msgInputValue 이미지 메시지 내용
+   * @param replyValue 답장 메시지
+   * @param fileList 첨부 파일 목록
+   * @returns 처리된 메시지
    */
   async getMsg(msgInputValue: string, replyValue: any, fileList?: File[]): Promise<any> {
-    // 优先处理fileList中的文件
+    // fileList의 파일을 우선 처리
     if (fileList && fileList.length > 0) {
       const file = fileList[0]
 
-      // 验证图片
+      // 이미지 검증
       await this.validateImage(file)
 
-      // 获取图片信息（宽度、高度）和预览URL
+      // 이미지 정보 (너비, 높이) 및 미리보기 URL 가져오기
       const { width, height, previewUrl } = await this.getImageInfo(file)
 
-      // 将文件保存到缓存目录
+      // 파일을 캐시 디렉터리에 저장
       const tempPath = `temp-image-${Date.now()}-${file.name}`
       const arrayBuffer = await file.arrayBuffer()
       const uint8Array = new Uint8Array(arrayBuffer)
@@ -266,32 +266,32 @@ class ImageMessageStrategyImpl extends AbstractMessageStrategy {
 
       return {
         type: this.msgType,
-        path: tempPath, // 用于上传
-        url: previewUrl, // 用于预览显示
+        path: tempPath, // 업로드용
+        url: previewUrl, // 미리보기 표시용
         imageInfo: {
-          width, // 原始图片宽度
-          height, // 原始图片高度
-          size: file.size // 原始文件大小
+          width, // 원본 이미지 너비
+          height, // 원본 이미지 높이
+          size: file.size // 원본 파일 크기
         },
         reply: replyValue.content
           ? {
-              content: replyValue.content,
-              key: replyValue.key
-            }
+            content: replyValue.content,
+            key: replyValue.key
+          }
           : undefined
       }
     }
 
-    // 检查是否是图片URL
+    // 이미지 URL인지 확인
     if (this.isImageUrl(msgInputValue)) {
       try {
-        // 获取远程图片信息
+        // 원격 이미지 정보 가져오기
         const { width, height, size } = await this.getRemoteImageInfo(msgInputValue)
 
         return {
           type: this.msgType,
-          url: msgInputValue, // 直接使用原始URL
-          path: msgInputValue, // 为了保持一致性，也设置path
+          url: msgInputValue, // 원본 URL 직접 사용
+          path: msgInputValue, // 일관성을 위해 path도 설정
           imageInfo: {
             width,
             height,
@@ -299,35 +299,35 @@ class ImageMessageStrategyImpl extends AbstractMessageStrategy {
           },
           reply: replyValue.content
             ? {
-                content: replyValue.content,
-                key: replyValue.key
-              }
+              content: replyValue.content,
+              key: replyValue.key
+            }
             : undefined
         }
       } catch (error) {
-        console.error('处理图片URL失败:', error)
+        console.error('이미지 URL 처리 실패:', error)
         if (error instanceof AppException) {
           throw error
         }
-        throw new AppException('图片预览失败')
+        throw new AppException('이미지 미리보기 실패')
       }
     }
 
-    // 原有的本地图片处理逻辑（从HTML解析）
+    // 기존 로컬 이미지 처리 로직 (HTML에서 파싱)
     const doc = new DOMParser().parseFromString(msgInputValue, 'text/html')
     const imgElement = doc.getElementById('temp-image')
     if (!imgElement) {
-      throw new AppException('文件不存在')
+      throw new AppException('파일이 존재하지 않습니다')
     }
 
     const path = imgElement.getAttribute('data-path')
     if (!path) {
-      throw new AppException('文件不存在')
+      throw new AppException('파일이 존재하지 않습니다')
     }
 
-    // 标准化路径
+    // 경로 표준화
     const normalizedPath = path.replace(/\\/g, '/')
-    console.log('标准化路径:', normalizedPath)
+    console.log('표준화된 경로:', normalizedPath)
 
     try {
       const baseDir = isMobile() ? BaseDirectory.AppData : BaseDirectory.AppCache
@@ -336,62 +336,62 @@ class ImageMessageStrategyImpl extends AbstractMessageStrategy {
       const fileName = path.split('/').pop() || 'image.png'
       const fileType = getMimeTypeFromExtension(fileName)
 
-      // 创建文件对象
+      // 파일 객체 생성
       const originalFile = new File([new Uint8Array(fileData)], fileName, {
         type: fileType
       })
 
-      // 验证图片
+      // 이미지 검증
       await this.validateImage(originalFile)
 
-      // 获取图片信息（宽度、高度）和预览URL
+      // 이미지 정보 (너비, 높이) 및 미리보기 URL 가져오기
       const { width, height, previewUrl } = await this.getImageInfo(originalFile)
 
       return {
         type: this.msgType,
-        path: normalizedPath, // 用于上传
-        url: previewUrl, // 用于预览显示
+        path: normalizedPath, // 업로드용
+        url: previewUrl, // 미리보기 표시용
         imageInfo: {
-          width, // 原始图片宽度
-          height, // 原始图片高度
-          size: originalFile.size // 原始文件大小
+          width, // 원본 이미지 너비
+          height, // 원본 이미지 높이
+          size: originalFile.size // 원본 파일 크기
         },
         reply: replyValue.content
           ? {
-              content: replyValue.content,
-              key: replyValue.key
-            }
+            content: replyValue.content,
+            key: replyValue.key
+          }
           : undefined
       }
     } catch (error) {
-      console.error('处理图片失败:', error)
+      console.error('이미지 처리 실패:', error)
       if (error instanceof AppException) {
         throw error
       }
-      throw new AppException('图片预览失败')
+      throw new AppException('이미지 미리보기 실패')
     }
   }
 
   /**
-   * 上传文件
-   * @param path 文件路径
-   * @param options 上传选项
-   * @returns 上传结果
+   * 파일 업로드
+   * @param path 파일 경로
+   * @param options 업로드 옵션
+   * @returns 업로드 결과
    */
   async uploadFile(
     path: string,
     options?: { provider?: UploadProviderEnum }
   ): Promise<{ uploadUrl: string; downloadUrl: string; config?: any }> {
-    // 如果是URL，直接返回相同的URL作为下载链接
+    // URL인 경우, 동일한 URL을 다운로드 링크로 직접 반환
     if (this.isImageUrl(path)) {
       return {
-        uploadUrl: '', // 不需要上传URL
-        downloadUrl: path // 直接使用原始URL
+        uploadUrl: '', // 업로드 URL 불필요
+        downloadUrl: path // 원본 URL 직접 사용
       }
     }
 
-    // 使用useUpload hook获取上传和下载URL
-    console.log('开始上传图片:', path)
+    // useUpload hook을 사용하여 업로드 및 다운로드 URL 가져오기
+    console.log('이미지 업로드 시작:', path)
     try {
       const uploadOptions: UploadOptions = {
         provider: options?.provider || UploadProviderEnum.QINIU,
@@ -401,37 +401,37 @@ class ImageMessageStrategyImpl extends AbstractMessageStrategy {
       const result = await this.uploadHook.getUploadAndDownloadUrl(path, uploadOptions)
       return result
     } catch (error) {
-      console.error('获取上传链接失败:', error)
-      throw new AppException('获取上传链接失败，请重试')
+      console.error('업로드 링크 가져오기 실패:', error)
+      throw new AppException('업로드 링크 가져오기 실패, 다시 시도하세요')
     }
   }
 
   /**
-   * 执行实际的文件上传
-   * @param path 文件路径
-   * @param uploadUrl 上传URL
-   * @param options 上传选项
-   * @returns 上传结果
+   * 실제 파일 업로드 실행
+   * @param path 파일 경로
+   * @param uploadUrl 업로드 URL
+   * @param options 업로드 옵션
+   * @returns 업로드 결과
    */
   async doUpload(path: string, uploadUrl: string, options?: any): Promise<{ qiniuUrl?: string } | void> {
-    // 如果是URL，跳过上传
+    // URL인 경우, 업로드 건너뛰기
     if (this.isImageUrl(path)) {
       return
     }
 
     try {
-      // enableDeduplication启用文件去重
+      // enableDeduplication 파일 중복 제거 활성화
       const result = await this.uploadHook.doUpload(path, uploadUrl, { ...options, enableDeduplication: true })
-      // 如果是七牛云上传，返回qiniuUrl
+      // Qiniu 클라우드 업로드인 경우, qiniuUrl 반환
       if (options?.provider === UploadProviderEnum.QINIU) {
         return { qiniuUrl: result as string }
       }
     } catch (error) {
-      console.error('文件上传失败:', error)
+      console.error('파일 업로드 실패:', error)
       if (error instanceof AppException) {
         throw error
       }
-      throw new AppException('文件上传失败，请重试')
+      throw new AppException('파일 업로드 실패, 다시 시도하세요')
     }
   }
 
@@ -445,18 +445,18 @@ class ImageMessageStrategyImpl extends AbstractMessageStrategy {
       replyMsgId: msg.reply?.key || void 0,
       reply: reply.value.content
         ? {
-            body: reply.value.content,
-            id: reply.value.key,
-            username: reply.value.accountName,
-            type: msg.type
-          }
+          body: reply.value.content,
+          id: reply.value.key,
+          username: reply.value.accountName,
+          type: msg.type
+        }
         : void 0
     }
   }
 }
 
 /**
- * 处理位置消息的策略
+ * 위치 메시지 처리 전략
  */
 class LocationMessageStrategyImpl extends AbstractMessageStrategy {
   constructor() {
@@ -464,19 +464,19 @@ class LocationMessageStrategyImpl extends AbstractMessageStrategy {
   }
 
   /**
-   * 构建位置消息对象
-   * @param msgInputValue 位置数据JSON字符串
-   * @param replyValue 回复信息
-   * @returns 位置消息对象
+   * 위치 메시지 객체 생성
+   * @param msgInputValue 위치 데이터 JSON 문자열
+   * @param replyValue 답장 정보
+   * @returns 위치 메시지 객체
    */
   getMsg(msgInputValue: string, replyValue: any): any {
     try {
-      // 解析位置数据
+      // 위치 데이터 파싱
       const locationData = JSON.parse(msgInputValue)
 
-      // 验证必要字段
+      // 필수 필드 검증
       if (!locationData.latitude || !locationData.longitude || !locationData.address) {
-        throw new AppException('无效的位置数据，缺少必要字段')
+        throw new AppException('유효하지 않은 위치 데이터, 필수 필드 누락')
       }
 
       return {
@@ -484,28 +484,28 @@ class LocationMessageStrategyImpl extends AbstractMessageStrategy {
         latitude: locationData.latitude,
         longitude: locationData.longitude,
         address: locationData.address,
-        precision: locationData.precision || '高精度',
+        precision: locationData.precision || '고정밀도',
         timestamp: locationData.timestamp || Date.now(),
         reply: replyValue.content
           ? {
-              content: replyValue.content,
-              key: replyValue.key
-            }
+            content: replyValue.content,
+            key: replyValue.key
+          }
           : undefined
       }
     } catch (error) {
       if (error instanceof SyntaxError) {
-        throw new AppException('位置数据格式错误，必须是有效的JSON')
+        throw new AppException('위치 데이터 형식 오류, 유효한 JSON이어야 합니다')
       }
       throw error
     }
   }
 
   /**
-   * 构建消息体
-   * @param msg 位置消息对象
-   * @param reply 回复信息
-   * @returns 消息体
+   * 메시지 본문 생성
+   * @param msg 위치 메시지 객체
+   * @param reply 답장 정보
+   * @returns 메시지 본문
    */
   buildMessageBody(msg: any, reply: any): any {
     return {
@@ -517,22 +517,22 @@ class LocationMessageStrategyImpl extends AbstractMessageStrategy {
       replyMsgId: msg.reply?.key || undefined,
       reply: reply.value.content
         ? {
-            body: reply.value.content,
-            id: reply.value.key,
-            username: reply.value.accountName,
-            type: msg.type
-          }
+          body: reply.value.content,
+          id: reply.value.key,
+          username: reply.value.accountName,
+          type: msg.type
+        }
         : undefined
     }
   }
 
   /**
-   * 构建完整的位置消息
-   * @param messageId 消息ID
-   * @param messageBody 消息体
-   * @param globalStore 全局存储
-   * @param userUid 用户UID
-   * @returns 完整消息对象
+   * 완전한 위치 메시지 생성
+   * @param messageId 메시지 ID
+   * @param messageBody 메시지 본문
+   * @param globalStore 전역 저장소
+   * @param userUid 사용자 UID
+   * @returns 완전한 메시지 객체
    */
   buildMessageType(messageId: string, messageBody: any, globalStore: any, userUid: Ref<any>): MessageType {
     const groupStore = useGroupStore()
@@ -561,10 +561,10 @@ class LocationMessageStrategyImpl extends AbstractMessageStrategy {
 }
 
 /**
- * 处理文件消息
+ * 파일 메시지 처리
  */
 class FileMessageStrategyImpl extends AbstractMessageStrategy {
-  // 最大上传文件大小 100MB
+  // 최대 업로드 파일 크기 100MB
   private readonly MAX_UPLOAD_SIZE = 100 * 1024 * 1024
   private _uploadHook: ReturnType<typeof useUpload> | null = null
 
@@ -580,22 +580,22 @@ class FileMessageStrategyImpl extends AbstractMessageStrategy {
   }
 
   /**
-   * 验证文件是否符合上传条件
-   * @param file 文件对象
-   * @returns 验证后的文件
+   * 파일이 업로드 조건을 충족하는지 검증
+   * @param file 파일 객체
+   * @returns 검증된 파일
    */
   private async validateFile(file: File): Promise<File> {
-    // 检查文件大小
+    // 파일 크기 확인
     if (file.size > this.MAX_UPLOAD_SIZE) {
-      throw new AppException('文件大小不能超过100MB')
+      throw new AppException('파일 크기는 100MB를 초과할 수 없습니다')
     }
     return file
   }
 
   /**
-   * 从文件路径读取文件信息
-   * @param path 文件路径
-   * @returns 文件信息
+   * 파일 경로에서 파일 정보 읽기
+   * @param path 파일 경로
+   * @returns 파일 정보
    */
   private async getFileFromPath(path: string): Promise<File> {
     try {
@@ -608,35 +608,35 @@ class FileMessageStrategyImpl extends AbstractMessageStrategy {
 
       return new File([new Uint8Array(fileData)], fileName, { type: fileType })
     } catch (error) {
-      console.error('读取文件失败:', error)
-      throw new AppException('无法读取文件，请检查文件是否存在')
+      console.error('파일 읽기 실패:', error)
+      throw new AppException('파일을 읽을 수 없습니다. 파일이 존재하는지 확인하세요')
     }
   }
 
   async getMsg(msgInputValue: string, replyValue: any, fileList?: File[]): Promise<any> {
-    console.log('开始处理文件消息:', msgInputValue, replyValue, fileList?.length ? '有附件文件' : '无附件文件')
+    console.log('파일 메시지 처리 시작:', msgInputValue, replyValue, fileList?.length ? '첨부 파일 있음' : '첨부 파일 없음')
 
     let file: File | null = null
 
-    // 优先使用fileList中的文件
+    // fileList의 파일을 우선 사용
     if (fileList && fileList.length > 0) {
       file = fileList[0]
     } else {
-      // 尝试从msgInputValue解析文件路径
+      // msgInputValue에서 파일 경로 파싱 시도
       const path = parseInnerText(msgInputValue, 'temp-file')
       if (!path) {
-        throw new AppException('请选择要发送的文件')
+        throw new AppException('전송할 파일을 선택하세요')
       }
       file = await this.getFileFromPath(path)
     }
 
-    // 验证文件
+    // 파일 검증
     const validatedFile = await this.validateFile(file)
 
-    // 创建临时路径用于上传
+    // 업로드용 임시 경로 생성
     const tempPath = `temp-file-${Date.now()}-${validatedFile.name}`
 
-    // 将文件保存到临时位置
+    // 파일을 임시 위치에 저장
     const arrayBuffer = await validatedFile.arrayBuffer()
     const uint8Array = new Uint8Array(arrayBuffer)
     const baseDir = isMobile() ? BaseDirectory.AppData : BaseDirectory.AppCache
@@ -650,16 +650,16 @@ class FileMessageStrategyImpl extends AbstractMessageStrategy {
       mimeType: validatedFile.type,
       reply: replyValue.content
         ? {
-            content: replyValue.content,
-            key: replyValue.key
-          }
+          content: replyValue.content,
+          key: replyValue.key
+        }
         : undefined
     }
   }
 
   buildMessageBody(msg: any, reply: any): any {
     return {
-      url: '', // 上传后会被设置
+      url: '', // 업로드 후 설정됨
       path: msg.path,
       fileName: msg.fileName,
       size: msg.size,
@@ -667,20 +667,20 @@ class FileMessageStrategyImpl extends AbstractMessageStrategy {
       replyMsgId: msg.reply?.key || undefined,
       reply: reply.value.content
         ? {
-            body: reply.value.content,
-            id: reply.value.key,
-            username: reply.value.accountName,
-            type: msg.type
-          }
+          body: reply.value.content,
+          id: reply.value.key,
+          username: reply.value.accountName,
+          type: msg.type
+        }
         : undefined
     }
   }
 
   /**
-   * 上传文件
-   * @param path 文件路径
-   * @param options 上传选项
-   * @returns 上传结果
+   * 파일 업로드
+   * @param path 파일 경로
+   * @param options 업로드 옵션
+   * @returns 업로드 결과
    */
   async uploadFile(
     path: string,
@@ -695,38 +695,38 @@ class FileMessageStrategyImpl extends AbstractMessageStrategy {
       const result = await this.uploadHook.getUploadAndDownloadUrl(path, uploadOptions)
       return result
     } catch (error) {
-      console.error('获取文件上传链接失败:', error)
-      throw new AppException('获取文件上传链接失败，请重试')
+      console.error('파일 업로드 링크 가져오기 실패:', error)
+      throw new AppException('파일 업로드 링크 가져오기 실패, 다시 시도하세요')
     }
   }
 
   /**
-   * 执行实际的文件上传
-   * @param path 文件路径
-   * @param uploadUrl 上传URL
-   * @param options 上传选项
-   * @returns 上传结果
+   * 실제 파일 업로드 실행
+   * @param path 파일 경로
+   * @param uploadUrl 업로드 URL
+   * @param options 업로드 옵션
+   * @returns 업로드 결과
    */
   async doUpload(path: string, uploadUrl: string, options?: any): Promise<{ qiniuUrl?: string } | void> {
     try {
-      // enableDeduplication启用文件去重
+      // enableDeduplication 파일 중복 제거 활성화
       const result = await this.uploadHook.doUpload(path, uploadUrl, { ...options, enableDeduplication: true })
 
-      // 如果是七牛云上传，返回qiniuUrl
+      // Qiniu 클라우드 업로드인 경우, qiniuUrl 반환
       if (options?.provider === UploadProviderEnum.QINIU) {
         return { qiniuUrl: result as string }
       }
     } catch (error) {
-      console.error('文件上传失败:', error)
+      console.error('파일 업로드 실패:', error)
       if (error instanceof AppException) {
         throw error
       }
-      throw new AppException('文件上传失败，请重试')
+      throw new AppException('파일 업로드 실패, 다시 시도하세요')
     }
   }
 
   /**
-   * 暴露上传进度监听
+   * 업로드 진행률 리스너 노출
    */
   getUploadProgress() {
     return {
@@ -737,14 +737,14 @@ class FileMessageStrategyImpl extends AbstractMessageStrategy {
 }
 
 /**
- * 处理表情包消息
+ * 이모티콘 메시지 처리
  */
 class EmojiMessageStrategyImpl extends AbstractMessageStrategy {
   constructor() {
     super(MsgEnum.EMOJI)
   }
 
-  // 验证是否是有效的表情包URL
+  // 유효한 이모티콘 URL인지 검증
   private isValidEmojiUrl(url: string): boolean {
     try {
       new URL(url)
@@ -755,9 +755,9 @@ class EmojiMessageStrategyImpl extends AbstractMessageStrategy {
   }
 
   getMsg(msgInputValue: string, replyValue: any): any {
-    // 检查是否是URL
+    // URL인지 확인
     if (!this.isValidEmojiUrl(msgInputValue)) {
-      throw new AppException('无效的表情包URL')
+      throw new AppException('유효하지 않은 이모티콘 URL')
     }
 
     return {
@@ -766,9 +766,9 @@ class EmojiMessageStrategyImpl extends AbstractMessageStrategy {
       path: msgInputValue,
       reply: replyValue.content
         ? {
-            content: replyValue.content,
-            key: replyValue.key
-          }
+          content: replyValue.content,
+          key: replyValue.key
+        }
         : undefined
     }
   }
@@ -779,41 +779,41 @@ class EmojiMessageStrategyImpl extends AbstractMessageStrategy {
       replyMsgId: msg.reply?.key || void 0,
       reply: reply.value.content
         ? {
-            body: reply.value.content,
-            id: reply.value.key,
-            username: reply.value.accountName,
-            type: msg.type
-          }
+          body: reply.value.content,
+          id: reply.value.key,
+          username: reply.value.accountName,
+          type: msg.type
+        }
         : void 0
     }
   }
 
-  // 表情包不需要实际上传，直接返回原始URL
+  // 이모티콘은 실제 업로드가 필요 없음, 원본 URL 직접 반환
   async uploadFile(
     path: string,
     options?: { provider?: UploadProviderEnum }
   ): Promise<{ uploadUrl: string; downloadUrl: string }> {
-    console.log('表情包使用原始URL:', path, options)
+    console.log('이모티콘은 원본 URL 사용:', path, options)
     return {
-      uploadUrl: '', // 不需要上传URL
-      downloadUrl: path // 直接使用原始URL
+      uploadUrl: '', // 업로드 URL 불필요
+      downloadUrl: path // 원본 URL 직접 사용
     }
   }
 
-  // 表情包不需要实际上传，此方法为空实现
+  // 이모티콘은 실제 업로드가 필요 없음, 이 메서드는 빈 구현
   async doUpload(path?: string, uploadUrl?: string, options?: any): Promise<void> {
-    console.log('表情包无需上传，跳过上传步骤', path, uploadUrl, options)
+    console.log('이모티콘은 업로드가 필요 없음, 업로드 단계 건너뛰기', path, uploadUrl, options)
     return Promise.resolve()
   }
 }
 
 /**
- * 处理视频消息
+ * 비디오 메시지 처리
  */
 class VideoMessageStrategyImpl extends AbstractMessageStrategy {
-  // 最大上传文件大小 50MB
+  // 최대 업로드 파일 크기 50MB
   private readonly MAX_UPLOAD_SIZE = 50 * 1024 * 1024
-  // 支持的视频类型
+  // 지원되는 비디오 유형
   private readonly ALLOWED_TYPES = ['video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/x-ms-wmv']
   private _uploadHook: ReturnType<typeof useUpload> | null = null
 
@@ -828,7 +828,7 @@ class VideoMessageStrategyImpl extends AbstractMessageStrategy {
     return this._uploadHook
   }
 
-  // 暴露上传进度监听
+  // 업로드 진행률 리스너 노출
   getUploadProgress() {
     return {
       progress: this.uploadHook.progress,
@@ -837,31 +837,31 @@ class VideoMessageStrategyImpl extends AbstractMessageStrategy {
   }
 
   /**
-   * 验证视频文件
-   * @param file 视频文件
+   * 비디오 파일 검증
+   * @param file 비디오 파일
    */
   private async validateVideo(file: File): Promise<File> {
-    // 检查文件类型
+    // 파일 유형 확인
     if (!this.ALLOWED_TYPES.includes(file.type)) {
-      throw new AppException('仅支持 MP4/MOV/AVI/WMV 格式的视频')
+      throw new AppException('MP4/MOV/AVI/WMV 형식의 비디오만 지원합니다')
     }
-    // 检查文件大小
+    // 파일 크기 확인
     if (file.size > this.MAX_UPLOAD_SIZE) {
-      throw new AppException('视频大小不能超过50MB')
+      throw new AppException('비디오 크기는 50MB를 초과할 수 없습니다')
     }
     return file
   }
 
   async getMsg(msgInputValue: string, replyValue: any, fileList?: File[]): Promise<any> {
-    // 1. 优先处理fileList中的文件
+    // 1. fileList의 파일을 우선 처리
     if (fileList && fileList.length > 0) {
       const file = fileList[0]
 
-      // 验证视频文件
+      // 비디오 파일 검증
       const validatedFile = await this.validateVideo(file)
       const thumbnail = await generateVideoThumbnail(validatedFile)
 
-      // 将文件保存到缓存目录
+      // 파일을 캐시 디렉터리에 저장
       const tempPath = `temp-video-${Date.now()}-${file.name}`
       const arrayBuffer = await file.arrayBuffer()
       const uint8Array = new Uint8Array(arrayBuffer)
@@ -871,15 +871,15 @@ class VideoMessageStrategyImpl extends AbstractMessageStrategy {
       return {
         type: this.msgType,
         path: tempPath,
-        url: '', // 上传后会更新
+        url: '', // 업로드 후 업데이트됨
         thumbnail: thumbnail || '',
         size: validatedFile.size,
-        duration: 0, // 实际项目中可解析视频时长
+        duration: 0, // 실제 프로젝트에서는 비디오 길이 파싱 가능
         reply: replyValue.content ? { content: replyValue.content, key: replyValue.key } : undefined
       }
     }
 
-    // 2. 处理远程视频URL的情况
+    // 2. 원격 비디오 URL 처리
     if (isVideoUrl(msgInputValue)) {
       return {
         type: this.msgType,
@@ -890,55 +890,55 @@ class VideoMessageStrategyImpl extends AbstractMessageStrategy {
     }
     const actualFile = await this.convertToVideoFile(msgInputValue)
 
-    // 4. 验证视频文件
+    // 4. 비디오 파일 검증
     const validatedFile = await this.validateVideo(actualFile)
     const thumbnail = await generateVideoThumbnail(validatedFile)
     const path = parseInnerText(msgInputValue, 'temp-video')
     if (!path) {
-      throw new AppException('文件不存在')
+      throw new AppException('파일이 존재하지 않습니다')
     }
     const normalizedPath = path.replace(/\\/g, '/')
     return {
       type: this.msgType,
       path: normalizedPath,
-      url: '', // 上传后会更新
+      url: '', // 업로드 후 업데이트됨
       thumbnail: thumbnail || '',
       size: validatedFile.size,
-      duration: 0, // 实际项目中可解析视频时长
+      duration: 0, // 실제 프로젝트에서는 비디오 길이 파싱 가능
       reply: replyValue.content ? { content: replyValue.content, key: replyValue.key } : undefined
     }
   }
 
-  // 转换为视频文件
+  // 비디오 파일로 변환
   private async convertToVideoFile(videoFile: string | File): Promise<File> {
-    // 1. 如果已经是File对象直接返回
+    // 1. 이미 File 객체인 경우 직접 반환
     if (videoFile instanceof File) {
       return videoFile
     }
-    // 2. 检查是否是HTML标签（无效路径）
+    // 2. HTML 태그인지 확인 (유효하지 않은 경로)
     if (videoFile.startsWith('<') || videoFile.includes('src="blob:')) {
-      // 提取 Blob URL
+      // Blob URL 추출
       const blobUrlMatch = videoFile.match(/src="(blob:[^"]+)"/)
       if (!blobUrlMatch) {
-        throw new AppException('无法提取视频 Blob URL')
+        throw new AppException('비디오 Blob URL을 추출할 수 없습니다')
       }
       const blobUrl = blobUrlMatch[1]
 
-      // 3. 使用 fetch 获取 Blob 数据
+      // 3. fetch를 사용하여 Blob 데이터 가져오기
       try {
         const response = await fetch(blobUrl)
         const blob = await response.blob()
 
-        // 4. 转换为 File 对象
-        const fileName = `video_${Date.now()}.mp4` // 默认文件名
+        // 4. File 객체로 변환
+        const fileName = `video_${Date.now()}.mp4` // 기본 파일명
         return new File([blob], fileName, { type: blob.type || 'video/mp4' })
       } catch (error) {
-        console.error('Blob 转换失败:', error)
-        throw new AppException('无法从 Blob URL 创建视频文件')
+        console.error('Blob 변환 실패:', error)
+        throw new AppException('Blob URL에서 비디오 파일을 생성할 수 없습니다')
       }
     }
 
-    // 5. 处理合法字符串路径的情况
+    // 5. 유효한 문자열 경로 처리
     try {
       const normalizedPath = videoFile.replace(/\\/g, '/')
       const baseDir = isMobile() ? BaseDirectory.AppData : BaseDirectory.AppCache
@@ -951,12 +951,12 @@ class VideoMessageStrategyImpl extends AbstractMessageStrategy {
         type: this.getVideoType(fileName)
       })
     } catch (error) {
-      console.error('视频文件读取失败:', error)
-      throw new AppException('无法读取视频文件，请检查文件路径是否正确')
+      console.error('비디오 파일 읽기 실패:', error)
+      throw new AppException('비디오 파일을 읽을 수 없습니다. 파일 경로가 올바른지 확인하세요')
     }
   }
 
-  // 根据文件名获取视频类型
+  // 파일명에 따라 비디오 유형 가져오기
   private getVideoType(fileName: string): string {
     const extension = fileName.split('.').pop()?.toLowerCase()
     switch (extension) {
@@ -969,45 +969,45 @@ class VideoMessageStrategyImpl extends AbstractMessageStrategy {
       case 'wmv':
         return 'video/x-ms-wmv'
       default:
-        return 'video/mp4' // 默认类型
+        return 'video/mp4' // 기본 유형
     }
   }
 
   /**
-   * 上传缩略图文件
-   * @param thumbnailFile 缩略图文件
-   * @param options 上传选项
-   * @returns 上传结果
+   * 섬네일 파일 업로드
+   * @param thumbnailFile 섬네일 파일
+   * @param options 업로드 옵션
+   * @returns 업로드 결과
    */
   async uploadThumbnail(
     thumbnailFile: File,
     options?: { provider?: UploadProviderEnum }
   ): Promise<{ uploadUrl: string; downloadUrl: string; config?: any }> {
     try {
-      // 创建临时文件路径用于上传
+      // 업로드용 임시 파일 경로 생성
       const tempPath = `temp-thumbnail-${Date.now()}-${thumbnailFile.name}`
 
       const uploadOptions: UploadOptions = {
         provider: options?.provider || UploadProviderEnum.QINIU,
         scene: UploadSceneEnum.CHAT,
-        enableDeduplication: true // 启用去重，使用哈希值计算
+        enableDeduplication: true // 중복 제거 활성화, 해시 값 계산 사용
       }
 
-      // 使用现有的getUploadAndDownloadUrl方法
+      // 기존 getUploadAndDownloadUrl 메서드 사용
       const result = await this.uploadHook.getUploadAndDownloadUrl(tempPath, uploadOptions)
       return result
     } catch (error) {
-      console.error('获取缩略图上传链接失败:', error)
-      throw new AppException('获取缩略图上传链接失败，请重试')
+      console.error('섬네일 업로드 링크 가져오기 실패:', error)
+      throw new AppException('섬네일 업로드 링크 가져오기 실패, 다시 시도하세요')
     }
   }
 
   /**
-   * 执行缩略图上传
-   * @param thumbnailFile 缩略图文件
-   * @param uploadUrl 上传URL
-   * @param options 上传选项
-   * @returns 上传结果
+   * 섬네일 업로드 실행
+   * @param thumbnailFile 섬네일 파일
+   * @param uploadUrl 업로드 URL
+   * @param options 업로드 옵션
+   * @returns 업로드 결과
    */
   async doUploadThumbnail(
     thumbnailFile: File,
@@ -1015,42 +1015,42 @@ class VideoMessageStrategyImpl extends AbstractMessageStrategy {
     options?: any
   ): Promise<{ qiniuUrl?: string } | void> {
     try {
-      // 将File对象写入临时文件，然后使用现有的doUpload方法
+      // File 객체를 임시 파일에 쓴 후 기존 doUpload 메서드 사용
       const tempPath = `temp-thumbnail-${Date.now()}-${thumbnailFile.name}`
 
-      // 将File对象转换为ArrayBuffer，然后写入临时文件
+      // File 객체를 ArrayBuffer로 변환한 후 임시 파일에 쓰기
       const arrayBuffer = await thumbnailFile.arrayBuffer()
       const uint8Array = new Uint8Array(arrayBuffer)
 
-      // 写入临时文件
+      // 임시 파일에 쓰기
       const baseDir = isMobile() ? BaseDirectory.AppData : BaseDirectory.AppCache
       await writeFile(tempPath, uint8Array, { baseDir })
 
-      // enableDeduplication启用文件去重，使用哈希值计算
+      // enableDeduplication 파일 중복 제거 활성화, 해시 값 계산 사용
       const result = await this.uploadHook.doUpload(tempPath, uploadUrl, { ...options, enableDeduplication: true })
 
-      // 清理临时文件
+      // 임시 파일 정리
       try {
         await remove(tempPath, { baseDir })
       } catch (cleanupError) {
-        console.warn('清理临时文件失败:', cleanupError)
+        console.warn('임시 파일 정리 실패:', cleanupError)
       }
 
-      // 如果是七牛云上传，返回qiniuUrl
+      // Qiniu 클라우드 업로드인 경우, qiniuUrl 반환
       if (options?.provider === UploadProviderEnum.QINIU) {
         return { qiniuUrl: result as string }
       }
     } catch (error) {
-      console.error('缩略图上传失败:', error)
+      console.error('섬네일 업로드 실패:', error)
       if (error instanceof AppException) {
         throw error
       }
-      throw new AppException('缩略图上传失败，请重试')
+      throw new AppException('섬네일 업로드 실패, 다시 시도하세요')
     }
   }
 
   buildMessageBody(msg: any, reply: any): any {
-    // 为缩略图创建本地预览URL
+    // 섬네일용 로컬 미리보기 URL 생성
     let thumbUrl = ''
     if (msg.thumbnail instanceof File) {
       thumbUrl = URL.createObjectURL(msg.thumbnail)
@@ -1060,7 +1060,7 @@ class VideoMessageStrategyImpl extends AbstractMessageStrategy {
       url: msg.url,
       path: msg.path,
       thumbnail: msg.thumbnail,
-      thumbUrl: thumbUrl, // 本地预览URL，上传完成后会被替换为服务器URL
+      thumbUrl: thumbUrl, // 로컬 미리보기 URL, 업로드 완료 후 서버 URL로 교체됨
       thumbSize: msg.thumbnail?.size || 0,
       thumbWidth: 300,
       thumbHeight: 150,
@@ -1069,11 +1069,11 @@ class VideoMessageStrategyImpl extends AbstractMessageStrategy {
       replyMsgId: msg.reply?.key || void 0,
       reply: reply.value.content
         ? {
-            body: reply.value.content,
-            id: reply.value.key,
-            username: reply.value.accountName,
-            type: msg.type
-          }
+          body: reply.value.content,
+          id: reply.value.key,
+          username: reply.value.accountName,
+          type: msg.type
+        }
         : void 0
     }
   }
@@ -1082,7 +1082,7 @@ class VideoMessageStrategyImpl extends AbstractMessageStrategy {
     path: string,
     options?: { provider?: UploadProviderEnum }
   ): Promise<{ uploadUrl: string; downloadUrl: string; config?: any }> {
-    // 远程视频直接返回URL
+    // 원격 비디오는 URL 직접 반환
     if (isVideoUrl(path)) {
       return { uploadUrl: '', downloadUrl: path }
     }
@@ -1094,26 +1094,26 @@ class VideoMessageStrategyImpl extends AbstractMessageStrategy {
       })
       return result
     } catch (_error) {
-      throw new AppException('获取视频上传链接失败')
+      throw new AppException('비디오 업로드 링크 가져오기 실패')
     }
   }
   async doUpload(path: string, uploadUrl: string, options?: any): Promise<{ qiniuUrl?: string } | void> {
     if (isVideoUrl(path)) {
-      throw new AppException('检查是否是有效的视频URL')
+      throw new AppException('유효한 비디오 URL인지 확인')
     }
 
     try {
-      // enableDeduplication启用文件去重
+      // enableDeduplication 파일 중복 제거 활성화
       const result = await this.uploadHook.doUpload(path, uploadUrl, { ...options, enableDeduplication: true })
       if (options?.provider === UploadProviderEnum.QINIU) {
         return { qiniuUrl: result as string }
       }
     } catch (error) {
-      console.error('文件上传失败:', error)
+      console.error('파일 업로드 실패:', error)
       if (error instanceof AppException) {
         throw error
       }
-      throw new AppException('文件上传失败，请重试')
+      throw new AppException('파일 업로드 실패, 다시 시도하세요')
     }
   }
 }
@@ -1127,13 +1127,13 @@ class UnsupportedMessageStrategyImpl extends AbstractMessageStrategy {
     replyValue
     msgInputValue
     fileList
-    throw new AppException('暂不支持该类型消息')
+    throw new AppException('해당 유형의 메시지는 아직 지원되지 않습니다')
   }
 
   buildMessageBody(msg: any, reply: any): any {
     msg
     reply
-    throw new AppException('方法暂未实现')
+    throw new AppException('메서드가 아직 구현되지 않았습니다')
   }
 
   buildMessageType(messageId: string, messageBody: any, globalStore: any, userUid: Ref<any>): MessageType {
@@ -1141,7 +1141,7 @@ class UnsupportedMessageStrategyImpl extends AbstractMessageStrategy {
     messageBody
     globalStore
     userUid
-    throw new AppException('方法暂未实现')
+    throw new AppException('메서드가 아직 구현되지 않았습니다')
   }
 }
 
@@ -1154,7 +1154,7 @@ class VoiceMessageStrategyImpl extends AbstractMessageStrategy {
     const voiceMessageDivs = document.querySelectorAll('.voice-message-placeholder')
     const lastVoiceDiv = voiceMessageDivs[voiceMessageDivs.length - 1] as HTMLElement
 
-    // 将相对路径转换为 Tauri 资源路径
+    // 상대 경로를 Tauri 리소스 경로로 변환
     const localPath = lastVoiceDiv.dataset.url
     const assetUrl = `asset://${localPath}`
 
@@ -1206,7 +1206,7 @@ class VoiceMessageStrategyImpl extends AbstractMessageStrategy {
       const result = await uploadHook.getUploadAndDownloadUrl(path, uploadOptions)
       return result
     } catch (_error) {
-      throw new AppException('获取语音上传链接失败，请重试')
+      throw new AppException('음성 업로드 링크 가져오기 실패, 다시 시도하세요')
     }
   }
 
@@ -1214,22 +1214,22 @@ class VoiceMessageStrategyImpl extends AbstractMessageStrategy {
     const uploadHook = useUpload()
 
     try {
-      // enableDeduplication启用文件去重
+      // enableDeduplication 파일 중복 제거 활성화
       const result = await uploadHook.doUpload(path, uploadUrl, { ...options, enableDeduplication: true })
 
-      // 如果是七牛云上传，返回qiniuUrl
+      // Qiniu 클라우드 업로드인 경우, qiniuUrl 반환
       if (options?.provider === UploadProviderEnum.QINIU) {
         return { qiniuUrl: result as string }
       }
     } catch (_error) {
-      throw new AppException('语音文件上传失败，请重试')
+      throw new AppException('음성 파일 업로드 실패, 다시 시도하세요')
     }
   }
 }
 
 /**
- * 处理视频通话系统消息
- * 消息结构
+ * 비디오 통화 시스템 메시지 처리
+ * 메시지 구조
  */
 class VideoCallMessageStrategyImpl extends AbstractMessageStrategy {
   constructor() {
@@ -1239,12 +1239,12 @@ class VideoCallMessageStrategyImpl extends AbstractMessageStrategy {
   getMsg(_msgInputValue: string, callInfo: any): any {
     return {
       type: this.msgType,
-      duration: callInfo.duration, // 通话时长（秒）
-      reason: callInfo.reason, // 结束原因：超时/挂断/异常
-      startTime: callInfo.startTime, // 通话开始时间（时间戳）
-      endTime: callInfo.endTime, // 通话结束时间（时间戳）
-      creator: callInfo.creator, // 发起人 UID
-      isGroup: callInfo.isGroup // 是否为群聊通话
+      duration: callInfo.duration, // 통화 시간 (초)
+      reason: callInfo.reason, // 종료 이유: 타임아웃/종료/오류
+      startTime: callInfo.startTime, // 통화 시작 시간 (타임스탬프)
+      endTime: callInfo.endTime, // 통화 종료 시간 (타임스탬프)
+      creator: callInfo.creator, // 발신자 UID
+      isGroup: callInfo.isGroup // 그룹 통화 여부
     }
   }
 
@@ -1259,17 +1259,17 @@ class VideoCallMessageStrategyImpl extends AbstractMessageStrategy {
     }
   }
 
-  // 系统消息无需上传操作
+  // 시스템 메시지는 업로드 작업 불필요
   async uploadFile() {
     return { uploadUrl: '', downloadUrl: '' }
   }
 
-  async doUpload() {}
+  async doUpload() { }
 }
 
 /**
- * 处理音频通话系统消息
- * 消息结构
+ * 오디오 통화 시스템 메시지 처리
+ * 메시지 구조
  */
 class AudioCallMessageStrategyImpl extends AbstractMessageStrategy {
   constructor() {
@@ -1277,36 +1277,36 @@ class AudioCallMessageStrategyImpl extends AbstractMessageStrategy {
   }
 
   /**
-   * 构建音频通话消息
-   * @param callInfo 通话元数据
-   * @returns 音频通话消息对象
+   * 오디오 통화 메시지 생성
+   * @param callInfo 통화 메타데이터
+   * @returns 오디오 통화 메시지 객체
    */
   getMsg(_msgInputValue: string, callInfo: any): any {
     return {
       type: this.msgType,
-      duration: callInfo.duration, // 通话时长（秒）
-      reason: callInfo.reason, // 结束原因：超时/挂断/异常
-      startTime: callInfo.startTime, // 通话开始时间（毫秒时间戳）
-      endTime: callInfo.endTime, // 通话结束时间（毫秒时间戳）
-      creator: callInfo.creator, // 发起人 UID
-      isGroup: callInfo.isGroup // 是否为群聊通话
+      duration: callInfo.duration, // 통화 시간 (초)
+      reason: callInfo.reason, // 종료 이유: 타임아웃/종료/오류
+      startTime: callInfo.startTime, // 통화 시작 시간 (밀리초 타임스탬프)
+      endTime: callInfo.endTime, // 통화 종료 시간 (밀리초 타임스탬프)
+      creator: callInfo.creator, // 발신자 UID
+      isGroup: callInfo.isGroup // 그룹 통화 여부
     }
   }
 
   buildMessageBody(msg: any): any {
     return {
-      duration: msg.duration, // 通话时长（秒）
-      reason: msg.reason, // 结束原因
-      startTime: msg.startTime, // 开始时间戳
-      endTime: msg.endTime, // 结束时间戳
-      creator: msg.creator, // 发起人UID
-      isGroup: msg.isGroup // 群聊标识
+      duration: msg.duration, // 통화 시간 (초)
+      reason: msg.reason, // 종료 이유
+      startTime: msg.startTime, // 시작 타임스탬프
+      endTime: msg.endTime, // 종료 타임스탬프
+      creator: msg.creator, // 발신자 UID
+      isGroup: msg.isGroup // 그룹 채팅 식별자
     }
   }
 
   /**
-   * 空实现（系统消息无需文件上传）
-   * @returns 固定返回空上传信息
+   * 빈 구현 (시스템 메시지는 파일 업로드 불필요)
+   * @returns 빈 업로드 정보 반환
    */
   async uploadFile(): Promise<{ uploadUrl: string; downloadUrl: string }> {
     return {
@@ -1316,7 +1316,7 @@ class AudioCallMessageStrategyImpl extends AbstractMessageStrategy {
   }
 
   /**
-   * 空实现（系统消息无需上传操作）
+   * 빈 구현 (시스템 메시지는 업로드 작업 불필요)
    */
   async doUpload(): Promise<void> {
     return Promise.resolve()

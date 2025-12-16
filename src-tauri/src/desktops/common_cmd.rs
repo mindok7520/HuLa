@@ -16,20 +16,20 @@ use serde::Serialize;
 #[cfg(target_os = "macos")]
 use tauri::WebviewWindow;
 
-/// Windows文本缩放信息结构体
+/// Windows 텍스트 스케일링 정보 구조체
 #[cfg(target_os = "windows")]
 #[derive(Serialize)]
 pub struct WindowsScaleInfo {
-    /// 系统DPI
+    /// 시스템 DPI
     pub system_dpi: u32,
-    /// 系统缩放比例
+    /// 시스템 스케일링 비율
     pub system_scale: f64,
-    /// 文本缩放比例
+    /// 텍스트 스케일링 비율
     pub text_scale: f64,
-    /// 是否检测到文本缩放
+    /// 텍스트 스케일링 감지 여부
     pub has_text_scaling: bool,
 }
-// // 定义用户信息结构体
+// // 사용자 정보 구조체 정의
 // #[derive(Debug, Clone, Serialize)]
 // pub struct UserInfo {
 //     user_id: i64,
@@ -51,7 +51,7 @@ pub struct WindowsScaleInfo {
 //     }
 // }
 
-// // 全局变量
+// // 전역 변수
 // lazy_static! {
 //     static ref USER_INFO: Arc<RwLock<UserInfo>> = Arc::new(RwLock::new(UserInfo::default()));
 // }
@@ -69,24 +69,24 @@ pub fn default_window_icon<R: Runtime>(
 
 #[tauri::command]
 pub fn screenshot(x: &str, y: &str, width: &str, height: &str) -> Result<String, String> {
-    let screen = Screen::from_point(100, 100).map_err(|e| format!("获取屏幕信息失败: {}", e))?;
+    let screen = Screen::from_point(100, 100).map_err(|e| format!("화면 정보 가져오기 실패: {}", e))?;
 
     let x = x
         .parse::<i32>()
-        .map_err(|_| "无效的 x 坐标参数".to_string())?;
+        .map_err(|_| "유효하지 않은 x 좌표 매개변수".to_string())?;
     let y = y
         .parse::<i32>()
-        .map_err(|_| "无效的 y 坐标参数".to_string())?;
+        .map_err(|_| "유효하지 않은 y 좌표 매개변수".to_string())?;
     let width = width
         .parse::<u32>()
-        .map_err(|_| "无效的宽度参数".to_string())?;
+        .map_err(|_| "유효하지 않은 너비 매개변수".to_string())?;
     let height = height
         .parse::<u32>()
-        .map_err(|_| "无效的高度参数".to_string())?;
+        .map_err(|_| "유효하지 않은 높이 매개변수".to_string())?;
 
     let image = screen
         .capture_area(x, y, width, height)
-        .map_err(|e| format!("截图失败: {}", e))?;
+        .map_err(|e| format!("스크린샷 실패: {}", e))?;
 
     let buffer = image.as_raw();
     let base64_str = general_purpose::STANDARD_NO_PAD.encode(buffer);
@@ -115,14 +115,14 @@ fn play_audio_internal(path: &str, handle: &AppHandle) -> Result<(), String> {
     let audio_path = handle
         .path()
         .resolve(path, BaseDirectory::Resource)
-        .map_err(|e| format!("解析音频路径失败: {}", e))?;
+        .map_err(|e| format!("오디오 경로 파싱 실패: {}", e))?;
 
-    let audio = File::open(audio_path).map_err(|e| format!("打开音频文件失败: {}", e))?;
+    let audio = File::open(audio_path).map_err(|e| format!("오디오 파일 열기 실패: {}", e))?;
 
     let file = BufReader::new(audio);
     let stream = rodio::OutputStreamBuilder::open_default_stream()
-        .map_err(|e| format!("创建音频输出流失败: {}", e))?;
-    let source = Decoder::new(file).map_err(|e| format!("解码音频文件失败: {}", e))?;
+        .map_err(|e| format!("오디오 출력 스트림 생성 실패: {}", e))?;
+    let source = Decoder::new(file).map_err(|e| format!("오디오 파일 디코딩 실패: {}", e))?;
 
     stream.mixer().add(source);
     thread::sleep(Duration::from_millis(3000));
@@ -133,27 +133,27 @@ fn play_audio_internal(path: &str, handle: &AppHandle) -> Result<(), String> {
 pub fn set_height(height: u32, handle: AppHandle) -> Result<(), String> {
     let home_window = handle
         .get_webview_window("home")
-        .ok_or("未找到 home 窗口")?;
+        .ok_or("home 창을 찾을 수 없음")?;
 
     let sf = home_window
         .scale_factor()
-        .map_err(|e| format!("获取窗口缩放因子失败: {}", e))?;
+        .map_err(|e| format!("창 스케일링 팩터 가져오기 실패: {}", e))?;
 
     let out_size = home_window
         .inner_size()
-        .map_err(|e| format!("获取窗口尺寸失败: {}", e))?;
+        .map_err(|e| format!("창 크기 가져오기 실패: {}", e))?;
 
     home_window
         .set_size(LogicalSize::new(
             out_size.to_logical(sf).width,
             cmp::max(out_size.to_logical(sf).height, height),
         ))
-        .map_err(|e| format!("设置窗口高度失败: {}", e))?;
+        .map_err(|e| format!("창 높이 설정 실패: {}", e))?;
 
     Ok(())
 }
 
-/// 设置 macOS 交通灯按钮的可见性
+/// macOS 신호등 버튼의 가시성 설정
 #[cfg(target_os = "macos")]
 fn set_traffic_lights_hidden(
     ns_window: &NSWindow,
@@ -171,15 +171,15 @@ fn set_window_movable_state(ns_window: &NSWindow, movable: bool) {
     ns_window.setMovableByWindowBackground(movable);
 }
 
-/// 隐藏Mac窗口的标题栏按钮（红绿灯按钮）和标题
+/// Mac 창의 제목 표시줄 버튼(신호등 버튼)과 제목 숨기기
 ///
-/// # 参数
-/// * `window_label` - 窗口的标签名称
-/// * `hide_close_button` - 可选参数，是否隐藏关闭按钮，默认为false（不隐藏）
-/// * `handle` - Tauri应用句柄
+/// # 매개변수
+/// * `window_label` - 창의 레이블 이름
+/// * `hide_close_button` - 선택적 매개변수, 닫기 버튼 숨김 여부, 기본값은 false(숨기지 않음)
+/// * `handle` - Tauri 앱 핸들
 ///
-/// # 返回
-/// * `Result<(), String>` - 成功返回Ok(()), 失败返回错误信息
+/// # 반환
+/// * `Result<(), String>` - 성공 시 Ok(()), 실패 시 오류 메시지 반환
 #[tauri::command]
 #[cfg(target_os = "macos")]
 pub fn hide_title_bar_buttons(
@@ -192,27 +192,27 @@ pub fn hide_title_bar_buttons(
     let webview_window = get_webview_window(&handle, window_label)?;
     let ns_window = get_nswindow_from_webview_window(&webview_window)?;
 
-    // 隐藏标题栏按钮的辅助函数
+    // 제목 표시줄 버튼 숨기기 보조 함수
     set_traffic_lights_hidden(&ns_window, true, NSWindowButton::MiniaturizeButton);
     set_traffic_lights_hidden(&ns_window, true, NSWindowButton::ZoomButton);
-    // 根据参数决定是否隐藏关闭按钮
+    // 매개변수에 따라 닫기 버튼 숨김 여부 결정
     if hide_close_button.unwrap_or(false) {
         set_traffic_lights_hidden(&ns_window, true, NSWindowButton::CloseButton);
     }
 
-    // 设置窗口不可拖动
+    // 창 드래그 불가 설정
     set_window_movable_state(&ns_window, false);
     Ok(())
 }
 
-/// 恢复Mac窗口的标题栏按钮显示
+/// Mac 창의 제목 표시줄 버튼 표시 복원
 ///
-/// # 参数
-/// * `window_label` - 窗口的标签名称
-/// * `handle` - Tauri应用句柄
+/// # 매개변수
+/// * `window_label` - 창의 레이블 이름
+/// * `handle` - Tauri 앱 핸들
 ///
-/// # 返回
-/// * `Result<(), String>` - 成功返回Ok(()), 失败返回错误信息
+/// # 반환
+/// * `Result<(), String>` - 성공 시 Ok(()), 실패 시 오류 메시지 반환
 #[tauri::command]
 #[cfg(target_os = "macos")]
 pub fn show_title_bar_buttons(window_label: &str, handle: AppHandle) -> Result<(), String> {
@@ -221,16 +221,16 @@ pub fn show_title_bar_buttons(window_label: &str, handle: AppHandle) -> Result<(
     let webview_window = get_webview_window(&handle, window_label)?;
     let ns_window = get_nswindow_from_webview_window(&webview_window)?;
 
-    // 显示所有标题栏按钮
+    // 모든 제목 표시줄 버튼 표시
     set_traffic_lights_hidden(&ns_window, false, NSWindowButton::CloseButton);
     set_traffic_lights_hidden(&ns_window, false, NSWindowButton::MiniaturizeButton);
     set_traffic_lights_hidden(&ns_window, false, NSWindowButton::ZoomButton);
-    // 恢复窗口可拖动
+    // 창 드래그 가능 복원
     set_window_movable_state(&ns_window, true);
     Ok(())
 }
 
-/// 设置 macOS 窗口是否可拖动
+/// macOS 창 드래그 가능 여부 설정
 #[tauri::command]
 #[cfg(target_os = "macos")]
 pub fn set_window_movable(
@@ -246,21 +246,21 @@ pub fn set_window_movable(
 
 #[tauri::command]
 pub fn set_badge_count(count: Option<i64>, handle: AppHandle) -> Result<(), String> {
-    // 如果找不到 home 窗口，直接返回成功，不抛出错误
+    // home 창을 찾을 수 없는 경우, 오류를 발생시키지 않고 성공 반환
     if let Some(window) = handle.get_webview_window("home") {
         window.set_badge_count(count).map_err(|e| e.to_string())?;
     }
     Ok(())
 }
 
-/// 设置 macOS 窗口级别为屏幕保护程序级别，以覆盖菜单栏
+/// macOS 창 레벨을 화면 보호기 레벨로 설정하여 메뉴 표시줄을 덮음
 #[tauri::command]
 #[cfg(target_os = "macos")]
 pub fn set_window_level_above_menubar(window_label: &str, handle: AppHandle) -> Result<(), String> {
     let webview_window = get_webview_window(&handle, window_label)?;
     let ns_window = get_nswindow_from_webview_window(&webview_window)?;
 
-    // 设置窗口级别为屏幕保护程序级别 (1000)，高于菜单栏
+    // 창 레벨을 화면 보호기 레벨(1000)로 설정, 메뉴 표시줄보다 높음
     ns_window.setLevel(objc2_app_kit::NSScreenSaverWindowLevel);
     Ok(())
 }
@@ -283,22 +283,22 @@ fn get_nswindow_from_webview_window(
         .ok_or_else(|| "Failed to retain NSWindow".to_string())
 }
 
-/// 获取Windows系统和文本缩放信息
+/// Windows 시스템 및 텍스트 스케일링 정보 가져오기
 #[tauri::command]
 #[cfg(target_os = "windows")]
 pub fn get_windows_scale_info() -> Result<WindowsScaleInfo, String> {
     use windows::Win32::UI::HiDpi::GetDpiForSystem;
 
     unsafe {
-        // 获取系统DPI
+        // 시스템 DPI 가져오기
         let system_dpi = GetDpiForSystem();
-        let standard_dpi = 96.0; // Windows标准DPI
+        let standard_dpi = 96.0; // Windows 표준 DPI
         let system_scale = system_dpi as f64 / standard_dpi;
 
-        // 从注册表读取文本缩放设置
+        // 레지스트리에서 텍스트 스케일링 설정 읽기
         let text_scale = get_text_scale_from_registry().unwrap_or(1.0);
 
-        // 检测是否存在文本缩放 (容差为1%)
+        // 텍스트 스케일링 존재 여부 감지 (허용 오차 1%)
         let has_text_scaling = (text_scale - 1.0).abs() > 0.01;
 
         Ok(WindowsScaleInfo {
@@ -310,7 +310,7 @@ pub fn get_windows_scale_info() -> Result<WindowsScaleInfo, String> {
     }
 }
 
-/// 从Windows注册表读取文本缩放设置
+/// Windows 레지스트리에서 텍스트 스케일링 설정 읽기
 #[cfg(target_os = "windows")]
 unsafe fn get_text_scale_from_registry() -> Result<f64, String> {
     use windows::Win32::System::Registry::{
@@ -318,7 +318,7 @@ unsafe fn get_text_scale_from_registry() -> Result<f64, String> {
     };
     use windows::core::w;
 
-    // 尝试多个可能的注册表位置
+    // 여러 가능한 레지스트리 위치 시도
     let registry_paths = [
         w!("Control Panel\\Desktop\\WindowMetrics"),
         w!("Software\\Microsoft\\Accessibility"),
@@ -357,10 +357,10 @@ unsafe fn get_text_scale_from_registry() -> Result<f64, String> {
 
             if result.is_ok() && value_type == REG_DWORD && data > 0 {
                 if i == 2 {
-                    // LogPixels 是DPI值，需要特殊处理
-                    return Ok(1.0); // LogPixels不是文本缩放，返回默认值
+                    // LogPixels는 DPI 값이며, 특별한 처리가 필요함
+                    return Ok(1.0); // LogPixels는 텍스트 스케일링이 아니므로 기본값 반환
                 } else {
-                    // TextScaleFactor 是百分比值 (100 = 100%, 150 = 150%)
+                    // TextScaleFactor는 백분율 값 (100 = 100%, 150 = 150%)
                     return Ok(data as f64 / 100.0);
                 }
             }

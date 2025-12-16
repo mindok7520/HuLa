@@ -5,7 +5,7 @@
 
     <n-flex data-tauri-drag-region vertical justify="center" :size="16" class="p-[30px_20px]">
       <n-flex justify="space-between" align="center">
-        <p class="text-(14px [--chat-text-color])">你可以尝试使用以下功能：</p>
+        <p class="text-(14px [--chat-text-color])">다음 기능을 사용해 볼 수 있습니다:</p>
         <n-button
           type="primary"
           size="small"
@@ -15,7 +15,7 @@
           <template #icon>
             <svg class="size-16px"><use href="#plus"></use></svg>
           </template>
-          {{ hasAvailableRoles ? '新建会话' : '请先创建角色' }}
+          {{ hasAvailableRoles ? '새 대화' : '먼저 역할을 생성하세요' }}
         </n-button>
       </n-flex>
       <n-scrollbar style="max-height: calc(100vh / var(--page-scale, 1) - 210px)">
@@ -50,49 +50,49 @@ type Example = {
   content: VNode
 }[]
 
-// 角色相关状态
+// 역할 관련 상태
 const roleList = ref<any[]>([])
 const roleLoading = ref(false)
 const firstAvailableRole = computed(() => roleList.value[0] || null)
 const hasAvailableRoles = computed(() => roleList.value.length > 0)
 
-// 加载角色列表
+// 역할 목록 로드
 const loadRoleList = async () => {
   roleLoading.value = true
   try {
     const data = await chatRolePage({ pageNo: 1, pageSize: 100 })
-    // 只显示可用的角色（status === 0）
+    // 사용 가능한 역할만 표시 (status === 0)
     roleList.value = (data.list || []).filter((item: any) => item.status === 0)
   } catch (error) {
-    console.error('加载角色列表失败:', error)
+    console.error('역할 목록 로드 실패:', error)
     roleList.value = []
   } finally {
     roleLoading.value = false
   }
 }
 
-// 新增会话
+// 새 대화 추가
 const handleCreateNewChat = async () => {
   try {
-    // 检查是否有可用角色
+    // 사용 가능한 역할이 있는지 확인
     if (!hasAvailableRoles.value) {
-      window.$message.warning('请先创建角色')
+      window.$message.warning('먼저 역할을 생성하세요')
       useMitt.emit('open-role-management')
       return
     }
 
-    // 使用第一个可用角色的 ID
+    // 첫 번째 사용 가능한 역할의 ID 사용
     const data = await conversationCreateMy({
       roleId: firstAvailableRole.value.id,
       knowledgeId: undefined,
-      title: '新的会话'
+      title: '새로운 대화'
     })
 
     if (data) {
-      window.$message.success('会话创建成功')
+      window.$message.success('대화 생성 성공')
       const newChat = {
         id: data.id || data,
-        title: data.title || '新的会话',
+        title: data.title || '새로운 대화',
         createTime: data.createTime ?? Date.now(),
         messageCount: data.messageCount || 0,
         isPinned: data.pinned || false,
@@ -102,32 +102,32 @@ const handleCreateNewChat = async () => {
 
       useMitt.emit('add-conversation', newChat)
 
-      // 立即切换到新会话
+      // 즉시 새 대화로 전환
       useMitt.emit('chat-active', newChat)
 
-      // 触发返回聊天页面
+      // 채팅 페이지로 돌아가기 트리거
       useMitt.emit('return-chat')
     }
   } catch (error) {
-    console.error('创建会话失败:', error)
-    window.$message.error('创建会话失败')
+    console.error('대화 생성 실패:', error)
+    window.$message.error('대화 생성 실패')
   }
 }
 
-// 组件挂载时加载角色列表
+// 컴포넌트 마운트 시 역할 목록 로드
 onMounted(() => {
   loadRoleList()
 
-  // 监听角色列表刷新事件
+  // 역할 목록 새로고침 이벤트 감지
   useMitt.on('refresh-role-list', () => {
-    console.log('Welcome 页面收到角色列表刷新事件')
+    console.log('Welcome 페이지에서 역할 목록 새로고침 이벤트 수신')
     loadRoleList()
   })
 })
 const avatars = 'https://picsum.photos/140'
 const examplesList: Example = [
   {
-    title: 'AI搜索',
+    title: 'AI 검색',
     icon: 'search',
     content: (
       <NFlex vertical size={12}>
@@ -143,8 +143,8 @@ const examplesList: Example = [
               }}
             </NImage>
             <NFlex vertical justify="center" class={'text-(12px [--chat-text-color]) truncate flex-1'}>
-              <p class="truncate w-full">你好，我是机器人小助手，很高兴为你服务。</p>
-              <p>你最近怎么样？</p>
+              <p class="truncate w-full">안녕하세요, 로봇 도우미입니다. 만나서 반갑습니다.</p>
+              <p>요즘 어떠신가요?</p>
             </NFlex>
 
             <svg
@@ -158,22 +158,21 @@ const examplesList: Example = [
     )
   },
   {
-    title: 'PDF阅读',
+    title: 'PDF 읽기',
     icon: 'notes',
     content: (
       <NFlex vertical size={12} class={'pdf-item'}>
         <NFlex vertical justify="center" class="content">
           <NFlex size={12} align={'center'}>
             <img class="size-24px" src="/file/pdf.svg" alt="" />
-            <p class="text-(12px [--chat-text-color]) underline">全球经济金融展望报告.pdf</p>
+            <p class="text-(12px [--chat-text-color]) underline">글로벌 경제 금융 전망 보고서.pdf</p>
           </NFlex>
           <p class="indent-8 text-(12px [--chat-text-color]) text-wrap leading-5">
-            2023年全球经济增长动力持续回落，各国复苏 分化，发达经济体增速明显放缓，新兴经济体 整体表现稳定。
+            2023년 글로벌 경제 성장 동력은 지속적으로 둔화되었으며, 각국의 회복세는 차별화되었습니다. 선진국 경제의 성장 속도는 뚜렷하게 둔화되었으나, 신흥 경제국은 전반적으로 안정적인 모습을 보였습니다.
           </p>
           <ul class="list-disc list-inside indent-4 truncate text-(12px [--chat-text-color]) text-wrap leading-5">
             <li>
-              展望2024年，预计全球经济复苏将依日疲软，主要经济体增长态势和货币政策走势将
-              进一步分化。全球贸易环境的不确定性亦将上升，受保护主义和技术变革的双重影响，供应链重组趋势或将加速。
+              2024년을 전망하면, 글로벌 경제 회복세는 여전히 부진할 것으로 예상되며, 주요 경제국의 성장 추세와 통화 정책 기조는 더욱 차별화될 것입니다. 글로벌 무역 환경의 불확실성 또한 증가할 것이며, 보호무역주의와 기술 변화의 이중 영향으로 공급망 재편 추세가 가속화될 수 있습니다.
             </li>
           </ul>
         </NFlex>
@@ -184,13 +183,13 @@ const examplesList: Example = [
             class="color-#13987f p-[10px_4px] size-26px opacity-0">
             <use href="#Up-GPT"></use>
           </svg>
-          <p class="text-(14px [--chat-text-color]) opacity-0">前往阅读</p>
+          <p class="text-(14px [--chat-text-color]) opacity-0">읽으러 가기</p>
         </NFlex>
       </NFlex>
     )
   },
   {
-    title: '图像生成',
+    title: '이미지 생성',
     icon: 'photo',
     content: (
       <NFlex vertical justify="center" size={0} class={'photo-item'}>
@@ -209,7 +208,7 @@ const examplesList: Example = [
         </NFlex>
 
         <NFlex justify={'space-between'} align={'center'} class={'foot'}>
-          <p class={'text-(14px [--chat-text-color]) font-500 pl-6px opacity-0'}>试一试</p>
+          <p class={'text-(14px [--chat-text-color]) font-500 pl-6px opacity-0'}>시도해 보기</p>
           <svg style={{ filter: 'drop-shadow(0 0 0.6em #13987f)' }} class="color-#13987f pr-6px size-26px opacity-0">
             <use href="#Up-GPT"></use>
           </svg>

@@ -37,22 +37,22 @@
 
 <script setup lang="ts">
 const props = defineProps({
-  /** PIN码长度 */
+  /** PIN 코드 길이 */
   length: {
     type: Number,
     default: 6
   },
-  /** 自定义输入框样式 */
+  /** 사용자 정의 입력 스타일 */
   inputClass: {
     type: String,
     default: ''
   },
-  /** 初始值 */
+  /** 초기값 */
   modelValue: {
     type: String,
     default: ''
   },
-  /** 输入框大小 */
+  /** 입력 상자 크기 */
   size: {
     type: String,
     default: '42px'
@@ -61,18 +61,18 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'complete'])
 
-// PIN输入数组
+// PIN 입력 배열
 const digits = ref<string[]>(Array(props.length).fill(''))
-// 输入框引用
+// 입력 상자 참조
 const pinInputs = ref<HTMLInputElement[]>([])
 
-// 计算是否所有输入框都已填写
+// 모든 입력 상자가 채워졌는지 계산
 const isComplete = computed(() => digits.value.every((digit) => digit !== ''))
 
-// 将数组转换为字符串
+// 배열을 문자열로 변환
 const pinValue = computed(() => digits.value.join(''))
 
-// 监听输入变化，更新modelValue
+// 입력 변경 감지, modelValue 업데이트
 watch(pinValue, (newValue) => {
   emit('update:modelValue', newValue)
   if (isComplete.value) {
@@ -80,7 +80,7 @@ watch(pinValue, (newValue) => {
   }
 })
 
-// 监听modelValue变化，更新digits
+// modelValue 변경 감지, digits 업데이트
 watch(
   () => props.modelValue,
   (newValue) => {
@@ -96,14 +96,14 @@ watch(
   { immediate: true }
 )
 
-/** 处理PIN输入 */
+/** PIN 입력 처리 */
 const handleInput = (index: number) => {
-  // 确保只输入一个字符
+  // 한 글자만 입력되도록 확인
   if (digits.value[index].length > 1) {
     digits.value[index] = digits.value[index].slice(0, 1)
   }
 
-  // 自动跳转到下一个输入框
+  // 다음 입력 상자로 자동 이동
   if (digits.value[index] && index < props.length - 1) {
     nextTick(() => {
       pinInputs.value[index + 1].focus()
@@ -111,9 +111,9 @@ const handleInput = (index: number) => {
   }
 }
 
-/** 处理PIN键盘事件 */
+/** PIN 키보드 이벤트 처리 */
 const handleKeydown = (event: KeyboardEvent, index: number) => {
-  // 处理退格键
+  // 백스페이스 키 처리
   if (event.key === 'Backspace') {
     if (!digits.value[index] && index > 0) {
       digits.value[index - 1] = ''
@@ -122,23 +122,23 @@ const handleKeydown = (event: KeyboardEvent, index: number) => {
   }
 }
 
-/** 处理粘贴事件 */
+/** 붙여넣기 이벤트 처리 */
 const handlePaste = (event: ClipboardEvent, index: number) => {
-  // 阻止默认粘贴行为
+  // 기본 붙여넣기 동작 방지
   event.preventDefault()
 
-  // 获取粘贴的文本
+  // 붙여넣은 텍스트 가져오기
   const pastedText = event.clipboardData?.getData('text') || ''
 
-  // 提取数字和字母（验证码通常只包含这些字符）
+  // 숫자와 문자 추출 (인증 코드는 일반적으로 이러한 문자만 포함)
   const validChars = pastedText.replace(/[^0-9a-zA-Z]/g, '')
 
-  // 从当前索引开始填充
+  // 현재 인덱스부터 채우기 시작
   for (let i = 0; i < validChars.length && i + index < props.length; i++) {
     digits.value[i + index] = validChars[i]
   }
 
-  // 如果填充完毕且还有输入框，聚焦到下一个空输入框
+  // 채우기가 완료되고 입력 상자가 남아 있으면 다음 빈 입력 상자로 포커스 이동
   const nextEmptyIndex = digits.value.findIndex((digit, idx) => digit === '' && idx >= index)
   if (nextEmptyIndex !== -1) {
     nextTick(() => {
@@ -147,18 +147,18 @@ const handlePaste = (event: ClipboardEvent, index: number) => {
   }
 }
 
-// 提供清空方法
+// 지우기 메서드 제공
 const clear = () => {
   digits.value = Array(props.length).fill('')
   pinInputs.value[0]?.focus()
 }
 
-// 提供聚焦方法
+// 포커스 메서드 제공
 const focus = () => {
   pinInputs.value[0]?.focus()
 }
 
-// 暴露方法给父组件
+// 부모 컴포넌트에 메서드 노출
 defineExpose({
   clear,
   focus

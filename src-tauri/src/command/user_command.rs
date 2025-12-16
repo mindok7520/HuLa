@@ -48,7 +48,7 @@ pub async fn save_user_info(
 ) -> Result<(), String> {
     let db = state.db_conn.clone();
 
-    // 检查用户是否存在
+    // 사용자가 존재하는지 확인
     let exists = ImUserEntity::find()
         .filter(im_user::Column::Id.eq(&user_info.uid))
         .one(db.deref())
@@ -60,7 +60,7 @@ pub async fn save_user_info(
 
         let user = im_user::ActiveModel {
             id: Set(user_info.uid.clone()),
-            // TODO 这里先设置为 true，后续需要根据配置调整
+            // TODO 여기서는 먼저 true로 설정, 추후 설정에 따라 조정 필요
             is_init: Set(true),
             ..Default::default()
         };
@@ -82,7 +82,7 @@ pub async fn update_user_last_opt_time(state: State<'_, AppData>) -> Result<(), 
 
     let uid = state.user_info.lock().await.uid.clone();
 
-    // 检查用户是否存在
+    // 사용자가 존재하는지 확인
     let user = ImUserEntity::find()
         .filter(im_user::Column::Id.eq(uid.clone()))
         .one(db.deref())
@@ -102,7 +102,7 @@ pub async fn update_user_last_opt_time(state: State<'_, AppData>) -> Result<(), 
     Ok(())
 }
 
-/// 获取用户的 token 和 refreshToken
+/// 사용자의 token과 refreshToken 가져오기
 #[tauri::command]
 pub async fn get_user_tokens(state: State<'_, AppData>) -> Result<TokenResponse, String> {
     info!("Getting user token info");

@@ -1,12 +1,12 @@
 <template>
-  <!-- 单独使用n-config-provider来包裹不需要主题切换的界面 -->
+  <!-- 테마 전환이 필요 없는 인터페이스를 감싸기 위해 n-config-provider를 별도로 사용 -->
   <n-config-provider :theme="naiveTheme" data-tauri-drag-region class="login-box size-full rounded-8px select-none">
-    <!--顶部操作栏-->
+    <!--상단 작업 표시줄-->
     <ActionBar :max-w="false" :shrink="false" proxy />
 
-    <!--  手动登录样式  -->
+    <!--  수동 로그인 스타일  -->
     <n-flex vertical :size="25" v-if="uiState === 'manual'">
-      <!-- 头像 -->
+      <!-- 아바타 -->
       <n-flex justify="center" class="w-full pt-35px" data-tauri-drag-region>
         <n-avatar
           class="welcome size-80px rounded-50% border-(2px solid #fff) dark:border-(2px solid #606060)"
@@ -15,7 +15,7 @@
           :src="AvatarUtils.getAvatarUrl(info.avatar)" />
       </n-flex>
 
-      <!-- 登录菜单 -->
+      <!-- 로그인 메뉴 -->
       <n-flex class="ma text-center h-full w-260px" vertical :size="16">
         <n-input
           :class="{ 'pl-16px': loginHistories.length > 0 }"
@@ -42,7 +42,7 @@
           </template>
         </n-input>
 
-        <!-- 账号选择框-->
+        <!-- 계정 선택 상자-->
         <div
           style="border: 1px solid rgba(70, 70, 70, 0.1)"
           v-if="loginHistories.length > 0 && arrowStatus"
@@ -82,7 +82,7 @@
           @blur="passwordPH = t('login.input.pass.placeholder')"
           clearable />
 
-        <!-- 协议 -->
+        <!-- 약관 -->
         <n-flex align="center" justify="center" :size="6">
           <n-checkbox v-model:checked="protocol" />
           <div class="text-12px color-#909090 cursor-default lh-14px agreement">
@@ -109,13 +109,13 @@
       </n-flex>
     </n-flex>
 
-    <!-- 自动登录样式 -->
+    <!-- 자동 로그인 스타일 -->
     <n-flex v-else-if="uiState === 'auto'" vertical :size="29" data-tauri-drag-region>
       <n-flex justify="center" class="mt-15px">
         <img src="/hula.png" class="w-140px h-60px" alt="" />
       </n-flex>
       <n-flex :size="30" vertical>
-        <!-- 头像 -->
+        <!-- 아바타 -->
         <n-flex justify="center">
           <n-avatar
             round
@@ -145,7 +145,7 @@
       </n-flex>
     </n-flex>
 
-    <!-- 底部操作栏 -->
+    <!-- 하단 작업 표시줄 -->
     <div class="text-14px grid grid-cols-[1fr_auto_1fr] items-center gap-x-12px w-full" id="bottomBar">
       <div
         class="color-#13987f cursor-pointer justify-self-end text-right"
@@ -175,12 +175,12 @@
           <n-flex vertical :size="2">
             <div
               class="register text-14px cursor-pointer hover:bg-#90909030 hover:rounded-6px p-8px"
-              @click="createWebviewWindow('注册', 'register', 600, 600)">
+              @click="createWebviewWindow('회원가입', 'register', 600, 600)">
               {{ t('login.register') }}
             </div>
             <div
               class="text-14px cursor-pointer hover:bg-#90909030 hover:rounded-6px p-8px"
-              @click="createWebviewWindow('忘记密码', 'forgetPassword', 600, 600)">
+              @click="createWebviewWindow('비밀번호 찾기', 'forgetPassword', 600, 600)">
               {{ t('login.option.items.forget') }}
             </div>
             <div
@@ -231,12 +231,12 @@ const globalStore = useGlobalStore()
 const guideStore = useGuideStore()
 const { isTrayMenuShow } = storeToRefs(globalStore)
 const { isGuideCompleted } = storeToRefs(guideStore)
-/** 网络连接是否正常 */
+/** 네트워크 연결 정상 여부 */
 const { isOnline } = useNetwork()
 const loginHistoriesStore = useLoginHistoriesStore()
 const { loginHistories } = loginHistoriesStore
 const { login } = storeToRefs(settingStore)
-/** 协议 */
+/** 약관 */
 const protocol = ref(true)
 const arrowStatus = ref(false)
 const moreShow = ref(false)
@@ -301,11 +301,11 @@ watch([driverSteps, driverConfig], ([steps, config]) => {
   reinitialize(steps, config)
 })
 
-// 输入框占位符
+// 입력 필드 플레이스홀더
 const accountPH = ref(t('login.input.account.placeholder'))
 const passwordPH = ref(t('login.input.pass.placeholder'))
 
-// 底部操作栏多语言超过6个字符时显示省略号
+// 하단 작업 표시줄 다국어가 6자를 초과할 때 줄임표 표시
 const MAX_BOTTOM_TEXT_LEN = 6
 const qrCodeText = computed(() => t('login.button.qr_code'))
 const moreText = computed(() => t('login.option.more'))
@@ -319,18 +319,18 @@ const removeAccountTitle = computed(() =>
   removeAccountLabel.value !== removeAccountText.value ? removeAccountText.value : undefined
 )
 
-/** 是否直接跳转 */
+/** 직접 이동 여부 */
 const isJumpDirectly = ref(false)
 
-// 导入Web Worker
+// Web Worker 가져오기
 const timerWorker = new Worker(new URL('../../workers/timer.worker.ts', import.meta.url))
 
-// 添加错误处理
+// 오류 처리 추가
 timerWorker.onerror = (error) => {
   console.error('[Worker Error]', error)
 }
 
-// 监听 Worker 消息
+// Worker 메시지 수신
 timerWorker.onmessage = (e) => {
   const { type } = e.data
   if (type === 'timeout') {
@@ -347,7 +347,7 @@ watch(isOnline, (v) => {
   loginText.value = v ? t('login.button.login.default') : t('login.button.login.network_error')
 })
 
-// 监听账号输入
+// 계정 입력 감지
 watch(
   () => info.value.account,
   (newAccount) => {
@@ -356,7 +356,7 @@ watch(
       return
     }
 
-    // 在登录历史中查找匹配的账号
+    // 로그인 기록에서 일치하는 계정 찾기
     const matchedAccount = loginHistories.find(
       (history) => history.account === newAccount || history.email === newAccount
     )
@@ -372,9 +372,9 @@ const openRemoteLoginModal = async (ip?: string) => {
   if (!isDesktop()) {
     return
   }
-  const payloadIp = ip ?? '未知IP'
+  const payloadIp = ip ?? '알 수 없는 IP'
   await createModalWindow(
-    '异地登录提醒',
+    '원격 로그인 알림',
     'modal-remoteLogin',
     350,
     310,
@@ -399,16 +399,16 @@ const handlePendingRemoteLoginPayload = async () => {
       openRemoteLoginModal(payload.remoteLogin.ip)
     }
   } catch (error) {
-    console.error('处理异地登录载荷失败:', error)
+    console.error('원격 로그인 페이로드 처리 실패:', error)
   }
 }
 
-/** 删除账号列表内容 */
+/** 계정 목록 내용 삭제 */
 const delAccount = (item: UserInfoType) => {
-  // 获取删除前账户列表的长度
+  // 삭제 전 계정 목록 길이 가져오기
   const lengthBeforeDelete = loginHistories.length
   loginHistoriesStore.removeLoginHistory(item)
-  // 判断是否删除了最后一个条目，并据此更新arrowStatus
+  // 마지막 항목을 삭제했는지 확인하고 그에 따라 arrowStatus 업데이트
   if (lengthBeforeDelete === 1 && loginHistories.length === 0) {
     arrowStatus.value = false
   }
@@ -418,8 +418,8 @@ const delAccount = (item: UserInfoType) => {
 }
 
 /**
- * 给账号赋值
- * @param item 账户信息
+ * 계정에 값 할당
+ * @param item 계정 정보
  * */
 const giveAccount = (item: UserInfoType) => {
   const { account, password, avatar, name, uid } = item
@@ -431,21 +431,21 @@ const giveAccount = (item: UserInfoType) => {
   arrowStatus.value = false
 }
 
-/** 移除已登录账号 */
+/** 로그인된 계정 제거 */
 const removeToken = () => {
   localStorage.removeItem('TOKEN')
   localStorage.removeItem('REFRESH_TOKEN')
   userStore.userInfo = undefined
 }
 
-/** 打开服务协议窗口 */
+/** 서비스 약관 창 열기 */
 const openServiceAgreement = async () => {
-  await createModalWindow('服务协议', 'modal-serviceAgreement', 600, 600, 'login')
+  await createModalWindow('서비스 약관', 'modal-serviceAgreement', 600, 600, 'login')
 }
 
-/** 打开隐私保护协议窗口 */
+/** 개인정보 보호 약관 창 열기 */
 const openPrivacyAgreement = async () => {
-  await createModalWindow('隐私保护指引', 'modal-privacyAgreement', 600, 600, 'login')
+  await createModalWindow('개인정보 보호 지침', 'modal-privacyAgreement', 600, 600, 'login')
 }
 
 const closeMenu = (event: MouseEvent) => {
@@ -465,14 +465,14 @@ const enterKey = (e: KeyboardEvent) => {
 }
 
 onBeforeMount(async () => {
-  // 登录页初始化时清空当前会话，避免重启后默认选中旧会话
+  // 로그인 페이지 초기화 시 현재 세션을 비워 재시작 후 이전 세션이 기본 선택되는 것을 방지
   globalStore.updateCurrentSessionRoomId('')
   await handlePendingRemoteLoginPayload()
-  // 始终初始化托盘菜单状态为false
+  // 트레이 메뉴 상태를 항상 false로 초기화
   isTrayMenuShow.value = false
 
   if (!login.value.autoLogin) {
-    // 非自动登录模式，直接显示手动登录界面
+    // 자동 로그인 모드가 아니면 수동 로그인 인터페이스 직접 표시
     uiState.value = 'manual'
     localStorage.removeItem('TOKEN')
     localStorage.removeItem('REFRESH_TOKEN')
@@ -482,12 +482,12 @@ onBeforeMount(async () => {
 })
 
 onMounted(async () => {
-  // 检查引导状态，只有未完成时才启动引导
+  // 가이드 상태 확인, 완료되지 않은 경우에만 가이드 시작
   if (!isGuideCompleted.value) {
     startTour()
   }
 
-  // 只有在需要登录的情况下才显示登录窗口
+  // 로그인이 필요한 경우에만 로그인 창 표시
   if (!isJumpDirectly.value) {
     await getCurrentWebviewWindow().show()
   }
@@ -497,12 +497,12 @@ onMounted(async () => {
     loginText.value = t('login.status.service_disconnected')
   })
 
-  // 自动登录时显示自动登录界面并触发登录
+  // 자동 로그인 시 자동 로그인 인터페이스 표시 및 로그인 트리거
   if (login.value.autoLogin) {
     uiState.value = 'auto'
     normalLogin('PC', true, true)
   } else {
-    // 手动登录模式，自动填充第一个历史账号
+    // 수동 로그인 모드, 첫 번째 기록 계정 자동 채우기
     uiState.value = 'manual'
     loginHistories.length > 0 && giveAccount(loginHistories[0])
   }
@@ -520,7 +520,7 @@ onMounted(async () => {
 onUnmounted(() => {
   window.removeEventListener('click', closeMenu, true)
   window.removeEventListener('keyup', enterKey)
-  // 清除Web Worker计时器
+  // Web Worker 타이머 지우기
   timerWorker.postMessage({
     type: 'clearTimer',
     msgId: 'checkUpdate'

@@ -1,12 +1,12 @@
 <template>
-  <!-- 锁屏页面 -->
+  <!-- 잠금 화면 페이지 -->
   <div
     data-tauri-drag-region
     class="login-box overflow-y-hidden rounded-8px select-none absolute top-0 left-0 w-full h-full z-9999 transition-all duration-300 ease-in-out">
     <ActionBar class="absolute top-0 right-0 z-99999" :current-label="appWindow.label" :shrink="false" />
 
     <Transition name="slide-fade" appear>
-      <!--  壁纸界面  -->
+      <!--  배경화면 인터페이스  -->
       <div v-if="!isUnlockPage" @click.stop="isUnlockPage = true" class="size-full rounded-8px">
         <n-flex vertical align="center" :size="120" class="size-full mt-10%">
           <n-flex vertical align="center" :size="20" class="will-change-auto will-change-contents">
@@ -26,7 +26,7 @@
         </n-flex>
       </div>
 
-      <!-- 解锁界面  -->
+      <!-- 잠금 해제 인터페이스  -->
       <n-flex
         v-else
         data-tauri-drag-region
@@ -43,7 +43,7 @@
             :src="AvatarUtils.getAvatarUrl(userStore.userInfo!.avatar!)" />
           <p class="text-(24px [--chat-text-color]) font-500">{{ userStore.userInfo!.name }}</p>
 
-          <!-- 密码输入框 -->
+          <!-- 비밀번호 입력창 -->
           <n-config-provider :theme="lightTheme">
             <n-input
               v-if="!isLogining && !isWrongPassword"
@@ -79,13 +79,13 @@
             </n-input>
           </n-config-provider>
 
-          <!-- 登录时显示的文字 -->
+          <!-- 로그인 시 표시되는 텍스트 -->
           <n-flex vertical align="center" justify="center" :size="30" v-if="isLogining && !isWrongPassword">
             <img class="size-42px" src="@/assets/img/loading-one.svg" alt="" />
             <p class="text-(20px [--chat-text-color])">{{ t('message.lock_screen.unlocking') }}</p>
           </n-flex>
 
-          <!-- 密码不正常时显示 -->
+          <!-- 비밀번호가 올바르지 않을 때 표시 -->
           <n-flex v-if="isWrongPassword" vertical justify="center" align="center" :size="30">
             <p class="text-(18px [--chat-text-color])">{{ t('message.lock_screen.wrong_password') }}</p>
             <p
@@ -129,33 +129,33 @@ const userStore = useUserStore()
 const { lockScreen } = storeToRefs(settingStore)
 const { logout } = useLogin()
 const { t } = useI18n()
-/** 解锁密码 */
+/** 잠금 해제 비밀번호 */
 const password = ref('')
-/** 是否是解锁页面 */
+/** 잠금 해제 페이지 여부 */
 const isUnlockPage = ref(false)
-/** 是否是登录中 */
+/** 로그인 중 여부 */
 const isLogining = ref(false)
-/** 密码不正确时显示 */
+/** 비밀번호가 올바르지 않을 때 표시 */
 const isWrongPassword = ref(false)
-/** 当前时间 */
+/** 현재 시간 */
 const currentTime = ref(dayjs().format('HH:mm'))
-/** 当前月份和日期 */
+/** 현재 월 및 날짜 */
 const currentMonthAndDate = ref(dayjs().format('MM/DD'))
 // const currentMonthAndDate = ref(new Date().toLocaleDateString('chinese', { month: 'long', day: 'numeric' }))
-/** 当前星期 */
+/** 현재 요일 */
 const currentWeekday = ref(getWeekday(new Date().toLocaleString()))
-/** 计算当前时间的定时器 */
+/** 현재 시간 계산 타이머 */
 let intervalId: NodeJS.Timeout | null = null
-/** 密码输入框实例 */
+/** 비밀번호 입력창 인스턴스 */
 const inputInstRef = ref<InputInst | null>(null)
-/** 白名单窗口（锁屏时不隐藏的窗口） */
+/** 화이트리스트 창 (잠금 화면 시 숨기지 않는 창) */
 const whitelistWindows = ['home', 'tray', 'capture', 'checkupdate', 'notify']
-/** 被隐藏的窗口列表 */
+/** 숨겨진 창 목록 */
 const hiddenWindows = ref<string[]>([])
 
 watch(isUnlockPage, (val) => {
   if (val) {
-    /** 延迟 300ms 后自动获取焦点，不然会触发一次回车事件 */
+    /** 300ms 지연 후 자동으로 포커스 획득, 그렇지 않으면 엔터 이벤트가 한 번 트리거됨 */
     setTimeout(() => {
       inputInstRef.value?.focus()
     }, 300)
@@ -171,7 +171,7 @@ watch(isWrongPassword, (val) => {
   }
 })
 
-/** 解锁 */
+/** 잠금 해제 */
 const unlock = () => {
   if (password.value === '') {
     window.$message.error(t('message.lock_screen.toast_empty_password'))
@@ -190,7 +190,7 @@ const unlock = () => {
   }
 }
 
-/** 重置登录状态 */
+/** 로그인 상태 초기화 */
 const init = () => {
   if (isWrongPassword.value) {
     isWrongPassword.value = false
@@ -202,7 +202,7 @@ const init = () => {
   }
 }
 
-/** 隐藏其他窗口 */
+/** 다른 창 숨기기 */
 const hideOtherWindows = async () => {
   const allWindows = await WebviewWindow.getAll()
   const windowsToHide = allWindows.filter(
@@ -215,7 +215,7 @@ const hideOtherWindows = async () => {
   }
 }
 
-/** 显示之前隐藏的窗口 */
+/** 이전에 숨겨진 창 표시 */
 const showHiddenWindows = async () => {
   for (const windowLabel of hiddenWindows.value) {
     const window = await WebviewWindow.getByLabel(windowLabel)
@@ -226,10 +226,10 @@ const showHiddenWindows = async () => {
   hiddenWindows.value = []
 }
 
-// 监听锁屏状态变化
+// 잠금 화면 상태 변경 감지
 watchEffect(() => {
   if (!lockScreen.value.enable) {
-    // 解锁时显示之前隐藏的窗口
+    // 잠금 해제 시 이전에 숨겨진 창 표시
     showHiddenWindows()
   }
 })
@@ -248,7 +248,7 @@ onMounted(() => {
     })
   }
 
-  // 锁屏时隐藏其他窗口，解锁时显示
+  // 잠금 화면 시 다른 창 숨기기, 잠금 해제 시 표시
   hideOtherWindows()
 })
 
@@ -291,8 +291,8 @@ onUnmounted(() => {
 }
 
 /*
-  进入和离开动画可以使用不同
-  持续时间和速度曲线。
+  진입 및 이탈 애니메이션은 서로 다른
+  지속 시간과 속도 곡선을 사용할 수 있습니다.
 */
 .slide-fade-enter-active {
   transition: all 0.2s ease-in-out;

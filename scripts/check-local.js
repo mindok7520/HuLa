@@ -2,31 +2,31 @@ import chalk from 'chalk'
 import { existsSync, readFileSync, writeFileSync } from 'fs'
 import { join } from 'path'
 
-// 用于检查和创建 src-tauri/configuration/local.yaml 配置文件
+// src-tauri/configuration/local.yaml 설정 파일 확인 및 생성
 const configDir = join(process.cwd(), 'src-tauri', 'configuration')
 const localConfigPath = join(configDir, 'local.yaml')
 const productionConfigPath = join(configDir, 'production.yaml')
 
 try {
   if (existsSync(localConfigPath)) {
-    console.log(chalk.green('✅ 检测到 local.yaml 已存在，跳过创建'))
+    console.log(chalk.green('✅ local.yaml이 이미 존재함, 생성 건너뜀'))
     process.exit(0)
   }
 
   let content = ''
 
-  // 优先使用 production.yaml 作为模板，因为它包含更完整的配置
+  // 더 완전한 설정을 포함하고 있으므로 production.yaml을 템플릿으로 우선 사용
   if (existsSync(productionConfigPath)) {
     content = readFileSync(productionConfigPath, 'utf8')
-    console.log(chalk.blue('📋 使用 production.yaml 作为模板'))
+    console.log(chalk.blue('📋 production.yaml을 템플릿으로 사용'))
   } else {
-    console.log(chalk.red('❌ 未找到任何配置文件模板'))
+    console.log(chalk.red('❌ 설정 파일 템플릿을 찾을 수 없음'))
     process.exit(1)
   }
 
   writeFileSync(localConfigPath, content, 'utf8')
-  console.log(chalk.green('✨ 已创建 local.yaml 配置文件'))
+  console.log(chalk.green('✨ local.yaml 설정 파일 생성됨'))
 } catch (error) {
-  console.log(chalk.red('\n❌ 处理 local.yaml 文件失败：'), error.message)
+  console.log(chalk.red('\n❌ local.yaml 파일 처리 실패:'), error.message)
   process.exit(1)
 }

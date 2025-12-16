@@ -22,34 +22,34 @@ use tokio::sync::Mutex;
 use tokio::time::{Duration, sleep};
 use tracing::{debug, error, info, warn};
 
-const WRITE_RETRY_LIMIT: usize = 3; // 写操作最多重试 3 次
-const WRITE_RETRY_DELAY_MS: u64 = 80; // 重试基础延迟 80ms
+const WRITE_RETRY_LIMIT: usize = 3; // 쓰기 작업 최대 3회 재시도
+const WRITE_RETRY_DELAY_MS: u64 = 80; // 재시도 기본 지연 80ms
 
 async fn run_with_write_lock<T, F, Fut>(
-    lock: Arc<Mutex<()>>, // 传入全局写锁，保证串行执行
-    op_name: &str,        // 当前操作名用于日志
-    mut operation: F,     // 实际写入逻辑
+    lock: Arc<Mutex<()>>, // 전역 쓰기 락을 전달하여 직렬 실행 보장
+    op_name: &str,        // 현재 작업 이름 (로그용)
+    mut operation: F,     // 실제 쓰기 로직
 ) -> Result<T, String>
 where
-    F: FnMut() -> Fut,                            // 返回异步写入 Future 的闭包
-    Fut: Future<Output = Result<T, CommonError>>, // 写入结果类型
+    F: FnMut() -> Fut,                            // 비동기 쓰기 Future를 반환하는 클로저
+    Fut: Future<Output = Result<T, CommonError>>, // 쓰기 결과 타입
 {
-    let mut attempt: usize = 0; // 当前已重试次数
+    let mut attempt: usize = 0; // 현재 재시도 횟수
     loop {
-        let guard = lock.lock().await; // 获取写锁
-        let result = operation().await; // 执行实际写入
-        drop(guard); // 释放写锁
+        let guard = lock.lock().await; // 쓰기 락 획득
+        let result = operation().await; // 실제 쓰기 실행
+        drop(guard); // 쓰기 락 해제
 
         match result {
-            Ok(val) => return Ok(val), // 成功直接返回
+            Ok(val) => return Ok(val), // 성공 시 직접 반환
             Err(err) => {
-                let err_msg = err.to_string(); // 记录错误信息
-                let lowered = err_msg.to_lowercase(); // 统一大小写方便匹配
+                let err_msg = err.to_string(); // 오류 정보 기록
+                let lowered = err_msg.to_lowercase(); // 대소문자 통일하여 매칭 편의
                 let is_locked =
-                    lowered.contains("database is locked") || lowered.contains("database is busy"); // 检测是否锁冲突
+                    lowered.contains("database is locked") || lowered.contains("database is busy"); // 락 충돌 감지
 
                 if is_locked && attempt + 1 < WRITE_RETRY_LIMIT {
-                    let delay = WRITE_RETRY_DELAY_MS * (attempt as u64 + 1); // 递增延迟
+                    let delay = WRITE_RETRY_DELAY_MS * (attempt as u64 + 1); // 증가 지연
                     warn!(
                         target: "tauri_db",
                         "[{}] database locked (attempt {}), retrying in {}ms",
@@ -57,8 +57,8 @@ where
                         attempt + 1,
                         delay
                     );
-                    attempt += 1; // 记录本次重试
-                    sleep(Duration::from_millis(delay)).await; // 延迟后再试
+                    attempt += 1; // 이번 재시도 기록
+                    sleep(Duration::from_millis(delay)).await; // 지연 후 재시도
                     continue;
                 }
 
@@ -150,13 +150,13 @@ pub async fn page_msg(
     param: CursorPageMessageParam,
     state: State<'_, AppData>,
 ) -> Result<CursorPageResp<Vec<MessageResp>>, String> {
-    // 获取当前登录用户的 uid
+    // 현재 로그인한 사용자의 uid 가져오기
     let login_uid = {
         let user_info = state.user_info.lock().await;
         user_info.uid.clone()
     };
 
-    // 从数据库查询消息
+    // 데이터베이스에서 메시지 쿼리
     let db_result = im_message_repository::cursor_page_messages(
         state.db_conn.deref(),
         param.room_id,
@@ -166,7 +166,7 @@ pub async fn page_msg(
     .await
     .map_err(|e| e.to_string())?;
 
-    // 转换数据库模型为响应模型
+    // 데이터베이스 모델을 응답 모델로 변환
     let mut raw_list = db_result.list.unwrap_or_default();
     raw_list.sort_by(|a, b| {
         let a_time = a.message.send_time.unwrap_or(0);
@@ -174,16 +174,16 @@ pub async fn page_msg(
         a_time.cmp(&b_time)
     });
 
-    // 计算每条消息的 time_block
+    // 각 메시지의 time_block 계산
     let mut message_resps: Vec<MessageResp> = Vec::new();
     for (index, msg) in raw_list.into_iter().enumerate() {
         let mut resp = convert_message_to_resp(msg.clone(), None);
 
-        // 第一条消息始终显示时间
+        // 첫 번째 메시지는 항상 시간 표시
         if index == 0 {
             resp.time_block = Some(1);
         } else if let Some(send_time) = msg.message.send_time {
-            // 使用统一的 time_block 计算函数
+            // 통일된 time_block 계산 함수 사용
             resp.time_block = im_message_repository::calculate_time_block(
                 state.db_conn.deref(),
                 &msg.message.room_id,
@@ -206,7 +206,7 @@ pub async fn page_msg(
     })
 }
 
-/// 将数据库消息模型转换为响应模型
+/// 데이터베이스 메시지 모델을 응답 모델로 변환
 pub fn convert_message_to_resp(
     record: MessageWithThumbnail,
     old_msg_id: Option<String>,
@@ -228,7 +228,7 @@ pub fn convert_message_to_resp(
                         "Failed to parse message body JSON for message {}: {}",
                         msg.id, e
                     );
-                    // 如果解析失败，将原始字符串作为文本消息处理
+                    // 파싱 실패 시 원본 문자열을 텍스트 메시지로 처리
                     Some(serde_json::json!({
                         "content": body_str
                     }))
@@ -239,7 +239,7 @@ pub fn convert_message_to_resp(
 
     inject_thumbnail_path(&mut body, thumbnail_path.as_deref());
 
-    // 解析消息标记 - 支持从 message_marks 字段解析
+    // 메시지 표시 파싱 - message_marks 필드에서 파싱 지원
     let message_marks = msg.message_marks.as_ref().and_then(|marks_str| {
         if marks_str.trim().is_empty() {
             return None;
@@ -263,7 +263,7 @@ pub fn convert_message_to_resp(
         }
     });
 
-    // 构建响应对象
+    // 응답 객체 구축
     MessageResp {
         create_id: Some(msg.id.clone()),
         create_time: msg.send_time,
@@ -286,7 +286,7 @@ pub fn convert_message_to_resp(
     }
 }
 
-/// 检查用户初始化状态并获取消息
+/// 사용자 초기화 상태 확인 및 메시지 가져오기
 pub async fn check_user_init_and_fetch_messages(
     client: &mut ImRequestClient,
     db_conn: &DatabaseConnection,
@@ -294,7 +294,7 @@ pub async fn check_user_init_and_fetch_messages(
     async_data: bool,
     force_full: bool,
 ) -> Result<(), CommonError> {
-    // 防止高频同步，10秒内只允许一次同步(比如弱网、网络不好情况下会重复重连)
+    // 고빈도 동기화 방지, 10초 내에 한 번만 동기화 허용(예: 약한 네트워크, 네트워크 불량 상황에서 반복 재연결)
     static MESSAGE_SYNC_LOCK: Lazy<tokio::sync::Mutex<()>> =
         Lazy::new(|| tokio::sync::Mutex::new(()));
     static LAST_MESSAGE_SYNC_MS: AtomicI64 = AtomicI64::new(0);
@@ -328,7 +328,7 @@ pub async fn check_user_init_and_fetch_messages(
         }
     };
 
-    // 检查用户的 is_init 状态
+    // 사용자의 is_init 상태 확인
     if let Ok(user) = ImUserEntity::find()
         .filter(im_user::Column::Id.eq(uid))
         .one(db_conn)
@@ -336,13 +336,13 @@ pub async fn check_user_init_and_fetch_messages(
     {
         if let Some(user_model) = user {
             let should_full_sync = force_full || user_model.is_init;
-            // 如果 is_init 为 true，调用后端接口获取所有消息；否则按增量模式同步
+            // is_init이 true이면 백엔드 인터페이스를 호출하여 모든 메시지 가져오기; 그렇지 않으면 증분 모드로 동기화
             if should_full_sync {
                 info!(
                     "User {} needs initialization, starting to fetch all messages",
                     uid
                 );
-                // 传递用户的 async_data 参数
+                // 사용자의 async_data 매개변수 전달
                 if let Err(e) = fetch_all_messages(client, db_conn, uid, async_data).await {
                     error!("Failed to fetch all messages: {}", e);
                     return Err(e);
@@ -366,7 +366,7 @@ pub async fn check_user_init_and_fetch_messages(
     Ok(())
 }
 
-// 获取所有消息并保存到数据库
+// 모든 메시지를 가져와서 데이터베이스에 저장
 pub async fn fetch_all_messages(
     client: &mut ImRequestClient,
     db_conn: &DatabaseConnection,
@@ -377,7 +377,7 @@ pub async fn fetch_all_messages(
         "Starting to fetch all messages, uid: {}, async_data: {:?}",
         uid, async_data
     );
-    // 调用后端接口 /chat/msg/list 获取所有消息，传递 async_data 参数
+    // 백엔드 인터페이스 /chat/msg/list를 호출하여 모든 메시지 가져오기, async_data 매개변수 전달
     let body = match async_data {
         true => Some(serde_json::json!({ "async": async_data })),
         false => None,
@@ -388,15 +388,15 @@ pub async fn fetch_all_messages(
         .await?;
 
     if let Some(mut messages) = messages {
-        // 排序消息（按发送时间）
+        // 메시지 정렬 (전송 시간순)
         messages.sort_by(|a, b| {
             let a_time = a.message.send_time.unwrap_or(0);
             let b_time = b.message.send_time.unwrap_or(0);
             a_time.cmp(&b_time)
         });
 
-        // 批量计算 time_block（先计算，再一次性写库）
-        // 以 DB 中最后一条消息的 send_time 作为起点，批次内逐条递进
+        // time_block 일괄 계산 (먼저 계산, 그 다음 한 번에 DB에 쓰기)
+        // DB의 마지막 메시지의 send_time을 시작점으로, 배치 내에서 하나씩 진행
         const TIME_BLOCK_THRESHOLD_MS: i64 = 1000 * 60 * 10;
         let mut last_send_time_map: HashMap<String, Option<i64>> = HashMap::new();
 
@@ -410,7 +410,7 @@ pub async fn fetch_all_messages(
                 None => continue,
             };
 
-            // 获取该房间的上一条 send_time（优先使用批次内最新值，否则从 DB 取一次）
+            // 해당 방의 이전 send_time 가져오기 (배치 내 최신 값 우선 사용, 그렇지 않으면 DB에서 한 번 가져오기)
             let prev_send_time = match last_send_time_map.get(&room_id) {
                 Some(value) => *value,
                 None => {
@@ -438,23 +438,23 @@ pub async fn fetch_all_messages(
                     None
                 }
             } else {
-                // 房间第一条消息始终显示时间
+                // 방의 첫 번째 메시지는 항상 시간 표시
                 Some(1)
             };
 
-            // 当前消息成为下一条的参考
+            // 현재 메시지가 다음 메시지의 참조가 됨
             last_send_time_map.insert(room_id, Some(send_time));
         }
 
-        // 开启事务
+        // 트랜잭션 시작
         let tx = db_conn.begin().await?;
 
-        // 转换 MessageResp 为本地存储模型
+        // MessageResp를 로컬 저장 모델로 변환
         let db_messages: Vec<MessageWithThumbnail> = messages
             .into_iter()
             .map(|msg_resp| convert_resp_to_record_for_fetch(msg_resp, uid.to_string()))
             .collect();
-        // 保存到本地数据库
+        // 로컬 데이터베이스에 저장
         match im_message_repository::save_all(&tx, db_messages).await {
             Ok(_) => {
                 info!("Messages saved to database successfully");
@@ -468,12 +468,12 @@ pub async fn fetch_all_messages(
             }
         }
 
-        // 消息保存完成后，将用户的 is_init 状态设置为 false
+        // 메시지 저장 완료 후 사용자의 is_init 상태를 false로 설정
         im_user_repository::update_user_init_status(&tx, uid, false)
             .await
             .map_err(|e| anyhow::anyhow!("Failed to update user is_init status: {}", e))?;
 
-        // 提交事务
+        // 트랜잭션 커밋
         tx.commit().await?;
     }
 
@@ -515,18 +515,18 @@ pub async fn sync_messages(
     Ok(())
 }
 
-/// 将 MessageResp 转换为数据库模型（用于 fetch_all_messages）
+/// MessageResp를 데이터베이스 모델로 변환 (fetch_all_messages용)
 fn convert_resp_to_record_for_fetch(msg_resp: MessageResp, uid: String) -> MessageWithThumbnail {
     use serde_json;
 
-    // 序列化消息体为 JSON 字符串
+    // 메시지 본문을 JSON 문자열로 직렬화
     let body_json = msg_resp
         .message
         .body
         .as_ref()
         .and_then(|body| serde_json::to_string(body).ok());
 
-    // 序列化消息标记为 JSON 字符串
+    // 메시지 표시를 JSON 문자열로 직렬화
     let marks_json = msg_resp
         .message
         .message_marks
@@ -601,23 +601,23 @@ pub async fn send_msg(
     // 获取当前登录用户信息
     let (login_uid, nickname) = {
         let user_info = state.user_info.lock().await;
-        (user_info.uid.clone(), None) // UserInfo只有uid和token字段，nickname暂时设为None
+        (user_info.uid.clone(), None) // UserInfo는 uid와 token 필드만 있으므로 nickname은 임시로 None으로 설정
     };
 
-    // 生成消息ID
+    // 메시지 ID 생성
     let current_time = chrono::Utc::now().timestamp_millis();
 
-    // 先克隆data以避免所有权问题
+    // 먼저 data를 복제하여 소유권 문제 회피
     let send_data = data.clone();
 
-    // 序列化消息体
+    // 메시지 본문 직렬화
     let body_json = data
         .body
         .as_ref()
         .and_then(|body| serde_json::to_string(body).ok());
     let thumbnail_path = extract_thumbnail_path_from_body(&data.body);
 
-    // 创建消息模型
+    // 메시지 모델 생성
     let message_model = im_message::Model {
         id: data.id.clone(),
         uid: login_uid.clone(),
@@ -630,7 +630,7 @@ pub async fn send_msg(
         create_time: Some(current_time),
         update_time: Some(current_time),
         login_uid: login_uid.clone(),
-        send_status: "pending".to_string(), // 初始状态为pending
+        send_status: "pending".to_string(), // 초기 상태는 pending
         time_block: None,
     };
 
@@ -638,12 +638,12 @@ pub async fn send_msg(
 
     let write_lock = state.write_lock.clone(); // 克隆全局写锁句柄
     message_record = run_with_write_lock(write_lock, "send_msg", || {
-        let db_conn = state.db_conn.clone(); // 克隆数据库连接供异步使用
-        let mut record = message_record.clone(); // 拷贝消息记录以便闭包内可变
+        let db_conn = state.db_conn.clone(); // 데이터베이스 연결을 복제하여 비동기 사용
+        let mut record = message_record.clone(); // 메시지 레코드를 복사하여 클로저 내에서 가변
         async move {
-            let tx = db_conn.begin().await.map_err(CommonError::DatabaseError)?; // 开启事务
-            record = im_message_repository::save_message(&tx, record).await?; // 保存消息
-            tx.commit().await.map_err(CommonError::DatabaseError)?; // 提交事务
+            let tx = db_conn.begin().await.map_err(CommonError::DatabaseError)?; // 트랜잭션 시작
+            record = im_message_repository::save_message(&tx, record).await?; // 메시지 저장
+            tx.commit().await.map_err(CommonError::DatabaseError)?; // 트랜잭션 커밋
             Ok(record)
         }
     })
@@ -656,13 +656,13 @@ pub async fn send_msg(
 
     let msg_id = message_record.message.id.clone();
 
-    // 异步发送到后端接口
+    // 비동기로 백엔드 인터페이스로 전송
     let db_conn = state.db_conn.clone();
     let request_client = state.rc.clone();
     let mut record_for_send = message_record.clone();
 
     tokio::spawn(async move {
-        // 发送到后端接口
+        // 백엔드 인터페이스로 전송
         let result: Result<Option<MessageResp>, anyhow::Error> = {
             let mut client = request_client.lock().await;
             client
@@ -672,7 +672,7 @@ pub async fn send_msg(
 
         let mut id = None;
 
-        // 根据发送结果更新消息状态
+        // 전송 결과에 따라 메시지 상태 업데이트
         let status = match result {
             Ok(Some(mut resp)) => {
                 resp.old_msg_id = Some(msg_id.clone());
@@ -692,7 +692,7 @@ pub async fn send_msg(
             _ => "fail",
         };
 
-        // 更新消息状态
+        // 메시지 상태 업데이트
         let model = im_message_repository::update_message_status(
             db_conn.deref(),
             record_for_send,
@@ -719,7 +719,7 @@ pub async fn send_msg(
 
 #[tauri::command]
 pub async fn save_msg(data: MessageResp, state: State<'_, AppData>) -> Result<(), String> {
-    // 创建 im_message::Model
+    // im_message::Model 생성
     let record = convert_resp_to_record_for_fetch(data, state.user_info.lock().await.uid.clone());
 
     let lock = state.write_lock.clone();
@@ -780,7 +780,7 @@ pub async fn delete_message(
         )
         .await
         .map_err(|e| e.to_string())?
-        .ok_or_else(|| "消息不存在或房间信息缺失".to_string())?
+        .ok_or_else(|| "메시지가 존재하지 않거나 방 정보가 누락됨".to_string())?
     };
 
     im_message_repository::delete_message_by_id(state.db_conn.deref(), &message_id, &login_uid)

@@ -1,10 +1,10 @@
 /// <reference types="vite/client" />
 interface ImportMetaEnv {
-  /** 后端项目地址 */
+  /** 백엔드 프로젝트 주소 */
   readonly VITE_SERVICE_URL: string
-  /** 客户端项目地址 */
+  /** 클라이언트 프로젝트 주소 */
   readonly VITE_PC_URL: string
-  /** 项目名称 */
+  /** 프로젝트 이름 */
   readonly VITE_APP_NAME: string
   /** giteeToken */
   readonly VITE_GITEE_TOKEN: string
@@ -19,8 +19,8 @@ declare module '*.vue' {
   const Component: ReturnType<typeof defineComponent>
   export default component
 }
-/**使用 window.$message 来调用 Message 组件的方法。由于 TypeScript 编译器无法识别全局变量 $message 的类型，
-我们可以使用 if (window.$message) 来进行判断，避免出现类型错误。*/
+/**window.$message를 사용하여 Message 컴포넌트의 메서드를 호출합니다. TypeScript 컴파일러가 전역 변수 $message의 타입을 인식할 수 없으므로,
+if (window.$message)를 사용하여 판단하면 타입 오류를 피할 수 있습니다.*/
 declare interface Window {
   $message: ReturnType<typeof useMessage>
   $notification: ReturnType<typeof useNotification>

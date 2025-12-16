@@ -1,35 +1,35 @@
 use std::time::Duration;
 
-/// 应用级别的超时配置
+/// 애플리케이션 수준 시간 초과 구성
 pub struct TimeoutConfig;
 
 impl TimeoutConfig {
-    /// 数据库连接超时
+    /// 데이터베이스 연결 시간 초과
     pub const DATABASE_CONNECT_TIMEOUT: Duration = Duration::from_secs(30);
 
-    /// 数据库操作超时
+    /// 데이터베이스 작업 시간 초과
     pub const DATABASE_OPERATION_TIMEOUT: Duration = Duration::from_secs(120);
 
-    /// HTTP 请求超时
+    /// HTTP 요청 시간 초과
     pub const HTTP_REQUEST_TIMEOUT: Duration = Duration::from_secs(60);
 
-    /// HTTP 连接超时
+    /// HTTP 연결 시간 초과
     pub const HTTP_CONNECT_TIMEOUT: Duration = Duration::from_secs(10);
 
-    /// 目录扫描超时
+    /// 디렉토리 스캔 시간 초과
     pub const DIRECTORY_SCAN_TIMEOUT: Duration = Duration::from_secs(300);
 
-    /// 应用初始化超时
+    /// 애플리케이션 초기화 시간 초과
     pub const APP_INIT_TIMEOUT: Duration = Duration::from_secs(60);
 
-    /// 锁获取超时
+    /// 잠금 획득 시간 초과
     pub const LOCK_ACQUIRE_TIMEOUT: Duration = Duration::from_millis(100);
 
-    /// Token 刷新超时
+    /// Token 갱신 시간 초과
     pub const TOKEN_REFRESH_TIMEOUT: Duration = Duration::from_secs(30);
 }
 
-/// 为异步操作添加超时的辅助函数
+/// 비동기 작업에 시간 초과를 추가하는 도우미 함수
 pub async fn with_timeout<T, F>(
     future: F,
     timeout: Duration,

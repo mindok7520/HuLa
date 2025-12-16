@@ -1,8 +1,8 @@
 <template>
   <n-flex vertical :size="24">
-    <!-- 扫描进度 -->
+    <!-- 스캔 진행률 -->
     <n-flex class="item" :size="16" vertical>
-      <!-- 进度条 -->
+      <!-- 진행률 표시줄 -->
       <n-flex justify="center" align="center" class="py-20px">
         <n-progress
           type="multiple-circle"
@@ -32,7 +32,7 @@
         </n-progress>
       </n-flex>
 
-      <!-- 颜色说明 -->
+      <!-- 색상 설명 -->
       <n-flex justify="center" :size="8">
         <n-flex align="center" :size="8">
           <div class="w-12px h-12px rounded-2px bg-#13987f"></div>
@@ -48,7 +48,7 @@
         </n-flex>
       </n-flex>
 
-      <!-- 详细信息 -->
+      <!-- 상세 정보 -->
       <n-flex vertical :size="8">
         <n-flex v-if="scanning" justify="space-between">
           <span class="text-(12px #666)">{{ t('setting.storage.current_file') }}:</span>
@@ -105,13 +105,13 @@
       </n-flex>
     </n-flex>
 
-    <!-- 用户目录 -->
+    <!-- 사용자 디렉토리 -->
     <n-flex vertical class="text-(14px [--text-color])" :size="16">
       <span class="pl-10px">{{ t('setting.storage.directory') }}</span>
 
-      <!-- 存储目录设置 -->
+      <!-- 저장 디렉토리 설정 -->
       <n-flex class="item" :size="16" vertical>
-        <!-- 路径类型选择 -->
+        <!-- 경로 유형 선택 -->
         <n-flex align="center" justify="space-between">
           <span>{{ t('setting.storage.path_type') }}</span>
           <n-radio-group v-model:value="pathType">
@@ -122,7 +122,7 @@
 
         <span class="w-full h-1px bg-[--line-color]"></span>
 
-        <!-- 当前扫描目录显示 -->
+        <!-- 현재 스캔 디렉토리 표시 -->
         <n-flex align="center" justify="space-between">
           <span>{{ t('setting.storage.curr_dir') }}</span>
           <n-flex vertical align="end" :size="8">
@@ -169,7 +169,7 @@ const {
   scanningProgress
 } = storeToRefs(scannerStore)
 
-// 获取占比严重程度颜色
+// 사용량 심각도 색상 가져오기
 const getUsageColor = (usage: number) => {
   if (!diskInfo.value) return '#13987f'
   if (usage < 50) {
@@ -181,34 +181,34 @@ const getUsageColor = (usage: number) => {
   }
 }
 
-// 选择自定义目录
+// 사용자 지정 디렉토리 선택
 const selectCustomDirectory = async () => {
   try {
     const result = await open({
       directory: true,
-      title: '选择要扫描的目录'
+      title: '스캔할 디렉토리 선택'
     })
 
     if (result) {
       scannerStore.setCustomDirectory(result)
     }
   } catch (error) {
-    console.error('选择目录失败:', error)
-    window.$message?.error('选择目录失败')
+    console.error('디렉토리 선택 실패:', error)
+    window.$message?.error('디렉토리 선택 실패')
   }
 }
 
-// 开始扫描
+// 스캔 시작
 const startScan = async () => {
   await scannerStore.startScan()
 }
 
-// 组件挂载时初始化扫描器
+// 컴포넌트 마운트 시 스캐너 초기화
 onMounted(async () => {
   await scannerStore.initializeScanner()
 })
 
-// 路径类型改变处理
+// 경로 유형 변경 처리
 watch(pathType, (newType) => {
   scannerStore.setPathType(newType)
 })

@@ -1,4 +1,4 @@
-/**! 可以根据自己的喜好搭配渐变，网址：https://webgradients.com/ */
+/**! 자신의 취향에 따라 그라데이션을 조합할 수 있습니다. 웹사이트: https://webgradients.com/ */
 .login-box {
   background-color: #d8eee2;
   background-image: radial-gradient(closest-side, #30cfd0, rgba(235, 105, 78, 0)),
@@ -23,6 +23,7 @@
 }
 
 @keyframes movement {
+
   0%,
   100% {
     background-size:
@@ -38,6 +39,7 @@
       -30vmax -10vmax,
       50vmax 50vmax;
   }
+
   25% {
     background-size:
       100vmax 100vmax,
@@ -52,6 +54,7 @@
       -40vmax -20vmax,
       40vmax 60vmax;
   }
+
   50% {
     background-size:
       80vmax 80vmax,
@@ -66,6 +69,7 @@
       20vmax 10vmax,
       30vmax 70vmax;
   }
+
   75% {
     background-size:
       90vmax 90vmax,

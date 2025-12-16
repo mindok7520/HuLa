@@ -4,11 +4,11 @@ import 'driver.js/dist/driver.css'
 import '@/styles/scss/global/driver.scss'
 
 /**
- * Driver.js 步骤配置接口
+ * Driver.js 단계 설정 인터페이스
  */
 export interface DriverStepConfig extends Omit<DriveStep, 'popover'> {
   element: string
-  /** 是否禁用被聚焦元素的交互（步骤级别配置，会覆盖全局配置） */
+  /** 포커스된 요소의 상호 작용 비활성화 여부 (단계 수준 설정, 전역 설정 덮어씀) */
   disableActiveInteraction?: boolean
   popover?: {
     title?: string
@@ -23,7 +23,7 @@ export interface DriverStepConfig extends Omit<DriveStep, 'popover'> {
 }
 
 /**
- * Driver.js 配置选项接口
+ * Driver.js 설정 옵션 인터페이스
  */
 export interface DriverConfig extends Omit<Config, 'steps'> {
   nextBtnText?: string
@@ -34,54 +34,54 @@ export interface DriverConfig extends Omit<Config, 'steps'> {
   allowClose?: boolean
   popoverClass?: string
   progressText?: string
-  /** 是否禁用被聚焦元素的交互（点击事件等） */
+  /** 포커스된 요소의 상호 작용 비활성화 여부 (클릭 이벤트 등) */
   disableActiveInteraction?: boolean
 }
 
 /**
- * useDriver hooks 返回值接口
+ * useDriver hooks 반환값 인터페이스
  */
 export interface UseDriverReturn {
-  /** Driver 实例 */
+  /** Driver 인스턴스 */
   driverInstance: Driver | null
-  /** 开始引导 */
+  /** 가이드 시작 */
   startTour: () => void
-  /** 停止引导 */
+  /** 가이드 중지 */
   stopTour: () => void
-  /** 移动到下一步 */
+  /** 다음 단계로 이동 */
   moveNext: () => void
-  /** 移动到上一步 */
+  /** 이전 단계로 이동 */
   movePrevious: () => void
-  /** 移动到指定步骤 */
+  /** 지정된 단계로 이동 */
   moveTo: (stepIndex: number) => void
-  /** 重新初始化引导 */
+  /** 가이드 다시 초기화 */
   reinitialize: (newSteps: DriverStepConfig[], newConfig?: Partial<DriverConfig>) => void
 }
 
 /**
- * Driver.js 引导功能 hooks
- * @param steps 引导步骤配置数组
- * @param config 可选的 Driver 配置
- * @returns useDriver 返回值对象
+ * Driver.js 가이드 기능 hooks
+ * @param steps 가이드 단계 설정 배열
+ * @param config 선택적 Driver 설정
+ * @returns useDriver 반환 객체
  */
 export const useDriver = (steps: DriverStepConfig[], config: DriverConfig = {}): UseDriverReturn => {
   let driverInstance: Driver | null = null
   const guideStore = useGuideStore()
 
-  // 默认配置
+  // 기본 설정
   const defaultConfig: DriverConfig = {
     progressText: '{{current}}/{{total}}',
-    nextBtnText: '下一步',
-    prevBtnText: '上一步',
-    doneBtnText: '完成',
+    nextBtnText: '다음',
+    prevBtnText: '이전',
+    doneBtnText: '완료',
     showButtons: ['next', 'previous'],
     showProgress: true,
     allowClose: false,
     popoverClass: 'driverjs-theme',
-    disableActiveInteraction: true // 默认禁用被聚焦元素的点击事件
+    disableActiveInteraction: true // 기본적으로 포커스된 요소의 클릭 이벤트 비활성화
   }
 
-  // 合并配置
+  // 설정 병합
   const mergedConfig = {
     ...defaultConfig,
     ...config,
@@ -91,9 +91,9 @@ export const useDriver = (steps: DriverStepConfig[], config: DriverConfig = {}):
   }
 
   /**
-   * 处理步骤中的自定义点击事件
-   * @param step 步骤配置
-   * @returns 处理后的步骤配置
+   * 단계 내 사용자 정의 클릭 이벤트 처리
+   * @param step 단계 설정
+   * @returns 처리된 단계 설정
    */
   const processStep = (step: DriverStepConfig): DriveStep => {
     const processedStep: DriveStep = {
@@ -101,21 +101,21 @@ export const useDriver = (steps: DriverStepConfig[], config: DriverConfig = {}):
       disableActiveInteraction: step.disableActiveInteraction,
       popover: step.popover
         ? {
-            title: step.popover.title,
-            description: step.popover.description,
-            side: step.popover.side,
-            align: step.popover.align
-          }
+          title: step.popover.title,
+          description: step.popover.description,
+          side: step.popover.side,
+          align: step.popover.align
+        }
         : undefined
     }
 
-    // 处理自定义点击事件
+    // 사용자 정의 클릭 이벤트 처리
     if (step.popover?.onNextClick) {
       processedStep.popover = {
         ...processedStep.popover,
         onNextClick: () => {
           step.popover!.onNextClick!()
-          // 如果有自定义的 onNextClick，需要在 nextTick 后手动移动到下一步
+          // 사용자 정의 onNextClick이 있는 경우, nextTick 후 수동으로 다음 단계로 이동해야 함
           nextTick(() => {
             if (driverInstance) {
               driverInstance.moveNext()
@@ -143,7 +143,7 @@ export const useDriver = (steps: DriverStepConfig[], config: DriverConfig = {}):
   }
 
   /**
-   * 初始化 Driver 实例
+   * Driver 인스턴스 초기화
    */
   const initializeDriver = () => {
     const processedSteps = steps.map(processStep)
@@ -155,7 +155,7 @@ export const useDriver = (steps: DriverStepConfig[], config: DriverConfig = {}):
   }
 
   /**
-   * 开始引导
+   * 가이드 시작
    */
   const startTour = () => {
     if (!driverInstance) {
@@ -165,7 +165,7 @@ export const useDriver = (steps: DriverStepConfig[], config: DriverConfig = {}):
   }
 
   /**
-   * 停止引导
+   * 가이드 중지
    */
   const stopTour = () => {
     driverInstance?.destroy()
@@ -173,47 +173,47 @@ export const useDriver = (steps: DriverStepConfig[], config: DriverConfig = {}):
   }
 
   /**
-   * 移动到下一步
+   * 다음 단계로 이동
    */
   const moveNext = () => {
     driverInstance?.moveNext()
   }
 
   /**
-   * 移动到上一步
+   * 이전 단계로 이동
    */
   const movePrevious = () => {
     driverInstance?.movePrevious()
   }
 
   /**
-   * 移动到指定步骤
-   * @param stepIndex 步骤索引（从0开始）
+   * 지정된 단계로 이동
+   * @param stepIndex 단계 인덱스 (0부터 시작)
    */
   const moveTo = (stepIndex: number) => {
     driverInstance?.moveTo(stepIndex)
   }
 
   /**
-   * 重新初始化引导
-   * @param newSteps 新的步骤配置
-   * @param newConfig 新的配置（可选）
+   * 가이드 다시 초기화
+   * @param newSteps 새로운 단계 설정
+   * @param newConfig 새로운 설정 (선택 사항)
    */
   const reinitialize = (newSteps: DriverStepConfig[], newConfig?: Partial<DriverConfig>) => {
-    // 销毁现有实例
+    // 기존 인스턴스 파괴
     stopTour()
 
-    // 更新步骤和配置
+    // 단계 및 설정 업데이트
     steps.splice(0, steps.length, ...newSteps)
     if (newConfig) {
       Object.assign(mergedConfig, newConfig)
     }
 
-    // 重新初始化
+    // 다시 초기화
     initializeDriver()
   }
 
-  // 初始化 Driver 实例
+  // Driver 인스턴스 초기화
   initializeDriver()
 
   return {

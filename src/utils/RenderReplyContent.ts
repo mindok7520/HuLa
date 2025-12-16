@@ -1,7 +1,7 @@
 import { MSG_REPLY_TEXT_MAP } from '@/common/message'
 import { MsgEnum, RoomTypeEnum } from '@/enums'
 
-// 计算展示的回复消息的内容
+// 표시할 답장 메시지의 콘텐츠 계산
 export const renderReplyContent = (name?: string, type?: MsgEnum, content?: string, roomType?: RoomTypeEnum) => {
   switch (type) {
     case MsgEnum.SYSTEM:
@@ -14,7 +14,7 @@ export const renderReplyContent = (name?: string, type?: MsgEnum, content?: stri
         : MSG_REPLY_TEXT_MAP[MsgEnum.IMAGE]
     }
     case MsgEnum.FILE: {
-      // 如果content是对象，尝试提取fileName
+      // content가 객체인 경우 fileName 추출 시도
       let fileContent = ''
       if (typeof content === 'string') {
         fileContent = content
@@ -23,7 +23,7 @@ export const renderReplyContent = (name?: string, type?: MsgEnum, content?: stri
       }
       fileContent = fileContent || MSG_REPLY_TEXT_MAP[MsgEnum.FILE]
 
-      return roomType === RoomTypeEnum.GROUP ? `${name}:${fileContent}` : `[文件] ${fileContent}`
+      return roomType === RoomTypeEnum.GROUP ? `${name}:${fileContent}` : `[파일] ${fileContent}`
     }
     case MsgEnum.VOICE: {
       return roomType === RoomTypeEnum.GROUP

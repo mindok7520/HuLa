@@ -4,7 +4,7 @@ import { StoresEnum } from '@/enums'
 
 const colorthief = new Colorthief()
 
-// 状态图标颜色
+// 상태 아이콘 색상
 const ensureStateColor = (state?: STO.UserState) => {
   if (!state || state.bgColor || !state.url) return
 
@@ -19,7 +19,7 @@ const ensureStateColor = (state?: STO.UserState) => {
 export const useUserStatusStore = defineStore(
   StoresEnum.USER_STATE,
   () => {
-    /** 在线状态列表 */
+    /** 온라인 상태 목록 */
     const stateList = ref<STO.UserState[]>([])
 
     const stateId = ref<string>('1')

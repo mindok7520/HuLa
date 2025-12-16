@@ -276,8 +276,8 @@ pub async fn save_all<C>(db: &C, messages: Vec<MessageWithThumbnail>) -> Result<
 where
     C: ConnectionTrait,
 {
-    // 为批量数据库操作添加超时机制
-    let timeout_duration = tokio::time::Duration::from_secs(120); // 2分钟超时
+    // 데이터베이스 일괄 작업에 시간 초과 메커니즘 추가
+    let timeout_duration = tokio::time::Duration::from_secs(120); // 2분 시간 초과
 
     match tokio::time::timeout(timeout_duration, save_all_internal(db, messages)).await {
         Ok(result) => result,
@@ -297,11 +297,11 @@ async fn save_all_internal<C>(
 where
     C: ConnectionTrait,
 {
-    // SQLite 的变量限制通常是 999，为了安全起见，我们设置批次大小为 50
-    // 考虑到需要先查询再删除再插入，减少批次大小以避免变量限制
+    // SQLite의 변수 제한은 일반적으로 999이므로 안전을 위해 배치 크기를 50으로 설정합니다.
+    // 먼저 조회한 다음 삭제하고 삽입해야 하므로 변수 제한을 피하기 위해 배치 크기를 줄입니다.
     const BATCH_SIZE: usize = 50;
 
-    // 如果数据量小于批次大小，直接处理
+    // 데이터 양이 배치 크기보다 작으면 직접 처리
     if messages.len() <= BATCH_SIZE {
         if !messages.is_empty() {
             let count = messages.len();
@@ -309,7 +309,7 @@ where
             info!("Message processing completed, total {} items", count);
         }
     } else {
-        // 分批处理
+        // 배치 처리
         for (batch_index, chunk) in messages.chunks(BATCH_SIZE).enumerate() {
             info!(
                 "Processing batch {} of messages, total {} items",
@@ -336,7 +336,7 @@ where
     Ok(())
 }
 
-/// 处理单批消息：检查存在性，删除已存在的，然后插入新的
+/// 단일 배치 메시지 처리: 존재 여부 확인, 기존 메시지 삭제 후 새 메시지 삽입
 async fn process_message_batch<C>(
     db: &C,
     messages: Vec<MessageWithThumbnail>,
@@ -380,7 +380,7 @@ where
         }
     }
 
-    // 查询已存在的消息
+    // 기존 메시지 조회
     let mut condition = sea_orm::Condition::any();
     for (id, login_uid) in &message_keys {
         condition = condition.add(
@@ -415,7 +415,7 @@ where
         debug!("Deleted {} existing messages", existing_messages.len());
     }
 
-    // 插入新消息
+    // 새 메시지 삽입
     let active_models: Vec<im_message::ActiveModel> = messages
         .iter()
         .map(|message| message.message.clone().into_active_model())
@@ -433,14 +433,14 @@ where
     Ok(())
 }
 
-/// 根据房间ID进行游标分页查询消息（包含消息标记）
+/// 방 ID에 따른 커서 페이징 메시지 조회 (메시지 마크 포함)
 pub async fn cursor_page_messages(
     db: &DatabaseConnection,
     room_id: String,
     cursor_page_param: CursorPageParam,
     login_uid: &str,
 ) -> Result<CursorPageResp<Vec<MessageWithThumbnail>>, CommonError> {
-    // 查询总数
+    // 총 개수 조회
     let total = im_message::Entity::find()
         .filter(im_message::Column::RoomId.eq(&room_id))
         .filter(im_message::Column::LoginUid.eq(login_uid))
@@ -448,26 +448,26 @@ pub async fn cursor_page_messages(
         .await
         .map_err(|e| anyhow::anyhow!("Failed to query message count: {}", e))?;
 
-    // 先查询消息主表，按 id 数值降序排序
+    // 먼저 메시지 메인 테이블 조회, id 숫자 내림차순 정렬
     let mut message_query = im_message::Entity::find()
         .filter(im_message::Column::RoomId.eq(&room_id))
         .filter(im_message::Column::LoginUid.eq(login_uid))
         .order_by_desc(Expr::col(im_message::Column::Id).cast_as(Alias::new("INTEGER")))
         .limit(cursor_page_param.page_size as u64);
 
-    // 如果提供了游标，添加过滤条件
+    // 커서가 제공된 경우 필터 조건 추가
     if !cursor_page_param.cursor.is_empty() {
-        // 使用游标值过滤，获取小于该ID的记录（因为是降序排列）
+        // 커서 값을 사용하여 필터링, 해당 ID보다 작은 레코드 가져오기 (내림차순이므로)
         message_query = message_query.filter(im_message::Column::Id.lt(&cursor_page_param.cursor));
     }
 
-    // 先查询消息列表
+    // 먼저 메시지 목록 조회
     let messages = message_query
         .all(db)
         .await
         .map_err(|e| anyhow::anyhow!("Failed to query message list: {}", e))?;
 
-    // 如果没有消息，直接返回空结果
+    // 메시지가 없으면 빈 결과 반환
     if messages.is_empty() {
         return Ok(CursorPageResp {
             cursor: String::new(),
@@ -477,9 +477,9 @@ pub async fn cursor_page_messages(
         });
     }
 
-    // 生成下一页的游标
+    // 다음 페이지 커서 생성
     let next_cursor = if messages.len() < cursor_page_param.page_size as usize {
-        String::new() // 已经是最后一页
+        String::new() // 이미 마지막 페이지
     } else {
         messages
             .last()
@@ -499,7 +499,7 @@ pub async fn cursor_page_messages(
     })
 }
 
-/// 保存单个消息到数据库
+/// 단일 메시지를 데이터베이스에 저장
 pub async fn save_message(
     db: &DatabaseTransaction,
     mut record: MessageWithThumbnail,
@@ -516,7 +516,7 @@ pub async fn save_message(
         return Ok(record);
     }
 
-    // 根据消息主键查找是否已存在
+    // 메시지 기본 키로 존재 여부 확인
     let existing_message = im_message::Entity::find_by_id((
         record.message.id.clone(),
         record.message.login_uid.clone(),
@@ -530,7 +530,7 @@ pub async fn save_message(
             fetch_thumbnail_path(db, &record.message.id, &record.message.login_uid).await?;
     }
 
-    // 如果已存在，则先删除
+    // 이미 존재하면 먼저 삭제
     if existing_message.is_some() {
         im_message::Entity::delete_by_id((
             record.message.id.clone(),
@@ -541,10 +541,10 @@ pub async fn save_message(
         .map_err(|e| anyhow::anyhow!("Failed to delete existing message: {}", e))?;
     }
 
-    // 如果缺少，就填充time_block，使用统一的计算函数
+    // time_block이 없으면 채우기, 통합 계산 함수 사용
     if record.message.time_block.is_none() {
         if let Some(current_send_time) = record.message.send_time {
-            // 使用统一的 time_block 计算函数
+            // 통합 time_block 계산 함수 사용
             record.message.time_block = calculate_time_block(
                 db,
                 &record.message.room_id,
@@ -676,9 +676,9 @@ pub async fn record_room_clear(
     Ok(())
 }
 
-/// 计算消息的 time_block
-/// 判断当前消息与前一条消息的时间间隔，如果超过10分钟则返回间隔值
-/// 如果是房间的第一条消息，返回 Some(1) 表示始终显示时间
+/// 메시지의 time_block 계산
+/// 현재 메시지와 이전 메시지의 시간 간격을 판단하여 10분을 초과하면 간격 값을 반환
+/// 방의 첫 번째 메시지인 경우 Some(1)을 반환하여 항상 시간을 표시
 pub async fn calculate_time_block<C>(
     db: &C,
     room_id: &str,
@@ -689,13 +689,13 @@ pub async fn calculate_time_block<C>(
 where
     C: ConnectionTrait,
 {
-    // 查找该房间的前一条消息（按发送时间排序，排除当前消息）
+    // 해당 방의 이전 메시지 찾기 (전송 시간순 정렬, 현재 메시지 제외)
     let last_message = im_message::Entity::find()
         .filter(im_message::Column::RoomId.eq(room_id))
         .filter(im_message::Column::LoginUid.eq(login_uid))
         .filter(im_message::Column::Id.ne(current_msg_id))
-        .filter(im_message::Column::SendTime.lt(current_send_time)) // 按发送时间比较
-        .order_by_desc(im_message::Column::SendTime) // 按发送时间降序
+        .filter(im_message::Column::SendTime.lt(current_send_time)) // 전송 시간으로 비교
+        .order_by_desc(im_message::Column::SendTime) // 전송 시간 내림차순
         .limit(1)
         .one(db)
         .await
@@ -704,21 +704,21 @@ where
     if let Some(last_msg) = last_message {
         if let Some(last_send_time) = last_msg.send_time {
             let time_diff = current_send_time - last_send_time;
-            // 时间间隔阈值：10分钟
+            // 시간 간격 임계값: 10분
             const TIME_BLOCK_THRESHOLD_MS: i64 = 1000 * 60 * 10;
             if time_diff >= TIME_BLOCK_THRESHOLD_MS {
                 return Ok(Some(time_diff));
             }
         }
     } else {
-        // 房间的第一条消息，始终显示时间
+        // 방의 첫 번째 메시지, 항상 시간 표시
         return Ok(Some(1));
     }
 
     Ok(None)
 }
 
-/// 更新消息发送状态
+/// 메시지 전송 상태 업데이트
 pub async fn update_message_status(
     db: &DatabaseConnection,
     mut record: MessageWithThumbnail,
@@ -734,7 +734,7 @@ pub async fn update_message_status(
             .ok_or_else(|| CommonError::UnexpectedError(anyhow::anyhow!("Message not found")))?
             .into_active_model();
 
-    // 使用统一的 time_block 计算函数
+    // 통합 time_block 계산 함수 사용
     if let Some(send_time) = record.message.send_time {
         let time_block = calculate_time_block(
             db,
@@ -776,7 +776,7 @@ pub async fn update_message_status(
     Ok(record)
 }
 
-/// 更新消息撤回状态
+/// 메시지 회수 상태 업데이트
 pub async fn update_message_recall_status(
     db: &DatabaseConnection,
     message_id: &str,
@@ -789,7 +789,7 @@ pub async fn update_message_recall_status(
         message_id
     );
 
-    // 查找要更新的消息
+    // 업데이트할 메시지 찾기
     let existing_message = im_message::Entity::find()
         .filter(im_message::Column::Id.eq(message_id))
         .filter(im_message::Column::LoginUid.eq(login_uid))
@@ -800,15 +800,15 @@ pub async fn update_message_recall_status(
     let message = existing_message
         .ok_or_else(|| CommonError::UnexpectedError(anyhow::anyhow!("Message not found")))?;
 
-    // 创建更新模型
+    // 업데이트 모델 생성
     let mut active_model: im_message::ActiveModel = message.into_active_model();
 
-    // 更新消息类型和内容
+    // 메시지 유형 및 내용 업데이트
     active_model.message_type = Set(Some(message_type));
     active_model.body = Set(Some(message_body.to_string()));
     active_model.update_time = Set(Some(chrono::Utc::now().timestamp_millis()));
 
-    // 执行更新
+    // 업데이트 실행
     im_message::Entity::update(active_model)
         .exec(db)
         .await
@@ -821,22 +821,22 @@ pub async fn update_message_recall_status(
     Ok(())
 }
 
-/// 支持消息类型筛选、关键词搜索、日期排序和分页
+/// 메시지 유형 필터링, 키워드 검색, 날짜 정렬 및 페이징 지원
 pub async fn query_chat_history(
     db: &DatabaseConnection,
     condition: crate::command::chat_history_command::ChatHistoryQueryCondition,
 ) -> Result<Vec<MessageWithThumbnail>, CommonError> {
     info!(
-        "查询聊天历史记录 - 房间: {}, 类型: {:?}, 关键词: {:?}",
+        "채팅 기록 조회 - 방: {}, 유형: {:?}, 키워드: {:?}",
         condition.room_id, condition.message_type, condition.search_keyword
     );
 
-    // 构建基础查询条件
+    // 기본 쿼리 조건 구축
     let mut conditions = Condition::all()
         .add(im_message::Column::LoginUid.eq(&condition.login_uid))
         .add(im_message::Column::RoomId.eq(&condition.room_id));
 
-    // 消息类型筛选
+    // 메시지 유형 필터링
     if let Some(ref message_types) = condition.message_type {
         let type_condition = message_types
             .iter()
@@ -846,7 +846,7 @@ pub async fn query_chat_history(
         conditions = conditions.add(type_condition);
     }
 
-    // 关键词搜索（支持消息内容与文件名等字段）
+    // 키워드 검색 (메시지 내용 및 파일 이름 등 필드 지원)
     if let Some(ref keyword) = condition.search_keyword {
         let trimmed = keyword.trim();
         if !trimmed.is_empty() {
@@ -870,26 +870,26 @@ pub async fn query_chat_history(
         }
     }
 
-    // 日期范围筛选
+    // 날짜 범위 필터링
     if let Some(ref date_range) = condition.date_range {
         if let Some(start_time) = date_range.start_time {
             chrono::DateTime::from_timestamp_millis(start_time)
                 .map(|dt| dt.format("%Y-%m-%d %H:%M:%S").to_string())
-                .unwrap_or_else(|| "无效时间".to_string());
+                .unwrap_or_else(|| "유효하지 않은 시간".to_string());
             conditions = conditions.add(im_message::Column::SendTime.gte(start_time));
         }
         if let Some(end_time) = date_range.end_time {
             chrono::DateTime::from_timestamp_millis(end_time)
                 .map(|dt| dt.format("%Y-%m-%d %H:%M:%S").to_string())
-                .unwrap_or_else(|| "无效时间".to_string());
+                .unwrap_or_else(|| "유효하지 않은 시간".to_string());
             conditions = conditions.add(im_message::Column::SendTime.lte(end_time));
         }
     }
 
-    // 构建分页查询
+    // 페이징 쿼리 구축
     let mut query = im_message::Entity::find().filter(conditions);
 
-    // 应用排序
+    // 정렬 적용
     query = match condition.sort_order {
         crate::command::chat_history_command::SortOrder::Asc => {
             query.order_by_asc(im_message::Column::SendTime)
@@ -899,22 +899,22 @@ pub async fn query_chat_history(
         }
     };
 
-    // 应用分页
+    // 페이징 적용
     let offset = (condition.pagination.page.saturating_sub(1)) * condition.pagination.page_size;
     query = query
         .offset(offset as u64)
         .limit(condition.pagination.page_size as u64);
 
-    // 执行查询
+    // 쿼리 실행
     let messages = query
         .all(db)
         .await
-        .map_err(|e| anyhow::anyhow!("查询聊天历史记录失败: {}", e))?;
+        .map_err(|e| anyhow::anyhow!("채팅 기록 조회 실패: {}", e))?;
 
     enrich_models_with_thumbnails(db, messages).await
 }
 
-/// 专门用于文件管理的查询函数，支持跨房间查询文件类型消息
+/// 파일 관리를 위한 전용 쿼리 함수, 방 간 파일 유형 메시지 조회 지원
 pub async fn query_file_messages(
     db: &DatabaseConnection,
     login_uid: &str,
@@ -924,15 +924,15 @@ pub async fn query_file_messages(
     page: u32,
     page_size: u32,
 ) -> Result<Vec<MessageWithThumbnail>, CommonError> {
-    // 构建基础查询条件
+    // 기본 쿼리 조건 구축
     let mut conditions = Condition::all().add(im_message::Column::LoginUid.eq(login_uid));
 
-    // 房间ID筛选（如果提供）
+    // 방 ID 필터링 (제공된 경우)
     if let Some(room_id) = room_id {
         conditions = conditions.add(im_message::Column::RoomId.eq(room_id));
     }
 
-    // 消息类型筛选
+    // 메시지 유형 필터링
     if let Some(message_types) = message_types {
         let type_condition = message_types
             .iter()
@@ -942,7 +942,7 @@ pub async fn query_file_messages(
         conditions = conditions.add(type_condition);
     }
 
-    // 关键词搜索（搜索文件名、来源等关键信息）
+    // 키워드 검색 (파일 이름, 출처 등 핵심 정보 검색)
     if let Some(keyword) = search_keyword {
         let trimmed_keyword = keyword.trim();
         if !trimmed_keyword.is_empty() {
@@ -974,7 +974,7 @@ pub async fn query_file_messages(
                 ));
             }
 
-            // 兼容 JSON 中缺少字段时直接在 body 中检索
+            // JSON에 필드가 누락된 경우 body에서 직접 검색하도록 호환
             keyword_condition = keyword_condition.add(Expr::cust_with_values(
                 "LOWER(body) LIKE ?",
                 [Value::from(keyword_pattern.clone())],
@@ -984,21 +984,21 @@ pub async fn query_file_messages(
         }
     }
 
-    // 构建分页查询
+    // 페이징 쿼리 구축
     let mut query = im_message::Entity::find().filter(conditions);
 
-    // 按发送时间降序排序
+    // 전송 시간 내림차순 정렬
     query = query.order_by_desc(im_message::Column::SendTime);
 
-    // 应用分页
+    // 페이징 적용
     let offset = (page.saturating_sub(1)) * page_size;
     query = query.offset(offset as u64).limit(page_size as u64);
 
-    // 执行查询
+    // 쿼리 실행
     let messages = query
         .all(db)
         .await
-        .map_err(|e| anyhow::anyhow!("查询文件消息失败: {}", e))?;
+        .map_err(|e| anyhow::anyhow!("파일 메시지 조회 실패: {}", e))?;
 
     enrich_models_with_thumbnails(db, messages).await
 }

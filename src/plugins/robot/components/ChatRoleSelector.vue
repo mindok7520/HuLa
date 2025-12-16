@@ -1,32 +1,32 @@
 <template>
   <div class="chat-role-selector">
-    <!-- 当前选中的角色 -->
+    <!-- 현재 선택된 역할 -->
     <div class="current-role" @click="showRoleList = !showRoleList">
       <n-avatar :src="currentRole?.avatar" :size="40" round />
       <div class="role-info">
-        <div class="role-name">{{ currentRole?.name || '选择角色' }}</div>
-        <div class="role-desc">{{ currentRole?.description || '点击选择角色' }}</div>
+        <div class="role-name">{{ currentRole?.name || '역할 선택' }}</div>
+        <div class="role-desc">{{ currentRole?.description || '클릭하여 역할 선택' }}</div>
       </div>
       <Icon icon="mdi:chevron-down" class="expand-icon" :class="{ expanded: showRoleList }" :size="20" />
     </div>
 
-    <!-- 角色列表 -->
+    <!-- 역할 목록 -->
     <transition name="slide-fade">
       <div v-if="showRoleList" class="role-list-container">
         <n-scrollbar style="max-height: 400px">
           <div class="role-list">
-            <!-- 管理按钮 -->
+            <!-- 관리 버튼 -->
             <div class="role-list-header">
-              <span class="header-title">选择角色</span>
+              <span class="header-title">역할 선택</span>
               <n-button text @click="handleOpenManagement">
                 <template #icon>
                   <Icon icon="mdi:cog" />
                 </template>
-                管理角色
+                역할 관리
               </n-button>
             </div>
 
-            <!-- 角色项 -->
+            <!-- 역할 항목 -->
             <div
               v-for="role in roleList"
               :key="role.id"
@@ -41,11 +41,11 @@
               <Icon v-if="currentRole?.id === role.id" icon="mdi:check" class="check-icon" :size="20" />
             </div>
 
-            <!-- 空状态 -->
+            <!-- 빈 상태 -->
             <div v-if="roleList.length === 0" class="empty-state">
               <Icon icon="mdi:account-circle" :size="48" class="empty-icon" />
-              <div class="empty-text">暂无角色</div>
-              <n-button size="small" type="primary" @click="handleOpenManagement">创建第一个角色</n-button>
+              <div class="empty-text">역할 없음</div>
+              <n-button size="small" type="primary" @click="handleOpenManagement">첫 번째 역할 생성</n-button>
             </div>
           </div>
         </n-scrollbar>
@@ -71,40 +71,40 @@ const showRoleList = ref(false)
 const roleList = ref<any[]>([])
 const currentRole = ref<any>(props.modelValue)
 
-// 加载角色列表
+// 역할 목록 로드
 const loadRoleList = async () => {
   try {
     const data = await chatRolePage({ pageNo: 1, pageSize: 100 })
-    roleList.value = (data.list || []).filter((item: any) => item.status === 0) // 只显示可用的角色
+    roleList.value = (data.list || []).filter((item: any) => item.status === 0) // 사용 가능한 역할만 표시
 
-    // 如果没有选中角色，默认选中第一个
+    // 선택된 역할이 없으면 기본적으로 첫 번째 역할 선택
     if (!currentRole.value && roleList.value.length > 0) {
       handleSelectRole(roleList.value[0])
     }
   } catch (error) {
-    console.error('加载角色列表失败:', error)
+    console.error('역할 목록 로드 실패:', error)
   }
 }
 
-// 选择角色
+// 역할 선택
 const handleSelectRole = (role: any) => {
   currentRole.value = role
   emit('update:modelValue', role)
   showRoleList.value = false
 }
 
-// 打开角色管理
+// 역할 관리 열기
 const handleOpenManagement = () => {
   emit('open-management')
   showRoleList.value = false
 }
 
-// 刷新角色列表
+// 역할 목록 새로고침
 const refresh = () => {
   loadRoleList()
 }
 
-// 监听外部值变化
+// 외부 값 변경 감지
 watch(
   () => props.modelValue,
   (val) => {
@@ -112,7 +112,7 @@ watch(
   }
 )
 
-// 点击外部关闭列表
+// 외부 클릭 시 목록 닫기
 onMounted(() => {
   loadRoleList()
 
@@ -287,7 +287,7 @@ defineExpose({
   }
 }
 
-// 动画
+// 애니메이션
 .slide-fade-enter-active,
 .slide-fade-leave-active {
   transition: all 0.3s ease;

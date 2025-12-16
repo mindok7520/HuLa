@@ -1,11 +1,11 @@
 <template>
   <div class="flex flex-col flex-1 min-h-0">
-    <!-- 头部 -->
+    <!-- 헤더 -->
     <ChatHeader />
 
     <div class="flex-1 flex min-h-0">
       <div class="flex-1 min-h-0">
-        <!-- bot用户时显示Bot组件 -->
+        <!-- 봇 사용자일 때 Bot 컴포넌트 표시 -->
         <template v-if="isBotUser">
           <Bot />
         </template>
@@ -21,12 +21,12 @@
             <ChatMain />
           </template>
           <template #2>
-            <!-- 输入框和操作列表 -->
+            <!-- 입력 상자 및 작업 목록 -->
             <ChatFooter :detail-id="currentSession?.detailId" />
           </template>
         </n-split>
       </div>
-      <!-- 右侧栏占位：群聊时预留宽度直至 Sidebar 挂载完成，随后由子组件控制宽度（含折叠） -->
+      <!-- 오른쪽 사이드바 자리 표시자: 그룹 채팅 시 Sidebar 마운트 완료까지 너비 예약, 이후 자식 컴포넌트가 너비 제어 (접기 포함) -->
       <ChatSidebar />
     </div>
   </div>
@@ -39,7 +39,7 @@ import { UserType } from '@/enums'
 const globalStore = useGlobalStore()
 const { currentSession } = storeToRefs(globalStore)
 
-// 是否为bot用户
+// 봇 사용자 여부
 const isBotUser = computed(() => currentSession.value?.account === UserType.BOT)
 </script>
 <style scoped lang="scss">
@@ -52,10 +52,10 @@ const isBotUser = computed(() => currentSession.value?.account === UserType.BOT)
   background: transparent !important;
   z-index: 998;
   position: relative;
-  // 确保不干扰 ChatFooter 的顶部边框
+  // ChatFooter의 상단 테두리를 방해하지 않도록 보장
   margin-top: -7px;
 
-  // 主指示线（默认隐藏，hover 时显示）
+  // 주 표시선 (기본 숨김, hover 시 표시)
   &::before {
     content: '';
     position: absolute;
@@ -67,7 +67,7 @@ const isBotUser = computed(() => currentSession.value?.account === UserType.BOT)
     transition: all 0.2s ease;
   }
 
-  // 上下辅助线（默认隐藏，hover 时显示）
+  // 상하 보조선 (기본 숨김, hover 시 표시)
   &::after {
     content: '';
     position: absolute;
@@ -83,7 +83,7 @@ const isBotUser = computed(() => currentSession.value?.account === UserType.BOT)
     pointer-events: none;
   }
 
-  // hover 状态 - 显示指示器
+  // hover 상태 - 표시기 표시
   &:hover {
     &::before {
       opacity: 0.8;
@@ -98,7 +98,7 @@ const isBotUser = computed(() => currentSession.value?.account === UserType.BOT)
     }
   }
 
-  // active/dragging 状态 - 显示高亮指示器
+  // active/dragging 상태 - 하이라이트 표시기 표시
   &:active {
     &::before {
       opacity: 1;

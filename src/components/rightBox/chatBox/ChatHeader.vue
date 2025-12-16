@@ -1,5 +1,5 @@
 <template>
-  <!-- 顶部操作栏和显示用户名 -->
+  <!-- 상단 작업 표시줄 및 사용자 이름 표시 -->
   <main
     v-if="activeItem"
     data-tauri-drag-region
@@ -23,7 +23,7 @@
               class="text-(11px #808080)">
               [{{ groupStore.countInfo?.memberNum }}]
             </p>
-            <!-- bot用户标签 -->
+            <!-- 봇 사용자 태그 -->
             <div
               v-if="isBotUser"
               class="dark:bg-[#13987f40] bg-[#e8f4f1] dark:border-(1px solid #13987f) border-(1px solid #13987f) flex-center px-8px py-4px rounded-6px">
@@ -38,11 +38,11 @@
           <n-flex v-else-if="activeItem?.type === RoomTypeEnum.SINGLE && !isBotUser" align="center">
             <template v-if="shouldShowDeleteFriend">
               <n-flex align="center" :size="6">
-                <!-- 状态图标 -->
+                <!-- 상태 아이콘 -->
                 <img v-if="hasCustomState && statusIcon" :src="statusIcon" class="size-18px rounded-50%" alt="" />
                 <n-badge v-else :color="isOnline ? '#1ab292' : '#909090'" dot />
 
-                <!-- 状态文本 -->
+                <!-- 상태 텍스트 -->
                 <p class="text-(12px [--text-color])">
                   {{ statusTitle }}
                 </p>
@@ -61,7 +61,7 @@
         </n-flex>
       </Transition>
     </n-flex>
-    <!-- 顶部右边选项栏 -->
+    <!-- 상단 오른쪽 옵션 바 -->
     <nav v-if="shouldShowDeleteFriend || chatStore.isGroup" class="options flex-y-center gap-20px color-[--icon-color]">
       <div v-if="!isChannel && !isBotUser" class="options-box">
         <n-popover trigger="hover" :show-arrow="false" placement="bottom">
@@ -131,11 +131,11 @@
       </div>
     </nav>
 
-    <!-- 侧边选项栏 -->
+    <!-- 사이드 옵션 바 -->
     <Transition v-if="shouldShowDeleteFriend || chatStore.isGroup" name="sidebar">
       <div v-if="sidebarShow" style="border: 1px solid rgba(90, 90, 90, 0.1)" class="sidebar">
         <n-scrollbar style="height: calc(100vh / var(--page-scale, 1) - 24px)" class="p-22px box-border">
-          <!-- 单聊侧边栏选项 -->
+          <!-- 1:1 채팅 사이드바 옵션 -->
           <template v-if="!chatStore.isGroup">
             <div class="box-item flex-col-y-center">
               <div class="flex-between-center">
@@ -175,16 +175,16 @@
             </p>
           </template>
 
-          <!-- 群聊侧边栏选项 -->
+          <!-- 그룹 채팅 사이드바 옵션 -->
           <template v-else>
             <div class="box-item cursor-default">
               <n-flex
                 align="center"
                 :justify="groupStore.countInfo!.allowScanEnter ? 'space-between' : ''"
                 :size="groupStore.countInfo!.allowScanEnter ? 0 : 12">
-                <!-- 群头像 -->
+                <!-- 그룹 아바타 -->
                 <div class="relative group">
-                  <!-- 群主可以编辑头像，显示黑色蒙层和上传图标 -->
+                  <!-- 그룹 소유자는 아바타를 편집할 수 있으며, 검은색 오버레이와 업로드 아이콘이 표시됩니다 -->
                   <div v-if="isGroupOwner" class="avatar-wrapper relative" @click="handleUploadAvatar">
                     <n-avatar round :size="40" :src="AvatarUtils.getAvatarUrl(activeItem?.avatar || '')" />
                     <div class="avatar-hover absolute size-full rounded-50% flex-center">
@@ -198,7 +198,7 @@
                 </div>
 
                 <n-flex vertical :size="6">
-                  <!-- 群名称 -->
+                  <!-- 그룹 이름 -->
                   <n-flex :size="10" align="center">
                     <div v-if="isGroupOwner && isEditingGroupName">
                       <n-input
@@ -222,7 +222,7 @@
                       :class="{ 'cursor-pointer': isGroupOwner }"
                       @click="isGroupOwner && startEditGroupName()">
                       <p :title="activeItem?.name" class="max-w-100px truncate">{{ activeItem?.name }}</p>
-                      <!-- 显示编辑图标 -->
+                      <!-- 편집 아이콘 표시 -->
                       <svg v-if="isGroupOwner" class="size-14px ml-1 inline-block color-[--icon-color]">
                         <use href="#edit"></use>
                       </svg>
@@ -239,7 +239,7 @@
                   </n-flex>
 
                   <n-flex align="center" :size="8">
-                    <!-- hula号 -->
+                    <!-- hula ID -->
                     <p
                       class="text-(12px center [--chat-text-color]) rounded-4px w-100px py-2px bg-[#e3e3e3] dark:bg-[#505050]">
                       {{ activeItem?.account }}
@@ -268,7 +268,7 @@
               </n-flex>
             </div>
 
-            <!-- 群聊成员列表 -->
+            <!-- 그룹 채팅 멤버 목록 -->
             <div class="box-item cursor-default">
               <n-flex vertical justify="center" :size="16">
                 <p class="text-(14px --text-color)">
@@ -291,7 +291,7 @@
               </n-flex>
             </div>
 
-            <!-- 我本群的昵称 -->
+            <!-- 이 그룹에서의 내 닉네임 -->
             <p class="text-(12px [--chat-text-color]) mt-20px mb-10px">
               {{ t('home.chat_header.sidebar.group.my_name') }}
             </p>
@@ -305,7 +305,7 @@
               clearable
               v-model:value="localMyName"
               @blur.stop="handleGroupInfoChange" />
-            <!-- 群备注 -->
+            <!-- 그룹 메모 -->
             <p class="flex-start-center gap-10px text-(12px [--chat-text-color]) mt-20px mb-10px">
               {{ t('home.chat_header.sidebar.group.remark') }}
               <span class="text-(10px #909090)">{{ t('home.chat_header.sidebar.group.remark_desc') }}</span>
@@ -320,7 +320,7 @@
               clearable
               @blur.stop="handleGroupInfoChange" />
 
-            <!-- 群设置选项 -->
+            <!-- 그룹 설정 옵션 -->
             <div class="box-item cursor-default">
               <n-flex vertical justify="center" :size="4">
                 <p class="text-(12px #909090) pb-14px">{{ t('home.chat_header.sidebar.group.settings.title') }}</p>
@@ -360,7 +360,7 @@
               </n-flex>
             </div>
 
-            <!-- 群消息设置（仅在消息免打扰开启时显示） -->
+            <!-- 그룹 메시지 설정 (메시지 방해 금지 모드가 켜져 있을 때만 표시) -->
             <div
               v-if="activeItem?.muteNotification === NotificationTypeEnum.NOT_DISTURB"
               class="box-item cursor-default">
@@ -378,7 +378,7 @@
               </n-flex>
             </div>
 
-            <!-- 管理群成员（仅管理员和群主可见） -->
+            <!-- 그룹 멤버 관리 (관리자 및 그룹 소유자만 볼 수 있음) -->
             <div
               v-if="
                 groupStore.isAdminOrLord() && activeItem?.hotFlag !== IsAllUserEnum.Yes && currentSessionRoomId !== '1'
@@ -422,7 +422,7 @@
     </Transition>
   </main>
 
-  <!-- 弹出框 -->
+  <!-- 팝업 창 -->
   <n-modal v-model:show="modalShow" class="w-350px rounded-8px">
     <div class="bg-[--bg-popover] w-360px h-full p-6px box-border flex flex-col">
       <div
@@ -450,7 +450,7 @@
     </div>
   </n-modal>
 
-  <!-- 群二维码分享弹窗 -->
+  <!-- 그룹 QR 코드 공유 팝업 -->
   <n-modal v-model:show="showQRCodeModal" class="w-400px rounded-8px">
     <div class="bg-[--bg-popover] w-400px p-6px box-border flex flex-col">
       <div
@@ -485,7 +485,7 @@
     </div>
   </n-modal>
 
-  <!-- 管理群成员弹窗 -->
+  <!-- 그룹 멤버 관리 팝업 -->
   <n-modal v-model:show="showManageGroupMemberModal" class="w-600px rounded-8px" :mask-closable="false">
     <div class="bg-[--bg-popover] w-600px p-6px box-border flex flex-col">
       <div
@@ -510,7 +510,7 @@
     </div>
   </n-modal>
 
-  <!-- 添加裁剪组件和文件输入框 -->
+  <!-- 자르기 컴포넌트 및 파일 입력 상자 추가 -->
   <input
     ref="fileInput"
     type="file"
@@ -558,7 +558,7 @@ import { isMac, isWindows } from '@/utils/PlatformConstants'
 
 const { t } = useI18n()
 const { createModalWindow, startRtcCall } = useWindow()
-// 使用useDisplayMedia获取屏幕共享的媒体流
+// useDisplayMedia를 사용하여 화면 공유 미디어 스트림 가져오기
 const { stream, stop } = useDisplayMedia()
 const chatStore = useChatStore()
 const groupStore = useGroupStore()
@@ -567,7 +567,7 @@ const contactStore = useContactStore()
 const userStore = useUserStore()
 const settingStore = useSettingStore()
 const { themes } = storeToRefs(settingStore)
-/** 提醒框标题 */
+/** 알림 상자 제목 */
 const tips = ref()
 const optionsType = ref<RoomActEnum>()
 const modalShow = ref(false)
@@ -577,39 +577,39 @@ const showManageGroupMemberModal = ref(false)
 const { currentSession: activeItem, currentSessionRoomId } = storeToRefs(globalStore)
 const { persistMyRoomInfo, resolveMyRoomNickname } = useMyRoomInfoUpdater()
 
-// 是否为频道（仅显示 more 按钮）
+// 채널 여부 (more 버튼만 표시)
 const isChannel = computed(() => activeItem.value?.hotFlag === IsAllUserEnum.Yes || currentSessionRoomId.value === '1')
-// 是否为bot用户
+// 봇 사용자 여부
 const isBotUser = computed(() => activeItem.value?.account === UserType.BOT)
-// 是否为群主
+// 그룹 소유자 여부
 const isGroupOwner = computed(() => {
   const session = activeItem.value
   if (!session || currentSessionRoomId.value === '1' || session.hotFlag === IsAllUserEnum.Yes) {
     return false
   }
 
-  // 检查groupStore.userList中当前用户的角色
+  // groupStore.userList에서 현재 사용자의 역할 확인
   const currentUser = groupStore.userList.find((user) => user.uid === userStore.userInfo!.uid)
   return currentUser!.roleId === RoleEnum.LORD
 })
 
-// 是否正在编辑群名称
+// 그룹 이름 편집 중 여부
 const isEditingGroupName = ref(false)
-// 编辑中的群名称
+// 편집 중인 그룹 이름
 const editingGroupName = ref('')
-// 群名称输入框引用
+// 그룹 이름 입력 상자 참조
 const groupNameInputRef = useTemplateRef<HTMLInputElement | null>('groupNameInputRef')
-// 待保存的群信息
+// 저장 대기 중인 그룹 정보
 const pendingGroupInfo = ref<{
   groupName?: string
   myName?: string
   remark?: string
 } | null>(null)
-// 本地暂存的群昵称和群备注（避免实时修改store）
+// 로컬에 임시 저장된 그룹 닉네임 및 그룹 메모 (실시간 store 수정 방지)
 const localMyName = ref('')
 const localRemark = ref('')
 
-// 初始化本地变量
+// 로컬 변수 초기화
 const initLocalValues = () => {
   localMyName.value = resolveMyRoomNickname({
     roomId: currentSessionRoomId.value,
@@ -630,7 +630,7 @@ watch(
     }
   }
 )
-// 监听当前会话变化，重新初始化本地变量
+// 현재 세션 변경 감지, 로컬 변수 다시 초기화
 watch(
   () => currentSessionRoomId.value,
   () => {
@@ -643,11 +643,11 @@ watch(
 )
 
 const messageSettingType = computed(() => {
-  // 群消息设置只在免打扰模式下有意义
+  // 그룹 메시지 설정은 방해 금지 모드에서만 의미가 있음
   if (activeItem.value?.muteNotification === NotificationTypeEnum.NOT_DISTURB) {
     return activeItem.value?.shield ? 'shield' : 'notification'
   }
-  // 非免打扰模式下，默认返回 notification
+  // 방해 금지 모드가 아닌 경우 기본적으로 notification 반환
   return 'notification'
 })
 const messageSettingOptions = computed(() => [
@@ -662,7 +662,7 @@ const chatTargetUid = computed(() => {
 })
 const { isOnline, statusIcon, statusTitle, hasCustomState } = useOnlineStatus(chatTargetUid)
 
-/** 是否还是好友 */
+/** 여전히 친구인지 여부 */
 const shouldShowDeleteFriend = computed(() => {
   const session = activeItem.value
   if (!session || session.type === RoomTypeEnum.GROUP) return false
@@ -672,7 +672,7 @@ const groupUserList = computed(() => groupStore.userList)
 const userList = computed(() => {
   return groupUserList.value
     .map((item: UserItem) => {
-      const { uid, ...userInfo } = item // 排除uid，获取剩余内容
+      const { uid, ...userInfo } = item // uid 제외, 나머지 내용 가져오기
       return {
         ...userInfo,
         ...groupStore.getUserInfo(item.uid)!,
@@ -680,13 +680,13 @@ const userList = computed(() => {
       }
     })
     .sort((a, b) => {
-      // 将uid转换为数字进行比较
+      // uid를 숫자로 변환하여 비교
       return Number(a.uid) - Number(b.uid)
     })
     .slice(0, 10)
 })
 
-// 获取用户的最新头像
+// 사용자의 최신 아바타 가져오기
 const currentUserAvatar = computed(() => {
   const session = activeItem.value
   if (!session) return ''
@@ -699,7 +699,7 @@ const currentUserAvatar = computed(() => {
   }
   return AvatarUtils.getAvatarUrl(session.avatar)
 })
-// 使用自定义hook处理头像上传
+// 사용자 정의 hook을 사용하여 아바타 업로드 처리
 const {
   fileInput,
   localImageUrl,
@@ -725,7 +725,7 @@ watchEffect(() => {
   })
 })
 
-// 处理复制账号
+// 계정 복사 처리
 const handleCopy = () => {
   const session = activeItem.value
   if (!session?.account) return
@@ -733,7 +733,7 @@ const handleCopy = () => {
   window.$message.success(t('home.chat_header.toast.copy_success', { account: session.account }))
 }
 
-/** 处理创建群聊或邀请进群 */
+/** 그룹 채팅 생성 또는 그룹 초대 처리 */
 const handleCreateGroupOrInvite = () => {
   const session = activeItem.value
   if (!session) return
@@ -744,31 +744,31 @@ const handleCreateGroupOrInvite = () => {
   }
 }
 
-/** 处理创建群聊 */
+/** 그룹 채팅 생성 처리 */
 const handleCreateGroup = () => {
   const session = activeItem.value
   if (!session) return
   useMitt.emit(MittEnum.CREATE_GROUP, { id: session.detailId })
 }
 
-/** 处理邀请进群 */
+/** 그룹 초대 처리 */
 const handleInvite = async () => {
   const session = activeItem.value
   if (!session) return
-  // 使用封装后的createModalWindow方法创建模态窗口，并传递当前会话的 roomId
+  // 캡슐화된 createModalWindow 메서드를 사용하여 모달 창을 생성하고 현재 세션의 roomId 전달
   await createModalWindow(t('home.chat_header.modal.invite_friends'), 'modal-invite', 600, 500, 'home', {
     roomId: currentSessionRoomId.value,
     type: session.type
   })
 }
 
-/** 处理管理群成员 */
+/** 그룹 멤버 관리 처리 */
 const handleManageGroupMember = () => {
-  // 打开管理群成员弹窗
+  // 그룹 멤버 관리 팝업 열기
   showManageGroupMemberModal.value = true
 }
 
-// 保存群聊信息
+// 그룹 채팅 정보 저장
 const saveGroupInfo = async () => {
   const session = activeItem.value
   if (!currentSessionRoomId.value || session?.type !== RoomTypeEnum.GROUP) return
@@ -795,7 +795,7 @@ const saveGroupInfo = async () => {
     window.$message.success(t('home.chat_header.toast.group_info_updated'))
     pendingGroupInfo.value = null
   } catch (error) {
-    console.error('更新群聊信息失败:', error)
+    console.error('그룹 채팅 정보 업데이트 실패:', error)
     window.$message.error(t('home.chat_header.toast.group_info_update_failed'))
   }
 }
@@ -808,13 +808,13 @@ const handleMedia = () => {
   window.$message.warning(t('home.chat_header.toast.todo'))
 }
 
-/** 置顶 */
+/** 상단 고정 */
 const handleTop = (value: boolean) => {
   const session = activeItem.value
   if (!session) return
   setSessionTop({ roomId: currentSessionRoomId.value, top: value })
     .then(() => {
-      // 更新本地会话状态
+      // 로컬 세션 상태 업데이트
       chatStore.updateSession(currentSessionRoomId.value, { top: value })
       window.$message.success(value ? t('home.chat_header.toast.pin_on') : t('home.chat_header.toast.pin_off'))
     })
@@ -823,12 +823,12 @@ const handleTop = (value: boolean) => {
     })
 }
 
-/** 处理消息免打扰 */
+/** 메시지 방해 금지 처리 */
 const handleNotification = (value: boolean) => {
   const session = activeItem.value
   if (!session) return
   const newType = value ? NotificationTypeEnum.NOT_DISTURB : NotificationTypeEnum.RECEPTION
-  // 如果当前是屏蔽状态，需要先取消屏蔽
+  // 현재 차단 상태인 경우 먼저 차단 해제 필요
   if (session.shield) {
     handleShield(false)
   }
@@ -837,17 +837,17 @@ const handleNotification = (value: boolean) => {
     type: newType
   })
     .then(() => {
-      // 更新本地会话状态
+      // 로컬 세션 상태 업데이트
       chatStore.updateSession(currentSessionRoomId.value, {
         muteNotification: newType
       })
 
-      // 如果从免打扰切换到允许提醒，需要重新计算全局未读数
+      // 방해 금지에서 알림 허용으로 전환하는 경우 전역 읽지 않은 수 다시 계산 필요
       if (session.muteNotification === NotificationTypeEnum.NOT_DISTURB && newType === NotificationTypeEnum.RECEPTION) {
         chatStore.updateTotalUnreadCount()
       }
 
-      // 如果设置为免打扰，也需要更新全局未读数，因为该会话的未读数将不再计入
+      // 방해 금지로 설정하는 경우 해당 세션의 읽지 않은 수가 더 이상 포함되지 않으므로 전역 읽지 않은 수 업데이트 필요
       if (newType === NotificationTypeEnum.NOT_DISTURB) {
         chatStore.updateTotalUnreadCount()
       }
@@ -859,7 +859,7 @@ const handleNotification = (value: boolean) => {
     })
 }
 
-/** 处理屏蔽消息 */
+/** 메시지 차단 처리 */
 const handleShield = (value: boolean) => {
   const session = activeItem.value
   if (!session) return
@@ -868,15 +868,15 @@ const handleShield = (value: boolean) => {
     state: value
   })
     .then(() => {
-      // 更新本地会话状态
+      // 로컬 세션 상태 업데이트
       chatStore.updateSession(currentSessionRoomId.value, {
         shield: value
       })
 
-      // 1. 先保存当前聊天室ID
+      // 1. 현재 채팅방 ID 먼저 저장
       const tempRoomId = globalStore.currentSessionRoomId
 
-      // 3. 在下一个tick中恢复原来的聊天室ID，触发重新加载消息
+      // 3. 다음 tick에서 원래 채팅방 ID 복원, 메시지 다시 로드 트리거
       nextTick(() => {
         globalStore.updateCurrentSessionRoomId(tempRoomId)
       })
@@ -892,27 +892,27 @@ const handleMessageSetting = (value: string) => {
   const session = activeItem.value
   if (!session) return
   if (value === 'shield') {
-    // 设置为屏蔽消息
+    // 메시지 차단으로 설정
     if (!session.shield) {
       handleShield(true)
     }
   } else if (value === 'notification') {
-    // 设置为接收消息但不提醒
+    // 메시지 수신하지만 알림 없음으로 설정
     if (session.shield) {
       handleShield(false)
     }
   }
 }
 
-/** 处理群名称修改失焦 */
+/** 그룹 이름 수정 포커스 해제 처리 */
 const handleGroupNameChange = () => {
   const session = activeItem.value
   if (!session) return
   const trimmedName = editingGroupName.value.trim()
 
-  // 检查名称是否有变化
+  // 이름 변경 여부 확인
   if (trimmedName !== session.name) {
-    // 检查名称是否为空或超过12个字符
+    // 이름이 비어 있거나 12자를 초과하는지 확인
     if (trimmedName === '') {
       window.$message.warning(t('home.chat_header.toast.group_name_empty'))
       return
@@ -922,23 +922,23 @@ const handleGroupNameChange = () => {
       return
     }
 
-    // 保存待修改的群名称并触发确认弹窗
+    // 수정할 그룹 이름 저장 및 확인 팝업 트리거
     pendingGroupInfo.value = { groupName: trimmedName }
     handleDelete(RoomActEnum.UPDATE_GROUP_NAME)
   } else {
-    // 名称没有变化，直接退出编辑模式
+    // 이름 변경 없음, 편집 모드 바로 종료
     isEditingGroupName.value = false
   }
 }
 
-/** 处理群信息修改失焦 */
+/** 그룹 정보 수정 포커스 해제 처리 */
 const handleGroupInfoChange = () => {
-  // 检查是否有修改
+  // 수정 여부 확인
   const originalMyName = groupStore.myNameInCurrentGroup || ''
   const originalRemark = groupStore.countInfo?.remark || ''
 
   if (localMyName.value !== originalMyName || localRemark.value !== originalRemark) {
-    // 保存待修改的群信息并触发确认弹窗
+    // 수정할 그룹 정보 저장 및 확인 팝업 트리거
     pendingGroupInfo.value = {
       myName: localMyName.value,
       remark: localRemark.value
@@ -964,11 +964,11 @@ const deleteRoomMessages = async (roomId: string) => {
     modalShow.value = false
     sidebarShow.value = false
   } catch (error) {
-    console.error('删除聊天记录失败:', error)
+    console.error('채팅 기록 삭제 실패:', error)
   }
 }
 
-/** 删除操作二次提醒 */
+/** 삭제 작업 2차 알림 */
 const handleDelete = (label: RoomActEnum) => {
   modalShow.value = true
   optionsType.value = label
@@ -1005,7 +1005,7 @@ const handleConfirm = async () => {
       modalShow.value = false
       sidebarShow.value = false
     } catch (error) {
-      console.error('删除好友失败:', error)
+      console.error('친구 삭제 실패:', error)
     }
   } else if (currentOption === RoomActEnum.DISSOLUTION_GROUP) {
     if (targetRoomId === '1') {
@@ -1017,12 +1017,12 @@ const handleConfirm = async () => {
     try {
       await groupStore.exitGroup(targetRoomId)
       window.$message.success(t('home.chat_header.toast.dissolve_success'))
-      // 删除当前的会话
+      // 현재 세션 삭제
       useMitt.emit(MittEnum.DELETE_SESSION, targetRoomId)
       modalShow.value = false
       sidebarShow.value = false
     } catch (error) {
-      console.error('解散群聊失败:', error)
+      console.error('그룹 채팅 해산 실패:', error)
     }
   } else if (currentOption === RoomActEnum.EXIT_GROUP) {
     if (targetRoomId === '1') {
@@ -1034,21 +1034,21 @@ const handleConfirm = async () => {
     try {
       await groupStore.exitGroup(targetRoomId)
       window.$message.success(t('home.chat_header.toast.exit_success'))
-      // 删除当前的会话
+      // 현재 세션 삭제
       useMitt.emit(MittEnum.DELETE_SESSION, targetRoomId)
       modalShow.value = false
       sidebarShow.value = false
     } catch (error) {
-      console.error('退出群聊失败:', error)
+      console.error('그룹 채팅 나가기 실패:', error)
     }
   } else if (currentOption === RoomActEnum.DELETE_RECORD) {
     await deleteRoomMessages(targetRoomId)
   } else if (currentOption === RoomActEnum.UPDATE_GROUP_NAME) {
-    // 确认修改群名称
+    // 그룹 이름 수정 확인
     await saveGroupName()
     modalShow.value = false
   } else if (currentOption === RoomActEnum.UPDATE_GROUP_INFO) {
-    // 确认修改群信息
+    // 그룹 정보 수정 확인
     await saveGroupInfo()
     modalShow.value = false
   }
@@ -1056,73 +1056,73 @@ const handleConfirm = async () => {
 
 const handleCancel = () => {
   const session = activeItem.value
-  // 如果是取消群信息修改，需要恢复原始值
+  // 그룹 정보 수정 취소인 경우 원래 값 복원 필요
   if (optionsType.value === RoomActEnum.UPDATE_GROUP_NAME) {
-    // 取消群名称修改，退出编辑模式
+    // 그룹 이름 수정 취소, 편집 모드 종료
     isEditingGroupName.value = false
     editingGroupName.value = session?.name || ''
   } else if (optionsType.value === RoomActEnum.UPDATE_GROUP_INFO) {
-    // 取消群信息修改，恢复本地变量到原始值
+    // 그룹 정보 수정 취소, 로컬 변수를 원래 값으로 복원
     localMyName.value = groupStore.myNameInCurrentGroup || ''
     localRemark.value = groupStore.countInfo?.remark || ''
   }
 
-  // 清空待保存的群信息
+  // 저장 대기 중인 그룹 정보 지우기
   pendingGroupInfo.value = null
   modalShow.value = false
 }
 
-// 开始编辑群名称
+// 그룹 이름 편집 시작
 const startEditGroupName = () => {
   if (!isGroupOwner.value) return
 
   editingGroupName.value = activeItem.value?.name || ''
   isEditingGroupName.value = true
 
-  // 在下一个事件循环中聚焦输入框
+  // 다음 이벤트 루프에서 입력 상자 포커스
   nextTick(() => {
     groupNameInputRef.value?.focus()
   })
 }
 
-// 保存群名称
+// 그룹 이름 저장
 const saveGroupName = async () => {
   if (!isGroupOwner.value || !currentSessionRoomId.value) return
 
   isEditingGroupName.value = false
 
-  // 使用 pendingGroupInfo 中的群名称
+  // pendingGroupInfo의 그룹 이름 사용
   const trimmedName = pendingGroupInfo.value?.groupName
   if (!trimmedName) return
 
   try {
-    // 调用更新群信息的API
+    // 그룹 정보 업데이트 API 호출
     await updateRoomInfo({
       id: currentSessionRoomId.value,
       name: trimmedName
     })
-    // 清空待保存的群信息
+    // 저장 대기 중인 그룹 정보 지우기
     pendingGroupInfo.value = null
   } catch (error) {
     window.$message.error(t('home.chat_header.toast.group_name_update_failed'))
-    console.error('更新群名称失败:', error)
+    console.error('그룹 이름 업데이트 실패:', error)
   }
 }
 
-// 处理上传头像
+// 아바타 업로드 처리
 const handleUploadAvatar = () => {
   if (!isGroupOwner.value || !currentSessionRoomId.value) return
 
   openFileSelector()
 }
 
-// 处理裁剪，调用hook中的方法
+// 자르기 처리, hook의 메서드 호출
 const handleCrop = async (cropBlob: Blob) => {
   await onCrop(cropBlob)
 }
 
 const closeMenu = (event: any) => {
-  /** 点击非侧边栏元素时，关闭侧边栏，但点击弹出框元素、侧边栏图标、还有侧边栏里面的元素时不关闭 */
+  /** 사이드바가 아닌 요소 클릭 시 사이드바 닫기, 단 팝업 요소, 사이드바 아이콘, 사이드바 내부 요소 클릭 시 닫지 않음 */
   if (!event.target.matches('.sidebar, .sidebar *, .n-modal-mask, .options-box *, .n-modal *') && !modalShow.value) {
     sidebarShow.value = false
   }
@@ -1130,7 +1130,7 @@ const closeMenu = (event: any) => {
 
 onMounted(() => {
   window.addEventListener('click', closeMenu, true)
-  // 初始化本地变量
+  // 로컬 변수 초기화
   initLocalValues()
 })
 

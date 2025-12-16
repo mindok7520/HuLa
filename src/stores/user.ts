@@ -17,7 +17,7 @@ export const useUserStore = defineStore(
           userInfo.value = { ...userInfo.value, ...res }
         })
         .catch((e) => {
-          console.error('获取用户详情失败:', e)
+          console.error('사용자 상세 정보 가져오기 실패:', e)
         })
     }
 

@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-col h-full flex-1 bg-white">
-    <!-- 动态列表区域 -->
+    <!-- 피드 목록 영역 -->
     <van-pull-refresh
       class="flex-1 overflow-hidden"
       :pull-distance="100"
@@ -8,12 +8,12 @@
       v-model="loading"
       @refresh="onRefresh">
       <n-scrollbar ref="scrollbarRef" class="h-full" @scroll="handleScroll">
-        <!-- 图片区 -->
+        <!-- 이미지 영역 -->
         <div class="w-full h-30vh relative">
           <div class="flex h-95% w-full relative">
             <img class="w-full h-full object-contain bg-#90909048 dark:bg-#111" src="/hula.png" alt="" />
           </div>
-          <!-- 左上角通知按钮 -->
+          <!-- 왼쪽 상단 알림 버튼 -->
           <div class="absolute left-20px top-20px">
             <n-button text type="primary" @click="openNotificationPopup" class="relative">
               <template #icon>
@@ -46,7 +46,7 @@
           </div>
         </div>
 
-        <!-- 动态内容区域 -->
+        <!-- 피드 콘텐츠 영역 -->
         <div class="px-12px py-12px">
           <DynamicList
             mode="mobile"
@@ -58,7 +58,7 @@
       </n-scrollbar>
     </van-pull-refresh>
 
-    <!-- 通知弹窗 -->
+    <!-- 알림 팝업 -->
     <FeedNotificationPopup ref="notificationPopupRef" />
   </div>
 </template>
@@ -86,9 +86,9 @@ const notificationPopupRef = ref()
 
 const scrollbarRef = ref()
 const loading = ref(false)
-const isEnablePullRefresh = ref(true) // 是否启用下拉刷新，现在设置为滚动到顶才启用
+const isEnablePullRefresh = ref(true) // 당겨서 새로고침 활성화 여부, 현재는 맨 위로 스크롤될 때만 활성화됨
 
-let scrollTop = 0 // 记住当前滑动到哪了
+let scrollTop = 0 // 현재 스크롤 위치 기억
 
 const enablePullRefresh = useDebounceFn((top: number) => {
   isEnablePullRefresh.value = top === 0
@@ -98,19 +98,19 @@ const disablePullRefresh = useThrottleFn(() => {
   isEnablePullRefresh.value = false
 }, 80)
 
-// 图片预览
+// 이미지 미리보기
 const previewImage = (images: string[], index: number) => {
-  console.log('预览图片:', images, index)
-  // TODO: 实现图片预览功能
+  console.log('이미지 미리보기:', images, index)
+  // TODO: 이미지 미리보기 기능 구현
 }
 
-// 视频播放
+// 비디오 재생
 const handleVideoPlay = (url: string) => {
-  console.log('播放视频:', url)
-  // TODO: 实现视频播放功能
+  console.log('비디오 재생:', url)
+  // TODO: 비디오 재생 기능 구현
 }
 
-// 下拉刷新
+// 당겨서 새로고침
 const onRefresh = () => {
   loading.value = true
 
@@ -120,18 +120,18 @@ const onRefresh = () => {
   Promise.all([apiPromise, delayPromise])
     .then(() => {
       loading.value = false
-      // 刷新后清空未读数量
+      // 새로고침 후 읽지 않은 수 초기화
       feedStore.clearUnreadCount()
-      console.log('刷新完成')
+      console.log('새로고침 완료')
     })
     .catch((error) => {
       loading.value = false
-      console.log('刷新动态列表失败：', error)
-      window.$message.error('刷新失败，请重试')
+      console.log('피드 목록 새로고침 실패:', error)
+      window.$message.error('새로고침 실패, 다시 시도해주세요')
     })
 }
 
-// 处理滚动
+// 스크롤 처리
 const handleScroll = (event: any) => {
   const target = event.target
   if (!target) return
@@ -140,26 +140,26 @@ const handleScroll = (event: any) => {
   const scrollHeight = target.scrollHeight
   const clientHeight = target.clientHeight
 
-  // 控制下拉刷新的启用状态
+  // 당겨서 새로고침 활성화 상태 제어
   if (scrollTop < 200) {
     enablePullRefresh(scrollTop)
   } else {
     disablePullRefresh()
   }
 
-  // 距离底部100px时触发加载
+  // 하단에서 100px 남았을 때 로드 트리거
   if (scrollHeight - scrollTop - clientHeight < 100) {
     loadMore()
   }
 }
 
-// 加载更多
+// 더 보기 로드
 const loadMore = async () => {
   if (feedOptions.value.isLoading || feedOptions.value.isLast) return
   await feedStore.loadMore()
 }
 
-// 处理动态项点击
+// 피드 항목 클릭 처리
 const handleItemClick = (feedId: string) => {
   router.push({
     name: 'mobileDynamicDetail',
@@ -167,34 +167,34 @@ const handleItemClick = (feedId: string) => {
   })
 }
 
-// 打开通知弹窗
+// 알림 팝업 열기
 const openNotificationPopup = () => {
   notificationPopupRef.value?.openPopup()
 }
 
-// 监听朋友圈消息推送
+// 피드 메시지 푸시 수신 대기
 const handleFeedSendMsg = (_payload: any) => {
   feedStore.increaseUnreadCount()
 }
 
-// 初始化数据
+// 데이터 초기화
 onMounted(async () => {
-  // 初始加载动态列表
+  // 피드 목록 초기 로드
   await feedStore.getFeedList(true)
 
-  // 打开朋友圈时清空未读数量
+  // 피드 열 때 읽지 않은 수 초기화
   feedStore.clearUnreadCount()
 
-  // 注册朋友圈消息监听
+  // 피드 메시지 리스너 등록
   useMitt.on(WsResponseMessageType.FEED_SEND_MSG, handleFeedSendMsg)
 })
 
 onUnmounted(() => {
-  // 清理事件监听
+  // 이벤트 리스너 정리
   useMitt.off(WsResponseMessageType.FEED_SEND_MSG, handleFeedSendMsg)
 })
 </script>
 
 <style scoped lang="scss">
-// 自定义样式
+// 사용자 정의 스타일
 </style>

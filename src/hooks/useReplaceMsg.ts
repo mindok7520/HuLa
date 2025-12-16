@@ -6,7 +6,7 @@ import { useUserStore } from '@/stores/user'
 import { renderReplyContent } from '@/utils/RenderReplyContent.ts'
 
 /**
- * 用于处理消息内容展示的hook，包括@提醒和撤回消息处理
+ * @멘션 및 메시지 회수 처리를 포함한 메시지 내용 표시를 처리하는 hook
  */
 export const useReplaceMsg = () => {
   const userStore = useUserStore()
@@ -14,9 +14,9 @@ export const useReplaceMsg = () => {
   const groupStore = useGroupStore()
 
   /**
-   * 检查单条消息是否@当前用户
-   * @param message 消息对象
-   * @returns 是否@当前用户
+   * 단일 메시지가 현재 사용자를 @멘션했는지 확인
+   * @param message 메시지 객체
+   * @returns 현재 사용자 @멘션 여부
    */
   const checkMessageAtMe = (message: MessageType) => {
     const currentUid = userStore.userInfo?.uid
@@ -24,18 +24,18 @@ export const useReplaceMsg = () => {
       return false
     }
 
-    // 确保类型一致的比较
+    // 타입 일치 비교 보장
     return message.message.body.atUidList.some((atUid: string) => String(atUid) === String(currentUid))
   }
 
   /**
-   * 检查消息是否@当前用户及是否在未读范围内
-   * @param roomId 房间ID
-   * @param roomType 房间类型
-   * @param currentRoomId 当前激活的房间ID
-   * @param messages 消息列表
-   * @param unreadCount 未读消息数量
-   * @returns 是否有人@当前用户
+   * 메시지가 현재 사용자를 @멘션했는지 및 읽지 않은 범위 내에 있는지 확인
+   * @param roomId 방 ID
+   * @param roomType 방 유형
+   * @param currentRoomId 현재 활성화된 방 ID
+   * @param messages 메시지 목록
+   * @param unreadCount 읽지 않은 메시지 수
+   * @returns 현재 사용자를 @멘션한 사람이 있는지 여부
    */
   const checkRoomAtMe = (
     roomId: string,
@@ -44,24 +44,24 @@ export const useReplaceMsg = () => {
     messages: MessageType[],
     unreadCount: number = 0
   ) => {
-    // 仅在群聊且不是当前会话时才考虑@提醒
+    // 그룹 채팅이고 현재 세션이 아닌 경우에만 @멘션 알림 고려
     if (roomType !== RoomTypeEnum.GROUP || roomId === currentRoomId) {
       return false
     }
 
-    // 过滤出@当前用户的消息
+    // 현재 사용자를 @멘션한 메시지 필터링
     const messagesWithAt = messages.filter(checkMessageAtMe)
 
-    // 检查是否有@我的消息以及是否在未读范围内
+    // 나를 @멘션한 메시지가 있는지 및 읽지 않은 범위 내에 있는지 확인
     return messagesWithAt.some((msg) => messages.indexOf(msg) >= messages.length - (unreadCount || 0))
   }
 
   /**
-   * 处理撤回消息显示逻辑
-   * @param message 消息对象
-   * @param roomType 房间类型
-   * @param userName 发送消息用户的名称
-   * @returns 格式化后的撤回消息文本
+   * 메시지 회수 표시 로직 처리
+   * @param message 메시지 객체
+   * @param roomType 방 유형
+   * @param userName 메시지 보낸 사용자 이름
+   * @returns 포맷된 회수 메시지 텍스트
    */
   const formatRecallMessage = (message: MessageType, roomType: RoomTypeEnum, userName: string) => {
     const currentUid = userStore.userInfo?.uid
@@ -71,17 +71,17 @@ export const useReplaceMsg = () => {
     }
 
     if (roomType === RoomTypeEnum.GROUP) {
-      return `${userName}:撤回了一条消息`
+      return `${userName}:메시지를 회수했습니다`
     } else {
-      return message.fromUser.uid === currentUid ? '你撤回了一条消息' : '对方撤回了一条消息'
+      return message.fromUser.uid === currentUid ? '메시지를 회수했습니다' : '상대방이 메시지를 회수했습니다'
     }
   }
 
   /**
-   * 获取消息发送者的用户名
-   * @param message 消息对象
-   * @param defaultName 默认名称（可选）
-   * @returns 发送者用户名
+   * 메시지 보낸 사람의 사용자 이름 가져오기
+   * @param message 메시지 객체
+   * @param defaultName 기본 이름 (선택 사항)
+   * @returns 보낸 사람 사용자 이름
    */
   const getMessageSenderName = (
     message: MessageType,
@@ -111,11 +111,11 @@ export const useReplaceMsg = () => {
   }
 
   /**
-   * 处理消息内容，包括撤回消息
-   * @param message 消息对象
-   * @param roomType 房间类型
-   * @param userName 发送消息用户的名称（可选，如果不提供会自动从消息中提取）
-   * @returns 格式化后的消息内容
+   * 메시지 회수를 포함한 메시지 내용 처리
+   * @param message 메시지 객체
+   * @param roomType 방 유형
+   * @param userName 메시지 보낸 사용자 이름 (선택 사항, 제공되지 않으면 메시지에서 자동 추출)
+   * @returns 포맷된 메시지 내용
    */
   const formatMessageContent = (
     message: MessageType,
@@ -125,12 +125,12 @@ export const useReplaceMsg = () => {
   ) => {
     const resolvedRoomId = roomId ?? message.message?.roomId ?? ''
     const senderName = userName || getMessageSenderName(message, '', resolvedRoomId, roomType)
-    // 判断是否是撤回消息
+    // 회수된 메시지인지 확인
     if (message.message?.type === MsgEnum.RECALL) {
       return formatRecallMessage(message, roomType, senderName)
     }
 
-    // 正常消息，处理内容
+    // 일반 메시지, 내용 처리
     return renderReplyContent(
       senderName,
       message.message?.type,

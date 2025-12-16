@@ -1,5 +1,5 @@
 <template>
-  <div>分享模态框</div>
+  <div>공유 모달</div>
 </template>
 
 <script setup lang="ts"></script>

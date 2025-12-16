@@ -1,19 +1,19 @@
 <template>
   <nav class="safe-area-nav">
     <div class="flex items-center justify-between w-full box-border px-16px h-full">
-      <!-- 左侧插槽 -->
+      <!-- 왼쪽 슬롯 -->
       <div class="flex-1 min-w-0">
         <slot name="left"></slot>
       </div>
 
-      <!-- 中间内容 -->
+      <!-- 중간 콘텐츠 -->
       <div v-if="$slots.center" class="flex-1 flex justify-center">
         <div class="flex justify-center">
           <slot name="center"></slot>
         </div>
       </div>
 
-      <!-- 右侧插槽 -->
+      <!-- 오른쪽 슬롯 -->
       <div class="flex-1 min-w-0 flex justify-end">
         <div class="ml-auto">
           <slot name="right"></slot>

@@ -17,7 +17,7 @@ pub struct VideoThumbnailInfo {
     pub duration: f64,
 }
 
-/// 生成视频缩略图
+/// 비디오 썸네일 생성
 pub async fn generate_video_thumbnail(
     video_path: &str,
     target_time: Option<f64>,
@@ -27,11 +27,11 @@ pub async fn generate_video_thumbnail(
     if !path.exists() {
         return Err(tauri::Error::Io(std::io::Error::new(
             std::io::ErrorKind::NotFound,
-            "视频文件不存在",
+            "비디오 파일이 존재하지 않습니다",
         )));
     }
 
-    // 根据平台选择不同的实现
+    // 플랫폼에 따라 다른 구현 선택
     #[cfg(target_os = "macos")]
     {
         generate_thumbnail_macos(video_path, target_time).await
@@ -51,7 +51,7 @@ pub async fn generate_video_thumbnail(
     {
         Err(tauri::Error::Io(std::io::Error::new(
             std::io::ErrorKind::Unsupported,
-            "当前平台暂不支持视频缩略图生成",
+            "현재 플랫폼은 비디오 썸네일 생성을 지원하지 않습니다",
         )))
     }
 }
@@ -63,23 +63,23 @@ async fn generate_thumbnail_macos(
 ) -> TauriResult<VideoThumbnailInfo> {
     use std::fs;
 
-    // 检查视频文件是否存在
+    // 비디오 파일 존재 여부 확인
     if !Path::new(video_path).exists() {
         return Err(tauri::Error::Io(std::io::Error::new(
             std::io::ErrorKind::NotFound,
-            format!("视频文件不存在: {}", video_path),
+            format!("비디오 파일이 존재하지 않습니다: {}", video_path),
         )));
     }
 
-    // 使用 macOS 系统的 qlmanage 工具生成缩略图
+    // macOS 시스템의 qlmanage 도구를 사용하여 썸네일 생성
     let temp_dir = std::env::temp_dir();
 
-    // 使用 qlmanage 生成缩略图
+    // qlmanage를 사용하여 썸네일 생성
     let output = Command::new("qlmanage")
         .args(&[
             "-t",
             "-s",
-            "300", // 缩略图大小
+            "300", // 썸네일 크기
             "-o",
             temp_dir.to_str().ok_or_else(|| {
                 tauri::Error::Io(std::io::Error::new(
@@ -93,7 +93,7 @@ async fn generate_thumbnail_macos(
         .map_err(|e| {
             tauri::Error::Io(std::io::Error::new(
                 std::io::ErrorKind::Other,
-                format!("执行 qlmanage 失败: {}", e),
+                format!("qlmanage 실행 실패: {}", e),
             ))
         })?;
 
@@ -101,19 +101,19 @@ async fn generate_thumbnail_macos(
         return Err(tauri::Error::Io(std::io::Error::new(
             std::io::ErrorKind::Other,
             format!(
-                "qlmanage 执行失败: {}",
+                "qlmanage 실행 실패: {}",
                 String::from_utf8_lossy(&output.stderr)
             ),
         )));
     }
 
-    // 寻找生成的缩略图文件
+    // 생성된 썸네일 파일 찾기
     let video_file_stem = Path::new(video_path)
         .file_stem()
         .and_then(|s| s.to_str())
         .unwrap_or("video");
 
-    // 列出临时目录中的所有文件来找缩略图
+    // 임시 디렉토리의 모든 파일을 나열하여 썸네일 찾기
     let mut generated_thumbnail = None;
     if let Ok(entries) = fs::read_dir(&temp_dir) {
         for entry in entries {
@@ -131,7 +131,7 @@ async fn generate_thumbnail_macos(
     let thumbnail_path = if let Some(path) = generated_thumbnail {
         path
     } else {
-        // 如果没找到，尝试默认路径
+        // 찾지 못한 경우 기본 경로 시도
         let default_path = temp_dir.join(format!("{}.png", video_file_stem));
         if default_path.exists() {
             default_path
@@ -139,42 +139,42 @@ async fn generate_thumbnail_macos(
             return Err(tauri::Error::Io(std::io::Error::new(
                 std::io::ErrorKind::NotFound,
                 format!(
-                    "找不到生成的缩略图文件，video_file_stem: {}",
+                    "생성된 썸네일 파일을 찾을 수 없습니다, video_file_stem: {}",
                     video_file_stem
                 ),
             )));
         }
     };
 
-    // 读取生成的缩略图
+    // 생성된 썸네일 읽기
     let thumbnail_data = tokio::fs::read(&thumbnail_path).await.map_err(|e| {
         tauri::Error::Io(std::io::Error::new(
             std::io::ErrorKind::Other,
-            format!("读取缩略图失败: {}", e),
+            format!("썸네일 읽기 실패: {}", e),
         ))
     })?;
 
-    // 获取图像尺寸
+    // 이미지 크기 가져오기
     let img = ImageReader::new(std::io::Cursor::new(&thumbnail_data))
         .with_guessed_format()
         .map_err(|e| {
             tauri::Error::Io(std::io::Error::new(
                 std::io::ErrorKind::Other,
-                format!("读取图像格式失败: {}", e),
+                format!("이미지 형식 읽기 실패: {}", e),
             ))
         })?
         .decode()
         .map_err(|e| {
             tauri::Error::Io(std::io::Error::new(
                 std::io::ErrorKind::Other,
-                format!("解码图像失败: {}", e),
+                format!("이미지 디코딩 실패: {}", e),
             ))
         })?;
 
     let width = img.width();
     let height = img.height();
 
-    // 转换为 RGB 格式（去除透明度通道），然后转换为 JPEG
+    // RGB 형식으로 변환(투명도 채널 제거) 후 JPEG로 변환
     let rgb_img = img.to_rgb8();
     let mut jpeg_data = Vec::new();
 
@@ -183,17 +183,17 @@ async fn generate_thumbnail_macos(
         .map_err(|e| {
             tauri::Error::Io(std::io::Error::new(
                 std::io::ErrorKind::Other,
-                format!("转换为 JPEG 失败: {}", e),
+                format!("JPEG 변환 실패: {}", e),
             ))
         })?;
 
-    // 转换为 base64
+    // base64로 변환
     let base64_string = general_purpose::STANDARD.encode(&jpeg_data);
 
-    // 清理临时文件
+    // 임시 파일 정리
     let _ = tokio::fs::remove_file(&thumbnail_path).await;
 
-    // 获取视频时长（使用 mdls 命令）
+    // 비디오 길이 가져오기 (mdls 명령 사용)
     let duration = get_video_duration_macos(video_path).await.unwrap_or(0.0);
 
     Ok(VideoThumbnailInfo {
@@ -214,7 +214,7 @@ async fn get_video_duration_macos(video_path: &str) -> Option<f64> {
 
     if output.status.success() {
         let output_str = String::from_utf8_lossy(&output.stdout);
-        // 解析输出格式: "kMDItemDurationSeconds = 123.456"
+        // 출력 형식 파싱: "kMDItemDurationSeconds = 123.456"
         if let Some(duration_str) = output_str.split('=').nth(1) {
             duration_str.trim().parse().ok()
         } else {
@@ -233,7 +233,7 @@ unsafe fn convert_hbitmap_to_image_data(
     use windows::Win32::Graphics::Gdi::*;
 
     unsafe {
-        // 获取位图信息
+        // 비트맵 정보 가져오기
         let mut bitmap = BITMAP::default();
         let result = GetObjectW(
             hbitmap.into(),
@@ -244,19 +244,19 @@ unsafe fn convert_hbitmap_to_image_data(
         if result == 0 {
             return Err(tauri::Error::Io(std::io::Error::new(
                 std::io::ErrorKind::Other,
-                "获取位图信息失败",
+                "비트맵 정보 가져오기 실패",
             )));
         }
 
         let width = bitmap.bmWidth as u32;
         let height = bitmap.bmHeight as u32;
 
-        // 创建设备上下文
+        // 장치 컨텍스트 생성
         let hdc = GetDC(Some(HWND::default()));
         if hdc.is_invalid() {
             return Err(tauri::Error::Io(std::io::Error::new(
                 std::io::ErrorKind::Other,
-                "创建设备上下文失败",
+                "장치 컨텍스트 생성 실패",
             )));
         }
 
@@ -265,21 +265,21 @@ unsafe fn convert_hbitmap_to_image_data(
             ReleaseDC(Some(HWND::default()), hdc);
             return Err(tauri::Error::Io(std::io::Error::new(
                 std::io::ErrorKind::Other,
-                "创建兼容设备上下文失败",
+                "호환되는 장치 컨텍스트 생성 실패",
             )));
         }
 
-        // 选择位图到内存DC
+        // 메모리 DC에 비트맵 선택
         let old_bitmap = SelectObject(mem_dc, hbitmap.into());
 
-        // 准备位图信息头
+        // 비트맵 정보 헤더 준비
         let mut bmp_info = BITMAPINFO {
             bmiHeader: BITMAPINFOHEADER {
                 biSize: std::mem::size_of::<BITMAPINFOHEADER>() as u32,
                 biWidth: width as i32,
-                biHeight: -(height as i32), // 负值表示自顶向下
+                biHeight: -(height as i32), // 음수 값은 위에서 아래로를 나타냄
                 biPlanes: 1,
-                biBitCount: 24, // RGB 格式
+                biBitCount: 24, // RGB 형식
                 biCompression: BI_RGB.0,
                 biSizeImage: 0,
                 biXPelsPerMeter: 0,
@@ -290,12 +290,12 @@ unsafe fn convert_hbitmap_to_image_data(
             bmiColors: [RGBQUAD::default()],
         };
 
-        // 计算图像数据大小
-        let stride = ((width * 3 + 3) / 4) * 4; // 4字节对齐
+        // 이미지 데이터 크기 계산
+        let stride = ((width * 3 + 3) / 4) * 4; // 4바이트 정렬
         let data_size = stride * height;
         let mut image_data = vec![0u8; data_size as usize];
 
-        // 获取位图数据
+        // 비트맵 데이터 가져오기
         let result = GetDIBits(
             mem_dc,
             hbitmap,
@@ -306,7 +306,7 @@ unsafe fn convert_hbitmap_to_image_data(
             DIB_RGB_COLORS,
         );
 
-        // 清理资源
+        // 리소스 정리
         SelectObject(mem_dc, old_bitmap);
         let _ = DeleteDC(mem_dc);
         ReleaseDC(Some(HWND::default()), hdc);
@@ -314,17 +314,17 @@ unsafe fn convert_hbitmap_to_image_data(
         if result == 0 {
             return Err(tauri::Error::Io(std::io::Error::new(
                 std::io::ErrorKind::Other,
-                "获取位图数据失败",
+                "비트맵 데이터 가져오기 실패",
             )));
         }
 
-        // 转换 BGR 到 RGB 并去除填充
+        // BGR을 RGB로 변환하고 패딩 제거
         let mut rgb_data = Vec::with_capacity((width * height * 3) as usize);
         for y in 0..height {
             for x in 0..width {
                 let offset = (y * stride + x * 3) as usize;
                 if offset + 2 < image_data.len() {
-                    // BGR 转 RGB
+                    // BGR을 RGB로 변환
                     rgb_data.push(image_data[offset + 2]); // R
                     rgb_data.push(image_data[offset + 1]); // G
                     rgb_data.push(image_data[offset]); // B
@@ -343,80 +343,80 @@ async fn generate_thumbnail_windows(
 ) -> TauriResult<VideoThumbnailInfo> {
     use windows::{Win32::Foundation::*, Win32::System::Com::*, Win32::UI::Shell::*, core::*};
 
-    // 检查视频文件是否存在
+    // 비디오 파일 존재 여부 확인
     if !Path::new(video_path).exists() {
         return Err(tauri::Error::Io(std::io::Error::new(
             std::io::ErrorKind::NotFound,
-            format!("视频文件不存在: {}", video_path),
+            format!("비디오 파일이 존재하지 않습니다: {}", video_path),
         )));
     }
 
-    // 初始化 COM
+    // COM 초기화
     unsafe {
         CoInitializeEx(None, COINIT_APARTMENTTHREADED)
             .ok()
             .map_err(|e| {
                 tauri::Error::Io(std::io::Error::new(
                     std::io::ErrorKind::Other,
-                    format!("初始化 COM 失败: {:?}", e),
+                    format!("COM 초기화 실패: {:?}", e),
                 ))
             })?;
     }
 
     let result = unsafe {
-        // 将文件路径转换为宽字符
+        // 파일 경로를 와이드 문자로 변환
         let video_path_wide: Vec<u16> = video_path
             .encode_utf16()
             .chain(std::iter::once(0))
             .collect();
         let video_path_pcwstr = PCWSTR(video_path_wide.as_ptr());
 
-        // 创建 ShellItem
+        // ShellItem 생성
         let shell_item: IShellItem =
             SHCreateItemFromParsingName(video_path_pcwstr, None).map_err(|e| {
                 tauri::Error::Io(std::io::Error::new(
                     std::io::ErrorKind::Other,
-                    format!("创建 ShellItem 失败: {:?}", e),
+                    format!("ShellItem 생성 실패: {:?}", e),
                 ))
             })?;
 
-        // 获取缩略图
+        // 썸네일 가져오기
         let image_factory: IShellItemImageFactory = shell_item.cast().map_err(|e| {
             tauri::Error::Io(std::io::Error::new(
                 std::io::ErrorKind::Other,
-                format!("获取图像工厂失败: {:?}", e),
+                format!("이미지 팩토리 가져오기 실패: {:?}", e),
             ))
         })?;
 
-        // 设置缩略图大小
+        // 썸네일 크기 설정
         let size = SIZE { cx: 300, cy: 300 };
 
-        // 获取缩略图 HBITMAP
+        // 썸네일 HBITMAP 가져오기
         let hbitmap = image_factory
             .GetImage(size, SIIGBF_RESIZETOFIT)
             .map_err(|e| {
                 tauri::Error::Io(std::io::Error::new(
                     std::io::ErrorKind::Other,
-                    format!("获取缩略图失败，可能是视频格式不支持: {:?}", e),
+                    format!("썸네일 가져오기 실패, 비디오 형식이 지원되지 않을 수 있음: {:?}", e),
                 ))
             })?;
 
-        // 将 HBITMAP 转换为图像数据
+        // HBITMAP을 이미지 데이터로 변환
         convert_hbitmap_to_image_data(hbitmap)
     };
 
-    // 清理 COM
+    // COM 정리
     unsafe {
         CoUninitialize();
     }
 
     let (width, height, image_data) = result?;
 
-    // 创建图像并转换为 JPEG
+    // 이미지 생성 및 JPEG로 변환
     let img = image::RgbImage::from_raw(width, height, image_data).ok_or_else(|| {
         tauri::Error::Io(std::io::Error::new(
             std::io::ErrorKind::Other,
-            "创建图像失败",
+            "이미지 생성 실패",
         ))
     })?;
 
@@ -426,11 +426,11 @@ async fn generate_thumbnail_windows(
         .map_err(|e| {
             tauri::Error::Io(std::io::Error::new(
                 std::io::ErrorKind::Other,
-                format!("转换为 JPEG 失败: {}", e),
+                format!("JPEG 변환 실패: {}", e),
             ))
         })?;
 
-    // 转换为 base64
+    // base64로 변환
     let base64_string = general_purpose::STANDARD.encode(&jpeg_data);
 
     Ok(VideoThumbnailInfo {
@@ -445,14 +445,14 @@ async fn generate_thumbnail_linux(
     _video_path: &str,
     _target_time: Option<f64>,
 ) -> TauriResult<VideoThumbnailInfo> {
-    // Linux 实现可以使用 gstreamer 或其他方案
+    // Linux 구현은 gstreamer 또는 기타 솔루션을 사용할 수 있음
     Err(tauri::Error::Io(std::io::Error::new(
         std::io::ErrorKind::Unsupported,
-        "Linux 平台暂不支持视频缩略图生成",
+        "Linux 플랫폼은 현재 비디오 썸네일 생성을 지원하지 않습니다",
     )))
 }
 
-/// Tauri 命令：生成视频缩略图
+/// Tauri 명령: 비디오 썸네일 생성
 #[tauri::command]
 pub async fn get_video_thumbnail(
     video_path: String,

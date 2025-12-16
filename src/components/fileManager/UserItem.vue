@@ -1,17 +1,17 @@
 <template>
   <div :class="['user-item', { 'user-item--selected': isSelected }]" @click="handleClick">
-    <!-- 头像 -->
+    <!-- 아바타 -->
     <div class="user-avatar">
       <img
         :src="itemData.avatar || getDefaultAvatar()"
         :alt="itemData.name"
         @error="handleAvatarError"
         class="avatar-img" />
-      <!-- 在线状态指示器 -->
+      <!-- 온라인 상태 표시기 -->
       <div v-if="itemData.isOnline" class="online-indicator"></div>
     </div>
 
-    <!-- 信息 -->
+    <!-- 정보 -->
     <div class="user-info">
       <div class="user-name" :title="itemData.name">{{ itemData.name }}</div>
       <div v-if="itemData.subtitle" class="user-subtitle" :title="itemData.subtitle">
@@ -41,7 +41,7 @@ const props = withDefaults(
 const emit = defineEmits<Emits>()
 const { t } = useI18n()
 
-// 统一的数据格式
+// 통일된 데이터 형식
 const itemData = computed(() => {
   const item = props.user || props.room || props.contact || {}
 
@@ -64,18 +64,18 @@ const itemData = computed(() => {
 
 const getSubtitle = (item: any) => {
   if (item.roomName) {
-    // 群聊显示成员数量
+    // 그룹 채팅 멤버 수 표시
     return item.memberCount ? t('fileManager.userList.memberCount', { count: item.memberCount }) : ''
   }
   if (item.lastMessage) {
-    // 会话显示最后一条消息
+    // 세션 마지막 메시지 표시
     return item.lastMessage
   }
   return ''
 }
 
 const getDefaultAvatar = () => {
-  // 统一使用 logoD.png 作为默认头像，避免闪烁问题
+  // 깜박임 문제를 피하기 위해 logoD.png를 기본 아바타로 통일하여 사용
   return '/logoD.png'
 }
 
@@ -87,7 +87,7 @@ const handleAvatarError = (event: Event) => {
   const target = event.target as HTMLImageElement
   const defaultAvatar = getDefaultAvatar()
 
-  // 防止无限循环：如果当前已经是默认头像，就不再尝试更换
+  // 무한 루프 방지: 현재 이미 기본 아바타인 경우 변경 시도 중지
   if (target.src.includes('logoD.png') || target.src === defaultAvatar) {
     return
   }
@@ -165,7 +165,7 @@ const handleAvatarError = (event: Event) => {
   margin-top: 2px;
 }
 
-// 深色主题适配
+// 다크 모드 적응
 html[data-theme='dark'] {
   .user-item {
     &:hover:not(&--selected) {

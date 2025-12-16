@@ -1,4 +1,4 @@
-// 桌面端依赖
+// 데스크톱 의존성
 #[cfg(desktop)]
 mod desktops;
 use crate::common::files_meta::get_files_meta;
@@ -52,7 +52,7 @@ use crate::error::CommonError;
 use sea_orm::DatabaseConnection;
 use serde::{Deserialize, Serialize};
 
-// 移动端依赖
+// 모바일 의존성
 #[cfg(mobile)]
 use common::init::CustomInit;
 #[cfg(mobile)]
@@ -68,7 +68,7 @@ pub struct AppData {
     pub config: Arc<Mutex<Settings>>,
     frontend_task: Mutex<bool>,
     backend_task: Mutex<bool>,
-    /// 限制对 SQLite 的写入并发，避免 database is locked
+    /// SQLite에 대한 쓰기 동시성을 제한하여 database is locked 방지
     pub write_lock: Arc<Mutex<()>>,
 }
 
@@ -106,7 +106,7 @@ pub fn run() {
 
 #[cfg(desktop)]
 fn setup_desktop() -> Result<(), CommonError> {
-    // 创建一个缓存实例
+    // 캐시 인스턴스 생성
     // let cache: Cache<String, String> = Cache::builder()
     //     // Time to idle (TTI):  30 minutes
     //     .time_to_idle(Duration::from_secs(30 * 60))
@@ -136,7 +136,7 @@ fn setup_desktop() -> Result<(), CommonError> {
     Ok(())
 }
 
-// 异步初始化应用数据
+// 비동기 앱 데이터 초기화
 async fn initialize_app_data(
     app_handle: tauri::AppHandle,
 ) -> Result<
@@ -151,13 +151,13 @@ async fn initialize_app_data(
     use migration::{Migrator, MigratorTrait};
     use tracing::info;
 
-    // 加载配置
+    // 구성 로드
     let configuration =
         Arc::new(Mutex::new(get_configuration(&app_handle).map_err(|e| {
             anyhow::anyhow!("Failed to load configuration: {}", e)
         })?));
 
-    // 初始化数据库连接
+    // 데이터베이스 연결 초기화
     let db: Arc<DatabaseConnection> = Arc::new(
         configuration
             .lock()
@@ -167,7 +167,7 @@ async fn initialize_app_data(
             .await?,
     );
 
-    // 数据库迁移
+    // 데이터베이스 마이그레이션
     match Migrator::up(db.as_ref(), None).await {
         Ok(_) => {
             info!("Database migration completed");
@@ -182,7 +182,7 @@ async fn initialize_app_data(
     )
     .unwrap();
 
-    // 创建用户信息
+    // 사용자 정보 생성
     let user_info = UserInfo {
         token: Default::default(),
         refresh_token: Default::default(),
@@ -208,12 +208,12 @@ pub async fn build_request_client() -> Result<reqwest::Client, CommonError> {
     Ok(client)
 }
 
-/// 处理退出登录时的窗口管理逻辑
+/// 로그아웃 시 창 관리 로직 처리
 ///
-/// 该函数会：
-/// - 关闭除 login/tray 外的大部分窗口
-/// - 隐藏但保留 capture/checkupdate 窗口
-/// - 优雅地处理窗口关闭过程中的错误
+/// 이 함수는 다음을 수행합니다:
+/// - login/tray를 제외한 대부분의 창 닫기
+/// - capture/checkupdate 창은 숨기지만 유지
+/// - 창 닫기 과정 중의 오류를 우아하게 처리
 #[cfg(desktop)]
 pub async fn handle_logout_windows(app_handle: &tauri::AppHandle) {
     tracing::info!("[LOGOUT] Starting to close windows and preserve capture/checkupdate windows");
@@ -221,22 +221,22 @@ pub async fn handle_logout_windows(app_handle: &tauri::AppHandle) {
     let all_windows = app_handle.webview_windows();
     tracing::info!("[LOGOUT] Found {} windows", all_windows.len());
 
-    // 收集需要关闭的窗口和需要隐藏的窗口
+    // 닫아야 할 창과 숨겨야 할 창 수집
     let mut windows_to_close = Vec::new();
     let mut windows_to_hide = Vec::new();
 
     for (label, window) in all_windows {
         match label.as_str() {
-            // 这些窗口完全不处理
+            // 이 창들은 전혀 처리하지 않음
             "login" | "tray" => {
                 tracing::info!("[LOGOUT] Skipping window: {}", label);
             }
-            // 这些窗口只隐藏，不销毁
+            // 이 창들은 숨기기만 하고 파괴하지 않음
             "capture" | "checkupdate" => {
                 tracing::info!("[LOGOUT] Marking window for preservation: {}", label);
                 windows_to_hide.push((label, window));
             }
-            // 其他窗口需要关闭
+            // 다른 창들은 닫아야 함
             _ => {
                 tracing::info!("[LOGOUT] Marking window for closure: {}", label);
                 windows_to_close.push((label, window));
@@ -244,7 +244,7 @@ pub async fn handle_logout_windows(app_handle: &tauri::AppHandle) {
         }
     }
 
-    // 先隐藏需要保持的窗口
+    // 유지해야 할 창 먼저 숨기기
     for (label, window) in windows_to_hide {
         tracing::info!("[LOGOUT] Hiding window (preserving): {}", label);
         if let Err(e) = window.hide() {
@@ -252,14 +252,14 @@ pub async fn handle_logout_windows(app_handle: &tauri::AppHandle) {
         }
     }
 
-    // 逐个关闭窗口，添加小延迟以避免并发关闭导致的错误
+    // 창을 하나씩 닫고, 동시 닫기로 인한 오류를 방지하기 위해 약간의 지연 추가
     for (label, window) in windows_to_close {
         tracing::info!("[LOGOUT] Closing window: {}", label);
 
-        // 先隐藏窗口，减少用户感知的延迟
+        // 사용자 인지 지연을 줄이기 위해 먼저 창 숨기기
         let _ = window.hide();
 
-        // 添加小延迟，让窗口有时间处理正在进行的操作
+        // 창이 진행 중인 작업을 처리할 시간을 갖도록 약간의 지연 추가
         // tokio::time::sleep(tokio::time::Duration::from_millis(200)).await;
 
         match window.destroy() {
@@ -267,7 +267,7 @@ pub async fn handle_logout_windows(app_handle: &tauri::AppHandle) {
                 tracing::info!("[LOGOUT] Successfully closed window: {}", label);
             }
             Err(error) => {
-                // 检查窗口是否还存在
+                // 창이 아직 존재하는지 확인
                 if app_handle.get_webview_window(&label).is_none() {
                     tracing::info!(
                         "[LOGOUT] Window {} no longer exists, skipping closure",
@@ -289,7 +289,7 @@ pub async fn handle_logout_windows(app_handle: &tauri::AppHandle) {
     );
 }
 
-// 设置登出事件监听器
+// 로그아웃 이벤트 리스너 설정
 #[cfg(desktop)]
 fn setup_logout_listener(app_handle: tauri::AppHandle) {
     let app_handle_clone = app_handle.clone();
@@ -305,7 +305,7 @@ fn setup_logout_listener(app_handle: tauri::AppHandle) {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 fn setup_mobile() {
     splash::show();
-    // 创建一个缓存实例
+    // 캐시 인스턴스 생성
     // let cache: Cache<String, String> = Cache::builder()
     //     // Time to idle (TTI):  30 minutes
     //     .time_to_idle(Duration::from_secs(30 * 60))
@@ -336,7 +336,7 @@ fn setup_mobile() {
     }
 }
 
-// 公共的 setup 函数
+// 공통 setup 함수
 fn common_setup(app_handle: AppHandle) -> Result<(), Box<dyn std::error::Error>> {
     let scope = app_handle.fs_scope();
     scope.allow_directory("configuration", false).unwrap();
@@ -344,17 +344,17 @@ fn common_setup(app_handle: AppHandle) -> Result<(), Box<dyn std::error::Error>>
     #[cfg(desktop)]
     setup_logout_listener(app_handle.clone());
 
-    // 异步初始化应用数据，避免阻塞主线程
+    // 메인 스레드 차단을 피하기 위해 비동기 앱 데이터 초기화
     match tauri::async_runtime::block_on(initialize_app_data(app_handle.clone())) {
         Ok((db, user_info, rc, settings)) => {
-            // 使用 manage 方法在运行时添加状态
+            // manage 메서드를 사용하여 런타임에 상태 추가
             app_handle.manage(AppData {
                 db_conn: db.clone(),
                 user_info: user_info.clone(),
                 rc: rc,
                 config: settings,
                 frontend_task: Mutex::new(false),
-                // 后端任务默认完成
+                // 백엔드 작업 기본 완료
                 backend_task: Mutex::new(true),
                 write_lock: Arc::new(Mutex::new(())),
             });
@@ -374,7 +374,7 @@ fn common_setup(app_handle: AppHandle) -> Result<(), Box<dyn std::error::Error>>
     Ok(())
 }
 
-// 公共的命令处理器函数
+// 공통 명령 처리기 함수
 fn get_invoke_handlers() -> impl Fn(tauri::ipc::Invoke<tauri::Wry>) -> bool + Send + Sync + 'static
 {
     use crate::command::ai_command::ai_message_send_stream;
@@ -397,7 +397,7 @@ fn get_invoke_handlers() -> impl Fn(tauri::ipc::Invoke<tauri::Wry>) -> bool + Se
     };
 
     tauri::generate_handler![
-        // 桌面端特定命令
+        // 데스크톱 전용 명령
         #[cfg(desktop)]
         default_window_icon,
         #[cfg(desktop)]
@@ -429,7 +429,7 @@ fn get_invoke_handlers() -> impl Fn(tauri::ipc::Invoke<tauri::Wry>) -> bool + Se
         set_badge_count,
         #[cfg(target_os = "windows")]
         get_windows_scale_info,
-        // 通用命令（桌面端和移动端都支持）
+        // 일반 명령 (데스크톱 및 모바일 모두 지원)
         save_user_info,
         get_user_tokens,
         update_token,
@@ -449,13 +449,13 @@ fn get_invoke_handlers() -> impl Fn(tauri::ipc::Invoke<tauri::Wry>) -> bool + Se
         delete_room_messages,
         update_message_recall_status,
         save_message_mark,
-        // 聊天历史相关命令
+        // 채팅 기록 관련 명령
         query_chat_history,
-        // 文件管理相关命令
+        // 파일 관리 관련 명령
         query_files,
         get_navigation_items,
         debug_message_stats,
-        // WebSocket 相关命令
+        // WebSocket 관련 명령
         ws_init_connection,
         ws_disconnect,
         ws_send_message,
@@ -470,9 +470,9 @@ fn get_invoke_handlers() -> impl Fn(tauri::ipc::Invoke<tauri::Wry>) -> bool + Se
         im_request_command,
         get_settings,
         update_settings,
-        // AI 相关命令
+        // AI 관련 명령
         ai_message_send_stream,
-        // Markdown 相关命令
+        // Markdown 관련 명령
         parse_markdown,
         get_readme_html,
         #[cfg(mobile)]

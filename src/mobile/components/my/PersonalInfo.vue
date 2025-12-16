@@ -1,18 +1,18 @@
 <template>
-  <!-- 个人信息区 -->
+  <!-- 개인 정보 영역 -->
   <div class="flex flex-col px-16px">
-    <!-- 头像基本信息 -->
+    <!-- 프로필 사진 및 기본 정보 -->
     <div ref="avatarBox" class="grid grid-cols-[86px_1fr] z-1 items-start mt-6 gap-2" style="transform: translateZ(0)">
-      <!-- 头像 -->
+      <!-- 프로필 사진 -->
       <div
         class="self-center h-auto transition-transform duration-300 ease-in-out origin-top"
         :style="{ transform: props.isShow ? 'scale(1) translateY(0)' : 'scale(0.62) translateY(0px)' }">
         <n-avatar :size="86" :src="AvatarUtils.getAvatarUrl(userDetailInfo!.avatar)" fallback-src="/logo.png" round />
       </div>
 
-      <!-- 基本信息栏 -->
+      <!-- 기본 정보 표시줄 -->
       <div ref="infoBox" class="pl-2 flex gap-8px flex-col transition-transform duration-300 ease-in-out">
-        <!-- 名字与在线状态 -->
+        <!-- 이름 및 온라인 상태 -->
         <div class="flex flex-warp gap-4 items-center">
           <span class="font-bold text-20px text-#373838">{{ userDetailInfo!.name }}</span>
           <div
@@ -30,9 +30,9 @@
           </div>
         </div>
 
-        <!-- 账号 -->
+        <!-- 계정 -->
         <div class="flex flex-warp gap-2 items-center">
-          <span class="text-bold-style">账号:{{ userDetailInfo!.account }}</span>
+          <span class="text-bold-style">계정:{{ userDetailInfo!.account }}</span>
           <span v-if="isMyPage" @click="toMyQRCode" class="pe-15px">
             <img class="w-14px h-14px" src="@/assets/mobile/my/qr-code.webp" alt="" />
           </span>
@@ -47,11 +47,11 @@
             <div class="text-10px absolute inset-0 flex ps-2 items-center justify-around text-white font-medium">
               <span class="flex items-center">
                 <div v-if="(userStore.userInfo?.itemIds?.length ?? 0) > 0">
-                  <span class="font-bold">已点亮</span>
+                  <span class="font-bold">획득</span>
                   <span class="medal-number">{{ userStore.userInfo?.itemIds?.length }}</span>
-                  <span class="font-bold">枚勋章</span>
+                  <span class="font-bold">개 훈장</span>
                 </div>
-                <span v-else>还没勋章哦~</span>
+                <span v-else>아직 훈장이 없어요~</span>
               </span>
 
               <span class="flex ms-3">
@@ -65,29 +65,29 @@
       </div>
     </div>
   </div>
-  <!-- 个人描述和点赞关注区 -->
+  <!-- 개인 설명 및 좋아요/팔로우 영역 -->
   <Transition name="slide-fade" @before-enter="beforeEnter" @enter="enter" @leave="leave">
     <div v-if="props.isShow" ref="animatedBox" style="transform: translateZ(0)" class="flex flex-col px-16px">
-      <!-- 个人描述 -->
+      <!-- 개인 설명 -->
       <div class="mt-2 text-bold-style line-height-24px">
         {{ isMyPage ? userStore.userInfo?.resume : (userDetailInfo as UserInfoType).resume }}
       </div>
-      <!-- 点赞关注 -->
+      <!-- 좋아요/팔로우 -->
       <div class="flex flex-wrap justify-around mt-4">
         <div class="flex flex-warp gap-2 items-center">
           <div class="min-w-10 flex flex-col items-center">
             <div class="fans-number">920.13W</div>
-            <div class="fans-title">粉丝</div>
+            <div class="fans-title">팔로워</div>
           </div>
           <div class="h-20px w-1px bg-gray-300"></div>
           <div class="min-w-10 flex flex-col items-center">
             <div class="fans-number">120</div>
-            <div class="fans-title">关注</div>
+            <div class="fans-title">팔로잉</div>
           </div>
           <div class="h-20px w-1px bg-gray-300"></div>
           <div class="min-w-10 flex flex-col items-center">
             <div class="fans-number">43.15W</div>
-            <div class="fans-title">点赞</div>
+            <div class="fans-title">좋아요</div>
           </div>
         </div>
         <div class="flex-1 justify-end flex items-center gap-3">
@@ -96,7 +96,7 @@
             @click="toEditProfile"
             v-if="props.isMyPage && !isBotUser(uid)"
             class="font-bold px-4 py-10px bg-#EEF4F3 text-#373838 rounded-full text-12px">
-            编辑资料
+            프로필 편집
           </n-button>
           <n-button
             :loading="loading"
@@ -105,7 +105,7 @@
             :color="'#d5304f'"
             v-if="!props.isMyPage && isMyFriend && !isBotUser(uid)"
             class="px-5 py-10px font-bold text-center rounded-full text-12px">
-            删除
+            삭제
           </n-button>
 
           <n-button
@@ -114,7 +114,7 @@
             v-if="!props.isMyPage && !isMyFriend && !isBotUser(uid)"
             @click="handleAddFriend"
             class="px-5 py-10px font-bold text-center rounded-full text-12px">
-            +&nbsp;添加好友
+            +&nbsp;친구 추가
           </n-button>
           <n-button
             type="primary"
@@ -122,7 +122,7 @@
             :disabled="loading"
             v-if="!props.isMyPage && isMyFriend"
             class="px-5 py-10px text-center font-bold rounded-full text-12px">
-            {{ isBotUser(uid) ? '打开助手' : '私聊' }}
+            {{ isBotUser(uid) ? '어시스턴트 열기' : '1:1 채팅' }}
           </n-button>
         </div>
       </div>
@@ -168,7 +168,7 @@ const userStore = useUserStore()
 const userStatusStore = useUserStatusStore()
 const groupStore = useGroupStore()
 const route = useRoute()
-const contactStore = useContactStore() // 联系人
+const contactStore = useContactStore() // 연락처
 const globalStore = useGlobalStore()
 const chatStore = useChatStore()
 
@@ -181,18 +181,18 @@ const isBotUser = (uid: string) => groupStore.getUserInfo(uid)?.account === User
 const toChatRoom = async () => {
   try {
     const res = await getSessionDetailWithFriends({ id: uid, roomType: 2 })
-    // 先检查会话是否已存在
+    // 먼저 세션이 이미 존재하는지 확인
     const existingSession = chatStore.getSession(res.roomId)
     if (!existingSession) {
-      // 只有当会话不存在时才更新会话列表顺序
+      // 세션이 존재하지 않을 때만 세션 목록 순서 업데이트
       chatStore.updateSessionLastActiveTime(res.roomId)
-      // 如果会话不存在，需要重新获取会话列表，但保持当前选中的会话
+      // 세션이 존재하지 않으면 세션 목록을 다시 가져오되, 현재 선택된 세션은 유지
       await chatStore.getSessionList(true)
     }
     await preloadChatRoom(res.roomId)
     router.push(`/mobile/chatRoom/chatMain`)
   } catch (error) {
-    console.error('私聊尝试进入聊天室失败:', error)
+    console.error('1:1 채팅방 입장 시도 실패:', error)
   }
 }
 
@@ -201,7 +201,7 @@ const handleAddFriend = async () => {
   router.push('/mobile/mobileFriends/confirmAddFriend')
 }
 
-// 用户详情信息，默认字段只写必要的，不加可能会报错undefined
+// 사용자 상세 정보, 기본 필드는 필요한 것만 작성, 추가하지 않으면 undefined 오류 발생 가능
 const userDetailInfo = ref<UserItem | UserInfoType | undefined>({
   activeStatus: OnlineEnum.ONLINE,
   avatar: '',
@@ -212,13 +212,13 @@ const userDetailInfo = ref<UserItem | UserInfoType | undefined>({
   resume: ''
 })
 
-// 这个值只有在查看好友详细信息时才用
+// 이 값은 친구 상세 정보를 볼 때만 사용됨
 const friendUserState = ref<any>({
   title: '',
   url: ''
 })
 
-// 是否存在用户在线状态
+// 사용자 온라인 상태 존재 여부
 const hasUserOnlineState = ref(false)
 
 const { stateList } = storeToRefs(userStatusStore)
@@ -234,7 +234,7 @@ const getUserState = (
   updateTime: null
   url: string
 } => {
-  // 不直接return，不然不好debug
+  // 바로 return하지 않음, 디버깅 용이성을 위해
   const foundedState = stateList.value.find((state: { id: string }) => state.id === stateId)
   return foundedState
 }
@@ -253,7 +253,7 @@ onMounted(() => {
     const state = getUserState(foundedUser.userStateId)
     friendUserState.value = state
 
-    // 设置完成状态后最后再显示状态
+    // 완료 상태 설정 후 마지막에 상태 표시
     hasUserOnlineState.value = true
   }
 
@@ -272,11 +272,11 @@ const loading = ref(false)
 
 const handleDelete = () => {
   showDialog({
-    title: '删除好友',
-    message: '确定删除该好友吗？',
+    title: '친구 삭제',
+    message: '이 친구를 삭제하시겠습니까?',
     showCancelButton: true,
-    confirmButtonText: '确定',
-    cancelButtonText: '取消'
+    confirmButtonText: '확인',
+    cancelButtonText: '취소',
   })
     .then(async () => {
       if (userDetailInfo.value?.uid) {
@@ -285,20 +285,20 @@ const handleDelete = () => {
           await contactStore.onDeleteFriend(userDetailInfo.value.uid)
           isMyFriend.value = false
           chatStore.getSessionList(true)
-          window.$message.success('已删除好友')
+          window.$message.success('친구 삭제됨')
           router.back()
         } catch (error) {
-          window.$message.warning('删除失败')
-          console.error('删除好友失败：', error)
+          window.$message.warning('삭제 실패')
+          console.error('친구 삭제 실패:', error)
         } finally {
           loading.value = false
         }
       } else {
-        window.$message.warning('没有找到好友哦')
+        window.$message.warning('친구를 찾을 수 없습니다')
       }
     })
     .catch(() => {
-      // 用户点击取消，不做任何操作
+      // 사용자가 취소를 클릭하면 아무 작업도 하지 않음
     })
 }
 
@@ -326,11 +326,11 @@ function enter(el: Element, done: () => void) {
     box.style.transform = 'translateY(0)'
   })
 
-  // 清理动画
+  // 애니메이션 정리
   box.addEventListener(
     'transitionend',
     () => {
-      box.style.height = 'auto' // 动画结束后设回 auto，避免影响布局
+      box.style.height = 'auto' // 애니메이션 종료 후 auto로 다시 설정하여 레이아웃 영향 방지
       done()
     },
     { once: true }
@@ -367,7 +367,7 @@ watch(
     box.style.transition = 'all 0.3s ease'
 
     if (show) {
-      // 显示：从缩小恢复到原始高度
+      // 표시: 축소 상태에서 원래 높이로 복구
       box.style.height = box.scrollHeight + 'px'
       box.style.opacity = '1'
       box.style.transform = 'scale(1) translateY(0)'
@@ -375,16 +375,16 @@ watch(
       box.addEventListener(
         'transitionend',
         () => {
-          box.style.height = 'auto' // 回归自适应高度
+          box.style.height = 'auto' // 자동 높이로 복귀
           box.style.overflow = ''
         },
         { once: true }
       )
     } else {
-      // 隐藏：缩小并收起高度
-      box.style.height = box.scrollHeight + 'px' // 先设置为当前高度
+      // 숨김: 축소하고 높이 접기
+      box.style.height = box.scrollHeight + 'px' // 먼저 현재 높이로 설정
       requestAnimationFrame(() => {
-        box.style.height = '58px' // 保持略小的高度（你原图是 86px，缩放 0.65 后约为 56px）
+        box.style.height = '58px' // 약간 작은 높이 유지 (원본 86px, 0.65 축소 후 약 56px)
         box.style.transform = 'scale(1) translateY(0)'
       })
     }
@@ -398,13 +398,13 @@ watch(
     const info = infoBox.value
     if (!info) return
 
-    // 添加动画过渡（也可直接写在 class 里）
+    // 애니메이션 전환 추가 (class에 직접 작성 가능)
     info.style.transition = 'transform 0.3s ease'
 
     if (show) {
       info.style.transform = 'translateX(0)'
     } else {
-      info.style.transform = 'translateX(-20px)' // 👈 向左移动一点
+      info.style.transform = 'translateX(-20px)' // 👈 왼쪽으로 약간 이동
     }
   }
 )
@@ -446,7 +446,7 @@ $font-family-sans: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 
 .custom-rounded {
   border-top-left-radius: 20px;
-  /* 左上角 */
+  /* 왼쪽 상단 */
   border-top-right-radius: 20px;
   overflow: hidden;
 }
@@ -490,7 +490,7 @@ $font-family-sans: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
 .medal-fade-enter-to {
-  max-height: 24px; // 和你容器展开时的高度一致
+  max-height: 24px; // 컨테이너가 펼쳐졌을 때의 높이와 일치
   opacity: 1;
 }
 

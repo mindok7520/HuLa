@@ -1,10 +1,10 @@
 /**
- * 图片处理工具类
- * 提供图片格式检测、转换、处理等功能
+ * 이미지 처리 유틸리티 클래스
+ * 이미지 형식 감지, 변환, 처리 등의 기능 제공
  */
 
 /**
- * 图片信息类型
+ * 이미지 정보 타입
  */
 type ImageInfo = {
   width: number
@@ -14,18 +14,18 @@ type ImageInfo = {
 }
 
 /**
- * 获取图片信息选项
+ * 이미지 정보 가져오기 옵션
  */
 type GetImageInfoOptions = {
-  /** 是否返回预览URL（仅对File有效） */
+  /** 미리보기 URL 반환 여부 (File에만 유효) */
   includePreviewUrl?: boolean
-  /** 是否返回文件大小（仅对URL有效） */
+  /** 파일 크기 반환 여부 (URL에만 유효) */
   includeSize?: boolean
 }
 
 /**
- * 检测图片格式
- * @param imageUrl 图片 URL
+ * 이미지 형식 감지
+ * @param imageUrl 이미지 URL
  */
 export const detectImageFormat = (imageUrl: string): string => {
   if (imageUrl.startsWith('data:image/')) {
@@ -54,9 +54,9 @@ export const detectImageFormat = (imageUrl: string): string => {
 }
 
 /**
- * 将图片 URL 转换为 PNG 格式的 Uint8Array
- * 支持 base64 和 HTTP URL 格式的图片
- * @param imageUrl 图片 URL
+ * 이미지 URL을 PNG 형식의 Uint8Array로 변환
+ * base64 및 HTTP URL 형식의 이미지 지원
+ * @param imageUrl 이미지 URL
  */
 export const imageUrlToUint8Array = async (imageUrl: string): Promise<Uint8Array> => {
   return new Promise((resolve, reject) => {
@@ -64,59 +64,59 @@ export const imageUrlToUint8Array = async (imageUrl: string): Promise<Uint8Array
 
     img.onload = () => {
       try {
-        // 创建 canvas 并设置尺寸
+        // canvas 생성 및 크기 설정
         const canvas = document.createElement('canvas')
         canvas.width = img.width
         canvas.height = img.height
 
-        // 获取 2D 上下文并绘制图片
+        // 2D 컨텍스트 가져오기 및 이미지 그리기
         const ctx = canvas.getContext('2d')
         if (!ctx) {
-          reject(new Error('无法获取 Canvas 上下文'))
+          reject(new Error('Canvas 컨텍스트를 가져올 수 없습니다'))
           return
         }
 
         ctx.drawImage(img, 0, 0)
 
-        // 将 canvas 转换为 PNG 格式的 blob
+        // canvas를 PNG 형식의 blob으로 변환
         canvas.toBlob((blob) => {
           if (!blob) {
-            reject(new Error('图片转换失败'))
+            reject(new Error('이미지 변환 실패'))
             return
           }
 
-          // 读取 blob 为 ArrayBuffer，然后转换为 Uint8Array
+          // blob을 ArrayBuffer로 읽은 후 Uint8Array로 변환
           const reader = new FileReader()
           reader.onload = () => {
             const arrayBuffer = reader.result as ArrayBuffer
             resolve(new Uint8Array(arrayBuffer))
           }
           reader.onerror = () => {
-            reject(new Error('读取图片数据失败'))
+            reject(new Error('이미지 데이터 읽기 실패'))
           }
           reader.readAsArrayBuffer(blob)
-        }, 'image/png') // 强制转换为 PNG 格式
+        }, 'image/png') // PNG 형식으로 강제 변환
       } catch (error) {
         reject(error)
       }
     }
 
     img.onerror = () => {
-      reject(new Error('图片加载失败'))
+      reject(new Error('이미지 로드 실패'))
     }
 
-    // 处理跨域问题
+    // 교차 도메인 문제 처리
     img.crossOrigin = 'anonymous'
     img.src = imageUrl
   })
 }
 
 /**
- * 将 Tauri 的 RGBA 图片数据转换为 PNG 格式的 File 对象
- * @param imageData RGBA 字节数组
- * @param width 图片宽度
- * @param height 图片高度
- * @param filename 文件名（可选）
+ * Tauri의 RGBA 이미지 데이터를 PNG 형식의 File 객체로 변환
+ * @param imageData RGBA 바이트 배열
+ * @param width 이미지 너비
+ * @param height 이미지 높이
+ * @param filename 파일명 (선택 사항)
  */
 export const rgbaToFile = async (
   imageData: Uint8Array,
@@ -126,21 +126,21 @@ export const rgbaToFile = async (
 ): Promise<File> => {
   return new Promise((resolve, reject) => {
     try {
-      // 创建 Canvas
+      // Canvas 생성
       const canvas = document.createElement('canvas')
       canvas.width = width
       canvas.height = height
       const ctx = canvas.getContext('2d')
 
       if (!ctx) {
-        reject(new Error('无法创建 Canvas 上下文'))
+        reject(new Error('Canvas 컨텍스트를 생성할 수 없습니다'))
         return
       }
 
-      // 创建 ImageData 对象
+      // ImageData 객체 생성
       const canvasImageData = ctx.createImageData(width, height)
 
-      // 处理不同的数据源格式
+      // 다른 데이터 소스 형식 처리
       let uint8Array: Uint8Array
       if (imageData.buffer instanceof ArrayBuffer) {
         uint8Array = new Uint8Array(imageData.buffer, imageData.byteOffset, imageData.byteLength)
@@ -148,17 +148,17 @@ export const rgbaToFile = async (
         uint8Array = new Uint8Array(imageData)
       }
 
-      // 复制数据到 canvas ImageData
+      // canvas ImageData에 데이터 복사
       canvasImageData.data.set(uint8Array)
 
-      // 将 ImageData 绘制到 canvas
+      // ImageData를 canvas에 그리기
       ctx.putImageData(canvasImageData, 0, 0)
 
-      // 将 canvas 转换为 Blob，然后创建 File 对象
+      // canvas를 Blob으로 변환한 후 File 객체 생성
       canvas.toBlob(
         (blob) => {
           if (!blob) {
-            reject(new Error('Canvas 转换为 Blob 失败'))
+            reject(new Error('Canvas를 Blob으로 변환 실패'))
             return
           }
 
@@ -175,29 +175,29 @@ export const rgbaToFile = async (
 }
 
 /**
- * 将 Tauri 的 RGBA 图片数据转换为 PNG 格式的 Uint8Array
- * @param imageData RGBA 字节数组
- * @param width 图片宽度
- * @param height 图片高度
+ * Tauri의 RGBA 이미지 데이터를 PNG 형식의 Uint8Array로 변환
+ * @param imageData RGBA 바이트 배열
+ * @param width 이미지 너비
+ * @param height 이미지 높이
  */
 export const rgbaToUint8Array = async (imageData: Uint8Array, width: number, height: number): Promise<Uint8Array> => {
   return new Promise((resolve, reject) => {
     try {
-      // 创建 Canvas
+      // Canvas 생성
       const canvas = document.createElement('canvas')
       canvas.width = width
       canvas.height = height
       const ctx = canvas.getContext('2d')
 
       if (!ctx) {
-        reject(new Error('无法创建 Canvas 上下文'))
+        reject(new Error('Canvas 컨텍스트를 생성할 수 없습니다'))
         return
       }
 
-      // 创建 ImageData 对象
+      // ImageData 객체 생성
       const canvasImageData = ctx.createImageData(width, height)
 
-      // 处理不同的数据源格式
+      // 다른 데이터 소스 형식 처리
       let uint8Array: Uint8Array
       if (imageData.buffer instanceof ArrayBuffer) {
         uint8Array = new Uint8Array(imageData.buffer, imageData.byteOffset, imageData.byteLength)
@@ -205,17 +205,17 @@ export const rgbaToUint8Array = async (imageData: Uint8Array, width: number, hei
         uint8Array = new Uint8Array(imageData)
       }
 
-      // 复制数据到 canvas ImageData
+      // canvas ImageData에 데이터 복사
       canvasImageData.data.set(uint8Array)
 
-      // 将 ImageData 绘制到 canvas
+      // ImageData를 canvas에 그리기
       ctx.putImageData(canvasImageData, 0, 0)
 
-      // 将 canvas 转换为 Blob，然后读取为 Uint8Array
+      // canvas를 Blob으로 변환한 후 Uint8Array로 읽기
       canvas.toBlob(
         (blob) => {
           if (!blob) {
-            reject(new Error('Canvas 转换为 Blob 失败'))
+            reject(new Error('Canvas를 Blob으로 변환 실패'))
             return
           }
 
@@ -225,7 +225,7 @@ export const rgbaToUint8Array = async (imageData: Uint8Array, width: number, hei
             resolve(new Uint8Array(arrayBuffer))
           }
           reader.onerror = () => {
-            reject(new Error('读取图片数据失败'))
+            reject(new Error('이미지 데이터 읽기 실패'))
           }
           reader.readAsArrayBuffer(blob)
         },
@@ -239,10 +239,10 @@ export const rgbaToUint8Array = async (imageData: Uint8Array, width: number, hei
 }
 
 /**
- * 获取图片的详细信息
- * 支持 File 对象和图片 URL，可选择性返回额外信息
- * @param input 图片源（File对象或URL字符串）
- * @param options 选项配置
+ * 이미지의 상세 정보 가져오기
+ * File 객체와 이미지 URL 지원, 추가 정보 선택적 반환
+ * @param input 이미지 소스 (File 객체 또는 URL 문자열)
+ * @param options 옵션 설정
  */
 export const getImageDimensions = async (
   input: File | string,
@@ -255,14 +255,14 @@ export const getImageDimensions = async (
     let previewUrl: string | undefined
     let shouldRevokeUrl = false
 
-    // 处理不同的输入类型
+    // 다른 입력 타입 처리
     if (input instanceof File) {
-      // File 对象处理
+      // File 객체 처리
       previewUrl = URL.createObjectURL(input)
       shouldRevokeUrl = true
       img.src = previewUrl
     } else {
-      // URL 字符串处理
+      // URL 문자열 처리
       img.crossOrigin = 'anonymous'
       img.src = input
     }
@@ -274,24 +274,24 @@ export const getImageDimensions = async (
           height: img.height
         }
 
-        // 根据选项添加额外信息
+        // 옵션에 따라 추가 정보 추가
         if (includePreviewUrl && previewUrl) {
           result.previewUrl = previewUrl
-          shouldRevokeUrl = false // 不自动释放，由调用者决定
+          shouldRevokeUrl = false // 자동 해제하지 않고 호출자가 결정
         }
 
         if (includeSize && typeof input === 'string') {
           try {
-            // 获取远程图片大小
+            // 원격 이미지 크기 가져오기
             const response = await fetch(input, { method: 'HEAD' })
             result.size = parseInt(response.headers.get('content-length') || '0', 10)
           } catch (_error) {
-            // 如果无法获取大小，使用默认值
+            // 크기를 가져올 수 없는 경우 기본값 사용
             result.size = 0
           }
         }
 
-        // 如果不需要保留预览URL，则释放它
+        // 미리보기 URL을 유지할 필요가 없으면 해제
         if (shouldRevokeUrl && previewUrl) {
           URL.revokeObjectURL(previewUrl)
         }
@@ -309,14 +309,14 @@ export const getImageDimensions = async (
       if (shouldRevokeUrl && previewUrl) {
         URL.revokeObjectURL(previewUrl)
       }
-      reject(new Error('图片加载失败'))
+      reject(new Error('이미지 로드 실패'))
     }
   })
 }
 
 /**
- * 检查是否为图片
- * @param url 待检查的 URL
+ * 이미지인지 확인
+ * @param url 확인할 URL
  */
 export const isImageUrl = (url: string): boolean => {
   if (url.startsWith('data:image/')) {
@@ -329,17 +329,17 @@ export const isImageUrl = (url: string): boolean => {
 }
 
 /**
- * 处理剪贴板图片数据
- * 简化版本，专门用于处理 Tauri 剪贴板读取的图片数据
- * @param clipboardImage Tauri 剪贴板图片对象
+ * 클립보드 이미지 데이터 처리
+ * 간소화 버전, Tauri 클립보드에서 읽은 이미지 데이터 처리 전용
+ * @param clipboardImage Tauri 클립보드 이미지 객체
  */
 export const processClipboardImage = async (clipboardImage: any): Promise<File> => {
-  // 获取图片的宽度和高度
+  // 이미지의 너비와 높이 가져오기
   const { width, height } = await clipboardImage.size()
 
-  // 获取图片的 RGBA 数据
+  // 이미지의 RGBA 데이터 가져오기
   const imageData = await clipboardImage.rgba()
 
-  // 使用 rgbaToFile 函数转换为 File 对象
+  // rgbaToFile 함수를 사용하여 File 객체로 변환
   return await rgbaToFile(imageData, width, height)
 }

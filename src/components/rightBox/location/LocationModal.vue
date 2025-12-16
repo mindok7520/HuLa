@@ -1,7 +1,7 @@
 <template>
   <n-modal v-model:show="modalVisible" :mask-closable="false" class="rounded-8px" transform-origin="center">
     <div class="h-full w-480px bg-[--bg-edit] box-border flex flex-col items-center justify-between">
-      <!-- 标题栏 -->
+      <!-- 제목 표시줄 -->
       <n-flex :size="6" vertical class="w-full">
         <div
           v-if="isMac()"
@@ -23,7 +23,7 @@
         <span class="h-1px w-full bg-[--line-color]"></span>
       </n-flex>
 
-      <!-- 地图加载错误 -->
+      <!-- 지도 로드 오류 -->
       <div v-if="mapError" class="h-340px flex-center">
         <n-result status="error" :title="t('message.location.modal.result.map_error_title')" :description="mapError">
           <template #footer>
@@ -39,7 +39,7 @@
         </n-result>
       </div>
 
-      <!-- 位置获取失败 -->
+      <!-- 위치 가져오기 실패 -->
       <div v-else-if="locationState.error && !selectedLocation" class="h-340px flex-center">
         <n-result
           status="warning"
@@ -58,11 +58,11 @@
         </n-result>
       </div>
 
-      <!-- 地图容器 -->
+      <!-- 지도 컨테이너 -->
       <div v-else class="flex flex-col gap-16px p-8px">
-        <!-- 地图区域 -->
+        <!-- 지도 영역 -->
         <div class="relative rounded-8px overflow-hidden flex-center h-340px">
-          <!-- 地图加载中 -->
+          <!-- 지도 로드 중 -->
           <div v-if="locationState.loading || mapLoading" class="flex-col-center gap-42px">
             <n-spin :size="42" />
             <p class="text-(14px [--text-cplor])">
@@ -74,7 +74,7 @@
             </p>
           </div>
 
-          <!-- 地图组件 -->
+          <!-- 지도 컴포넌트 -->
           <StaticProxyMap
             v-else-if="selectedLocation"
             :location="selectedLocation"
@@ -87,7 +87,7 @@
             @map-error="handleMapError" />
         </div>
 
-        <!-- 位置信息显示 -->
+        <!-- 위치 정보 표시 -->
         <div v-if="selectedLocation" class="rounded-6px bg-#fefefe dark:bg-#303030 p-12px">
           <n-flex vertical :size="8">
             <span class="text-14px font-medium">{{ t('message.location.modal.info.current') }}</span>
@@ -106,7 +106,7 @@
         </div>
       </div>
 
-      <!-- 操作按钮 -->
+      <!-- 작업 버튼 -->
       <n-flex v-if="showActionButtons" align="center" :size="24" class="py-8px">
         <n-button type="primary" secondary :loading="sendingLocation" @click="handleConfirm">
           {{ t('message.location.modal.buttons.send') }}
@@ -146,10 +146,10 @@ const props = withDefaults(defineProps<LocationModalProps>(), {
 
 const emit = defineEmits<LocationModalEmits>()
 
-// 地理位置Hook
+// 지리적 위치 Hook
 const { state: locationState, getLocationWithTransform } = useGeolocation()
 
-// 响应式状态
+// 반응형 상태
 const modalVisible = computed({
   get: () => props.visible,
   set: (value: boolean) => emit('update:visible', value)
@@ -163,7 +163,7 @@ const sendingLocation = ref(false)
 
 const { t } = useI18n()
 
-// 计算属性
+// 계산된 속성
 const modalTitle = computed(() => {
   if (mapError.value) return t('message.location.modal.title.map_error')
   if (locationState.error) return t('message.location.modal.title.location_error')
@@ -174,19 +174,19 @@ const showActionButtons = computed(() => {
   return !mapLoading.value && !locationState.loading && selectedLocation.value !== null && !mapError.value
 })
 
-// 获取位置
+// 위치 가져오기
 const getLocation = async () => {
   try {
     mapError.value = null
 
-    // 获取位置信息
+    // 위치 정보 가져오기
     const [result] = await Promise.all([
       getLocationWithTransform({
         enableHighAccuracy: true
       })
     ])
 
-    // 获取地址信息
+    // 주소 정보 가져오기
     const geocodeResult = await reverseGeocode(result.transformed.lat, result.transformed.lng).catch((error) => {
       console.warn(t('message.location.modal.errors.geocode_failed'), error)
       return null
@@ -203,41 +203,41 @@ const getLocation = async () => {
       timestamp: result.timestamp
     }
   } catch (error) {
-    console.error('获取位置失败:', error)
+    console.error('위치 가져오기 실패:', error)
   }
 }
 
-// 监听弹窗显示
+// 팝업 표시 감지
 watch(modalVisible, (visible) => {
   if (visible) {
-    // 重置状态
+    // 상태 재설정
     selectedLocation.value = null
     mapError.value = null
     mapLoading.value = false
 
-    // 获取位置
+    // 위치 가져오기
     getLocation()
   }
 })
 
-// 重新定位
+// 위치 재설정
 const relocate = async () => {
   selectedLocation.value = null
   mapError.value = null
   await getLocation()
 }
 
-// 重试地图加载
+// 지도 로드 재시도
 const retryMapLoad = async () => {
   mapError.value = null
   await getLocation()
 }
 
-// 地图事件处理
+// 지도 이벤트 처리
 const handleLocationChange = async (newLocation: { lat: number; lng: number }) => {
   if (!selectedLocation.value) return
 
-  // 获取新位置的地址
+  // 새 위치 주소 가져오기
   const geocodeResult = await reverseGeocode(newLocation.lat, newLocation.lng).catch((error) => {
     console.warn(t('message.location.modal.errors.geocode_failed'), error)
     return null
@@ -259,7 +259,7 @@ const handleMapError = (error: string) => {
   mapLoading.value = false
 }
 
-// 确认发送位置
+// 위치 전송 확인
 const handleConfirm = async () => {
   if (!selectedLocation.value) return
 

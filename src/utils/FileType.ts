@@ -1,22 +1,22 @@
 import { MsgEnum } from '@/enums'
 
 /**
- * 支持的视频扩展名（统一定义）
+ * 지원되는 비디오 확장자 (통합 정의)
  */
 export const SUPPORTED_VIDEO_EXTENSIONS = ['mp4', 'mov', 'avi', 'wmv', 'mkv', 'flv', 'webm', 'm4v'] as const
 
 /**
- * 支持的音频扩展名
+ * 지원되는 오디오 확장자
  */
 export const SUPPORTED_AUDIO_EXTENSIONS = ['mp3', 'wav', 'm4a', 'aac', 'ogg', 'flac'] as const
 
 /**
- * 支持的图片扩展名
+ * 지원되는 이미지 확장자
  */
 export const SUPPORTED_IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg'] as const
 
 /**
- * 视频MIME类型映射
+ * 비디오 MIME 타입 매핑
  */
 export const VIDEO_MIME_TYPE_MAP: Record<string, string> = {
   mp4: 'video/mp4',
@@ -30,7 +30,7 @@ export const VIDEO_MIME_TYPE_MAP: Record<string, string> = {
 } as const
 
 /**
- * 音频MIME类型映射
+ * 오디오 MIME 타입 매핑
  */
 export const AUDIO_MIME_TYPE_MAP: Record<string, string> = {
   mp3: 'audio/mpeg',
@@ -42,7 +42,7 @@ export const AUDIO_MIME_TYPE_MAP: Record<string, string> = {
 } as const
 
 /**
- * 图片MIME类型映射
+ * 이미지 MIME 타입 매핑
  */
 export const IMAGE_MIME_TYPE_MAP: Record<string, string> = {
   jpg: 'image/jpeg',
@@ -55,9 +55,9 @@ export const IMAGE_MIME_TYPE_MAP: Record<string, string> = {
 } as const
 
 /**
- * 从文件名获取扩展名
- * @param fileName 文件名
- * @returns 小写的扩展名（不含点）
+ * 파일명에서 확장자 가져오기
+ * @param fileName 파일명
+ * @returns 소문자 확장자 (점 제외)
  */
 export const getFileExtension = (fileName: string): string => {
   const parts = fileName.split('.')
@@ -65,11 +65,11 @@ export const getFileExtension = (fileName: string): string => {
 }
 
 /**
- * 通用文件类型检查函数
- * @param fileOrName File对象或文件名
- * @param supportedExtensions 支持的扩展名数组
- * @param mimeTypePrefix MIME类型前缀（如 'video/', 'audio/', 'image/'）
- * @returns 是否为指定类型的文件
+ * 범용 파일 타입 확인 함수
+ * @param fileOrName File 객체 또는 파일명
+ * @param supportedExtensions 지원되는 확장자 배열
+ * @param mimeTypePrefix MIME 타입 접두사 (예: 'video/', 'audio/', 'image/')
+ * @returns 지정된 타입의 파일인지 여부
  */
 const checkFileType = (
   fileOrName: File | string,
@@ -77,65 +77,65 @@ const checkFileType = (
   mimeTypePrefix: string
 ): boolean => {
   if (typeof fileOrName === 'string') {
-    // 如果是字符串，检查扩展名
+    // 문자열인 경우 확장자 확인
     const extension = getFileExtension(fileOrName)
     return supportedExtensions.includes(extension as any)
   }
 
-  // 如果是File对象，先检查MIME类型，再检查扩展名
+  // File 객체인 경우 먼저 MIME 타입을 확인한 후 확장자 확인
   const file = fileOrName as File
   const extension = getFileExtension(file.name)
-  // 特殊处理：.ts文件可能被错误地设置为video/mp2t MIME类型（MPEG Transport Stream）
+  // 특별 처리: .ts 파일은 video/mp2t MIME 타입(MPEG Transport Stream)으로 잘못 설정될 수 있음
   if (extension === 'ts' && mimeTypePrefix === 'video/') {
     return false
   }
 
-  // 优先检查MIME类型
+  // 먼저 MIME 타입 확인
   if (file.type && file.type.startsWith(mimeTypePrefix)) {
     return true
   }
 
-  // 如果MIME类型为空或不明确，检查文件扩展名
+  // MIME 타입이 비어있거나 불분명한 경우 파일 확장자 확인
   return supportedExtensions.includes(extension as any)
 }
 
 /**
- * 根据文件扩展名获取视频MIME类型
- * @param fileName 文件名
- * @returns 视频MIME类型
+ * 파일 확장자를 기반으로 비디오 MIME 타입 가져오기
+ * @param fileName 파일명
+ * @returns 비디오 MIME 타입
  */
 export const getVideoMimeType = (fileName: string): string => {
   const extension = getFileExtension(fileName)
-  return VIDEO_MIME_TYPE_MAP[extension] || 'video/mp4' // 默认返回mp4类型
+  return VIDEO_MIME_TYPE_MAP[extension] || 'video/mp4' // 기본값으로 mp4 타입 반환
 }
 
 /**
- * 根据文件扩展名获取音频MIME类型
- * @param fileName 文件名
- * @returns 音频MIME类型
+ * 파일 확장자를 기반으로 오디오 MIME 타입 가져오기
+ * @param fileName 파일명
+ * @returns 오디오 MIME 타입
  */
 export const getAudioMimeType = (fileName: string): string => {
   const extension = getFileExtension(fileName)
-  return AUDIO_MIME_TYPE_MAP[extension] || 'audio/mpeg' // 默认返回mp3类型
+  return AUDIO_MIME_TYPE_MAP[extension] || 'audio/mpeg' // 기본값으로 mp3 타입 반환
 }
 
 /**
- * 根据文件扩展名获取图片MIME类型
- * @param fileName 文件名
- * @returns 图片MIME类型
+ * 파일 확장자를 기반으로 이미지 MIME 타입 가져오기
+ * @param fileName 파일명
+ * @returns 이미지 MIME 타입
  */
 export const getImageMimeType = (fileName: string): string => {
   const extension = getFileExtension(fileName)
-  return IMAGE_MIME_TYPE_MAP[extension] || 'image/jpeg' // 默认返回jpeg类型
+  return IMAGE_MIME_TYPE_MAP[extension] || 'image/jpeg' // 기본값으로 jpeg 타입 반환
 }
 
 /**
- * 修复文件的MIME类型（如果MIME类型为空或不正确）
- * @param file 原始文件
- * @returns 修复MIME类型后的文件
+ * 파일의 MIME 타입 수정 (MIME 타입이 비어있거나 잘못된 경우)
+ * @param file 원본 파일
+ * @returns MIME 타입이 수정된 파일
  */
 export const fixFileMimeType = (file: File): File => {
-  // 如果已经有正确的MIME类型，直接返回
+  // 이미 올바른 MIME 타입이 있는 경우 바로 반환
   if (
     file.type &&
     (file.type.startsWith('video/') || file.type.startsWith('audio/') || file.type.startsWith('image/'))
@@ -146,7 +146,7 @@ export const fixFileMimeType = (file: File): File => {
   const extension = getFileExtension(file.name)
   let correctMimeType = ''
 
-  // 根据扩展名确定正确的MIME类型
+  // 확장자를 기반으로 올바른 MIME 타입 결정
   if (SUPPORTED_VIDEO_EXTENSIONS.includes(extension as any)) {
     correctMimeType = getVideoMimeType(file.name)
   } else if (SUPPORTED_AUDIO_EXTENSIONS.includes(extension as any)) {
@@ -154,11 +154,11 @@ export const fixFileMimeType = (file: File): File => {
   } else if (SUPPORTED_IMAGE_EXTENSIONS.includes(extension as any)) {
     correctMimeType = getImageMimeType(file.name)
   } else {
-    // 如果不是媒体文件，保持原有类型
+    // 미디어 파일이 아닌 경우 기존 타입 유지
     return file
   }
 
-  // 创建新的File对象，修复MIME类型
+  // 새 File 객체 생성, MIME 타입 수정
   return new File([file], file.name, {
     type: correctMimeType,
     lastModified: file.lastModified
@@ -166,9 +166,9 @@ export const fixFileMimeType = (file: File): File => {
 }
 
 /**
- * 根据文件类型获取对应的消息枚举
- * @param file File对象
- * @returns 消息类型枚举
+ * 파일 타입을 기반으로 해당 메시지 열거형 가져오기
+ * @param file File 객체
+ * @returns 메시지 타입 열거형
  */
 export const getMessageTypeByFile = (file: File): MsgEnum => {
   if (checkFileType(file, SUPPORTED_VIDEO_EXTENSIONS, 'video/')) {
@@ -183,9 +183,9 @@ export const getMessageTypeByFile = (file: File): MsgEnum => {
 }
 
 /**
- * 检查URL是否为视频链接
- * @param url 链接地址
- * @returns 是否为视频链接
+ * URL이 비디오 링크인지 확인
+ * @param url 링크 주소
+ * @returns 비디오 링크인지 여부
  */
 export const isVideoUrl = (url: string): boolean => {
   try {

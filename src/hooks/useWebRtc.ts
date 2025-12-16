@@ -17,7 +17,7 @@ interface RtcMsgVO {
   [key: string]: any
 }
 
-// 信令类型枚举
+// 시그널링 유형 열거형
 export enum SignalTypeEnum {
   JOIN = 'join',
   OFFER = 'offer',
@@ -27,23 +27,23 @@ export enum SignalTypeEnum {
 }
 
 export interface WSRtcCallMsg {
-  // 房间ID
+  // 방 ID
   roomId: string
-  // 通话ID
+  // 통화 ID
   callerId: string
-  // 信令类型
+  // 시그널링 유형
   signalType: SignalTypeEnum
-  // 信令
+  // 시그널
   signal: string
-  // 接收者ID列表
+  // 수신자 ID 목록
   receiverIds: string[]
-  // 发送者ID
+  // 발신자 ID
   senderId?: string
-  // 通话状态
+  // 통화 상태
   status: RTCCallStatus
-  // 是否是视频通话
+  // 영상 통화 여부
   video: boolean
-  // 目标uid
+  // 대상 UID
   targetUid: string
 }
 
@@ -71,24 +71,24 @@ const loadIceServers = async () => {
           ? { urls: ice.urls, username: ice.username, credential: ice.credential }
           : { urls: ice.urls }
       configuration = { iceServers: [entry], iceTransportPolicy: 'all' }
-      info(`ICE 配置已加载: ${JSON.stringify(configuration)}`)
+      info(`ICE 구성 로드됨: ${JSON.stringify(configuration)}`)
     } else {
-      info('ICE 配置为空，使用内置默认配置')
+      info('ICE 구성이 비어 있어 내장 기본 구성을 사용합니다')
     }
   } catch (e) {
-    error(`加载 ICE 配置失败: ${String(e)}`)
+    error(`ICE 구성 로드 실패: ${String(e)}`)
   }
 }
 
 // const settings = await getSettings()
 // configuration.iceServers?.push(settings.ice_server)
 // const isSupportScreenSharing = !!navigator?.mediaDevices?.getDisplayMedia
-// TODO 改成动态配置
+// TODO 동적 구성으로 변경
 const rtcCallBellUrl = '/sound/hula_bell.mp3'
 
 /**
- * webrtc 相关
- * @returns rtc 相关的状态和方法
+ * WebRTC 관련
+ * @returns RTC 관련 상태 및 메서드
  */
 export const useWebRtc = (roomId: string, remoteUserId: string, callType: CallTypeEnum, isReceiver: boolean) => {
   const { addListener } = useTauriListener()
@@ -103,45 +103,45 @@ export const useWebRtc = (roomId: string, remoteUserId: string, callType: CallTy
   })
   const userStore = useUserStore()
 
-  // 设备相关状态
+  // 장치 관련 상태
   const audioDevices = ref<MediaDeviceInfo[]>([])
   const videoDevices = ref<MediaDeviceInfo[]>([])
   const selectedAudioDevice = ref<string | null | undefined>(null)
   const selectedVideoDevice = ref<string | null | undefined>(null)
 
-  // 状态
+  // 상태
   const connectionStatus = ref<RTCCallStatus | undefined>(undefined)
   const isDeviceLoad = ref(false)
-  const isLinker = ref(false) // 判断是否是 webrtc 连接的参与者
+  const isLinker = ref(false) // WebRTC 연결 참여자 여부 판단
 
-  // rtc状态
+  // RTC 상태
   const rtcStatus = ref<RTCPeerConnectionState | undefined>(undefined)
   // const isRtcConnecting = computed(() => rtcStatus.value === 'connecting')
-  // 流相关状态
+  // 스트림 관련 상태
   const localStream = ref<MediaStream | null>(null)
   const remoteStream = ref<MediaStream | null>(null)
-  // WebRTC 连接对象
+  // WebRTC 연결 객체
   const peerConnection = ref<RTCPeerConnection | null>(null)
   const channel = ref<RTCDataChannel | null>(null)
   const channelStatus = ref<RTCDataChannelState | undefined>(undefined)
-  // 待发送ice列表
+  // 전송 대기 중인 ICE 목록
   const pendingCandidates = ref<RTCIceCandidate[]>([])
-  // 添加铃声相关状态
+  // 벨소리 관련 상태 추가
   const bellAudio = ref<HTMLAudioElement | null>(null)
 
-  // 添加计时器引用
+  // 타이머 참조 추가
   const callTimer = ref<NodeJS.Timeout | null>(null)
 
-  // 添加计时相关的变量
+  // 타이머 관련 변수 추가
   const callDuration = ref(0)
   const animationFrameId = ref<number | null>(null)
   const startTime = ref<number>(0)
 
-  // 添加桌面共享相关状态
+  // 화면 공유 관련 상태 추가
   const isScreenSharing = ref(false)
   const offer = ref<RTCSessionDescriptionInit>()
 
-  // 接通后确保窗口聚焦显示
+  // 연결 후 창이 포커스되어 표시되도록 보장
   const focusCurrentWindow = async () => {
     try {
       const currentWindow = getCurrentWebviewWindow()
@@ -155,25 +155,25 @@ export const useWebRtc = (roomId: string, remoteUserId: string, callType: CallTy
       }
       await currentWindow.setFocus()
     } catch (e) {
-      console.warn('设置窗口聚焦失败:', e)
+      console.warn('창 포커스 설정 실패:', e)
     }
   }
 
-  // 开始计时
+  // 타이머 시작
   const startCallTimer = () => {
-    // 获取高精度时间戳
+    // 고정밀 타임스탬프 가져오기
     startTime.value = performance.now()
     const animate = (currentTime: number) => {
-      // 计算已经过去的秒数
+      // 경과된 초 계산
       const elapsed = Math.floor((currentTime - startTime.value) / 1000)
       callDuration.value = elapsed
-      // 递归调用，形成动画循环
+      // 재귀 호출, 애니메이션 루프 형성
       animationFrameId.value = requestAnimationFrame(animate)
     }
-    animationFrameId.value = requestAnimationFrame(animate) // 启动动画循环
+    animationFrameId.value = requestAnimationFrame(animate) // 애니메이션 루프 시작
   }
 
-  // 停止计时
+  // 타이머 중지
   const stopCallTimer = () => {
     if (animationFrameId.value) {
       cancelAnimationFrame(animationFrameId.value)
@@ -184,11 +184,11 @@ export const useWebRtc = (roomId: string, remoteUserId: string, callType: CallTy
   }
 
   /**
-   * 打开铃声
+   * 벨소리 켜기
    */
   const startBell = () => {
     if (!rtcCallBellUrl) {
-      console.log('rtc通话已经静音')
+      console.log('RTC 통화가 이미 음소거되었습니다')
       bellAudio.value = null
       return
     }
@@ -198,7 +198,7 @@ export const useWebRtc = (roomId: string, remoteUserId: string, callType: CallTy
   }
 
   /**
-   * 发送通话请求
+   * 통화 요청 전송
    */
   const sendCall = async () => {
     try {
@@ -211,12 +211,12 @@ export const useWebRtc = (roomId: string, remoteUserId: string, callType: CallTy
         }
       })
     } catch (error) {
-      console.error('发送通话请求失败:', error)
+      console.error('통화 요청 전송 실패:', error)
     }
   }
 
   /**
-   * 关闭铃声
+   * 벨소리 끄기
    */
   const stopBell = () => {
     bellAudio.value?.pause?.()
@@ -232,12 +232,12 @@ export const useWebRtc = (roomId: string, remoteUserId: string, callType: CallTy
   }
 
   /**
-   * 接听电话响应事件
+   * 전화 수신 응답 이벤트
    */
   const handleCallResponse = async (status: number) => {
     try {
-      info('[收到通知] 接听电话响应事件')
-      // 发送挂断消息
+      info('[알림 수신] 전화 수신 응답 이벤트')
+      // 끊기 메시지 전송
       sendRtcCall2VideoCallResponse(status)
       await endCall()
     } finally {
@@ -246,12 +246,12 @@ export const useWebRtc = (roomId: string, remoteUserId: string, callType: CallTy
   }
 
   /**
-   * 结束通话
+   * 통화 종료
    */
   const endCall = async () => {
     try {
-      info('[收到通知] 结束通话')
-      // 移动端router 回退
+      info('[알림 수신] 통화 종료')
+      // 모바일 라우터 뒤로 가기
       if (!isMobile()) {
         await getCurrentWebviewWindow().close()
       } else {
@@ -262,11 +262,11 @@ export const useWebRtc = (roomId: string, remoteUserId: string, callType: CallTy
     }
   }
 
-  // 发送 ws 请求，通知双方通话状态
-  // -1 = 超时 0 = 拒绝 1 = 接通 2 = 挂断
+  // WS 요청 전송, 양측에 통화 상태 알림
+  // -1 = 시간 초과 0 = 거절 1 = 연결됨 2 = 끊기
   const sendRtcCall2VideoCallResponse = async (status: number) => {
     try {
-      info(`发送 ws 请求，通知双方通话状态 ${status}`)
+      info(`WS 요청 전송, 양측에 통화 상태 알림 ${status}`)
       await rustWebSocketClient.sendMessage({
         type: WsRequestMsgType.VIDEO_CALL_RESPONSE,
         data: {
@@ -276,20 +276,20 @@ export const useWebRtc = (roomId: string, remoteUserId: string, callType: CallTy
         }
       })
     } catch (error) {
-      console.error('发送通话响应失败:', error)
+      console.error('통화 응답 전송 실패:', error)
     }
   }
 
-  // 获取设备列表
+  // 장치 목록 가져오기
   const getDevices = async () => {
     try {
       info('start getDevices')
       isDeviceLoad.value = true
 
-      // 先请求权限以获取完整的设备信息
+      // 전체 장치 정보를 얻기 위해 먼저 권한 요청
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true })
-        stream.getTracks().forEach((track) => track.stop()) // 立即停止流
+        stream.getTracks().forEach((track) => track.stop()) // 즉시 스트림 중지
       } catch (_permissionError) {
         error('Permission denied, will get limited device info')
       }
@@ -301,7 +301,7 @@ export const useWebRtc = (roomId: string, remoteUserId: string, callType: CallTy
       }
       audioDevices.value = devices.filter((device) => device.kind === 'audioinput')
       videoDevices.value = devices.filter((device) => device.kind === 'videoinput')
-      // 默认选择 “default” | "第一个" 设备
+      // "default" 또는 "첫 번째" 장치 기본 선택
       selectedAudioDevice.value =
         audioDevices.value.find((device) => device.deviceId === 'default')?.deviceId ||
         audioDevices.value?.[0]?.deviceId
@@ -311,9 +311,9 @@ export const useWebRtc = (roomId: string, remoteUserId: string, callType: CallTy
       isDeviceLoad.value = false
       return true
     } catch (err) {
-      window.$message.error('获取设备失败!')
-      error(`获取设备失败: ${err}`)
-      // 默认没有设备
+      window.$message.error('장치 가져오기 실패!')
+      error(`장치 가져오기 실패: ${err}`)
+      // 기본적으로 장치 없음
       selectedAudioDevice.value = selectedAudioDevice.value || null
       selectedVideoDevice.value = selectedVideoDevice.value || null
       isDeviceLoad.value = false
@@ -321,10 +321,10 @@ export const useWebRtc = (roomId: string, remoteUserId: string, callType: CallTy
     }
   }
 
-  // 获取本地媒体流
+  // 로컬 미디어 스트림 가져오기
   const getLocalStream = async (type: CallTypeEnum) => {
     try {
-      info('获取本地媒体流')
+      info('로컬 미디어 스트림 가져오기')
       const constraints = {
         audio: audioDevices.value.length > 0 ? { deviceId: selectedAudioDevice.value || undefined } : false,
         video:
@@ -333,105 +333,105 @@ export const useWebRtc = (roomId: string, remoteUserId: string, callType: CallTy
             : false
       }
       if (!constraints.audio && !constraints.video) {
-        window.$message.error('没有可用的设备!')
-        // 没有可用设备时自动挂断并关闭窗口
+        window.$message.error('사용 가능한 장치가 없습니다!')
+        // 사용 가능한 장치가 없을 때 자동으로 끊고 창 닫기
         setTimeout(async () => {
           if (isReceiver) {
-            // 接听方：发送拒绝响应
+            // 수신자: 거절 응답 전송
             await handleCallResponse(0)
           } else {
-            // 发起方：直接结束通话
+            // 발신자: 통화 즉시 종료
             await handleCallResponse(2)
           }
         }, 1000)
         return false
       }
       localStream.value = await navigator.mediaDevices.getUserMedia(constraints)
-      // 打印 localStream 的信息（不能直接序列号 stream，不然会返回null）
+      // localStream 정보 출력 (stream을 직접 직렬화하면 null이 반환됨)
       info(`get localStream success`)
       info(`localStream.id: ${localStream.value?.id}`)
       info(`localStream.active: ${localStream.value?.active}`)
       info(`localStream.getTracks().length: ${localStream.value?.getTracks()?.length}`)
-      // 打印每个轨道的信息
+      // 각 트랙 정보 출력
       localStream.value?.getTracks()?.forEach((track, index) => {
         info(`Track ${index}: kind=${track.kind}, label=${track.label}, enabled=${track.enabled}`)
       })
 
       const audioTrack = localStream.value.getAudioTracks()[0]
       if (audioTrack) {
-        // 检查音频轨道是否真的在工作
+        // 오디오 트랙이 실제로 작동하는지 확인
         info(`Audio track enabled: ${audioTrack.enabled}`)
         info(`Audio track muted: ${audioTrack.muted}`)
         info(`Audio track readyState: ${audioTrack.readyState}`)
 
-        // 强制启用音频轨道
+        // 오디오 트랙 강제 활성화
         audioTrack.enabled = true
       }
 
       return true
     } catch (err) {
-      console.error('获取本地流失败:', err)
-      window.$message.error('获取本地媒体流失败，请检查设备!')
-      error(`获取本地媒体流失败，请检查设备! ${err}`)
+      console.error('로컬 스트림 가져오기 실패:', err)
+      window.$message.error('로컬 미디어 스트림 가져오기 실패, 장치를 확인하세요!')
+      error(`로컬 미디어 스트림 가져오기 실패, 장치를 확인하세요! ${err}`)
       await sendRtcCall2VideoCallResponse(2)
       return false
     }
   }
 
-  // 创建 RTCPeerConnection
+  // RTCPeerConnection 생성
   const createPeerConnection = (roomId: string) => {
     try {
       const pc = new RTCPeerConnection(configuration)
 
-      // 监听远程流
+      // 원격 스트림 수신 대기
       pc.ontrack = (event) => {
-        info('pc 监听到 ontrack 事件')
+        info('PC에서 ontrack 이벤트 감지')
         if (event.streams[0]) {
-          console.log('收到远程流:', event.streams[0])
+          console.log('원격 스트림 수신:', event.streams[0])
           remoteStream.value = event.streams[0]
         } else {
           remoteStream.value = null
         }
       }
 
-      // 添加本地流
-      info('添加本地流到 PC')
+      // 로컬 스트림 추가
+      info('PC에 로컬 스트림 추가')
       if (localStream.value) {
         localStream.value.getTracks().forEach((track) => {
           localStream.value && pc.addTrack(track, localStream.value)
         })
       } else {
-        console.warn('localStream 为 null，无法添加本地流到 PeerConnection')
+        console.warn('localStream이 null이므로 PeerConnection에 로컬 스트림을 추가할 수 없습니다')
       }
 
-      // 连接状态变化 "closed" | "connected" | "connecting" | "disconnected" | "failed" | "new";
+      // 연결 상태 변경 "closed" | "connected" | "connecting" | "disconnected" | "failed" | "new";
       pc.onconnectionstatechange = (e) => {
-        info(`RTC 连接状态变化: ${pc.connectionState}`)
+        info(`RTC 연결 상태 변경: ${pc.connectionState}`)
         switch (pc.connectionState) {
           case 'new':
-            info('RTC 连接新建')
+            info('RTC 연결 새로 생성됨')
             break
           case 'connecting':
-            info('RTC 连接中')
+            info('RTC 연결 중')
             connectionStatus.value = RTCCallStatus.CALLING
             break
           case 'connected':
-            info('RTC 连接成功')
+            info('RTC 연결 성공')
             connectionStatus.value = RTCCallStatus.ACCEPT
-            startCallTimer() // 开始计时
-            // 接通后将窗口置顶展示并聚焦
+            startCallTimer() // 타이머 시작
+            // 연결 후 창을 맨 위로 표시하고 포커스
             void focusCurrentWindow()
             break
           case 'disconnected':
-            info('RTC 连接断开')
+            info('RTC 연결 끊김')
             connectionStatus.value = RTCCallStatus.END
-            window.$message.error('RTC通讯连接失败!')
+            window.$message.error('RTC 통신 연결 실패!')
             setTimeout(async () => {
               await endCall()
             }, 500)
             break
           case 'closed':
-            info('RTC 连接关闭')
+            info('RTC 연결 닫힘')
             connectionStatus.value = RTCCallStatus.END
             setTimeout(async () => {
               await endCall()
@@ -439,114 +439,114 @@ export const useWebRtc = (roomId: string, remoteUserId: string, callType: CallTy
             break
           case 'failed':
             connectionStatus.value = RTCCallStatus.ERROR
-            info('RTC 连接失败')
-            window.$message.error('RTC通讯连接失败!')
+            info('RTC 연결 실패')
+            window.$message.error('RTC 통신 연결 실패!')
             setTimeout(async () => {
               await endCall()
             }, 500)
             break
           default:
-            info('RTC 连接状态变化: ', pc.connectionState)
+            info('RTC 연결 상태 변경: ', pc.connectionState)
             break
         }
         // @ts-expect-error
         rtcStatus.value = (e?.currentTarget?.connectionState || pc.connectionState) as RTCPeerConnectionState
       }
-      // 创建信道
+      // 채널 생성
       channel.value = pc.createDataChannel('chat')
       channel.value.onopen = () => {
-        // console.log("信道已打开");
+        // console.log("채널이 열렸습니다");
       }
       channel.value.onmessage = (_event) => {
-        // console.log("收到消息:", event.data);
+        // console.log("메시지 수신:", event.data);
       }
       channel.value.onerror = (event) => {
-        console.warn('信道出错:', event)
+        console.warn('채널 오류:', event)
       }
       channel.value.onclose = () => {
-        // console.log("信道已关闭");
+        // console.log("채널이 닫혔습니다");
       }
       pc.onicecandidate = async (event) => {
-        info('pc 监听到 onicecandidate 事件')
+        info('PC에서 onicecandidate 이벤트 감지')
         if (event.candidate && roomId) {
           try {
             pendingCandidates.value.push(event.candidate)
           } catch (err) {
-            console.error('发送ICE候选者出错:', err)
+            console.error('ICE 후보 전송 오류:', err)
           }
         }
       }
       peerConnection.value = pc
     } catch (err) {
-      console.error('创建 PeerConnection 失败:', err)
+      console.error('PeerConnection 생성 실패:', err)
       connectionStatus.value = RTCCallStatus.ERROR
       throw err
     }
   }
 
-  // 发起通话
+  // 통화 시작
   const startCall = async (roomId: string, type: CallTypeEnum, uidList?: string[]) => {
     try {
       if (!roomId) {
         return false
       }
-      clear() // 清理资源
+      clear() // 리소스 정리
       if (!(await getDevices())) {
-        window.$message.error('获取设备失败!')
-        // 获取设备失败时自动关闭窗口
+        window.$message.error('장치 가져오기 실패!')
+        // 장치 가져오기 실패 시 자동으로 창 닫기
         setTimeout(async () => {
           await handleCallResponse(0)
         }, 1000)
         return
       }
-      // 保存通话信息
+      // 통화 정보 저장
       rtcMsg.value = {
         roomId,
         callType: type,
         callerId: userStore.userInfo!.uid,
         uidList: uidList || []
       }
-      isLinker.value = true // 标记是会话人
-      // 设置30秒超时定时器
+      isLinker.value = true // 대화 참여자로 표시
+      // 30초 타임아웃 타이머 설정
       callTimer.value = setTimeout(() => {
         if (connectionStatus.value === RTCCallStatus.CALLING) {
-          window.$message.warning('通话无人接听，自动挂断')
+          window.$message.warning('통화 응답이 없어 자동으로 끊습니다')
           endCall()
         }
       }, MAX_TIME_OUT_SECONDS * 1000)
 
       if (!(await getLocalStream(type))) {
         clear()
-        // 获取本地媒体流失败时自动关闭窗口
+        // 로컬 미디어 스트림 가져오기 실패 시 자동으로 창 닫기
         setTimeout(async () => {
           await endCall()
         }, 1000)
         return false
       }
 
-      // 1. 创建 RTCPeerConnection
+      // 1. RTCPeerConnection 생성
       createPeerConnection(roomId)
-      // 创建并发送 offer
+      // offer 생성 및 전송
       const rtcOffer = await peerConnection.value!.createOffer()
       offer.value = rtcOffer
       await peerConnection.value!.setLocalDescription(rtcOffer)
-      // 发起通话请求
+      // 통화 요청 시작
       await sendCall()
-      // 播放铃声
+      // 벨소리 재생
       startBell()
 
-      // 开始通话
+      // 통화 시작
       connectionStatus.value = RTCCallStatus.CALLING
       rtcStatus.value = 'new'
     } catch (err) {
-      console.error('开始通话失败:', err)
-      window.$message.error('RTC通讯连接失败!')
+      console.error('통화 시작 실패:', err)
+      window.$message.error('RTC 통신 연결 실패!')
       clear()
       return false
     }
   }
 
-  // 发送SDP offer
+  // SDP offer 전송
   const sendOffer = async (offer: RTCSessionDescriptionInit) => {
     try {
       const signalData = {
@@ -558,7 +558,7 @@ export const useWebRtc = (roomId: string, remoteUserId: string, callType: CallTy
         video: callType === CallTypeEnum.VIDEO
       }
 
-      info('ws发送 offer')
+      info('WS offer 전송')
       await rustWebSocketClient.sendMessage({
         type: WsRequestMsgType.WEBRTC_SIGNAL,
         data: signalData
@@ -570,27 +570,27 @@ export const useWebRtc = (roomId: string, remoteUserId: string, callType: CallTy
 
   const clear = () => {
     try {
-      // 停止铃声并重置
+      // 벨소리 중지 및 초기화
       stopBell()
-      // 清除超时定时器
+      // 타임아웃 타이머 지우기
       if (callTimer.value) {
         clearTimeout(callTimer.value)
         callTimer.value = null
       }
-      // 停止计时器
+      // 타이머 중지
       stopCallTimer()
-      // 关闭信道
+      // 채널 닫기
       channel.value?.close?.()
-      // 关闭连接
+      // 연결 닫기
       peerConnection.value?.close?.()
-      // 关闭媒体流
+      // 미디어 스트림 닫기
       localStream.value?.getTracks().forEach((track) => track.stop())
       remoteStream.value?.getTracks().forEach((track) => track.stop())
     } catch (error) {
-      window.$message.error('部分资源清理失败!')
-      console.error('清理资源失败:', error)
+      window.$message.error('일부 리소스 정리 실패!')
+      console.error('리소스 정리 실패:', error)
     } finally {
-      // 重置状态
+      // 상태 초기화
       rtcMsg.value = {
         roomId: undefined,
         callType: undefined,
@@ -607,17 +607,17 @@ export const useWebRtc = (roomId: string, remoteUserId: string, callType: CallTy
       rtcStatus.value = undefined
       isScreenSharing.value = false
       isLinker.value = false
-      // 关闭连接
+      // 연결 닫기
       peerConnection.value = null
       channel.value = null
       channelStatus.value = undefined
     }
   }
 
-  // 发送ICE候选者
+  // ICE 후보 전송
   const sendIceCandidate = async (candidate: RTCIceCandidate) => {
     try {
-      info('发送ICE候选者')
+      info('ICE 후보 전송')
       const signalData = {
         roomId: roomId,
         signal: JSON.stringify(candidate),
@@ -635,57 +635,57 @@ export const useWebRtc = (roomId: string, remoteUserId: string, callType: CallTy
     }
   }
 
-  // 处理收到的 offer - 接听者
+  // 수신된 offer 처리 - 수신자
   const handleOffer = async (signal: RTCSessionDescriptionInit, video: boolean, roomId: string) => {
     try {
-      console.log('处理 offer')
+      console.log('offer 처리')
       connectionStatus.value = RTCCallStatus.CALLING
       await nextTick()
 
       await getDevices()
       const hasLocalStream = await getLocalStream(video ? CallTypeEnum.VIDEO : CallTypeEnum.AUDIO)
 
-      // 停止铃声
+      // 벨소리 중지
       stopBell()
 
-      // 检查本地媒体流是否获取成功
+      // 로컬 미디어 스트림 획득 성공 여부 확인
       if (!hasLocalStream || !localStream.value) {
-        // 睡眠 3s
+        // 3초 대기
         await new Promise((resolve) => setTimeout(resolve, 3000))
         await handleCallResponse(0)
         return false
       }
 
-      // 2. 创建 RTCPeerConnection
-      await nextTick() // 等待一帧
+      // 2. RTCPeerConnection 생성
+      await nextTick() // 한 프레임 대기
       createPeerConnection(roomId)
       rtcStatus.value = 'new'
 
-      // 3. 设置远程描述
-      info('设置远程描述')
+      // 3. 원격 설명 설정
+      info('원격 설명 설정')
       await peerConnection.value!.setRemoteDescription(signal)
 
-      // 4. 创建并发送 answer
+      // 4. answer 생성 및 전송
       const answer = await peerConnection.value!.createAnswer()
       await peerConnection.value!.setLocalDescription(answer)
 
       if (!roomId) {
-        window.$message.error('房间号不存在，请重新连接！')
+        window.$message.error('방 번호가 존재하지 않습니다. 다시 연결해 주세요!')
         return false
       }
 
-      isLinker.value = true // 标记是会话人
-      // 6. 发送 answer 信令到远端
+      isLinker.value = true // 대화 참여자로 표시
+      // 6. 원격으로 answer 시그널 전송
       await sendAnswer(answer)
       connectionStatus.value = RTCCallStatus.ACCEPT
-      info('处理 offer 结束')
+      info('offer 처리 종료')
     } catch (e) {
-      error(`处理 offer 失败: ${e}`)
+      error(`offer 처리 실패: ${e}`)
       await endCall()
     }
   }
 
-  // 发送SDP answer
+  // SDP answer 전송
   const sendAnswer = async (answer: RTCSessionDescriptionInit) => {
     try {
       const signalData = {
@@ -697,7 +697,7 @@ export const useWebRtc = (roomId: string, remoteUserId: string, callType: CallTy
         video: callType === CallTypeEnum.VIDEO
       }
 
-      console.log('发送SDP answer', signalData)
+      console.log('SDP answer 전송', signalData)
       await rustWebSocketClient.sendMessage({
         type: WsRequestMsgType.WEBRTC_SIGNAL,
         data: signalData
@@ -711,52 +711,52 @@ export const useWebRtc = (roomId: string, remoteUserId: string, callType: CallTy
 
   const handleAnswer = async (answer: RTCSessionDescriptionInit, roomId: string) => {
     try {
-      info('处理 answer 消息')
+      info('answer 메시지 처리')
       if (peerConnection.value) {
-        // 清除超时定时器
+        // 타임아웃 타이머 지우기
         if (callTimer.value) {
           clearTimeout(callTimer.value)
           callTimer.value = null
         }
 
-        // 2. 停止铃声
+        // 2. 벨소리 중지
         stopBell()
 
-        // 3. 通知服务器通话已建立
+        // 3. 서버에 통화 연결 알림
         if (!isReceiver) {
           if (!roomId) {
-            window.$message.error('房间号不存在，请重新连接！')
+            window.$message.error('방 번호가 존재하지 않습니다. 다시 연결해 주세요!')
             await endCall()
             return
           }
-          // 4. 发起者 - 设置远程描述
-          console.log('发起者 - 设置远程描述', answer)
+          // 4. 발신자 - 원격 설명 설정
+          console.log('발신자 - 원격 설명 설정', answer)
           await peerConnection.value.setRemoteDescription(answer)
         }
       }
     } catch (error) {
-      console.error('处理 answer 失败:', error)
+      console.error('answer 처리 실패:', error)
       connectionStatus.value = RTCCallStatus.ERROR
       await endCall()
     }
   }
 
-  // 处理 ICE candidate
+  // ICE candidate 처리
   const handleCandidate = async (signal: RTCIceCandidateInit) => {
     try {
       if (peerConnection.value && peerConnection.value.remoteDescription) {
-        info('添加 candidate')
+        info('candidate 추가')
         await peerConnection.value!.addIceCandidate(signal)
       }
     } catch (error) {
-      console.error('处理 candidate 失败:', error)
+      console.error('candidate 처리 실패:', error)
     }
   }
 
-  // 视频轨道状态
+  // 비디오 트랙 상태
   const isVideoEnabled = ref(callType === CallTypeEnum.VIDEO)
 
-  // 切换静音
+  // 음소거 전환
   const toggleMute = () => {
     if (localStream.value) {
       const audioTrack = localStream.value.getAudioTracks()[0]
@@ -766,25 +766,25 @@ export const useWebRtc = (roomId: string, remoteUserId: string, callType: CallTy
     }
   }
 
-  // 切换视频
+  // 비디오 전환
   const toggleVideo = async () => {
     if (localStream.value) {
       const videoTrack = localStream.value.getVideoTracks()[0]
       if (videoTrack) {
-        // 切换视频轨道的启用状态
+        // 비디오 트랙 활성화 상태 전환
         videoTrack.enabled = !videoTrack.enabled
         isVideoEnabled.value = videoTrack.enabled
 
-        console.log(`视频轨道${videoTrack.enabled ? '开启' : '关闭'}`)
+        console.log(`비디오 트랙 ${videoTrack.enabled ? '켜짐' : '꺼짐'}`)
 
-        // 如果是关闭视频，通知对方
+        // 비디오를 끄는 경우 상대방에게 알림
         if (!videoTrack.enabled) {
-          console.log('本地视频已关闭，对方将看不到视频')
+          console.log('로컬 비디오가 꺼졌습니다. 상대방이 비디오를 볼 수 없습니다')
         } else {
-          console.log('本地视频已开启，对方可以看到视频')
+          console.log('로컬 비디오가 켜졌습니다. 상대방이 비디오를 볼 수 있습니다')
         }
       } else if (callType === CallTypeEnum.VIDEO) {
-        // 如果没有视频轨道但是视频通话，尝试重新获取
+        // 비디오 트랙이 없지만 영상 통화인 경우 다시 가져오기 시도
         try {
           const constraints = {
             audio: false,
@@ -795,22 +795,22 @@ export const useWebRtc = (roomId: string, remoteUserId: string, callType: CallTy
           const newVideoTrack = newStream.getVideoTracks()[0]
 
           if (newVideoTrack && peerConnection.value) {
-            // 添加新的视频轨道
+            // 새 비디오 트랙 추가
             peerConnection.value.addTrack(newVideoTrack, localStream.value!)
             localStream.value!.addTrack(newVideoTrack)
             isVideoEnabled.value = true
 
-            console.log('重新获取视频轨道成功')
+            console.log('비디오 트랙 다시 가져오기 성공')
           }
         } catch (error) {
-          console.error('重新获取视频轨道失败:', error)
-          window.$message.error('无法开启摄像头')
+          console.error('비디오 트랙 다시 가져오기 실패:', error)
+          window.$message.error('카메라를 켤 수 없습니다')
         }
       }
     }
   }
 
-  // 切换音频设备
+  // 오디오 장치 전환
   const switchAudioDevice = async (deviceId: string) => {
     try {
       selectedAudioDevice.value = deviceId
@@ -824,7 +824,7 @@ export const useWebRtc = (roomId: string, remoteUserId: string, callType: CallTy
                 : false
               : false
         })
-        // 替换现有轨道
+        // 기존 트랙 교체
         const newAudioTrack = newStream.getAudioTracks()[0]
         const oldAudioTrack = localStream.value.getAudioTracks()[0]
 
@@ -842,28 +842,28 @@ export const useWebRtc = (roomId: string, remoteUserId: string, callType: CallTy
           oldAudioTrack && localStream.value.removeTrack(oldAudioTrack)
           localStream.value.addTrack(newAudioTrack)
         } else {
-          window.$message.error('切换设备不存在或不支持，请重新选择！')
+          window.$message.error('전환할 장치가 존재하지 않거나 지원되지 않습니다. 다시 선택해 주세요!')
         }
       }
     } catch (error) {
-      window.$message.error('切换音频设备失败！')
-      console.error('切换音频设备失败:', error)
+      window.$message.error('오디오 장치 전환 실패!')
+      console.error('오디오 장치 전환 실패:', error)
     }
   }
 
-  // 获取前置和后置摄像头设备
+  // 전면 및 후면 카메라 장치 가져오기
   const getFrontAndBackCameras = () => {
     const frontCamera = videoDevices.value.find(
       (device) =>
         device.label.toLowerCase().includes('front') ||
-        device.label.toLowerCase().includes('前置') ||
+        device.label.toLowerCase().includes('전면') ||
         device.label.toLowerCase().includes('user')
     )
 
     const backCamera = videoDevices.value.find(
       (device) =>
         device.label.toLowerCase().includes('back') ||
-        device.label.toLowerCase().includes('后置') ||
+        device.label.toLowerCase().includes('후면') ||
         device.label.toLowerCase().includes('environment') ||
         device.label.toLowerCase().includes('rear')
     )
@@ -871,10 +871,10 @@ export const useWebRtc = (roomId: string, remoteUserId: string, callType: CallTy
     return { frontCamera, backCamera }
   }
 
-  // 切换前置/后置摄像头（移动端专用）
+  // 전면/후면 카메라 전환 (모바일 전용)
   const switchCameraFacing = async () => {
     if (!isMobile) {
-      console.warn('摄像头翻转功能仅在移动端可用')
+      console.warn('카메라 전환 기능은 모바일에서만 사용할 수 있습니다')
       return
     }
 
@@ -882,25 +882,25 @@ export const useWebRtc = (roomId: string, remoteUserId: string, callType: CallTy
       const { frontCamera, backCamera } = getFrontAndBackCameras()
 
       if (!frontCamera || !backCamera) {
-        // 如果无法通过设备名称识别，则使用 facingMode 约束
+        // 장치 이름으로 식별할 수 없는 경우 facingMode 제약 조건 사용
         await switchVideoDevice('user')
         return
       }
 
-      // 如果能识别前置和后置摄像头，直接切换
+      // 전면 및 후면 카메라를 식별할 수 있는 경우 직접 전환
       const currentDevice = selectedVideoDevice.value
       const targetDevice = currentDevice === frontCamera.deviceId ? backCamera : frontCamera
       await switchVideoDevice(targetDevice.deviceId)
     } catch (error) {
-      window.$message.error('摄像头翻转失败！')
-      console.error('摄像头翻转失败:', error)
+      window.$message.error('카메라 전환 실패!')
+      console.error('카메라 전환 실패:', error)
     }
   }
 
-  // 切换视频设备
+  // 비디오 장치 전환
   const switchVideoDevice = async (deviceId: string) => {
     try {
-      // 前置校验
+      // 사전 검증
       selectedVideoDevice.value = deviceId
       if (localStream.value && localStream.value.getVideoTracks().length > 0) {
         const newStream = await navigator.mediaDevices.getUserMedia({
@@ -908,7 +908,7 @@ export const useWebRtc = (roomId: string, remoteUserId: string, callType: CallTy
           video: { deviceId: { exact: deviceId } }
         })
 
-        // 替换现有轨道
+        // 기존 트랙 교체
         const newVideoTrack = newStream.getVideoTracks()[0]
         const oldVideoTrack = localStream.value.getVideoTracks()[0]
         // console.log(oldVideoTrack, newVideoTrack);
@@ -927,72 +927,72 @@ export const useWebRtc = (roomId: string, remoteUserId: string, callType: CallTy
           oldVideoTrack && localStream.value.removeTrack(oldVideoTrack)
           localStream.value.addTrack(newVideoTrack)
         } else {
-          window.$message.error('切换设备不存在或不支持，请重新选择！')
+          window.$message.error('전환할 장치가 존재하지 않거나 지원되지 않습니다. 다시 선택해 주세요!')
         }
       }
     } catch (error) {
-      window.$message.error('切换视频设备失败！')
-      console.error('切换视频设备失败:', error)
+      window.$message.error('비디오 장치 전환 실패!')
+      console.error('비디오 장치 전환 실패:', error)
     }
   }
 
-  // 停止桌面共享
+  // 화면 공유 중지
   const stopScreenShare = () => {
     if (isScreenSharing.value) {
       isScreenSharing.value = false
-      // 停止当前的本地流
+      // 현재 로컬 스트림 중지
       if (localStream.value) {
         localStream.value.getTracks().forEach((track) => track.stop())
       }
       if (!selectedVideoDevice.value || !rtcMsg.value.callType) {
         return false
       }
-      // 切换到默认设备
+      // 기본 장치로 전환
       getLocalStream(rtcMsg.value.callType)
-      // 切换原来的视频轨道
+      // 원래 비디오 트랙 전환
       selectedVideoDevice.value && switchVideoDevice(selectedVideoDevice.value)
       return true
     }
     return false
   }
 
-  // 开始桌面共享
+  // 화면 공유 시작
   const startScreenShare = async () => {
     try {
       if (!navigator?.mediaDevices?.getDisplayMedia) {
-        window.$message.warning('当前设备不支持桌面共享功能！')
+        window.$message.warning('현재 장치는 화면 공유 기능을 지원하지 않습니다!')
         return
       }
       const screenStream = await navigator.mediaDevices.getDisplayMedia({
         video: true,
-        audio: true // 如果需要共享音频
+        audio: true // 오디오 공유가 필요한 경우
       })
       if (!screenStream) {
         return
       }
 
-      // 停止当前的本地流
+      // 현재 로컬 스트림 중지
       if (localStream.value) {
         localStream.value.getTracks().forEach((track) => track.stop())
       }
 
-      // 替换本地流为桌面共享流
+      // 로컬 스트림을 화면 공유 스트림으로 교체
       localStream.value = screenStream
-      // 添加新的视频轨道到连接
+      // 연결에 새 비디오 트랙 추가
       screenStream.getTracks().forEach((track) => {
         if (localStream.value) {
           peerConnection.value?.addTrack(track, localStream.value)
         }
       })
-      // 远程替换为桌面共享流
+      // 원격을 화면 공유 스트림으로 교체
       const newVideoTrack = screenStream.getVideoTracks()[0]
       const oldVideoTrack = localStream.value.getVideoTracks()[0]
       if (!newVideoTrack) {
-        window.$message.error('桌面共享失败，请检查权限设置!')
+        window.$message.error('화면 공유 실패, 권한 설정을 확인하세요!')
         return
       }
       newVideoTrack.onended = () => {
-        window.$message.warning('屏幕共享已结束 ~')
+        window.$message.warning('화면 공유가 종료되었습니다 ~')
         stopScreenShare()
       }
       peerConnection.value?.getSenders().forEach((sender) => {
@@ -1002,16 +1002,16 @@ export const useWebRtc = (roomId: string, remoteUserId: string, callType: CallTy
       })
       oldVideoTrack && localStream.value.removeTrack(oldVideoTrack)
       localStream.value.addTrack(newVideoTrack)
-      isScreenSharing.value = true // 开始桌面共享
+      isScreenSharing.value = true // 화면 공유 시작
     } catch (error: any) {
-      console.error('开始桌面共享失败:', error)
+      console.error('화면 공유 시작 실패:', error)
       isScreenSharing.value = false
       stopScreenShare()
       if (error?.name === 'NotAllowedError') {
-        window.$message.warning('已取消屏幕共享...')
+        window.$message.warning('화면 공유가 취소되었습니다...')
         return
       }
-      window.$message.error('桌面共享失败，请检查权限设置!')
+      window.$message.error('화면 공유 실패, 권한 설정을 확인하세요!')
     }
   }
 
@@ -1020,7 +1020,7 @@ export const useWebRtc = (roomId: string, remoteUserId: string, callType: CallTy
       return
     }
 
-    info('第一次交换 ICE candidates...')
+    info('첫 번째 ICE candidate 교환...')
     if (pendingCandidates.value.length > 0) {
       pendingCandidates.value.forEach(async (candidate) => {
         await sendIceCandidate(candidate)
@@ -1031,16 +1031,16 @@ export const useWebRtc = (roomId: string, remoteUserId: string, callType: CallTy
 
     peerConnection.value.onicecandidate = async (event) => {
       if (event.candidate) {
-        info('第二次交换 ICE candidates...')
+        info('두 번째 ICE candidate 교환...')
         await sendIceCandidate(event.candidate)
       }
     }
   }
 
-  // 处理接收到的信令消息
+  // 수신된 시그널링 메시지 처리
   const handleSignalMessage = async (data: WSRtcCallMsg) => {
     try {
-      info('处理信令消息')
+      info('시그널링 메시지 처리')
       const signal = JSON.parse(data.signal)
 
       switch (data.signalType) {
@@ -1051,43 +1051,43 @@ export const useWebRtc = (roomId: string, remoteUserId: string, callType: CallTy
 
         case SignalTypeEnum.ANSWER:
           await handleAnswer(signal, roomId)
-          // offer 发送 candidate
+          // offer candidate 전송
           await lisendCandidate()
           break
 
         case SignalTypeEnum.CANDIDATE:
           if (signal.candidate) {
-            info('收到 candidate 信令')
+            info('candidate 시그널 수신')
             await handleCandidate(signal)
           }
           break
 
         default:
-          console.log('未知信令类型:', data.signalType)
+          console.log('알 수 없는 시그널링 유형:', data.signalType)
       }
     } catch (error) {
-      console.error('处理信令消息错误:', error)
+      console.error('시그널링 메시지 처리 오류:', error)
     }
   }
 
-  // 监听 WebRTC 信令消息（注册并保存卸载函数）
+  // WebRTC 시그널링 메시지 수신 대기 (등록 및 언로드 함수 저장)
   // useMitt.on(WsResponseMessageType.WEBRTC_SIGNAL, handleSignalMessage)
   void (async () => {
     await addListener(
       listen('ws-webrtc-signal', (event: any) => {
-        info(`收到信令消息: ${JSON.stringify(event.payload)}`)
+        info(`시그널링 메시지 수신: ${JSON.stringify(event.payload)}`)
         handleSignalMessage(event.payload)
       }),
       `${roomId}-ws-webrtc-signal`
     )
     await addListener(
       listen('ws-call-accepted', (event: any) => {
-        info(`通话被接受: ${JSON.stringify(event.payload)}`)
-        // // 接受方，发送是否接受
-        // info(`收到 CallAccepted'消息 ${isReceiver}`)
+        info(`통화 수락됨: ${JSON.stringify(event.payload)}`)
+        // // 수신자, 수락 여부 전송
+        // info(`CallAccepted 메시지 수신 ${isReceiver}`)
         if (!isReceiver) {
           sendOffer(offer.value!)
-          // 对方接通后，主叫方窗口前置并聚焦
+          // 상대방이 연결하면 발신자 창을 맨 앞으로 가져오고 포커스
           void focusCurrentWindow()
         }
       }),
@@ -1095,7 +1095,7 @@ export const useWebRtc = (roomId: string, remoteUserId: string, callType: CallTy
     )
     await addListener(
       listen('ws-room-closed', (event: any) => {
-        info(`房间已关闭: ${JSON.stringify(event.payload)}`)
+        info(`방이 닫힘: ${JSON.stringify(event.payload)}`)
         endCall()
       }),
       `${roomId}-ws-room-closed`
@@ -1108,21 +1108,21 @@ export const useWebRtc = (roomId: string, remoteUserId: string, callType: CallTy
     )
     await addListener(
       listen('ws-call-rejected', (event: any) => {
-        info(`通话被拒绝: ${JSON.stringify(event.payload)}`)
+        info(`통화 거절됨: ${JSON.stringify(event.payload)}`)
         endCall()
       }),
       `${roomId}-ws-call-rejected`
     )
     await addListener(
       listen('ws-cancel', (event: any) => {
-        info(`已取消通话: ${JSON.stringify(event.payload)}`)
+        info(`통화 취소됨: ${JSON.stringify(event.payload)}`)
         endCall()
       }),
       `${roomId}-ws-cancel`
     )
     await addListener(
       listen('ws-timeout', (event: any) => {
-        info(`已取消通话: ${JSON.stringify(event.payload)}`)
+        info(`통화 취소됨: ${JSON.stringify(event.payload)}`)
         endCall()
       }),
       `${roomId}-ws-timeout`
@@ -1132,13 +1132,13 @@ export const useWebRtc = (roomId: string, remoteUserId: string, callType: CallTy
   onMounted(async () => {
     await loadIceServers()
     if (!isReceiver) {
-      console.log(`调用方发送${callType === CallTypeEnum.VIDEO ? '视频' : '语音'}通话请求`)
+      console.log(`발신자가 ${callType === CallTypeEnum.VIDEO ? '영상' : '음성'} 통화 요청을 보냄`)
       await startCall(roomId, callType, [remoteUserId])
     }
   })
 
   onUnmounted(() => {
-    // 移除 WebRTC 信令消息监听器
+    // WebRTC 시그널링 메시지 리스너 제거
     useMitt.off(WsResponseMessageType.WEBRTC_SIGNAL, handleSignalMessage)
   })
 

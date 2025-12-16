@@ -60,9 +60,9 @@
 
     <van-popup v-model:show="pickRtcCall" position="bottom">
       <div class="flex flex-col items-center justify-center">
-        <div class="w-full text-center py-3" @click="startCall(CallTypeEnum.VIDEO)">视频通话</div>
-        <div class="w-full text-center py-3" @click="startCall(CallTypeEnum.AUDIO)">语音通话</div>
-        <div class="w-full text-center py-3">取消</div>
+        <div class="w-full text-center py-3" @click="startCall(CallTypeEnum.VIDEO)">영상 통화</div>
+        <div class="w-full text-center py-3" @click="startCall(CallTypeEnum.AUDIO)">음성 통화</div>
+        <div class="w-full text-center py-3">취소</div>
       </div>
     </van-popup>
   </div>
@@ -79,14 +79,14 @@ const globalStore = useGlobalStore()
 const isGroup = computed(() => globalStore.currentSession?.type === RoomTypeEnum.GROUP)
 
 const pickRtcCall = ref(false)
-// ==== 展开面板 ====
+// ==== 확장 패널 ====
 const options = ref([
-  { label: '文件', icon: 'file', showArrow: false, isRotate: true, onClick: () => {}, isShow: () => true },
-  { label: '图片', icon: 'photo', showArrow: false, isRotate: true, onClick: () => {}, isShow: () => true },
-  { label: '视频', icon: 'voice', showArrow: true, isRotate: false, onClick: () => {}, isShow: () => true },
-  { label: '历史', icon: 'history', showArrow: true, isRotate: false, onClick: () => {}, isShow: () => true },
+  { label: '파일', icon: 'file', showArrow: false, isRotate: true, onClick: () => {}, isShow: () => true },
+  { label: '이미지', icon: 'photo', showArrow: false, isRotate: true, onClick: () => {}, isShow: () => true },
+  { label: '비디오', icon: 'voice', showArrow: true, isRotate: false, onClick: () => {}, isShow: () => true },
+  { label: '기록', icon: 'history', showArrow: true, isRotate: false, onClick: () => {}, isShow: () => true },
   {
-    label: '视频通话',
+    label: '영상 통화',
     icon: 'video-one',
     showArrow: true,
     isRotate: false,
@@ -99,7 +99,7 @@ const options = ref([
   }
 ])
 
-// 将数据分页，每页8个（2行4列）
+// 데이터를 페이지로 분할, 페이지당 8개 (2행 4열)
 const pages = computed(() => {
   const pageSize = 8
   const result: any[][] = []
@@ -145,19 +145,19 @@ const afterReadFile = (fileList: UploaderFileListItem | UploaderFileListItem[]) 
   const imageTypes = ['image/jpeg', 'image/png', 'image/gif']
   const files = Array.isArray(fileList) ? fileList : [fileList]
 
-  console.log('选择的文件：', files)
+  console.log('선택한 파일：', files)
 
   for (const file of files) {
     const rawFile = file.file
 
     if (!rawFile) {
-      console.log('文件不存在:', file)
+      console.log('파일이 존재하지 않음:', file)
       continue
     }
 
-    // ✅ 只保留非图片文件
+    // ✅ 이미지 파일이 아닌 것만 보관
     if (imageTypes.includes(rawFile.type)) {
-      console.log('已过滤图片文件:', file)
+      console.log('이미지 파일 필터링됨:', file)
       continue
     }
 
@@ -165,10 +165,10 @@ const afterReadFile = (fileList: UploaderFileListItem | UploaderFileListItem[]) 
     uploadFileList.value.push({
       url: file.url as string,
       status: 'done',
-      message: '待上传（非图片）'
+      message: '업로드 대기 중 (비이미지)'
     })
 
-    console.log('已选择文件：', file)
+    console.log('선택된 파일：', file)
   }
 
   if (selectedFiles.value.length > 0) {
@@ -182,20 +182,20 @@ const afterReadImage = (fileList: UploaderFileListItem | UploaderFileListItem[])
   const validTypes = ['image/jpeg', 'image/png', 'image/gif']
   const files = Array.isArray(fileList) ? fileList : [fileList]
 
-  console.log('选择的文件：', files)
+  console.log('선택한 파일：', files)
 
   for (const file of files) {
     const rawFile = file.file
 
     if (!rawFile) {
-      console.log('文件不存在:', file)
+      console.log('파일이 존재하지 않음:', file)
       continue
     }
 
     if (!validTypes.includes(rawFile.type)) {
-      console.log('已过滤非图片文件:', file)
+      console.log('비이미지 파일 필터링됨:', file)
       if (!Array.isArray(fileList)) {
-        window.$message.warning('只能选择图片哦~')
+        window.$message.warning('이미지만 선택할 수 있어요~')
       }
       continue
     }
@@ -204,10 +204,10 @@ const afterReadImage = (fileList: UploaderFileListItem | UploaderFileListItem[])
     uploadFileList.value.push({
       url: file.url as string,
       status: 'done',
-      message: '待上传'
+      message: '업로드 대기 중'
     })
 
-    console.log('已添加文件：', file)
+    console.log('추가된 파일：', file)
   }
 
   if (selectedFiles.value.length > 0) {

@@ -1,13 +1,13 @@
 <template>
   <div class="w-200px flex-shrink-0 flex flex-col bg-[--center-bg-color] border-r border-solid border-[--line-color]">
-    <!-- 导航标题 -->
+    <!-- 내비게이션 제목 -->
     <div class="navigation-header p-20px pb-16px">
       <h2 class="text-16px font-600 text-[--text-color] m-0">
         {{ t('fileManager.navigation.title') }}
       </h2>
     </div>
 
-    <!-- 导航菜单 -->
+    <!-- 내비게이션 메뉴 -->
     <div class="navigation-menu flex-1 p-16px flex flex-col gap-6px">
       <div
         v-for="item in navigationItems"

@@ -1,4 +1,4 @@
-/// 针对 macOS (WKWebView) 的运行时防护
+/// macOS(WKWebView)에 대한 런타임 보호
 pub fn apply_runtime_guards() {
     sanitize_sensitive_env();
     enforce_debugger_policy();
@@ -23,20 +23,20 @@ fn enforce_debugger_policy() {
     #[cfg(not(debug_assertions))]
     {
         if prevent_debugger_attach().is_err() {
-            eprintln!("[HuLa] 无法设置调试防护 (macOS) 。");
+            eprintln!("[HuLa] 디버그 보호를 설정할 수 없습니다 (macOS).");
         }
     }
 
     #[cfg(debug_assertions)]
     {
-        eprintln!("[HuLa] 调试构建：macOS 运行时防护仅记录提示，不阻断调试。");
+        eprintln!("[HuLa] 디버그 빌드: macOS 런타임 보호는 힌트만 기록하며 디버깅을 차단하지 않습니다.");
     }
 }
 
 #[cfg(not(debug_assertions))]
 fn prevent_debugger_attach() -> Result<(), ()> {
     unsafe {
-        // PT_DENY_ATTACH 会阻止后续调试器附加；若当前已被调试，系统会直接终止进程
+        // PT_DENY_ATTACH는 후속 디버거 연결을 차단합니다. 현재 디버깅 중인 경우 시스템이 프로세스를 직접 종료합니다.
         if libc::ptrace(libc::PT_DENY_ATTACH, 0, std::ptr::null_mut(), 0) == -1 {
             return Err(());
         }

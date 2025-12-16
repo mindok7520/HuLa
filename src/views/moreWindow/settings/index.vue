@@ -1,6 +1,6 @@
 <template>
   <main class="size-full flex select-none">
-    <!-- 侧边栏选项 -->
+    <!-- 사이드바 옵션 -->
     <section class="left-bar" data-tauri-drag-region>
       <div class="menu-list relative">
         <div v-for="(item, index) in sideOptions" :key="index">
@@ -32,7 +32,7 @@
       </div>
     </section>
 
-    <!-- 右边内容 -->
+    <!-- 오른쪽 콘텐츠 -->
     <section class="bg-[--right-bg-color] relative rounded-r-8px flex-1 border-l-(1px solid [--line-color])">
       <ActionBar :shrink="false" :max-w="true" />
 
@@ -73,7 +73,7 @@ const skeleton = ref(true)
 const { page } = storeToRefs(settingStore)
 const sideOptions = useSideOptions()
 const { t } = useI18n()
-/**当前选中的元素 默认选中itemsTop的第一项*/
+/** 현재 선택된 요소, 기본적으로 itemsTop의 첫 번째 항목 선택 */
 const activeItem = ref<string>('/general')
 const title = ref<string>('')
 
@@ -89,9 +89,9 @@ watch(
 )
 
 /**
- * 统一跳转路由方法
- * @param url 跳转的路由
- * @param label 页面的标题
+ * 통합 라우팅 점프 메서드
+ * @param url 점프할 라우트
+ * @param label 페이지 제목
  * */
 const pageJumps = (url: string) => {
   const matched = sideOptions.value.find((item) => item.url === url)
@@ -105,7 +105,7 @@ const pageJumps = (url: string) => {
 onMounted(async () => {
   await getCurrentWebviewWindow().show()
 
-  // 重置扫描器状态
+  // 스캐너 상태 초기화
   scannerStore.resetState()
 
   setTimeout(() => {
@@ -114,7 +114,7 @@ onMounted(async () => {
   pageJumps(activeItem.value)
 })
 
-// 设置窗口关闭时清理扫描器资源
+// 설정 창이 닫힐 때 스캐너 리소스 정리
 onUnmounted(async () => {
   await scannerStore.cleanup()
 })

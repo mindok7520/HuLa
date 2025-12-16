@@ -8,20 +8,20 @@ export const useBotStore = defineStore(StoresEnum.BOT, () => {
   const readmeLang = ref<'zh' | 'en'>('zh')
   const markdownSource = ref('')
   const webUrl = ref('')
-  const assistantText = ref('正在预览模型')
+  const assistantText = ref('모델 미리보기 중')
 
   const displayText = computed(() => {
     switch (viewType.value) {
       case 'readme':
-        return readmeLang.value === 'zh' ? 'README (中文)' : 'README (English)'
+        return readmeLang.value === 'zh' ? 'README (중국어)' : 'README (영어)'
       case 'markdown':
-        if (!markdownSource.value) return 'Markdown 文档'
+        if (!markdownSource.value) return 'Markdown 문서'
         return markdownSource.value.split('/').pop() || markdownSource.value
       case 'web':
-        if (!webUrl.value) return '外部链接'
+        if (!webUrl.value) return '외부 링크'
         return webUrl.value
       case 'assistant':
-        return assistantText.value || '正在预览模型'
+        return assistantText.value || '모델 미리보기 중'
       default:
         return ''
     }
@@ -54,7 +54,7 @@ export const useBotStore = defineStore(StoresEnum.BOT, () => {
 
   const setAssistant = (text?: string) => {
     viewType.value = 'assistant'
-    assistantText.value = text && text.trim().length ? text : '正在预览模型'
+    assistantText.value = text && text.trim().length ? text : '모델 미리보기 중'
     markdownSource.value = ''
     webUrl.value = ''
   }

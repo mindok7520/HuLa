@@ -1,5 +1,5 @@
 <template>
-  <!-- 主容器维持 600px 的最小宽度，确保聊天侧边信息不过度挤压 -->
+  <!-- 메인 컨테이너는 600px 최소 너비를 유지하여 채팅 사이드 정보가 과도하게 압축되지 않도록 보장 -->
   <main data-tauri-drag-region class="flex-1 bg-[--right-bg-color] flex flex-col min-h-0 min-w-600px">
     <div
       :style="{ background: shouldShowChat ? 'var(--right-theme-bg-color)' : '' }"
@@ -7,18 +7,18 @@
       class="flex-1 flex flex-col min-h-0">
       <ActionBar :current-label="appWindow.label" />
 
-      <!-- 需要判断当前路由是否是信息详情界面 -->
+      <!-- 현재 라우트가 정보 상세 화면인지 판단 필요 -->
       <div class="flex-1 min-h-0 flex flex-col">
         <ChatBox v-if="shouldShowChat" />
 
         <Details :content="detailsContent" v-else-if="detailsShow && isDetails && detailsContent?.type !== 'apply'" />
 
-        <!-- 好友申请列表 -->
+        <!-- 친구 신청 목록 -->
         <ApplyList
           v-else-if="detailsContent && isDetails && detailsContent.type === 'apply'"
           :type="detailsContent.applyType" />
 
-        <!-- 聊天界面背景图标 -->
+        <!-- 채팅 화면 배경 아이콘 -->
         <div v-else class="flex-center size-full select-none">
           <img class="w-150px h-140px" src="/logoD.png" alt="" />
         </div>
@@ -45,13 +45,13 @@ const detailsContent = ref<DetailsContent>()
 const imgTheme = ref<ThemeEnum>(themes.value.content)
 const prefers = matchMedia('(prefers-color-scheme: dark)')
 const isChatRoute = computed(() => router.currentRoute.value.path.includes('/message'))
-// 只要路由在消息页且选中了会话（即便会话详情尚未同步），就展示 ChatBox
+// 라우트가 메시지 페이지에 있고 세션이 선택되어 있으면 (세션 상세 정보가 아직 동기화되지 않았더라도) ChatBox 표시
 const shouldShowChat = computed(() => isChatRoute.value && !!currentSessionRoomId.value)
 const isDetails = computed(() => {
   return router.currentRoute.value.path.includes('/friendsList')
 })
 
-/** 跟随系统主题模式切换主题 */
+/** 시스템 테마 모드에 따라 테마 전환 */
 const followOS = () => {
   imgTheme.value = prefers.matches ? ThemeEnum.DARK : ThemeEnum.LIGHT
 }
@@ -67,7 +67,7 @@ watchEffect(() => {
 })
 
 onMounted(() => {
-  // 好友详情页面通过 mitt 接收主体传来的选中信息
+  // 친구 상세 페이지는 mitt를 통해 메인에서 전달된 선택 정보를 수신
   if (isDetails) {
     useMitt.on(MittEnum.APPLY_SHOW, (event: { context: DetailsContent }) => {
       detailsContent.value = event.context

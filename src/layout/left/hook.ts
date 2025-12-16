@@ -28,14 +28,14 @@ export const leftHook = () => {
   const settingShow = ref(false)
   const shrinkStatus = ref(false)
   const groupStore = useGroupStore()
-  /** 是否展示个人信息浮窗 */
+  /** 개인 정보 팝업 표시 여부 */
   const infoShow = ref(false)
-  /** 是否显示上半部分操作栏中的提示 */
+  /** 상단 작업 표시줄의 팁 표시 여부 */
   const tipShow = ref(true)
   const themeColor = ref(themes.content === ThemeEnum.DARK ? 'rgba(63,63,63, 0.2)' : 'rgba(241,241,241, 0.2)')
-  /** 已打开窗口的列表 */
+  /** 열린 창 목록 */
   const openWindowsList = ref(new Set())
-  /** 编辑资料弹窗 */
+  /** 프로필 편집 팝업 */
   const editInfo = ref<{
     show: boolean
     content: Partial<UserInfoType>
@@ -45,20 +45,20 @@ export const leftHook = () => {
     content: {},
     badgeList: []
   })
-  /** 当前用户佩戴的徽章  */
+  /** 현재 사용자가 착용한 배지 */
   const currentBadge = computed(() =>
     editInfo.value.badgeList.find((item) => item.obtain === IsYesEnum.YES && item.wearing === IsYesEnum.YES)
   )
 
   /* =================================== 方法 =============================================== */
 
-  /** 跟随系统主题模式切换主题 */
+  /** 시스템 테마 모드에 따라 테마 전환 */
   const followOS = () => {
     themeColor.value = prefers.matches ? 'rgba(63,63,63, 0.2)' : 'rgba(241,241,241, 0.2)'
   }
 
   watchEffect(() => {
-    /** 判断是否是跟随系统主题 */
+    /** 시스템 테마를 따르는지 판단 */
     if (themes.pattern === ThemeEnum.OS) {
       followOS()
       prefers.addEventListener('change', followOS)
@@ -67,75 +67,75 @@ export const leftHook = () => {
     }
   })
 
-  /** 更新缓存里面的用户信息 */
+  /** 캐시의 사용자 정보 업데이트 */
   const updateCurrentUserCache = (key: 'name' | 'wearingItemId' | 'avatar', value: any) => {
     const currentUser = userStore.userInfo!.uid && groupStore.getUserInfo(userStore.userInfo!.uid)
     if (currentUser) {
-      currentUser[key] = value // 更新缓存里面的用户信息
+      currentUser[key] = value // 캐시의 사용자 정보 업데이트
     }
   }
 
-  /** 保存用户信息 */
+  /** 사용자 정보 저장 */
   const saveEditInfo = (localUserInfo: any) => {
     if (!localUserInfo.name || localUserInfo.name.trim() === '') {
-      window.$message.error('昵称不能为空')
+      window.$message.error('닉네임은 비워둘 수 없습니다')
       return
     }
     if (localUserInfo.modifyNameChance === 0) {
-      window.$message.error('改名次数不足')
+      window.$message.error('이름 변경 횟수가 부족합니다')
       return
     }
     ModifyUserInfo(localUserInfo).then(() => {
-      // 更新本地缓存的用户信息
+      // 로컬 캐시의 사용자 정보 업데이트
       userStore.userInfo!.name = localUserInfo.name!
-      loginHistoriesStore.updateLoginHistory(<UserInfoType>userStore.userInfo) // 更新登录历史记录
-      updateCurrentUserCache('name', localUserInfo.name) // 更新缓存里面的用户信息
+      loginHistoriesStore.updateLoginHistory(<UserInfoType>userStore.userInfo) // 로그인 기록 업데이트
+      updateCurrentUserCache('name', localUserInfo.name) // 캐시의 사용자 정보 업데이트
       if (!editInfo.value.content.modifyNameChance) return
       editInfo.value.content.modifyNameChance -= 1
-      window.$message.success('保存成功')
+      window.$message.success('저장 성공')
     })
   }
 
-  /** 佩戴徽章 */
+  /** 배지 착용 */
   const toggleWarningBadge = async (badge: BadgeType) => {
     if (!badge?.id) return
     try {
       await setUserBadge({ badgeId: badge.id })
-      // 更新本地缓存中的用户徽章信息
+      // 로컬 캐시의 사용자 배지 정보 업데이트
       const currentUser = userStore.userInfo!.uid && groupStore.getUserInfo(userStore.userInfo!.uid)
       if (currentUser) {
-        // 更新当前佩戴的徽章ID
+        // 현재 착용 중인 배지 ID 업데이트
         currentUser.wearingItemId = badge.id
-        // 更新用户信息中的佩戴徽章ID
+        // 사용자 정보의 착용 배지 ID 업데이트
         userStore.userInfo!.wearingItemId = badge.id
-        // 更新徽章列表中的佩戴状态
+        // 배지 목록의 착용 상태 업데이트
         editInfo.value.badgeList = editInfo.value.badgeList.map((item) => ({
           ...item,
           wearing: item.id === badge.id ? IsYesEnum.YES : IsYesEnum.NO,
-          obtain: item.obtain // 保持原有的obtain状态
+          obtain: item.obtain // 기존 obtain 상태 유지
         }))
       }
-      // 确保在状态更新后再显示成功消息
+      // 상태 업데이트 후 성공 메시지 표시
       nextTick(() => {
-        window.$message.success('佩戴成功')
+        window.$message.success('착용 성공')
       })
     } catch (_error) {
-      window.$message.error('佩戴失败，请稍后重试')
+      window.$message.error('착용 실패, 나중에 다시 시도해주세요')
     }
   }
 
-  /* 打开并且创建modal */
+  /* modal 열기 및 생성 */
   const handleEditing = () => {
-    // TODO 暂时使用mitt传递参数，不然会导致子组件的响应式丢失 (nyh -> 2024-06-25 09:53:43)
+    // TODO 임시로 mitt를 사용하여 매개변수 전달, 그렇지 않으면 하위 컴포넌트의 반응성이 손실됨 (nyh -> 2024-06-25 09:53:43)
     useMitt.emit(MittEnum.OPEN_EDIT_INFO)
   }
 
   /**
-   * 侧边栏部分跳转窗口路由事件
-   * @param url 跳转的路由
-   * @param title 创建窗口时的标题
-   * @param size 窗口的大小
-   * @param window 窗口参数
+   * 사이드바 부분 창 라우팅 이벤트
+   * @param url 이동할 라우트
+   * @param title 창 생성 시 제목
+   * @param size 창 크기
+   * @param window 창 매개변수
    * */
   const pageJumps = (
     url: string,
@@ -145,7 +145,7 @@ export const leftHook = () => {
   ) => {
     if (window) {
       useTimeoutFn(async () => {
-        info(`打开窗口: ${title}`)
+        info(`창 열기: ${title}`)
         const webview = await createWebviewWindow(
           title!,
           url,
@@ -170,11 +170,11 @@ export const leftHook = () => {
   }
 
   /**
-   * 打开内容对应窗口
-   * @param title 窗口的标题
-   * @param label 窗口的标识
-   * @param w 窗口的宽度
-   * @param h 窗口的高度
+   * 내용에 해당하는 창 열기
+   * @param title 창 제목
+   * @param label 창 식별자
+   * @param w 창 너비
+   * @param h 창 높이
    * */
   const openContent = (title: string, label: string, w = 840, h = 600) => {
     useTimeoutFn(async () => {
@@ -190,7 +190,7 @@ export const leftHook = () => {
   }
 
   onMounted(async () => {
-    /** 页面加载的时候默认显示消息列表 */
+    /** 페이지 로드 시 기본적으로 메시지 목록 표시 */
     pageJumps(activeUrl.value)
     window.addEventListener('click', closeMenu, true)
 

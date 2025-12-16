@@ -5,7 +5,7 @@
         :isOfficial="false"
         style="border-bottom: 1px solid; border-color: #dfdfdf"
         :hidden-right="true"
-        :room-name="title + '设置'" />
+        :room-name="title + '설정'" />
     </template>
 
     <template #container>
@@ -13,7 +13,7 @@
         class="bg-[url('@/assets/mobile/chat-home/background.webp')] bg-cover bg-center flex flex-col overflow-auto h-full">
         <div class="flex flex-col gap-15px py-15px px-20px flex-1 min-h-0">
           <div class="flex shadow py-10px bg-white rounded-10px w-full items-center gap-10px" @click="clickInfo">
-            <!-- 群头像 -->
+            <!-- 그룹 프로필 사진 -->
             <div class="flex justify-center">
               <div class="rounded-full relative bg-white w-38px h-38px overflow-hidden" style="margin-left: 10px">
                 <n-avatar
@@ -54,17 +54,17 @@
               </span>
             </div>
           </div>
-          <!-- 群成员  -->
+          <!-- 그룹 멤버  -->
           <div v-if="isGroup" class="bg-white rounded-10px max-w-full p-[5px_10px_5x_10px] shadow">
             <div class="p-[15px_15px_0px_15px] flex flex-col">
-              <!-- 群号 -->
+              <!-- 그룹 번호 -->
               <div class="flex justify-between items-center">
-                <div class="text-14px">群聊成员</div>
+                <div class="text-14px">그룹 멤버</div>
                 <div @click="toGroupChatMember" class="text-12px text-#6E6E6E flex flex-wrap gap-10px items-center">
                   <div>
-                    有
+                    총
                     <span class="text-#398D7E">{{ groupStore.countInfo?.memberNum || 0 }}</span>
-                    位成员
+                    명
                   </div>
                   <div>
                     <svg class="w-14px h-14px iconpark-icon">
@@ -81,7 +81,7 @@
                 :key="i.uid"
                 class="flex flex-col justify-center items-center gap-5px">
                 <div class="rounded-full relative bg-#E5EFEE w-36px h-36px flex items-center justify-center">
-                  <!-- 蒙板 -->
+                  <!-- 마스크 -->
                   <div
                     v-if="i.activeStatus !== OnlineEnum.ONLINE"
                     class="w-36px h-36px absolute rounded-full bg-#707070 opacity-70 z-4"></div>
@@ -98,33 +98,33 @@
                     <use href="#plus"></use>
                   </svg>
                 </div>
-                <div>邀请</div>
+                <div>초대</div>
               </div>
             </div>
           </div>
 
-          <!-- 管理群成员 -->
+          <!-- 그룹 멤버 관리 -->
           <div
             v-if="isGroup && groupStore.isAdminOrLord() && globalStore.currentSessionRoomId !== '1'"
             class="bg-white p-15px rounded-10px shadow text-14px flex cursor-pointer"
             @click="toManageGroupMember">
-            管理群成员
+            그룹 멤버 관리
           </div>
 
           <div
             class="bg-white p-15px rounded-10px shadow text-14px flex cursor-pointer"
             @click="handleSearchChatContent">
-            查找聊天内容
+            채팅 내용 검색
           </div>
-          <!-- 群公告 -->
+          <!-- 그룹 공지 -->
           <div class="flex bg-white rounded-10px w-full h-auto shadow">
             <div class="px-15px flex flex-col w-full">
-              <!-- 群号 -->
+              <!-- 그룹 번호 -->
               <div
                 style="border-bottom: 1px solid; border-color: #ebebeb"
                 @click="handleCopy(activeItem?.account || '')"
                 class="flex justify-between py-15px items-center">
-                <div class="text-14px">{{ isGroup ? '群号/二维码' : 'Hula号/二维码' }}</div>
+                <div class="text-14px">{{ isGroup ? '그룹 번호/QR 코드' : 'Hula ID/QR 코드' }}</div>
                 <div class="text-12px text-#6E6E6E flex flex-wrap gap-10px items-center">
                   <div>{{ activeItem?.account || '' }}</div>
                   <div>
@@ -135,16 +135,16 @@
                 </div>
               </div>
 
-              <!-- 公告内容 -->
+              <!-- 공지 내용 -->
               <div @click="goToNotice" v-if="isGroup" class="pt-15px flex flex-col text-14px gap-10px">
-                <div>群公告</div>
+                <div>그룹 공지</div>
                 <div class="text-#707070 line-clamp-2 text-12px line-height-20px">
                   {{ announList.length > 0 ? announList[0]?.content : '' }}
                 </div>
               </div>
 
               <div v-if="isGroup && groupStore.isAdminOrLord()" class="flex justify-between py-15px items-center">
-                <div class="text-14px">本群昵称</div>
+                <div class="text-14px">그룹 닉네임</div>
                 <div class="text-12px text-#6E6E6E flex flex-wrap gap-10px items-center">
                   <input
                     style="
@@ -157,12 +157,12 @@
                     "
                     v-model="nameValue"
                     @blur="handleGroupInfoUpdate"
-                    placeholder="请输入群昵称" />
+                    placeholder="그룹 닉네임 입력" />
                 </div>
               </div>
 
               <div v-if="isGroup" class="flex justify-between py-15px items-center">
-                <div class="text-14px">我的群昵称</div>
+                <div class="text-14px">내 그룹 닉네임</div>
                 <div class="text-12px text-#6E6E6E flex flex-wrap gap-10px items-center">
                   <input
                     style="
@@ -175,16 +175,16 @@
                     "
                     v-model="nicknameValue"
                     @blur="handleInfoUpdate"
-                    placeholder="请输入我的群昵称" />
+                    placeholder="내 그룹 닉네임 입력" />
                 </div>
               </div>
             </div>
           </div>
-          <!-- 备注 -->
+          <!-- 비고 -->
           <div class="w-full flex flex-col gap-15px rounded-10px">
             <div class="ps-15px text-14px">
-              <span>{{ title + '备注' }}</span>
-              <span class="text-#6E6E6E">（仅自己可见）</span>
+              <span>{{ title + '비고' }}</span>
+              <span class="text-#6E6E6E">（나만 보기）</span>
             </div>
             <div class="rounded-10px flex w-full bg-white shadow">
               <div class="w-full px-15px">
@@ -192,25 +192,25 @@
                   v-model="remarkValue"
                   class="h-50px w-full"
                   style="border: none; outline: none; font-size: 14px"
-                  :placeholder="'请输入' + title + '备注'"
+                  :placeholder="title + '비고 입력'"
                   @blur="handleInfoUpdate" />
               </div>
             </div>
           </div>
           <div class="flex bg-white rounded-10px w-full h-auto shadow">
             <div class="px-15px flex flex-col w-full">
-              <div class="pt-15px text-14px text-#6E6E6E">{{ title }}设置</div>
-              <!-- 群号 -->
+              <div class="pt-15px text-14px text-#6E6E6E">{{ title }}설정</div>
+              <!-- 그룹 번호 -->
               <div
                 style="border-bottom: 1px solid; border-color: #ebebeb"
                 class="flex justify-between py-12px items-center">
-                <div class="text-14px">设置为置顶</div>
+                <div class="text-14px">상단 고정</div>
                 <n-switch :value="!!activeItem?.top" @update:value="handleTop" />
               </div>
               <div
                 style="border-bottom: 1px solid; border-color: #ebebeb"
                 class="flex justify-between py-12px items-center">
-                <div class="text-14px">消息免打扰</div>
+                <div class="text-14px">메시지 방해 금지</div>
                 <n-switch
                   @update:value="handleNotification"
                   :value="activeItem?.muteNotification === NotificationTypeEnum.NOT_DISTURB" />
@@ -218,12 +218,12 @@
             </div>
           </div>
           <div class="shadow bg-white cursor-pointer text-red text-14px rounded-10px w-full mb-20px">
-            <div class="p-15px">删除聊天记录</div>
+            <div class="p-15px">채팅 기록 삭제</div>
           </div>
-          <!-- 解散群聊、退出群聊、删除好友按钮 -->
+          <!-- 그룹 해산, 그룹 탈퇴, 친구 삭제 버튼 -->
           <div v-if="isGroup && globalStore.currentSessionRoomId !== '1'" class="mt-auto flex justify-center mb-20px">
             <n-button type="error" @click="handleExit">
-              {{ isGroup ? (isLord ? '解散群聊' : '退出群聊') : '删除好友' }}
+              {{ isGroup ? (isLord ? '그룹 해산' : '그룹 탈퇴') : '친구 삭제' }}
             </n-button>
           </div>
         </div>
@@ -271,7 +271,7 @@ const contactStore = useContactStore()
 const { currentSessionRoomId } = storeToRefs(globalStore)
 const { persistMyRoomInfo } = useMyRoomInfoUpdater()
 
-const title = computed(() => (isGroup.value ? '群' : '好友'))
+const title = computed(() => (isGroup.value ? '그룹' : '친구'))
 const isGroup = computed(() => globalStore.currentSession?.type === RoomTypeEnum.GROUP)
 
 const isLord = computed(() => {
@@ -303,7 +303,7 @@ const options = ref<Array<{ name: string; src: string }>>([])
 const { currentSession: activeItem } = storeToRefs(globalStore)
 const friend = computed(() => contactStore.contactsList.find((item) => item.uid === activeItem.value?.detailId))
 
-// 保存初始值，用于判断是否真正修改了内容
+// 초기값 저장, 내용이 실제로 수정되었는지 판단하는 데 사용
 const initialRemarkValue = ref('')
 const initialNicknameValue = ref('')
 const initialNameValue = ref('')
@@ -329,7 +329,7 @@ const handleCrop = async (cropBlob: Blob) => {
 const handleCopy = (val: string) => {
   if (val) {
     navigator.clipboard.writeText(val)
-    window.$message.success(`复制成功 ${val}`)
+    window.$message.success(`복사 성공 ${val}`)
   }
 }
 
@@ -359,68 +359,68 @@ const goToNotice = () => {
   })
 }
 
-// 退出登录逻辑
+// 로그아웃 로직
 async function handleExit() {
   dialog.error({
-    title: '提示',
-    content: isGroup.value ? (isLord.value ? '确定要解散群聊吗？' : '确定要退出群聊吗？') : '删除好友',
-    positiveText: '确定',
-    negativeText: '取消',
+    title: '알림',
+    content: isGroup.value ? (isLord.value ? '그룹을 해산하시겠습니까?' : '그룹에서 나가시겠습니까?') : '친구를 삭제하시겠습니까?',
+    positiveText: '확인',
+    negativeText: '취소',
     onPositiveClick: async () => {
       const session = activeItem.value
       if (!session) {
-        window.$message.warning('当前会话不存在')
+        window.$message.warning('현재 세션이 존재하지 않습니다')
         return
       }
       try {
         if (isGroup.value) {
           if (isLord.value) {
             if (currentSessionRoomId.value === '1') {
-              window.$message.warning('无法解散频道')
+              window.$message.warning('채널을 해산할 수 없습니다')
               return
             }
 
             groupStore.exitGroup(currentSessionRoomId.value).then(() => {
-              window.$message.success('已解散群聊')
-              // 删除当前的会话
+              window.$message.success('그룹이 해산되었습니다')
+              // 현재 세션 삭제
               useMitt.emit(MittEnum.DELETE_SESSION, currentSessionRoomId.value)
             })
           } else {
             if (currentSessionRoomId.value === '1') {
-              window.$message.warning('无法退出频道')
+              window.$message.warning('채널에서 나갈 수 없습니다')
               return
             }
 
             groupStore.exitGroup(currentSessionRoomId.value).then(() => {
-              window.$message.success('已退出群聊')
-              // 删除当前的会话
+              window.$message.success('그룹에서 나갔습니다')
+              // 현재 세션 삭제
               useMitt.emit(MittEnum.DELETE_SESSION, currentSessionRoomId.value)
             })
           }
         } else {
           const detailId = session.detailId
           if (!detailId) {
-            window.$message.warning('无法获取好友信息')
+            window.$message.warning('친구 정보를 가져올 수 없습니다')
             return
           }
           await deleteFriend({ targetUid: detailId })
-          window.$message.success('删除好友成功')
+          window.$message.success('친구 삭제 성공')
         }
 
         router.push('/mobile/message')
       } catch (error) {
-        console.error('创建登录窗口失败:', error)
+        console.error('로그인 창 생성 실패:', error)
       }
     },
     onNegativeClick: () => {
-      console.log('用户点击了取消')
+      console.log('사용자가 취소를 클릭했습니다')
     }
   })
 }
 
-/** 判断当前用户是否拥有id为6的徽章 并且是频道 */
+/** 현재 사용자가 ID 6 배지를 가지고 있고 채널인지 확인 */
 const hasBadge6 = computed(() => {
-  // 只有当 roomId 为 "1" 时才进行徽章判断（频道）
+  // roomId가 "1"일 때만 배지 판단 (채널)
   if (globalStore.currentSessionRoomId !== '1') return false
 
   const currentUser = groupStore.getUserInfo(userStore.userInfo!.uid!)!
@@ -433,29 +433,29 @@ const clickInfo = () => {
   } else {
     const detailId = activeItem.value?.detailId
     if (!detailId) {
-      window.$message.warning('当前会话信息未就绪')
+      window.$message.warning('현재 세션 정보가 준비되지 않았습니다')
       return
     }
     router.push(`/mobile/mobileFriends/friendInfo/${detailId}`)
   }
 }
 /**
- * 加载群公告
+ * 그룹 공지 로드
  */
 const handleLoadGroupAnnoun = async () => {
   try {
     const roomId = globalStore.currentSessionRoomId
     if (!roomId) {
-      console.error('当前会话没有roomId')
+      console.error('현재 세션에 roomId가 없습니다')
       return
     }
-    // 设置是否可以添加公告
+    // 공지 추가 가능 여부 설정
     isAddAnnoun.value = isLord.value || isAdmin.value || hasBadge6.value!
-    // 获取群公告列表
+    // 그룹 공지 목록 가져오기
     const data = await cacheStore.getGroupAnnouncementList(roomId, 1, 10)
     if (data) {
       announList.value = data.records
-      // 处理置顶公告
+      // 상단 고정 공지 처리
       if (announList.value && announList.value.length > 0) {
         const topAnnouncement = announList.value.find((item: any) => item.top)
         if (topAnnouncement) {
@@ -468,33 +468,33 @@ const handleLoadGroupAnnoun = async () => {
       announError.value = false
     }
   } catch (error) {
-    console.error('加载群公告失败:', error)
+    console.error('그룹 공지 로드 실패:', error)
     announError.value = true
   }
 }
 
-/** 置顶 */
+/** 상단 고정 */
 const handleTop = (value: boolean) => {
   const session = activeItem.value
   if (!session) return
   setSessionTop({ roomId: currentSessionRoomId.value, top: value })
     .then(() => {
-      // 更新本地会话状态
+      // 로컬 세션 상태 업데이트
       chatStore.updateSession(currentSessionRoomId.value, { top: value })
-      window.$message.success(value ? '已置顶' : '已取消置顶')
+      window.$message.success(value ? '상단 고정됨' : '상단 고정 해제됨')
     })
     .catch(() => {
-      window.$message.error('置顶失败')
+      window.$message.error('상단 고정 실패')
     })
 }
 
-// 处理群备注更新
+// 그룹 비고 업데이트 처리
 const handleInfoUpdate = async () => {
-  // 检查是否真正修改了内容
+  // 내용이 실제로 수정되었는지 확인
   const remarkChanged = remarkValue.value !== initialRemarkValue.value
   const nicknameChanged = nicknameValue.value !== initialNicknameValue.value
 
-  // 如果群聊和单聊的备注、昵称都没有改变，则不调用接口
+  // 그룹 채팅과 1:1 채팅의 비고, 닉네임이 모두 변경되지 않았으면 API 호출 안 함
   if (!remarkChanged && !nicknameChanged) {
     return
   }
@@ -505,18 +505,18 @@ const handleInfoUpdate = async () => {
       remark: remarkValue.value,
       myName: nicknameValue.value
     })
-    // 更新初始值
+    // 초기값 업데이트
     initialRemarkValue.value = remarkValue.value
     initialNicknameValue.value = nicknameValue.value
   } else {
-    // 单聊只检查备注是否修改
+    // 1:1 채팅은 비고가 수정되었는지 확인
     if (!remarkChanged) {
       return
     }
 
     const detailId = activeItem.value?.detailId
     if (!detailId) {
-      window.$message.warning('无法获取好友信息')
+      window.$message.warning('친구 정보를 가져올 수 없습니다')
       return
     }
     await modifyFriendRemark({
@@ -527,17 +527,17 @@ const handleInfoUpdate = async () => {
     if (friend.value) {
       friend.value.remark = remarkValue.value
     }
-    // 更新初始值
+    // 초기값 업데이트
     initialRemarkValue.value = remarkValue.value
   }
-  window.$message.success(title.value + '备注更新成功')
+  window.$message.success(title.value + '비고 업데이트 성공')
 }
 
-// 处理群名称更新
+// 그룹 이름 업데이트 처리
 const handleGroupInfoUpdate = async () => {
   const session = activeItem.value
   if (!session) return
-  // 检查群名称是否真正修改了
+  // 그룹 이름이 실제로 수정되었는지 확인
   if (nameValue.value === initialNameValue.value) {
     return
   }
@@ -549,15 +549,15 @@ const handleGroupInfoUpdate = async () => {
   })
   session.avatar = avatarValue.value
 
-  // 更新初始值
+  // 초기값 업데이트
   initialNameValue.value = nameValue.value
-  window.$message.success('群名称更新成功')
+  window.$message.success('그룹 이름 업데이트 성공')
 }
 
-// 获取群组详情和成员信息
+// 그룹 상세 정보 및 멤버 정보 가져오기
 const fetchGroupMembers = async (roomId: string) => {
   try {
-    // 使用每个成员的uid获取详细信息
+    // 각 멤버의 uid를 사용하여 상세 정보 가져오기
     const userList = groupStore.getUserListByRoomId(roomId)
     const memberDetails = userList.map((member: UserItem) => {
       const userInfo = groupStore.getUserInfo(member.uid)!
@@ -569,18 +569,18 @@ const fetchGroupMembers = async (roomId: string) => {
 
     options.value = memberDetails
   } catch (error) {
-    console.error('获取群成员失败:', error)
+    console.error('그룹 멤버 가져오기 실패:', error)
   }
 }
 
 /**
  *
- * 消息免打扰相关功能
+ * 메시지 방해 금지 관련 기능
  *
  *
  */
 
-/** 处理屏蔽消息 */
+/** 메시지 차단 처리 */
 const handleShield = (value: boolean) => {
   const session = activeItem.value
   if (!session) return
@@ -589,32 +589,32 @@ const handleShield = (value: boolean) => {
     state: value
   })
     .then(() => {
-      // 更新本地会话状态
+      // 로컬 세션 상태 업데이트
       chatStore.updateSession(currentSessionRoomId.value, {
         shield: value
       })
 
-      // 1. 先保存当前聊天室ID
+      // 1. 먼저 현재 채팅방 ID 저장
       const tempRoomId = globalStore.currentSessionRoomId
 
-      // 3. 在下一个tick中恢复原来的聊天室ID，触发重新加载消息
+      // 3. 다음 틱에서 원래 채팅방 ID 복원, 메시지 다시 로드 트리거
       nextTick(() => {
         globalStore.updateCurrentSessionRoomId(tempRoomId)
       })
 
-      window.$message.success(value ? '已屏蔽消息' : '已取消屏蔽')
+      window.$message.success(value ? '메시지 차단됨' : '차단 해제됨')
     })
     .catch(() => {
-      window.$message.error('设置失败')
+      window.$message.error('설정 실패')
     })
 }
 
-/** 处理消息免打扰 */
+/** 메시지 방해 금지 처리 */
 const handleNotification = (value: boolean) => {
   const session = activeItem.value
   if (!session) return
   const newType = value ? NotificationTypeEnum.NOT_DISTURB : NotificationTypeEnum.RECEPTION
-  // 如果当前是屏蔽状态，需要先取消屏蔽
+  // 현재 차단 상태인 경우 먼저 차단 해제 필요
   if (session.shield) {
     handleShield(false)
   }
@@ -623,35 +623,35 @@ const handleNotification = (value: boolean) => {
     type: newType
   })
     .then(() => {
-      // 更新本地会话状态
+      // 로컬 세션 상태 업데이트
       chatStore.updateSession(currentSessionRoomId.value, {
         muteNotification: newType
       })
 
-      // 如果从免打扰切换到允许提醒，需要重新计算全局未读数
+      // 방해 금지에서 알림 허용으로 전환하는 경우 전역 읽지 않은 수 다시 계산 필요
       if (session.muteNotification === NotificationTypeEnum.NOT_DISTURB && newType === NotificationTypeEnum.RECEPTION) {
         chatStore.updateTotalUnreadCount()
       }
 
-      // 如果设置为免打扰，也需要更新全局未读数，因为该会话的未读数将不再计入
+      // 방해 금지로 설정하는 경우에도 전역 읽지 않은 수 업데이트 필요 (해당 세션의 읽지 않은 수가 더 이상 포함되지 않으므로)
       if (newType === NotificationTypeEnum.NOT_DISTURB) {
         chatStore.updateTotalUnreadCount()
       }
 
-      window.$message.success(value ? '已设置接收消息但不提醒' : '已允许消息提醒')
+      window.$message.success(value ? '메시지 수신하지만 알림 안 함 설정됨' : '메시지 알림 허용됨')
     })
     .catch(() => {
-      window.$message.error('设置失败')
+      window.$message.error('설정 실패')
     })
 }
 
 /**
  *
- * 消息免打扰相关功能（结束）
+ * 메시지 방해 금지 관련 기능 (끝)
  *
  *  */
 
-/** 处理查找聊天内容 */
+/** 채팅 내용 검색 처리 */
 const handleSearchChatContent = () => {
   router.push({
     name: 'mobileSearchChatContent'
@@ -659,7 +659,7 @@ const handleSearchChatContent = () => {
 }
 
 /**
- * 这里直接监听状态的值
+ * 여기서 상태 값을 직접 감시
  */
 onMounted(async () => {
   await handleLoadGroupAnnoun()
@@ -672,7 +672,7 @@ onMounted(async () => {
         nicknameValue.value = response.myName || ''
         remarkValue.value = response.remark || ''
 
-        // 保存初始值
+        // 초기값 저장
         initialNameValue.value = nameValue.value
         initialNicknameValue.value = nicknameValue.value
         initialRemarkValue.value = remarkValue.value
@@ -681,12 +681,12 @@ onMounted(async () => {
         }
       })
       .catch((e: any) => {
-        console.error('获取群组详情失败:', e)
+        console.error('그룹 상세 정보 가져오기 실패:', e)
       })
   } else {
-    // 这里需要拿到好友的信息
+    // 여기서 친구 정보를 가져와야 함
     remarkValue.value = friend.value?.remark || ''
-    // 保存初始值
+    // 초기값 저장
     initialRemarkValue.value = remarkValue.value
   }
 })

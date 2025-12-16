@@ -29,7 +29,7 @@
         <span class="h-1px w-full bg-[--line-color]"></span>
       </n-flex>
 
-      <!-- 内容 -->
+      <!-- 내용 -->
       <div class="p-10px">
         <div class="max-h-400px overflow-y-auto">
           <div v-for="(file, index) in fileList" :key="index" class="flex-y-center p-12px">
@@ -118,12 +118,12 @@ const formatFileSize = (bytes: number): string => {
 
 const handleIconError = (event: Event) => {
   const target = event.target as HTMLImageElement
-  target.src = '/file/other.svg' // 默认文件图标
+  target.src = '/file/other.svg' // 기본 파일 아이콘
 }
 
 const removeFile = (index: number) => {
   fileList.value.splice(index, 1)
-  // 如果文件列表为空，自动关闭弹窗
+  // 파일 목록이 비어 있으면 팝업 자동 닫기
   if (fileList.value.length === 0) {
     visible.value = false
   }

@@ -35,13 +35,13 @@ lazy_static::lazy_static! {
     };
 }
 
-/// 带进度事件的目录大小扫描
+/// 진행 이벤트가 포함된 디렉토리 크기 스캔
 async fn get_directory_size_with_progress(
     directory_path: String,
     handle: AppHandle,
 ) -> Result<u64, String> {
-    // 添加总体超时机制，防止扫描过大目录时无限期运行
-    let timeout_duration = tokio::time::Duration::from_secs(300); // 5分钟超时
+    // 너무 큰 디렉토리를 스캔할 때 무기한 실행되는 것을 방지하기 위해 전체 타임아웃 메커니즘 추가
+    let timeout_duration = tokio::time::Duration::from_secs(300); // 5분 타임아웃
 
     match tokio::time::timeout(
         timeout_duration,
@@ -52,7 +52,7 @@ async fn get_directory_size_with_progress(
         Ok(result) => result,
         Err(_) => {
             tracing::warn!("Directory scan timeout, automatically cancelled");
-            Err("目录扫描超时，请尝试扫描较小的目录".to_string())
+            Err("디렉토리 스캔 시간 초과, 더 작은 디렉토리를 스캔해 보세요".to_string())
         }
     }
 }
@@ -61,26 +61,26 @@ async fn scan_directory_internal(directory_path: String, handle: AppHandle) -> R
     let path = PathBuf::from(&directory_path);
 
     if !path.exists() {
-        return Err("目录不存在".to_string());
+        return Err("디렉토리가 존재하지 않습니다".to_string());
     }
 
     if !path.is_dir() {
-        return Err("指定路径不是目录".to_string());
+        return Err("지정된 경로가 디렉토리가 아닙니다".to_string());
     }
 
-    // 创建取消接收器
+    // 취소 수신기 생성
     let mut cancel_receiver = CANCEL_SENDER.subscribe();
 
     let start_time = Instant::now();
 
-    // 1.快速预扫描计算总文件数
+    // 1. 빠른 사전 스캔으로 총 파일 수 계산
     let mut total_files = 0u64;
     let mut entries = AsyncWalkDir::new(&path);
 
     let _ = handle.emit(
         "directory-scan-progress",
         &DirectoryScanProgress {
-            current_path: "正在统计文件数量...".to_string(),
+            current_path: "파일 수 계산 중...".to_string(),
             files_processed: 0,
             total_size: 0,
             elapsed_time: 0,
@@ -91,12 +91,12 @@ async fn scan_directory_internal(directory_path: String, handle: AppHandle) -> R
 
     loop {
         tokio::select! {
-            // 检查取消信号
+            // 취소 신호 확인
             _ = cancel_receiver.recv() => {
                 let _ = handle.emit("directory-scan-cancelled", ());
                 return Err("扫描已取消".to_string());
             }
-            // 处理文件扫描
+            // 파일 스캔 처리
             entry = entries.next() => {
                 match entry {
                     Some(Ok(entry)) => {
@@ -105,13 +105,13 @@ async fn scan_directory_internal(directory_path: String, handle: AppHandle) -> R
                         }
                     }
                     Some(Err(_)) => continue,
-                    None => break, // 扫描完成
+                    None => break, // 스캔 완료
                 }
             }
         }
     }
 
-    // 2.实际扫描并计算准确进度
+    // 2. 실제 스캔 및 정확한 진행률 계산
     let mut total_size = 0u64;
     let mut files_processed = 0u64;
     let mut last_progress_time = Instant::now();
@@ -125,7 +125,7 @@ async fn scan_directory_internal(directory_path: String, handle: AppHandle) -> R
                 let _ = handle.emit("directory-scan-cancelled", ());
                 return Err("扫描已取消".to_string());
             }
-            // 处理文件扫描
+            // 파일 스캔 처리
             entry = entries.next() => {
                 match entry {
                     Some(Ok(entry)) => {
@@ -135,20 +135,20 @@ async fn scan_directory_internal(directory_path: String, handle: AppHandle) -> R
                                     total_size = total_size.saturating_add(metadata.len());
                                     files_processed += 1;
 
-                                    // 进度更新：每200ms或每100个文件发送一次
+                                    // 진행률 업데이트: 200ms마다 또는 100개 파일마다 한 번씩 전송
                                     let now = Instant::now();
                                     if now.duration_since(last_progress_time).as_millis() > 200
                                         || files_processed % 100 == 0
                                     {
                                         last_progress_time = now;
 
-                                        // 只在需要发送事件时才转换路径
+                                        // 이벤트를 전송해야 할 때만 경로 변환
                                         let current_path = entry.path().to_string_lossy().to_string();
 
                                         let elapsed = now.duration_since(start_time).as_millis() as u64;
                                         let elapsed_seconds = elapsed as f64 / 1000.0;
 
-                                        // 计算精确的进度百分比
+                                        // 정확한 진행률 백분율 계산
                                         let progress_percentage = if total_files > 0 {
                                             (files_processed as f64 / total_files as f64) * 100.0
                                         } else {
@@ -172,7 +172,7 @@ async fn scan_directory_internal(directory_path: String, handle: AppHandle) -> R
                         }
                     }
                     Some(Err(_)) => continue,
-                    None => break, // 扫描完成
+                    None => break, // 스캔 완료
                 }
             }
         }
@@ -182,7 +182,7 @@ async fn scan_directory_internal(directory_path: String, handle: AppHandle) -> R
     let final_elapsed_seconds = final_elapsed as f64 / 1000.0;
 
     let final_progress = DirectoryScanProgress {
-        current_path: "扫描完成".to_string(),
+        current_path: "스캔 완료".to_string(),
         files_processed,
         total_size,
         elapsed_time: final_elapsed,
@@ -195,15 +195,15 @@ async fn scan_directory_internal(directory_path: String, handle: AppHandle) -> R
     Ok(total_size)
 }
 
-/// 取消目录扫描
+/// 디렉토리 스캔 취소
 #[tauri::command]
 pub fn cancel_directory_scan() -> Result<(), String> {
-    // 发送取消信号，立即中断所有正在进行的扫描
+    // 취소 신호를 보내 진행 중인 모든 스캔을 즉시 중단
     let _ = CANCEL_SENDER.send(());
     Ok(())
 }
 
-/// 带进度事件的目录使用信息
+/// 진행 이벤트가 포함된 디렉토리 사용 정보
 #[tauri::command]
 pub async fn get_directory_usage_info_with_progress(
     directory_path: String,
@@ -224,7 +224,7 @@ pub async fn get_directory_usage_info_with_progress(
     for disk in &disks {
         let mount_point = disk.mount_point().to_string_lossy().to_string();
 
-        // Windows下路径比较需要处理路径分隔符
+        // Windows에서 경로 비교 시 경로 구분 기호 처리 필요
         let normalized_path = path_str.replace('\\', "/");
         let normalized_mount_point = mount_point.replace('\\', "/");
 
@@ -239,7 +239,7 @@ pub async fn get_directory_usage_info_with_progress(
     }
 
     if best_match.is_empty() {
-        return Err("无法找到目录所在的磁盘".to_string());
+        return Err("디렉토리가 있는 디스크를 찾을 수 없습니다".to_string());
     }
 
     let usage_percentage = if disk_total_space > 0 {
@@ -248,7 +248,7 @@ pub async fn get_directory_usage_info_with_progress(
         0.0
     };
 
-    // 计算磁盘已用空间和使用占比
+    // 디스크 사용 공간 및 사용 비율 계산
     let disk_used_space = disk_total_space.saturating_sub(disk_available_space);
     let disk_usage_percentage = if disk_total_space > 0 {
         (disk_used_space as f64 / disk_total_space as f64) * 100.0

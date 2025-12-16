@@ -1,132 +1,139 @@
 @use 'fonts';
+
 * {
   font-family: var(--font-family), sans-serif !important;
-  caret-color: #13987f !important; /* 改变输入框光标的颜色 */
+  caret-color: #13987f !important;
+  /* 입력창 커서 색상 변경 */
 }
+
 html,
 body,
 svg {
   &::selection {
-    background: rgba(19, 152, 127, 0.3); /** 输入框选中文本背景色 */
+    background: rgba(19, 152, 127, 0.3);
+    /** 입력창 선택된 텍스트 배경색 */
   }
+
   outline: none;
-  overscroll-behavior: none; // 禁止mac的"触底反弹"效果
+  overscroll-behavior: none; // Mac의 "바운스 스크롤" 효과 비활성화
 }
 
 ::selection {
-  background: rgba(19, 152, 127, 0.3); /** 输入框选中文本背景色 */
+  background: rgba(19, 152, 127, 0.3);
+  /** 입력창 선택된 텍스트 배경색 */
 }
-/**! 主题变量 */
-/* todo: 这里只需要定义单个颜色的变量即可无需重复定义组件的颜色 */
+
+/**! 테마 변수 */
+/* todo: 여기서는 단일 색상 변수만 정의하면 되며 컴포넌트 색상을 중복 정의할 필요 없음 */
 :root {
-  // 是否启用阴影
+  // 그림자 활성화 여부
   --shadow-enabled: 1;
-  // 字体
+  // 폰트
   --font-family: 'PingFang';
-  // 是否启用透明高斯模糊
+  // 투명 가우시안 블러 활성화 여부
   --blur-enabled: 1;
-    // 应用背景色
+  // 애플리케이션 배경색
   --app-bg-color: #FAFAFA;
 
   --center-bg-color: #fff;
   --right-bg-color: #f1f1f1;
-  // 阴影样式的颜色
+  // 그림자 스타일 색상
   --box-shadow-color: rgba(0, 0, 0, 0.08);
-  // 文字颜色
+  // 텍스트 색상
   --text-color: #18181c;
-  // 整体图标颜色
+  // 전체 아이콘 색상
   --icon-color: #000;
   --action-bar-icon-color: #404040;
   --action-bar-icon-hover: #e7e7e7;
-  // 搜索框背景颜色
+  // 검색창 배경색
   --search-bg-color: #EAEAEA;
-  // 消息列表样式
+  // 메시지 목록 스타일
   --bg-msg-first-child: #eeeeee;
   --bg-msg-hover: #f3f3f3;
   --bg-active-msg: #13987f;
-  // 聊天框整体样式
+  // 채팅창 전체 스타일
   --bg-chat-drawer: #f0f0f0;
   --bg-setting-item: #fdfdfd;
   --setting-item-line: #f1f1f1;
-  // 弹出框背景样式
+  // 팝업창 배경 스타일
   --bg-popover: #fdfdfd;
-  // 右键菜单样式或者需要透明的菜单的样式
+  // 우클릭 메뉴 스타일 또는 투명 메뉴 스타일
   --bg-menu: linear-gradient(45deg, rgba(255, 255, 255, 0.45) 40%, rgba(255, 255, 255, 0.65) 60%);
   --bg-menu-hover: rgba(10, 20, 28, 0.1);
   --line-color: #e3e3e3;
-  // 通用左边菜单栏的hover样式
+  // 공통 왼쪽 메뉴바 hover 스타일
   --bg-left-menu: rgba(241, 241, 241, 1);
   --bg-left-menu-hover: rgba(90, 90, 90, 0.1);
   --bg-left-active: rgba(90, 90, 90, 0.2);
-  //通用按钮样式
+  // 공통 버튼 스타일
   --button-bg-color: #f1f1f1;
-  // 通用禁用时的样式
+  // 공통 비활성화 스타일
   --disabled-color: #c1c1c1;
-  // 气泡背景颜色
+  // 말풍선 배경색
   --bg-bubble: rgb(253, 253, 253);
   --bg-bubble-active: #f1f1f1;
-  // 翻译气泡背景色
+  // 번역 말풍선 배경색
   --bg-translate-bubble: rgba(200, 200, 200, 0.4);
-  // 头像状态的背景颜色
+  // 아바타 상태 배경색
   --bg-avatar: rgba(241, 241, 241, 1);
-  // 个人信息框背景颜色
+  // 개인 정보창 배경색
   --info-hover: #eeeeee70;
   --info-text-color: #202020;
-  // 系统托盘hover样式
+  // 시스템 트레이 hover 스타일
   --tray-hover: #eee;
   --tray-hover-e: #f5dce1;
-  // 信息框背景颜色
+  // 정보창 배경색
   --bg-info: rgba(255, 255, 255);
-  // 表情框样式
+  // 이모티콘 창 스타일
   --bg-emoji: rgba(255, 255, 255, 0.6);
   --emoji-hover: #e3e3e3;
   --emoji-active-color: #13987f;
-  // 回复消息样式
+  // 답장 메시지 스타일
   --reply-color: #909090;
   --reply-hover: #505050;
   --bg-reply-img-count: #e3e3e3;
-  // 编辑资料背景颜色
+  // 프로필 편집 배경색
   --bg-edit: #f0f0f0;
-  // 聊天框时间戳样式
+  // 채팅창 타임스탬프 스타일
   --time-color: #e3e3e3;
-  // chat模块样式
+  // chat 모듈 스타일
   --chat-bt-color: #fff;
   --chat-left-bg: #cef9ec;
   --chat-right-bg: #f1f1f1;
   --chat-text-color: #505050;
   --chat-hover-color: #e3e3e3;
-  // 搜索框内样式
+  // 검색창 내부 스타일
   --search-color: #eee;
   // bate
   --bate-color: #a789d9;
   --bate-bg: #d9ccf7;
-  // 卡片hover样式
+  // 카드 hover 스타일
   --card-bg: #13987f60;
-  // 安装进度条样式
+  // 설치 진행바 스타일
   --progress-bg: #e0e9fc;
-  // 回复消息框背景
+  // 답장 메시지창 배경
   --reply-bg: rgba(204, 204, 204, 0.4);
-  // 危险样式
+  // 위험 스타일
   --danger-text: #c14053;
   --danger-bg: #f6dfe3;
-  // 警告样式
+  // 경고 스타일
   --warning-text: #f7b668ff;
   --warning-bg: #fdeeddff;
-  // 头像边框颜色
+  // 아바타 테두리 색상
   --avatar-border-color: #fff;
-  // hover头像样式
+  // hover 아바타 스타일
   --avatar-hover-bg: rgba(255, 255, 255, 0.1);
-  // 插件背景颜色
+  // 플러그인 배경색
   --plugin-bg-color: #eee;
-  // 列表悬浮的颜色
+  // 목록 플로팅 색상
   --float-block-hover-color: #767676;
-  // 悬浮按钮hover样式
+  // 플로팅 버튼 hover 스타일
   --float-hover-bg-color: rgb(221, 240, 236);
-  // 群公告列表背景色
+  // 그룹 공지사항 목록 배경색
   --group-notice-list-bg: #ffffffb6;
-  // 文件文本的背景颜色
+  // 파일 텍스트 배경색
   --file-bg-color: #fdfdfd;
-  // // 安全区域默认预设
+  // // 안전 영역 기본 설정
   // --safe-area-inset-top: 16px;
   // --safe-area-inset-right: 0px;
   // --safe-area-inset-bottom: 16px;
@@ -137,134 +144,141 @@ svg {
 html[data-theme='dark'] {
   --center-bg-color: #1b1b1b;
   --right-bg-color: #161616;
-  // 阴影样式的颜色
+  // 그림자 스타일 색상
   --box-shadow-color: rgba(90, 90, 90, 0.1);
-  // 文字颜色
+  // 텍스트 색상
   --text-color: #fff;
-  // 整体图标颜色
+  // 전체 아이콘 색상
   --icon-color: #c1c1c1;
   --action-bar-icon-color: #c1c1c1;
   --action-bar-icon-hover: #242424;
-  // 搜索框背景颜色
+  // 검색창 배경색
   --search-bg-color: #282828;
-  // 消息列表样式
+  // 메시지 목록 스타일
   --bg-msg-first-child: #282828;
   --bg-msg-hover: #2d2d2d;
   --bg-active-msg: rgba(19, 152, 127, 0.6);
-  // 聊天框整体样式
+  // 채팅창 전체 스타일
   --bg-chat-drawer: #1b1b1b;
   --bg-setting-item: #262626;
   --setting-item-line: #333333;
-  // 弹出框背景样式
+  // 팝업창 배경 스타일
   --bg-popover: #303030;
-  // 右键菜单样式或者需要透明的菜单的样式
+  // 우클릭 메뉴 스타일 또는 투명 메뉴 스타일
   --bg-menu: linear-gradient(45deg, rgba(33, 33, 33, 0.65) 60%, rgba(33, 33, 33, 0.95) 90%);
   --bg-menu-hover: #323232;
   --line-color: #404040;
-  // 通用左边菜单栏的hover样式
+  // 공통 왼쪽 메뉴바 hover 스타일
   --bg-left-menu: rgba(22, 22, 22, 1);
   --bg-left-menu-hover: #3b3b3b;
   --bg-left-active: #444444;
-  //通用按钮样式
+  // 공통 버튼 스타일
   --button-bg-color: #3f3f3f;
-  // 通用禁用时的样式
+  // 공통 비활성화 스타일
   --disabled-color: #575757;
-  // 气泡背景颜色
+  // 말풍선 배경색
   --bg-bubble: rgb(38, 38, 38);
   --bg-bubble-active: rgba(66, 66, 66, 0.8);
-  // 翻译气泡背景色
+  // 번역 말풍선 배경색
   --bg-translate-bubble: rgba(144, 144, 144, 0.2);
-  // 头像状态的背景颜色
+  // 아바타 상태 배경색
   --bg-avatar: rgba(22, 22, 22, 1);
-  // 个人信息框背景颜色
+  // 개인 정보창 배경색
   --info-hover: #3b3b3b60;
   --info-text-color: #eee;
-  // 系统托盘hover样式
+  // 시스템 트레이 hover 스타일
   --tray-hover: #3b3b3b;
   --tray-hover-e: #bb8188;
-  // 信息框背景颜色
+  // 정보창 배경색
   --bg-info: rgba(27, 27, 27);
-  // 表情框样式
+  // 이모티콘 창 스타일
   --bg-emoji: rgba(27, 27, 27, 0.8);
   --emoji-hover: #3b3b3b;
   --emoji-active-color: #13987f;
-  // 回复消息样式
+  // 답장 메시지 스타일
   --reply-color: #e3e3e3;
   --reply-hover: #b1b1b1;
   --bg-reply-img-count: #505050;
-  // 编辑资料背景颜色
+  // 프로필 편집 배경색
   --bg-edit: #262626;
-  // 聊天框时间戳样式
+  // 채팅창 타임스탬프 스타일
   --time-color: #3b3b3b;
-  // chat模块样式
+  // chat 모듈 스타일
   --chat-bt-color: #3b3b3b;
   --chat-left-bg: #355b55;
   --chat-right-bg: #161616;
   --chat-text-color: #b1b1b1;
   --chat-hover-color: #262626;
-  // 搜索框内样式
+  // 검색창 내부 스타일
   --search-color: #333;
   // bate
   --bate-color: #a789d9;
   --bate-bg: #403555;
-  // 卡片hover样式
+  // 카드 hover 스타일
   --card-bg: #13987f20;
-  // 安装进度条样式
+  // 설치 진행바 스타일
   --progress-bg: transparent;
-  // 回复消息框背景
+  // 답장 메시지창 배경
   --reply-bg: rgba(30, 30, 30, 0.6);
-  // 危险样式
+  // 위험 스타일
   --danger-text: #da8583;
   --danger-bg: #37292c;
-  // 警告样式
+  // 경고 스타일
   --warning-text: #f4c375ff;
   --warning-bg: #402f1dff;
-  // 头像边框颜色
+  // 아바타 테두리 색상
   --avatar-border-color: #1b1b1b;
-  // hover头像样式
+  // hover 아바타 스타일
   --avatar-hover-bg: rgba(30, 30, 30, 0.6);
-  // 插件背景颜色
+  // 플러그인 배경색
   --plugin-bg-color: #3b3b3b;
-  // 列表悬浮的颜色
+  // 목록 플로팅 색상
   --float-block-hover-color: #fff;
-  // 悬浮按钮hover样式
+  // 플로팅 버튼 hover 스타일
   --float-hover-bg-color: rgb(25, 50, 45);
-  // 群公告列表背景色
+  // 그룹 공지사항 목록 배경색
   --group-notice-list-bg: #262626;
-  // 文件文本的背景颜色
+  // 파일 텍스트 배경색
   --file-bg-color: #222;
 }
+
 /**! end */
-// 线性动画
+// 선형 애니메이션
 @keyframes linearAnimation {
   0% {
     stroke-dasharray: 600;
     stroke-dashoffset: 600;
   }
+
   100% {
     stroke-dasharray: 600;
     stroke-dashoffset: 0;
   }
 }
-// 闪烁动画
+
+// 깜빡임 애니메이션
 @keyframes twinkle {
   0% {
     transform: scale(0);
   }
+
   80% {
     transform: scale(1.2);
   }
+
   100% {
     transform: scale(1);
   }
 }
-// 懒加载默认动画
+
+// 지연 로딩 기본 애니메이션
 @keyframes come-in {
   100% {
     transform: translateX(0);
   }
 }
-/**!修改naive-ui的遮罩层样式*/
+
+/**! naive-ui 마스크 레이어 스타일 수정 */
 @mixin mask-style($blur: 4px) {
   position: fixed;
   left: 0;
@@ -273,8 +287,9 @@ html[data-theme='dark'] {
   bottom: 0;
 }
 
-// 使用CSS变量来控制模糊效果
+// CSS 변수를 사용하여 블러 효과 제어
 html[data-blur='1'] {
+
   .n-modal-mask,
   .n-drawer-mask {
     background-color: rgba(255, 255, 255, 0.1);
@@ -290,32 +305,32 @@ html[data-blur='1'] {
 .n-drawer-mask {
   @include mask-style(2px);
 }
+
 /**!end*/
 
-/**! 修改naive-ui复选框的样式 */
+/**! naive-ui 체크박스 스타일 수정 */
 :deep(.n-checkbox .n-checkbox-box) {
   border-radius: 50%;
   width: 16px;
   height: 16px;
 }
 
-/**! 修改naive-ui滚动条的间距 */
-:deep(
-  .n-scrollbar > .n-scrollbar-rail.n-scrollbar-rail--vertical,
-  .n-scrollbar + .n-scrollbar-rail.n-scrollbar-rail--vertical
-) {
+/**! naive-ui 스크롤바 간격 수정 */
+:deep(.n-scrollbar > .n-scrollbar-rail.n-scrollbar-rail--vertical,
+  .n-scrollbar + .n-scrollbar-rail.n-scrollbar-rail--vertical) {
   right: 0;
 }
 
-/**! 修改naive-ui Popselect选中的样式 */
+/**! naive-ui Popselect 선택 스타일 수정 */
 .n-base-select-menu .n-base-select-option.n-base-select-option--selected {
   color: #13987f;
 }
+
 .n-base-select-menu .n-base-select-option .n-base-select-option__check {
   color: #13987f;
 }
 
-/**! 通用菜单项目样式 */
+/**! 공통 메뉴 항목 스타일 */
 @mixin menu-item-style($position: fixed) {
   position: $position;
   background: var(--bg-menu);
@@ -339,12 +354,13 @@ html[data-blur='1'] {
   overflow: hidden;
 }
 
-/**! 通用菜单项样式 */
+/**! 공통 메뉴 항목 스타일 */
 @mixin menu-list() {
   padding: 5px;
   display: flex;
   flex-direction: column;
   gap: 6px;
+
   .menu-item {
     padding: 2px 8px;
     border-radius: 4px;
@@ -353,12 +369,15 @@ html[data-blur='1'] {
     display: flex;
     align-items: center;
     gap: 10px;
+
     svg {
       width: 16px;
       height: 16px;
     }
+
     &:hover {
       background-color: var(--bg-menu-hover);
+
       svg {
         animation: twinkle 0.3s ease-in-out;
       }
@@ -366,7 +385,7 @@ html[data-blur='1'] {
   }
 }
 
-/** 修改默认的naive-ui的选择器样式 */
+/** 기본 naive-ui 선택기 스타일 수정 */
 :deep(.n-base-selection) {
   --n-box-shadow-active: 0 0 0 2px rgba(19, 152, 127, 0.2) !important;
   --n-border-active: 1px solid #13987f !important;

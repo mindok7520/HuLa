@@ -1,65 +1,65 @@
 import * as lamejs from '@breezystack/lamejs'
 
 /**
- * 音频压缩配置接口
+ * 오디오 압축 설정 인터페이스
  */
 export interface AudioCompressionConfig {
-  /** 声道数：1为单声道，2为立体声 */
+  /** 채널 수: 1은 모노, 2는 스테레오 */
   channels?: number
-  /** 采样率 (Hz) */
+  /** 샘플링 레이트 (Hz) */
   sampleRate?: number
-  /** MP3比特率 (kbps) */
+  /** MP3 비트레이트 (kbps) */
   bitRate?: number
 }
 
 /**
- * 默认音频压缩配置
+ * 기본 오디오 압축 설정
  */
 const DEFAULT_CONFIG: Required<AudioCompressionConfig> = {
-  channels: 1, // 单声道可以减小文件大小
-  sampleRate: 22050, // 降低采样率以减小文件大小
-  bitRate: 64 // 较低的比特率以减小文件大小
+  channels: 1, // 모노는 파일 크기를 줄일 수 있음
+  sampleRate: 22050, // 샘플링 레이트를 낮춰 파일 크기 감소
+  bitRate: 64 // 낮은 비트레이트로 파일 크기 감소
 }
 
 /**
- * 将WAV音频数据转换为压缩的MP3格式
- * @param audioBuffer - 音频缓冲区数据
- * @param config - 压缩配置
- * @returns 压缩后的MP3 Blob
+ * WAV 오디오 데이터를 압축된 MP3 형식으로 변환
+ * @param audioBuffer - 오디오 버퍼 데이터
+ * @param config - 압축 설정
+ * @returns 압축된 MP3 Blob
  */
 export async function compressAudioToMp3(audioBuffer: ArrayBuffer, config: AudioCompressionConfig = {}): Promise<Blob> {
   const finalConfig = { ...DEFAULT_CONFIG, ...config }
 
   try {
-    // 创建AudioContext来处理音频数据
+    // AudioContext를 생성하여 오디오 데이터 처리
     const audioContext = new AudioContext()
     const decodedAudio = await audioContext.decodeAudioData(audioBuffer.slice())
 
-    // 重采样到目标采样率
+    // 목표 샘플링 레이트로 리샘플링
     const resampledBuffer = await resampleAudio(decodedAudio, finalConfig.sampleRate)
 
-    // 转换为Int16Array格式
+    // Int16Array 형식으로 변환
     const samples = convertToInt16Array(resampledBuffer, finalConfig.channels)
 
-    // 使用lamejs进行MP3编码
+    // lamejs를 사용하여 MP3 인코딩
     const mp3Data = encodeToMp3(samples, finalConfig)
 
-    // 创建MP3 Blob - 将 Int8Array 转换为 Uint8Array
+    // MP3 Blob 생성 - Int8Array를 Uint8Array로 변환
     const uint8Arrays = mp3Data.map((data) => new Uint8Array(data))
     const blob = new Blob(uint8Arrays, { type: 'audio/mp3' })
 
-    // 清理AudioContext
+    // AudioContext 정리
     await audioContext.close()
 
     return blob
   } catch (error) {
-    console.error('音频压缩失败:', error)
-    throw new Error('音频压缩失败')
+    console.error('오디오 압축 실패:', error)
+    throw new Error('오디오 압축 실패')
   }
 }
 
 /**
- * 重采样音频到目标采样率
+ * 오디오를 목표 샘플링 레이트로 리샘플링
  */
 async function resampleAudio(audioBuffer: AudioBuffer, targetSampleRate: number): Promise<AudioBuffer> {
   if (audioBuffer.sampleRate === targetSampleRate) {
@@ -73,7 +73,7 @@ async function resampleAudio(audioBuffer: AudioBuffer, targetSampleRate: number)
     targetSampleRate
   )
 
-  // 简单的线性插值重采样
+  // 간단한 선형 보간 리샘플링
   for (let channel = 0; channel < audioBuffer.numberOfChannels; channel++) {
     const inputData = audioBuffer.getChannelData(channel)
     const outputData = resampledBuffer.getChannelData(channel)
@@ -94,15 +94,15 @@ async function resampleAudio(audioBuffer: AudioBuffer, targetSampleRate: number)
 }
 
 /**
- * 将AudioBuffer转换为Int16Array格式
+ * AudioBuffer를 Int16Array 형식으로 변환
  */
 function convertToInt16Array(audioBuffer: AudioBuffer, targetChannels: number): Int16Array {
   const length = audioBuffer.length
   const samples = new Int16Array(length * targetChannels)
-  const AMPLIFY = 10 // 10倍响度
+  const AMPLIFY = 10 // 10배 음량
 
   if (targetChannels === 1) {
-    // 转换为单声道
+    // 모노로 변환
     const channelData = audioBuffer.numberOfChannels > 1 ? mixToMono(audioBuffer) : audioBuffer.getChannelData(0)
 
     for (let i = 0; i < length; i++) {
@@ -110,7 +110,7 @@ function convertToInt16Array(audioBuffer: AudioBuffer, targetChannels: number): 
       samples[i] = Math.max(-1, Math.min(1, sample)) * 0x7fff
     }
   } else {
-    // 保持立体声
+    // 스테레오 유지
     const leftChannel = audioBuffer.getChannelData(0)
     const rightChannel = audioBuffer.numberOfChannels > 1 ? audioBuffer.getChannelData(1) : leftChannel
 
@@ -126,7 +126,7 @@ function convertToInt16Array(audioBuffer: AudioBuffer, targetChannels: number): 
 }
 
 /**
- * 将多声道音频混合为单声道
+ * 다중 채널 오디오를 모노로 믹싱
  */
 function mixToMono(audioBuffer: AudioBuffer): Float32Array {
   const length = audioBuffer.length
@@ -145,26 +145,26 @@ function mixToMono(audioBuffer: AudioBuffer): Float32Array {
 }
 
 /**
- * 使用lamejs将音频数据编码为MP3
+ * lamejs를 사용하여 오디오 데이터를 MP3로 인코딩
  */
 function encodeToMp3(samples: Int16Array, config: Required<AudioCompressionConfig>): Int8Array[] {
   const mp3encoder = new lamejs.Mp3Encoder(config.channels, config.sampleRate, config.bitRate)
   const mp3Data: Int8Array[] = []
-  const sampleBlockSize = 1152 // lamejs推荐的块大小
+  const sampleBlockSize = 1152 // lamejs 권장 블록 크기
 
-  // 分块编码
+  // 블록별 인코딩
   for (let i = 0; i < samples.length; i += sampleBlockSize * config.channels) {
     let sampleChunk: Int16Array
 
     if (config.channels === 1) {
-      // 单声道
+      // 모노
       sampleChunk = samples.subarray(i, i + sampleBlockSize)
       const mp3buf = mp3encoder.encodeBuffer(sampleChunk)
       if (mp3buf.length > 0) {
         mp3Data.push(mp3buf as any)
       }
     } else {
-      // 立体声
+      // 스테레오
       const leftChunk = new Int16Array(sampleBlockSize)
       const rightChunk = new Int16Array(sampleBlockSize)
 
@@ -180,7 +180,7 @@ function encodeToMp3(samples: Int16Array, config: Required<AudioCompressionConfi
     }
   }
 
-  // 完成编码
+  // 인코딩 완료
   const mp3buf = mp3encoder.flush()
   if (mp3buf.length > 0) {
     mp3Data.push(mp3buf as any)
@@ -190,7 +190,7 @@ function encodeToMp3(samples: Int16Array, config: Required<AudioCompressionConfi
 }
 
 /**
- * 获取音频文件的基本信息
+ * 오디오 파일의 기본 정보 가져오기
  */
 export async function getAudioInfo(audioBuffer: ArrayBuffer): Promise<{
   duration: number
@@ -213,7 +213,7 @@ export async function getAudioInfo(audioBuffer: ArrayBuffer): Promise<{
 }
 
 /**
- * 计算压缩比
+ * 압축비 계산
  */
 export function calculateCompressionRatio(originalSize: number, compressedSize: number): number {
   return Math.round((1 - compressedSize / originalSize) * 100)

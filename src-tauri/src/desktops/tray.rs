@@ -20,18 +20,18 @@ use tauri::{
 pub fn create_tray<R: Runtime>(app: &tauri::AppHandle<R>) -> tauri::Result<()> {
     #[cfg(target_os = "macos")]
     {
-        // 为 macOS 创建原生菜单
+        // macOS용 기본 메뉴 생성
         let open_id = MenuId::new("open_home");
         let exit_id = MenuId::new("exit_app");
 
-        // 创建分隔符和菜单项
+        // 구분 기호 및 메뉴 항목 생성
         let separator1 = PredefinedMenuItem::separator(app)?;
         let open_menu_item =
-            MenuItem::with_id(app, open_id.clone(), "打开主面板", true, None::<&str>)?;
+            MenuItem::with_id(app, open_id.clone(), "메인 패널 열기", true, None::<&str>)?;
         let separator2 = PredefinedMenuItem::separator(app)?;
-        let exit_menu_item = MenuItem::with_id(app, exit_id.clone(), "退出", true, None::<&str>)?;
+        let exit_menu_item = MenuItem::with_id(app, exit_id.clone(), "종료", true, None::<&str>)?;
 
-        // 构建菜单
+        // 메뉴 구축
         let tray_menu = MenuBuilder::new(app)
             .items(&[&separator1, &open_menu_item, &separator2, &exit_menu_item])
             .build()?;
@@ -43,7 +43,7 @@ pub fn create_tray<R: Runtime>(app: &tauri::AppHandle<R>) -> tauri::Result<()> {
                 tracing::error!("Default window icon not found");
                 return Err(tauri::Error::Io(std::io::Error::new(
                     std::io::ErrorKind::NotFound,
-                    "未找到默认窗口图标",
+                    "기본 창 아이콘을 찾을 수 없음",
                 )));
             }
         };
@@ -51,15 +51,15 @@ pub fn create_tray<R: Runtime>(app: &tauri::AppHandle<R>) -> tauri::Result<()> {
         let _ = TrayIconBuilder::with_id("tray")
             .tooltip("HuLa")
             .icon(default_icon)
-            .menu(&tray_menu) // 直接设置菜单，让系统处理右键显示
-            .show_menu_on_left_click(false) // 禁用左键显示菜单
+            .menu(&tray_menu) // 메뉴를 직접 설정하여 시스템이 오른쪽 클릭 표시를 처리하도록 함
+            .show_menu_on_left_click(false) // 왼쪽 클릭 메뉴 표시 비활성화
             .on_menu_event(move |app, event| {
                 let id = event.id();
                 if id == &open_id {
-                    // 打开主面板
+                    // 메인 패널 열기
                     let windows = app.webview_windows();
 
-                    // 优先显示已存在的home窗口
+                    // 기존 home 창 우선 표시
                     for (name, window) in windows {
                         if name == "home" {
                             let _ = window.show();
@@ -69,7 +69,7 @@ pub fn create_tray<R: Runtime>(app: &tauri::AppHandle<R>) -> tauri::Result<()> {
                         }
                     }
                 } else if id == &exit_id {
-                    // 退出应用
+                    // 앱 종료
                     let _ = tray_handler.exit(0);
                 }
             })
@@ -82,10 +82,10 @@ pub fn create_tray<R: Runtime>(app: &tauri::AppHandle<R>) -> tauri::Result<()> {
                     button_state,
                 } => match button {
                     MouseButton::Left if MouseButtonState::Up == button_state => {
-                        // 左键点击直接打开主面板
+                        // 왼쪽 클릭 시 메인 패널 바로 열기
                         let windows = tray.app_handle().webview_windows();
 
-                        // 优先显示已存在的home窗口
+                        // 기존 home 창 우선 표시
                         for (name, window) in windows {
                             if name == "home" {
                                 let _ = window.show();
@@ -103,14 +103,14 @@ pub fn create_tray<R: Runtime>(app: &tauri::AppHandle<R>) -> tauri::Result<()> {
     }
     #[cfg(not(target_os = "macos"))]
     {
-        // 为其他系统（非 macOS）创建托盘图标
+        // 다른 시스템(macOS 제외)용 트레이 아이콘 생성
         let default_icon = match app.default_window_icon() {
             Some(icon) => icon.clone(),
             None => {
                 tracing::error!("Default window icon not found");
                 return Err(tauri::Error::Io(std::io::Error::new(
                     std::io::ErrorKind::NotFound,
-                    "未找到默认窗口图标",
+                    "기본 창 아이콘을 찾을 수 없음",
                 )));
             }
         };
@@ -144,7 +144,7 @@ pub fn create_tray<R: Runtime>(app: &tauri::AppHandle<R>) -> tauri::Result<()> {
                         }
                     }
                     MouseButton::Right if MouseButtonState::Down == button_state => {
-                        // 状态栏图标按下右键时显示状态栏菜单
+                        // 상태 표시줄 아이콘을 마우스 오른쪽 버튼으로 클릭하면 상태 표시줄 메뉴 표시
                         if let Some(tray_window) = tray.app_handle().get_webview_window("tray") {
                             if let Ok(outer_size) = tray_window.outer_size() {
                                 if let Err(e) = tray_window.set_position(PhysicalPosition::new(

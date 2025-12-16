@@ -22,10 +22,10 @@ export type FileUploadQueue = {
 }
 
 /**
- * 文件上传队列状态管理
+ * 파일 업로드 대기열 상태 관리
  */
 export const useFileUploadQueue = () => {
-  // 队列状态
+  // 대기열 상태
   const queue = reactive<FileUploadQueue>({
     items: [],
     totalFiles: 0,
@@ -36,7 +36,7 @@ export const useFileUploadQueue = () => {
     endTime: undefined
   })
 
-  // 计算属性
+  // 계산된 속성
   const progress = computed(() => {
     if (queue.totalFiles === 0) return 0
     return Math.round((queue.completedFiles / queue.totalFiles) * 100)
@@ -47,7 +47,7 @@ export const useFileUploadQueue = () => {
   })
 
   /**
-   * 初始化队列
+   * 대기열 초기화
    */
   const initQueue = (files: File[]) => {
     queue.items = files.map((file, index) => ({
@@ -67,7 +67,7 @@ export const useFileUploadQueue = () => {
   }
 
   /**
-   * 更新文件状态
+   * 파일 상태 업데이트
    */
   const updateFileStatus = (fileId: string, status: FileUploadItem['status'], progress?: number) => {
     const item = queue.items.find((item) => item.id === fileId)
@@ -79,14 +79,14 @@ export const useFileUploadQueue = () => {
       item.progress = Math.min(100, Math.max(0, progress))
     }
 
-    // 更新时间戳
+    // 타임스탬프 업데이트
     if (status === 'uploading' && oldStatus === 'pending') {
       item.startTime = Date.now()
     } else if ((status === 'completed' || status === 'failed') && oldStatus === 'uploading') {
       item.endTime = Date.now()
     }
 
-    // 更新计数器
+    // 카운터 업데이트
     if (status === 'completed' && oldStatus !== 'completed') {
       queue.completedFiles++
       if (oldStatus === 'failed') queue.failedFiles--
@@ -95,14 +95,14 @@ export const useFileUploadQueue = () => {
       if (oldStatus === 'completed') queue.completedFiles--
     }
 
-    // 检查是否完成
+    // 완료 여부 확인
     if (queue.completedFiles + queue.failedFiles >= queue.totalFiles) {
       finishQueue()
     }
   }
 
   /**
-   * 更新文件上传进度
+   * 파일 업로드 진행률 업데이트
    */
   const updateFileProgress = (fileId: string, progress: number) => {
     const item = queue.items.find((item) => item.id === fileId)
@@ -112,20 +112,20 @@ export const useFileUploadQueue = () => {
   }
 
   /**
-   * 完成队列
+   * 대기열 완료
    */
   const finishQueue = () => {
     queue.isActive = false
     queue.endTime = Date.now()
 
-    // 2秒后清理队列
+    // 2초 후 대기열 정리
     setTimeout(() => {
       clearQueue()
     }, 2000)
   }
 
   /**
-   * 清空队列
+   * 대기열 비우기
    */
   const clearQueue = () => {
     queue.items = []
@@ -149,5 +149,5 @@ export const useFileUploadQueue = () => {
   }
 }
 
-// 全局单例
+// 전역 싱글톤
 export const globalFileUploadQueue = useFileUploadQueue()

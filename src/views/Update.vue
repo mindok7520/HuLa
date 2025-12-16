@@ -80,6 +80,7 @@ const fetchGiteeReleaseData = async (version: string) => {
   return (await response.json()) as GiteeCommitResultStruct
 }
 
+// 커밋 메시지 추출
 const extractCommitMessages = (releaseBody: string) => {
   const commitmessageRegex = /^\* (.+)/gm
   const matchs = releaseBody.matchAll(commitmessageRegex)
@@ -99,6 +100,7 @@ const setupCommitList = async (version: string) => {
   }
 }
 
+// 업데이트 실행
 const doUpdate = async () => {
   await check()
     .then(async (e) => {

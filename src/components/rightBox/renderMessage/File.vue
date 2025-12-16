@@ -3,7 +3,7 @@
     class="file-container select-none"
     :class="{ downloading: isDownloading, uploading: isUploading }"
     @dblclick="handleFileClick">
-    <!-- 文件信息 -->
+    <!-- 파일 정보 -->
     <div class="file-info select-none">
       <div class="file-name" :title="body?.fileName">
         <n-highlight
@@ -28,9 +28,9 @@
       </div>
     </div>
 
-    <!-- 文件图标区域 -->
+    <!-- 파일 아이콘 영역 -->
     <div :title="body?.fileName" class="file-icon-wrapper select-none cursor-pointer" @click="handleIconClick">
-      <!-- 文件图标 -->
+      <!-- 파일 아이콘 -->
       <img
         :src="`/file/${getFileSuffix(body?.fileName || '')}.svg`"
         :alt="getFileSuffix(body?.fileName || '')"
@@ -38,9 +38,9 @@
         @load="handleIconLoad"
         class="file-icon-img" />
 
-      <!-- 蒙层和操作图标 -->
+      <!-- 오버레이 및 작업 아이콘 -->
       <div v-if="isUploading || isDownloading || needsDownload" class="file-overlay" :style="overlayStyle">
-        <!-- 上传中显示进度 -->
+        <!-- 업로드 중 진행률 표시 -->
         <div v-if="isUploading" class="upload-progress">
           <div class="progress-circle">
             <svg class="progress-ring" width="24" height="24">
@@ -64,10 +64,10 @@
                 :stroke-dashoffset="`${2 * Math.PI * 10 * (1 - (isUploading ? uploadProgress : downloadProgress) / 100)}`" />
             </svg>
           </div>
-          <!-- 上传进度 -->
+          <!-- 업로드 진행률 -->
           <!-- <div class="progress-text">{{ isUploading ? uploadProgress : downloadProgress }}%</div> -->
         </div>
-        <!-- 下载中显示进度 -->
+        <!-- 다운로드 중 진행률 표시 -->
         <div v-else-if="isDownloading" class="download-progress">
           <div class="progress-circle">
             <svg class="progress-ring" width="24" height="24">
@@ -91,10 +91,10 @@
                 :stroke-dashoffset="`${2 * Math.PI * 10 * (1 - downloadProgress / 100)}`" />
             </svg>
           </div>
-          <!-- 下载进度 -->
+          <!-- 다운로드 진행률 -->
           <!-- <div class="progress-text">{{ downloadProgress }}%</div> -->
         </div>
-        <!-- 需要下载显示下载图标 -->
+        <!-- 다운로드 필요 시 다운로드 아이콘 표시 -->
         <div v-else-if="needsDownload" class="download-icon">
           <div class="download-circle">
             <svg class="download-btn-icon">
@@ -139,25 +139,25 @@ const props = defineProps<{
   message?: MsgType
 }>()
 
-// 图标尺寸状态
+// 아이콘 크기 상태
 const iconDimensions = ref({ width: 40, height: 40 })
 
-// 上传状态
+// 업로드 상태
 const isUploading = computed(() => props.messageStatus === MessageStatusEnum.SENDING)
 const uploadProgress = computed(() => props.uploadProgress || 0)
 
-// 文件下载状态
+// 파일 다운로드 상태
 const fileStatus = computed(() => {
   if (!props.body?.url) return null
   return fileDownloadStore.getFileStatus(props.body.url)
 })
 
-// 是否正在下载
+// 다운로드 중 여부
 const isDownloading = computed(() => {
   return fileStatus.value?.status === 'downloading' || legacyIsDownloading.value
 })
 
-// 下载进度
+// 다운로드 진행률
 const downloadProgress = computed(() => {
   return fileStatus.value?.progress || 0
 })
@@ -182,26 +182,26 @@ const revealInDirSafely = async (targetPath?: string | null) => {
   try {
     await revealItemInDir(targetPath)
   } catch (error) {
-    console.error('在文件夹中显示文件失败:', error)
+    console.error('폴더에서 파일 표시 실패:', error)
     window.$message?.error(t('message.file.toast.reveal_fail'))
   }
 }
 
-// 是否需要下载（文件未下载到本地且不是上传/下载状态）
+// 다운로드 필요 여부 (로컬에 다운로드되지 않았고 업로드/다운로드 상태가 아님)
 const needsDownload = computed(() => {
   if (isUploading.value || isDownloading.value) return false
   if (!props.body?.url) return false
   if (props.body.localPath) return false
 
-  // 如果是本地文件路径，不需要下载
+  // 로컬 파일 경로인 경우 다운로드 불필요
   if (props.body.url.startsWith('file://') || props.body.url.startsWith('/')) return false
 
-  // 检查文件是否已下载
+  // 파일 다운로드 여부 확인
   const status = fileStatus.value
   return !status?.isDownloaded
 })
 
-// 计算overlay样式
+// 오버레이 스타일 계산
 const overlayStyle = computed(() => {
   const { width, height } = iconDimensions.value
   const overlayWidth = Math.max(width - 4, 38)
@@ -216,7 +216,7 @@ const overlayStyle = computed(() => {
   }
 })
 
-// 监听 props 变化，重新检查文件状态
+// props 변경 감지, 파일 상태 재확인
 watch(
   () => [props.body?.url, props.body?.fileName],
   async ([newUrl, newFileName]) => {
@@ -224,7 +224,7 @@ watch(
       try {
         await fileDownloadStore.checkFileExists(newUrl, newFileName)
       } catch (error) {
-        console.error('检查文件状态失败:', error)
+        console.error('파일 상태 확인 실패:', error)
       }
     }
   },
@@ -241,43 +241,43 @@ watch(
   { immediate: true }
 )
 
-// 截断文件名，保留后缀
+// 파일명 자르기, 확장자 유지
 const truncateFileName = (fileName?: string): string => {
   if (!fileName) return fallbackFileName.value
 
-  const maxWidth = 160 // 最大宽度像素
-  const averageCharWidth = 9 // 平均字符宽度（基于14px Arial字体）
+  const maxWidth = 160 // 최대 너비 픽셀
+  const averageCharWidth = 9 // 평균 문자 너비 (14px Arial 글꼴 기준)
   const maxChars = Math.floor(maxWidth / averageCharWidth)
 
   if (fileName.length <= maxChars) {
     return fileName
   }
 
-  // 获取文件扩展名
+  // 파일 확장자 가져오기
   const lastDotIndex = fileName.lastIndexOf('.')
   if (lastDotIndex === -1) {
-    // 没有扩展名，直接截断
+    // 확장자 없음, 직접 자르기
     return fileName.substring(0, maxChars - 3) + '...'
   }
 
   const name = fileName.substring(0, lastDotIndex)
   const extension = fileName.substring(lastDotIndex)
 
-  // 计算可用于文件名的字符数（保留扩展名和省略号的空间）
-  const availableChars = maxChars - extension.length - 3 // 3 是省略号的长度
+  // 파일명에 사용할 수 있는 문자 수 계산 (확장자 및 말줄임표 공간 유지)
+  const availableChars = maxChars - extension.length - 3 // 3은 말줄임표 길이
 
   if (availableChars <= 0) {
-    // 如果扩展名太长，只显示扩展名
+    // 확장자가 너무 길면 확장자만 표시
     return '...' + extension
   }
 
   return name.substring(0, availableChars) + '...' + extension
 }
 
-// 处理图标加载
+// 아이콘 로드 처리
 const handleIconLoad = (event: Event) => {
   const target = event.target as HTMLImageElement
-  // 获取图标的实际显示尺寸
+  // 아이콘 실제 표시 크기 가져오기
   const rect = target.getBoundingClientRect()
   iconDimensions.value = {
     width: rect.width,
@@ -285,49 +285,49 @@ const handleIconLoad = (event: Event) => {
   }
 }
 
-// 处理图标加载错误
+// 아이콘 로드 오류 처리
 const handleIconError = (event: Event) => {
   const target = event.target as HTMLImageElement
   target.src = '/file/other.svg'
 }
 
-// 处理文件点击
+// 파일 클릭 처리
 const handleFileClick = async () => {
   if (!props.body?.url || !props.body?.fileName || isUploading.value) return
 
   try {
-    // 检查文件是否已下载
+    // 파일 다운로드 여부 확인
     const status = fileStatus.value
 
     if (status?.isDownloaded && status.absolutePath) {
-      // 文件已下载，尝试打开本地文件
+      // 파일이 다운로드됨, 로컬 파일 열기 시도
       try {
         await openPath(status.absolutePath)
       } catch (openError) {
         await revealInDirSafely(status.absolutePath)
       }
     } else if (needsDownload.value) {
-      // 需要下载文件
+      // 파일 다운로드 필요
       await downloadAndOpenFile()
     } else {
-      // 本地文件路径，尝试打开
+      // 로컬 파일 경로, 열기 시도
       try {
         await openPath(props.body.url)
       } catch (openError) {
-        console.warn('无法直接打开文件，尝试在文件管理器中显示:', openError)
+        console.warn('파일을 직접 열 수 없습니다. 파일 관리자에서 표시 시도:', openError)
         await revealInDirSafely(props.body.url)
       }
     }
   } catch (error) {
-    console.error('打开文件失败:', error)
+    console.error('파일 열기 실패:', error)
     const errorMessage = error instanceof Error ? error.message : t('message.file.unknown_error')
     if (errorMessage.includes('Not allowed to open path') || errorMessage.includes('revealItemInDir')) {
-      console.error('无法打开或显示文件。请手动在文件管理器中找到并打开文件。')
+      console.error('파일을 열거나 표시할 수 없습니다. 파일 관리자에서 수동으로 파일을 찾아 여십시오.')
     } else {
-      console.error(`打开文件失败: ${errorMessage}`)
+      console.error(`파일 열기 실패: ${errorMessage}`)
     }
   } finally {
-    const currentChatRoomId = globalStore.currentSessionRoomId // 这个id可能为群id可能为用户uid，所以不能只用用户uid
+    const currentChatRoomId = globalStore.currentSessionRoomId // 이 ID는 그룹 ID일 수도 있고 사용자 UID일 수도 있으므로 사용자 UID만 사용할 수 없습니다.
     const currentUserUid = userStore.userInfo!.uid as string
 
     const resourceDirPath = await userStore.getUserRoomAbsoluteDir()
@@ -345,7 +345,7 @@ const handleFileClick = async () => {
   }
 }
 
-// 下载并打开文件
+// 파일 다운로드 및 열기
 const downloadAndOpenFile = async () => {
   if (!props.body?.url || !props.body?.fileName) return
 
@@ -355,17 +355,17 @@ const downloadAndOpenFile = async () => {
 
     if (absolutePath) {
       void persistFileLocalPath(absolutePath)
-      // 下载成功后尝试打开文件
+      // 다운로드 성공 후 파일 열기 시도
       try {
         await openPath(absolutePath)
       } catch (openError) {
-        console.warn('无法直接打开文件，尝试在文件管理器中显示:', openError)
+        console.warn('파일을 직접 열 수 없습니다. 파일 관리자에서 표시 시도:', openError)
         await revealInDirSafely(absolutePath)
       }
     }
   } catch (error) {
-    console.error('下载文件失败:', error)
-    const errorMessage = error instanceof Error ? error.message : '未知错误'
+    console.error('파일 다운로드 실패:', error)
+    const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류'
     if (errorMessage.includes('Not allowed to open path') || errorMessage.includes('revealItemInDir')) {
       window.$message?.error(t('message.file.toast.download_open_fail'))
     } else {
@@ -374,7 +374,7 @@ const downloadAndOpenFile = async () => {
   }
 }
 
-// 下载文件但不打开
+// 파일 다운로드만 수행 (열기 안 함)
 const downloadFileOnly = async () => {
   if (!props.body?.url || !props.body?.fileName) return
 
@@ -385,9 +385,9 @@ const downloadFileOnly = async () => {
       void persistFileLocalPath(absolutePath)
     }
   } catch (error) {
-    console.error('下载文件失败:', error)
+    console.error('파일 다운로드 실패:', error)
   } finally {
-    // 刷新文件状态
+    // 파일 상태 새로 고침
     const currentChatRoomId = globalStore.currentSessionRoomId
     const currentUserUid = userStore.userInfo!.uid as string
 
@@ -406,33 +406,33 @@ const downloadFileOnly = async () => {
   }
 }
 
-// 处理图标单击（下载文件）
+// 아이콘 클릭 처리 (파일 다운로드)
 const handleIconClick = async (event: Event) => {
-  event.stopPropagation() // 阻止事件冒泡，防止触发双击事件
+  event.stopPropagation() // 이벤트 버블링 방지, 더블 클릭 이벤트 트리거 방지
 
   if (!props.body?.url || !props.body?.fileName || isUploading.value || isDownloading.value) return
 
   const status = fileStatus.value
 
-  // 如果文件已下载，显示提示
+  // 파일이 이미 다운로드된 경우 힌트 표시
   if (status?.isDownloaded) {
     return
   }
 
-  // 如果需要下载，执行下载
+  // 다운로드 필요한 경우 다운로드 실행
   if (needsDownload.value) {
     await downloadFileOnly()
   }
 }
 
-// 组件挂载时检查文件状态
+// 컴포넌트 마운트 시 파일 상태 확인
 onMounted(async () => {
   if (props.body?.url && props.body?.fileName) {
     try {
-      // 检查文件是否已存在于本地
+      // 로컬에 파일이 이미 존재하는지 확인
       await fileDownloadStore.checkFileExists(props.body.url, props.body.fileName)
     } catch (error) {
-      console.error('检查文件状态失败:', error)
+      console.error('파일 상태 확인 실패:', error)
     }
   }
 })

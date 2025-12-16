@@ -13,11 +13,11 @@ export const useGroupStore = defineStore(
     const userStore = useUserStore()
     const chatStore = useChatStore()
 
-    // 动态加载没有的群组 [防止并发冲突加载]
+    // 없는 그룹 동적 로드 [동시 충돌 로드 방지]
     const groupDetailsCache = ref<Record<string, GroupDetailReq>>({})
     const loadingGroups = ref<Set<string>>(new Set())
 
-    // 群组相关状态
+    // 그룹 관련 상태
     const currentSessionState = ref({
       roomId: '',
       loading: false,
@@ -59,13 +59,13 @@ export const useGroupStore = defineStore(
       ensureMemberOrder(roomId, members)
 
       return [...members].sort((a, b) => {
-        // 按角色排序（群主 > 管理员 > 普通成员）
+        // 역할별 정렬 (방장 > 관리자 > 일반 멤버)
         const roleDiff = getRoleSortWeight(a.roleId) - getRoleSortWeight(b.roleId)
         if (roleDiff !== 0) {
           return roleDiff
         }
 
-        // 最后按加入顺序排序
+        // 마지막으로 가입 순서대로 정렬
         return (a.__order ?? Number.MAX_SAFE_INTEGER) - (b.__order ?? Number.MAX_SAFE_INTEGER)
       })
     }
@@ -83,14 +83,14 @@ export const useGroupStore = defineStore(
       onlineCountMap[roomId] = sortedMembers.filter((m) => m.activeStatus === OnlineEnum.ONLINE).length
     }
     const groupDetails = ref<GroupDetailReq[]>([])
-    const userListOptions = reactive({ isLast: false, loading: true, cursor: '' }) // 分页加载相关状态
+    const userListOptions = reactive({ isLast: false, loading: true, cursor: '' }) // 페이징 로드 관련 상태
     const myNameInCurrentGroup = computed({
       get() {
         const user = getCurrentUser()
         return user?.myName || user?.name || ''
       },
       set(value: string) {
-        // 这里可以添加设置昵称的逻辑
+        // 여기에 닉네임 설정 로직 추가 가능
         const user = getCurrentUser()
         if (user) {
           user.myName = value
@@ -103,7 +103,7 @@ export const useGroupStore = defineStore(
         return getCurrentUser()?.roleId || RoleEnum.NORMAL
       },
       set(value: number) {
-        // 这里可以添加设置角色的逻辑
+        // 여기에 역할 설정 로직 추가 가능
         const user = getCurrentUser()
         if (user) {
           user.roleId = value
@@ -111,7 +111,7 @@ export const useGroupStore = defineStore(
       }
     })
 
-    // 添加获取当前会话状态的方法
+    // 현재 세션 상태 가져오기 메서드 추가
     const getCurrentSessionState = () => {
       return {
         ...currentSessionState.value,
@@ -119,7 +119,7 @@ export const useGroupStore = defineStore(
       }
     }
 
-    // 添加成员缓存管理方法
+    // 멤버 캐시 관리 메서드 추가
     const getCachedMembers = (roomId: string) => {
       return userListMap[roomId] || []
     }
@@ -129,42 +129,42 @@ export const useGroupStore = defineStore(
     }
 
     /**
-     * 添加会话切换方法
+     * 세션 전환 메서드 추가
      */
     const switchSession = async (newSession: any, _oldSession?: any) => {
       if (!newSession?.roomId || newSession.roomId === currentSessionState.value.roomId) {
         return
       }
 
-      // 设置当前加载的房间ID
+      // 현재 로드 중인 방 ID 설정
       currentSessionState.value.roomId = newSession.roomId
       currentSessionState.value.loading = true
 
       try {
-        // 优先显示缓存
+        // 캐시 우선 표시
         const cachedMembers = getCachedMembers(newSession.roomId)
         if (cachedMembers && Array.isArray(cachedMembers)) {
-          // 先设置缓存数据避免空白
+          // 공백 방지를 위해 캐시 데이터 먼저 설정
           setRoomMemberList(newSession.roomId, cachedMembers)
         }
 
-        // 重置群组并加载新的群成员数据
+        // 그룹 재설정 및 새 그룹 멤버 데이터 로드
         resetGroupData()
         await getGroupUserList(newSession.roomId, true)
 
-        // 更新缓存
+        // 캐시 업데이트
         const currentMembers = userListMap[newSession.roomId] || []
         updateMemberCache(newSession.roomId, currentMembers)
         currentSessionState.value.lastLoadedRoomId = newSession.roomId
 
-        // 返回处理后的数据
+        // 처리된 데이터 반환
         return {
           success: true,
           members: currentMembers,
           roomId: newSession.roomId
         }
       } catch (error) {
-        console.error('切换会话失败:', error)
+        console.error('세션 전환 실패:', error)
         currentSessionState.value.loading = false
         throw error
       } finally {
@@ -172,7 +172,7 @@ export const useGroupStore = defineStore(
       }
     }
 
-    // 获取当前房间的用户列表的计算属性
+    // 현재 방의 사용자 목록 가져오기 계산 속성
     const userList = computed(() => {
       if (!globalStore.currentSessionRoomId) return []
       return userListMap[globalStore.currentSessionRoomId] || []
@@ -260,7 +260,7 @@ export const useGroupStore = defineStore(
       const { uid, roomId, onlineNum, isAdd } = options
 
       if (roomId) {
-        // 如果传了 roomId，只修改该房间的 onlineNum
+        // roomId가 전달된 경우 해당 방의 onlineNum만 수정
         const groupDetail = groupDetails.value.find((detail) => detail.roomId === roomId)
         if (groupDetail) {
           if (onlineNum) {
@@ -274,10 +274,10 @@ export const useGroupStore = defineStore(
           }
         }
       } else {
-        // 如果没有传 roomId, 说明是全局更新
+        // roomId가 전달되지 않은 경우 전역 업데이트
         const roomIds = getRoomIdsByUid(uid!)
 
-        // 遍历找到的所有房间ID，更新对应群组的在线人数
+        // 찾은 모든 방 ID를 순회하며 해당 그룹의 온라인 인원수 업데이트
         roomIds.forEach((roomId) => {
           const groupDetail = groupDetails.value.find((detail) => detail.roomId === roomId)
           if (groupDetail) {
@@ -292,8 +292,8 @@ export const useGroupStore = defineStore(
     }
 
     /**
-     * 获取当前群主ID
-     * 从成员列表中筛选出角色为群主的用户
+     * 현재 방장 ID 가져오기
+     * 멤버 목록에서 역할이 방장인 사용자 필터링
      */
     const currentLordId = computed(() => {
       const list = userList.value.filter((member: UserItem) => member.roleId === RoleEnum.LORD)
@@ -308,8 +308,8 @@ export const useGroupStore = defineStore(
     })
 
     /**
-     * 获取当前管理员ID列表
-     * 从成员列表中筛选出所有管理员的uid
+     * 현재 관리자 ID 목록 가져오기
+     * 멤버 목록에서 모든 관리자의 uid 필터링
      */
     const adminUidList = computed(() => {
       return userList.value
@@ -318,19 +318,19 @@ export const useGroupStore = defineStore(
     })
 
     /**
-     * 更新管理员状态
-     * @param roomId 房间ID
-     * @param uids 被设置、取消管理员的用户ID列表
-     * @param isAdmin 是否为管理员
+     * 관리자 상태 업데이트
+     * @param roomId 방 ID
+     * @param uids 관리자로 설정/취소할 사용자 ID 목록
+     * @param isAdmin 관리자 여부
      */
     const updateAdminStatus = (roomId: string, uids: string[], isAdmin: boolean) => {
       const currentUserList = userListMap[roomId]
       if (!currentUserList) {
-        console.warn(`未找到房间 ${roomId} 的用户列表`)
+        console.warn(`방 ${roomId}의 사용자 목록을 찾을 수 없음`)
         return
       }
 
-      // 更新用户角色
+      // 사용자 역할 업데이트
       const updatedUserList = currentUserList.map((user) => {
         if (uids.includes(user.uid)) {
           return {
@@ -341,22 +341,22 @@ export const useGroupStore = defineStore(
         return user
       })
 
-      // 更新用户列表
+      // 사용자 목록 업데이트
       setRoomMemberList(roomId, updatedUserList)
     }
 
     /**
-     * 检查用户是否为管理员
-     * @param uid 用户ID
-     * @returns 是否为管理员
+     * 사용자가 관리자인지 확인
+     * @param uid 사용자 ID
+     * @returns 관리자 여부
      */
     const isAdmin = computed(() => (uid: string) => {
       return chatStore.isGroup && adminUidList.value.includes(uid)
     })
 
     /**
-     * 获取管理员基本信息列表
-     * 根据管理员ID列表获取详细信息
+     * 관리자 기본 정보 목록 가져오기
+     * 관리자 ID 목록을 기반으로 상세 정보 가져오기
      */
     const adminList = computed<UserItem[]>(() => {
       return userList.value.filter((member: UserItem) => adminUidList.value.includes(member.uid))
@@ -376,8 +376,8 @@ export const useGroupStore = defineStore(
     }
 
     /**
-     * 获取所有成员的基本信息列表
-     * 包含角色信息（群主/管理员/普通成员）
+     * 모든 멤버의 기본 정보 목록 가져오기
+     * 역할 정보 포함 (방장/관리자/일반 멤버)
      */
     const memberList = computed(() => {
       const memberInfoList = userList.value
@@ -399,7 +399,7 @@ export const useGroupStore = defineStore(
       })
     })
 
-    // 群组基本信息
+    // 그룹 기본 정보
     const countInfo = computed(() => {
       return groupDetails.value.find((item: GroupDetailReq) => item.roomId === globalStore.currentSessionRoomId)
     })
@@ -408,49 +408,49 @@ export const useGroupStore = defineStore(
       return groupDetails.value.find((item: GroupDetailReq) => item.roomId === roomId)
     })
 
-    // 状态定义：添加一个用于管理正在进行的请求的Map
+    // 상태 정의: 진행 중인 요청을 관리하기 위한 Map 추가
     const fetchPromisesMap = ref<Record<string, Promise<GroupDetailReq>>>({})
 
     /**
-     * 智能获取群组详情：如果本地有则直接返回，如果没有则从远程获取并缓存
-     * @param roomId 群组ID
+     * 스마트 그룹 상세 정보 가져오기: 로컬에 있으면 직접 반환, 없으면 원격에서 가져와 캐시
+     * @param roomId 그룹 ID
      */
     const fetchGroupDetailSafely = async (roomId: string, forceRefresh: boolean = false): Promise<GroupDetailReq> => {
-      // 1. 检查本地缓存（除非强制刷新）
+      // 1. 로컬 캐시 확인 (강제 새로 고침 제외)
       const existingDetail = getGroupDetailByRoomId.value(roomId)
       if (existingDetail && !forceRefresh) {
         return existingDetail
       }
 
-      // 2. 防止并发重复请求
+      // 2. 동시 중복 요청 방지
       try {
-        // 3. 创建新的请求Promise并缓存
+        // 3. 새 요청 Promise 생성 및 캐시
         fetchPromisesMap.value[roomId] = (async () => {
           try {
-            // 调用你已有的远程获取方法
+            // 기존 원격 가져오기 메서드 호출
             await addGroupDetail(roomId)
 
             const finalDetail = getGroupDetailByRoomId.value(roomId)
             if (!finalDetail) {
-              throw new Error(`群组 ${roomId} 数据获取失败`)
+              throw new Error(`그룹 ${roomId} 데이터 가져오기 실패`)
             }
             return finalDetail
           } finally {
-            // 清理当前请求的缓存
+            // 현재 요청의 캐시 정리
             delete fetchPromisesMap.value[roomId]
           }
         })()
 
-        // 4. 等待请求完成并返回结果
+        // 4. 요청 완료 대기 및 결과 반환
         return await fetchPromisesMap.value[roomId]
       } catch (error) {
-        console.error(`获取群组 ${roomId} 详情失败:`, error)
+        console.error(`그룹 ${roomId} 상세 정보 가져오기 실패:`, error)
         throw error
       }
     }
 
     /**
-     * 本地获取房间信息
+     * 로컬 방 정보 가져오기
      */
     const getGroupDetail = computed(() => (roomId: string) => {
       return groupDetailsCache.value[roomId] || getGroupDetailByRoomId.value(roomId)
@@ -487,9 +487,9 @@ export const useGroupStore = defineStore(
     }
 
     /**
-     * 获取群成员列表
-     * @param roomId 群聊房间ID
-     * @param forceRefresh 是否强制刷新,默认false
+     * 그룹 멤버 목록 가져오기
+     * @param roomId 그룹 채팅 방 ID
+     * @param forceRefresh 강제 새로 고침 여부, 기본값 false
      */
     const getGroupUserList = async (roomId: string, forceRefresh = false) => {
       if (!roomId) {
@@ -530,8 +530,8 @@ export const useGroupStore = defineStore(
     }
 
     /**
-     * 加载更多群成员
-     * 分页加载，防止重复加载
+     * 더 많은 그룹 멤버 로드
+     * 페이징 로드, 중복 로드 방지
      */
     const loadMoreGroupMembers = async () => {
       if (userListOptions.isLast || userListOptions.loading) return
@@ -541,11 +541,11 @@ export const useGroupStore = defineStore(
     }
 
     /**
-     * 更新 userListMap 中某个用户的信息
-     * @param uid 用户ID
-     * @param updates 要更新的用户信息（部分字段）
-     * @param roomId 群聊房间ID，可选，默认使用当前房间；如果传入 'all' 则更新所有房间中的该用户
-     * @returns 是否成功更新
+     * userListMap에서 특정 사용자 정보 업데이트
+     * @param uid 사용자 ID
+     * @param updates 업데이트할 사용자 정보 (일부 필드)
+     * @param roomId 그룹 채팅 방 ID, 선택 사항, 기본값은 현재 방; 'all'을 전달하면 모든 방의 해당 사용자 업데이트
+     * @returns 업데이트 성공 여부
      */
     const updateUserItem = (uid: string, updates: Partial<UserItem>, roomId: string | 'all' = 'all'): boolean => {
       if (!uid || typeof uid !== 'string') {
@@ -586,11 +586,11 @@ export const useGroupStore = defineStore(
     }
 
     /**
-     * 向 userListMap 中添加新的用户
-     * @param userItem 要添加的用户信息
-     * @param roomId 群聊房间ID，可选，默认使用当前房间；如果传入 'all' 则添加到所有房间中
-     * @param allowDuplicate 是否允许重复添加，默认为 false
-     * @returns 是否成功添加
+     * userListMap에 새 사용자 추가
+     * @param userItem 추가할 사용자 정보
+     * @param roomId 그룹 채팅 방 ID, 선택 사항, 기본값은 현재 방; 'all'을 전달하면 모든 방에 추가
+     * @param allowDuplicate 중복 추가 허용 여부, 기본값 false
+     * @returns 추가 성공 여부
      */
     const addUserItem = (userItem: UserItem, roomId?: string): boolean => {
       if (!userItem || typeof userItem !== 'object' || !userItem.uid) {
@@ -600,7 +600,7 @@ export const useGroupStore = defineStore(
 
       const targetRoomId = roomId || globalStore.currentSessionRoomId
       if (!targetRoomId) {
-        console.warn('[addUserItem] cannot determine target room id')
+        console.warn('[addUserItem] 대상 방 ID를 확인할 수 없습니다')
         return false
       }
 
@@ -612,10 +612,10 @@ export const useGroupStore = defineStore(
     }
 
     /**
-     * 从 userListMap 中移除指定用户
-     * @param uid 要移除的用户ID
-     * @param roomId 群聊房间ID，可选，默认使用当前房间；如果传入 'all' 则从所有房间中移除
-     * @returns 是否成功移除
+     * userListMap에서 지정된 사용자 제거
+     * @param uid 제거할 사용자 ID
+     * @param roomId 그룹 채팅 방 ID, 선택 사항, 기본값은 현재 방; 'all'을 전달하면 모든 방에서 제거
+     * @returns 제거 성공 여부
      */
     const removeUserItem = (uid: string, roomId?: string): boolean => {
       if (!uid || typeof uid !== 'string') {
@@ -625,7 +625,7 @@ export const useGroupStore = defineStore(
 
       const targetRoomId = roomId || globalStore.currentSessionRoomId
       if (!targetRoomId) {
-        console.warn('[removeUserItem] cannot determine target room id')
+        console.warn('[removeUserItem] 대상 방 ID를 확인할 수 없습니다')
         return false
       }
 
@@ -637,7 +637,7 @@ export const useGroupStore = defineStore(
     }
 
     /**
-     * 移除 某个房间中的所有user 数据
+     * 특정 방의 모든 사용자 데이터 제거
      * @param roomId
      */
     const removeAllUsers = (roomId: string) => {
@@ -645,12 +645,12 @@ export const useGroupStore = defineStore(
     }
 
     /**
-     * 添加群管理员
-     * @param uidList 要添加为管理员的用户ID列表
+     * 그룹 관리자 추가
+     * @param uidList 관리자로 추가할 사용자 ID 목록
      */
     const addAdmin = async (uidList: string[]) => {
       await ImRequestUtils.addAdmin({ roomId: globalStore.currentSessionRoomId, uidList })
-      // 更新本地群成员列表中的角色信息
+      // 로컬 그룹 멤버 목록의 역할 정보 업데이트
       const targetRoomId = globalStore.currentSessionRoomId
       if (!targetRoomId) return
 
@@ -665,12 +665,12 @@ export const useGroupStore = defineStore(
     }
 
     /**
-     * 撤销群管理员身份
-     * @param uidList 要撤销的管理员ID列表
+     * 그룹 관리자 자격 취소
+     * @param uidList 취소할 관리자 ID 목록
      */
     const revokeAdmin = async (uidList: string[]) => {
       await ImRequestUtils.revokeAdmin({ roomId: globalStore.currentSessionRoomId, uidList })
-      // 更新本地群成员列表中的角色信息
+      // 로컬 그룹 멤버 목록의 역할 정보 업데이트
       const targetRoomId = globalStore.currentSessionRoomId
       if (!targetRoomId) return
 
@@ -685,46 +685,46 @@ export const useGroupStore = defineStore(
     }
 
     /**
-     * 踢出群成员
-     * @param uidList 要踢出的成员ID列表
-     * @param roomId 群聊房间ID，可选，默认使用当前房间
+     * 그룹 멤버 추방
+     * @param uidList 추방할 멤버 ID 목록
+     * @param roomId 그룹 채팅 방 ID, 선택 사항, 기본값은 현재 방
      */
     const removeGroupMembers = async (uidList: string[], roomId?: string) => {
       const targetRoomId = roomId || globalStore.currentSessionRoomId
       if (!targetRoomId) {
-        throw new Error('无法确定目标房间ID')
+        throw new Error('대상 방 ID를 확인할 수 없습니다')
       }
 
-      // 调用踢人接口
+      // 추방 인터페이스 호출
       await ImRequestUtils.removeGroupMember({ roomId: targetRoomId, uidList })
 
-      // 更新本地群成员列表，移除被踢出的成员
+      // 로컬 그룹 멤버 목록 업데이트, 추방된 멤버 제거
       const currentUserList = userListMap[targetRoomId] || []
       const updatedList = currentUserList.filter((user: UserItem) => !uidList.includes(user.uid))
       setRoomMemberList(targetRoomId, updatedList)
     }
 
     /**
-     * 退出群聊 / 解散群聊
-     * @param roomId 要退出的群聊ID
+     * 그룹 채팅 나가기 / 그룹 채팅 해산
+     * @param roomId 나갈 그룹 채팅 ID
      */
     const exitGroup = async (roomId: string) => {
       if (!roomId) return
 
       await ImRequestUtils.exitGroup({ roomId })
 
-      // 更新群成员缓存，移除自己
+      // 그룹 멤버 캐시 업데이트, 본인 제거
       const currentUserList = userListMap[roomId] || []
       const updatedList = currentUserList.filter((user: UserItem) => user.uid !== userStore.userInfo!.uid)
       setRoomMemberList(roomId, updatedList)
 
-      // 删除对应的群详情缓存
+      // 해당 그룹 상세 캐시 삭제
       removeGroupDetail(roomId)
 
-      // 更新会话列表，使用传入的 roomId
+      // 대화 목록 업데이트, 전달된 roomId 사용
       chatStore.removeSession(roomId)
 
-      // 如果退出的是当前选中的会话，则切换到新的当前会话
+      // 현재 선택된 대화에서 나가는 경우 새로운 현재 대화로 전환
       if (globalStore.currentSessionRoomId === roomId) {
         const fallbackSession = chatStore.sessionList[0]
         globalStore.updateCurrentSessionRoomId(fallbackSession ? fallbackSession.roomId : '')
@@ -732,22 +732,22 @@ export const useGroupStore = defineStore(
     }
 
     /**
-     * 用于处理在线状态变更时的群成员列表刷新
+     * 온라인 상태 변경 시 그룹 멤버 목록 새로 고침 처리
      */
     const refreshGroupMembers = async () => {
-      // 始终刷新频道成员列表
+      // 항상 채널 멤버 목록 새로 고침
       await getGroupUserList('1', true)
 
-      // 如果当前选中的是群聊且不是频道，则同时刷新当前群聊的成员列表
+      // 현재 선택된 것이 그룹 채팅이고 채널이 아닌 경우, 현재 그룹 채팅의 멤버 목록도 동시에 새로 고침
       if (globalStore.currentSession?.type === RoomTypeEnum.GROUP && globalStore.currentSessionRoomId !== '1') {
         await getGroupUserList(globalStore.currentSessionRoomId, true)
       }
     }
 
     /**
-     * 重置群组数据
-     * 用于切换会话时清空当前群组的数据
-     * @param roomId 可选，指定要清理的房间ID，不传则清理所有
+     * 그룹 데이터 재설정
+     * 세션 전환 시 현재 그룹 데이터 지우기
+     * @param roomId 선택 사항, 정리할 방 ID 지정, 전달하지 않으면 모두 정리
      */
     const resetGroupData = () => {
       userListOptions.cursor = ''
@@ -756,9 +756,9 @@ export const useGroupStore = defineStore(
     }
 
     /**
-     * 获取指定房间的用户列表
-     * @param roomId 房间ID
-     * @returns 用户列表
+     * 지정된 방의 사용자 목록 가져오기
+     * @param roomId 방 ID
+     * @returns 사용자 목록
      */
     const getUserListByRoomId = (roomId: string): UserItem[] => {
       return userListMap[roomId] || []
@@ -773,20 +773,20 @@ export const useGroupStore = defineStore(
     }
 
     /**
-     * 根据用户ID查找该用户所在的所有房间ID
-     * @param uid 用户ID
-     * @returns 包含该用户的所有房间ID数组
+     * 사용자 ID를 기반으로 해당 사용자가 속한 모든 방 ID 찾기
+     * @param uid 사용자 ID
+     * @returns 해당 사용자를 포함하는 모든 방 ID 배열
      */
     const getRoomIdsByUid = (uid: string): string[] => {
       const roomIds: string[] = []
 
-      // 遍历所有房间的用户列表
+      // 모든 방의 사용자 목록 순회
       Object.keys(userListMap).forEach((roomId) => {
         const userList = userListMap[roomId]
         if (!Array.isArray(userList) || userList.length === 0) {
           return
         }
-        // 检查当前房间是否包含指定的用户
+        // 현재 방에 지정된 사용자가 포함되어 있는지 확인
         const hasUser = userList.some((user) => user.uid === uid)
         if (hasUser) {
           roomIds.push(roomId)

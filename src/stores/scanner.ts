@@ -24,9 +24,9 @@ type DirectoryInfo = {
   usage_percentage: number
 }
 /**
- * 扫描器状态管理
- * 负责管理扫描器的状态、配置和事件监听
- * 提供扫描、取消扫描、清理资源等功能
+ * 스캐너 상태 관리
+ * 스캐너의 상태, 구성 및 이벤트 리스너 관리 담당
+ * 스캔, 스캔 취소, 리소스 정리 등의 기능 제공
  */
 export const useScannerStore = defineStore(StoresEnum.SCANNER, () => {
   const pathType = ref<'default' | 'custom'>('default')
@@ -64,30 +64,30 @@ export const useScannerStore = defineStore(StoresEnum.SCANNER, () => {
     return scanProgress.value.progress_percentage || 0
   })
 
-  // 方法
+  // 메서드
   const setupEventListeners = async () => {
-    // 监听进度更新
+    // 진행 상황 업데이트 수신
     const progressListener = await listen<DirectoryScanProgress>('directory-scan-progress', (event) => {
       scanProgress.value = event.payload
     })
     listeners.value.push(progressListener)
 
-    // 监听扫描完成
+    // 스캔 완료 수신
     const completeListener = await listen<DirectoryScanProgress>('directory-scan-complete', (event) => {
       scanProgress.value = event.payload
       scanComplete.value = true
       scanning.value = false
 
-      // 扫描完成后切换到磁盘占比显示
+      // 스캔 완료 후 디스크 점유율 표시로 전환
       setTimeout(() => {
         showDiskUsage.value = true
       }, 300)
     })
     listeners.value.push(completeListener)
 
-    // 监听扫描取消
+    // 스캔 취소 수신
     const cancelListener = await listen('directory-scan-cancelled', () => {
-      console.log('收到扫描取消事件')
+      console.log('스캔 취소 이벤트 수신')
       scanning.value = false
       scanComplete.value = false
       showDiskUsage.value = false
@@ -99,22 +99,22 @@ export const useScannerStore = defineStore(StoresEnum.SCANNER, () => {
     if (isInitialized.value) return
 
     try {
-      // 获取默认目录
+      // 기본 디렉토리 가져오기
       const cacheDir = await appCacheDir()
       defaultDirectory.value = cacheDir
 
-      // 设置事件监听器
+      // 이벤트 리스너 설정
       await setupEventListeners()
 
       isInitialized.value = true
 
-      // 如果有当前目录，自动开始扫描
+      // 현재 디렉토리가 있으면 자동으로 스캔 시작
       if (currentDirectory.value) {
         await startScan()
       }
     } catch (error) {
-      console.error('初始化扫描器失败:', error)
-      window.$message?.error('初始化扫描器失败')
+      console.error('스캐너 초기화 실패:', error)
+      window.$message?.error('스캐너 초기화 실패')
     }
   }
 
@@ -128,7 +128,7 @@ export const useScannerStore = defineStore(StoresEnum.SCANNER, () => {
 
   const startScan = async () => {
     if (!currentDirectory.value) {
-      window.$message?.warning('请先选择目录')
+      window.$message?.warning('디렉토리를 먼저 선택해주세요')
       return
     }
 
@@ -138,9 +138,9 @@ export const useScannerStore = defineStore(StoresEnum.SCANNER, () => {
     totalSize.value = 0
     diskInfo.value = null
 
-    // 重置进度
+    // 진행 상황 초기화
     scanProgress.value = {
-      current_path: '开始扫描...',
+      current_path: '스캔 시작...',
       files_processed: 0,
       total_size: 0,
       elapsed_time: 0,
@@ -155,7 +155,7 @@ export const useScannerStore = defineStore(StoresEnum.SCANNER, () => {
           directoryPath: currentDirectory.value
         },
         {
-          customErrorMessage: '获取目录信息失败',
+          customErrorMessage: '디렉토리 정보 가져오기 실패',
           errorType: ErrorType.Client
         }
       )
@@ -165,7 +165,7 @@ export const useScannerStore = defineStore(StoresEnum.SCANNER, () => {
       scanComplete.value = true
       scanning.value = false
     } catch (error) {
-      console.error('扫描失败:', error)
+      console.error('스캔 실패:', error)
       scanning.value = false
     }
   }
@@ -173,14 +173,14 @@ export const useScannerStore = defineStore(StoresEnum.SCANNER, () => {
   const cancelScan = async () => {
     try {
       await invokeSilently('cancel_directory_scan')
-      console.log('扫描已取消')
+      console.log('스캔이 취소됨')
     } catch (error) {
-      console.error('取消扫描失败:', error)
+      console.error('스캔 취소 실패:', error)
     }
   }
 
   const resetState = () => {
-    // 重置所有状态到初始值
+    // 모든 상태를 초기값으로 재설정
     pathType.value = 'default'
     customDirectory.value = ''
     scanning.value = false
@@ -200,22 +200,22 @@ export const useScannerStore = defineStore(StoresEnum.SCANNER, () => {
   }
 
   const cleanup = async () => {
-    // 取消正在进行的扫描
+    // 진행 중인 스캔 취소
     if (scanning.value) {
       await cancelScan()
     }
 
-    // 清理事件监听器
+    // 이벤트 리스너 정리
     listeners.value.forEach((unlisten) => {
       try {
         unlisten()
       } catch (error) {
-        console.warn('清理监听器失败:', error)
+        console.warn('리스너 정리 실패:', error)
       }
     })
     listeners.value = []
 
-    // 重置状态
+    // 상태 초기화
     isInitialized.value = false
     scanning.value = false
     scanComplete.value = false

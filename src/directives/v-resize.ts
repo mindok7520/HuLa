@@ -1,14 +1,14 @@
 const map = new WeakMap()
 
-// 创建一个ResizeObserver实例
+// ResizeObserver 인스턴스 생성
 const ob = new ResizeObserver((entries: any[]) => {
-  // 遍历所有监测到的元素
+  // 감지된 모든 요소 순회
   for (const entry of entries) {
-    // 获取该元素的处理器
+    // 해당 요소의 핸들러 가져오기
     const handler = map.get(entry.target)
-    // 如果存在处理器
+    // 핸들러가 존재하는 경우
     if (handler) {
-      // 调用处理器函数并传入元素的宽度和高度
+      // 핸들러 함수 호출 및 요소의 너비와 높이 전달
       handler({
         width: entry.borderBoxSize[0].inlineSize,
         height: entry.borderBoxSize[0].blockSize
@@ -18,16 +18,16 @@ const ob = new ResizeObserver((entries: any[]) => {
 })
 
 /**
- * 调整元素尺寸指令
+ * 요소 크기 조정 지시문
  */
 export default {
   mounted(el: any, binding: any) {
-    //监听el元素尺寸的变化
+    // el 요소 크기 변경 감지
     map.set(el, binding.value)
     ob.observe(el)
   },
   unmounted(el: any) {
-    //取消监听
+    // 감지 취소
     ob.unobserve(el)
   }
 }

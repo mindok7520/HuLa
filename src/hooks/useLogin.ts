@@ -48,25 +48,25 @@ export const useLogin = () => {
   const { t } = useI18nGlobal()
 
   /**
-   * 在 composable 初始化时获取 router 实例
-   * 注意: useRouter() 必须在组件 setup 上下文中调用
-   * 不能在异步回调中调用 useRouter(),因为那时已经失去了 Vue 组件上下文
-   * 所以在这里提前获取并保存 router 实例,供后续异步操作使用
+   * composable 초기화 시 router 인스턴스 가져오기
+   * 주의: useRouter()는 컴포넌트 setup 컨텍스트 내에서 호출해야 합니다.
+   * 비동기 콜백 내에서는 Vue 컴포넌트 컨텍스트를 잃어버리므로 useRouter()를 호출할 수 없습니다.
+   * 따라서 여기서 미리 router 인스턴스를 가져와 저장하여 후속 비동기 작업에서 사용합니다.
    */
   let router: ReturnType<typeof useRouter> | null = null
   try {
     router = useRouter()
   } catch (e) {
-    console.warn('[useLogin] 无法获取 router 实例,可能不在组件上下文中:', e)
+    console.warn('[useLogin] router 인스턴스를 가져올 수 없습니다. 컴포넌트 컨텍스트에 없을 수 있습니다:', e)
   }
 
-  /** 网络连接是否正常 */
+  /** 네트워크 연결 상태 */
   const { isOnline } = useNetwork()
   const loading = ref(false)
-  /** 登录按钮的文本内容 */
+  /** 로그인 버튼 텍스트 내용 */
   const loginText = ref(isOnline.value ? t('login.button.login.default') : t('login.button.login.network_error'))
   const loginDisabled = ref(!isOnline.value)
-  /** 账号信息 */
+  /** 계정 정보 */
   const info = ref({
     account: '',
     password: '',
@@ -76,10 +76,10 @@ export const useLogin = () => {
   })
   const uiState = ref<'manual' | 'auto'>('manual')
   /**
-   * 设置登录状态(系统托盘图标，系统托盘菜单选项)
+   * 로그인 상태 설정 (시스템 트레이 아이콘, 시스템 트레이 메뉴 옵션)
    */
   const setLoginState = async () => {
-    // 登录成功后删除本地存储的wsLogin，防止用户在二维码页面刷新出二维码但是不使用二维码登录，导致二维码过期或者登录失败
+    // 로그인 성공 후 로컬 저장소의 wsLogin 삭제, 사용자가 QR 코드 페이지에서 QR 코드를 새로 고침했지만 QR 코드로 로그인하지 않아 QR 코드가 만료되거나 로그인 실패하는 것을 방지
     if (localStorage.getItem('wsLogin')) {
       localStorage.removeItem('wsLogin')
     }
@@ -90,12 +90,12 @@ export const useLogin = () => {
   }
 
   /**
-   * 登出账号
+   * 로그아웃
    */
   const logout = async () => {
     globalStore.updateCurrentSessionRoomId('')
     const sendLogoutEvent = async () => {
-      // ws 退出连接
+      // ws 연결 종료
       await invokeSilently('ws_disconnect')
       await invokeSilently(TauriCommand.REMOVE_TOKENS)
       await invokeSilently(TauriCommand.UPDATE_USER_LAST_OPT_TIME)
@@ -106,35 +106,35 @@ export const useLogin = () => {
       isTrayMenuShow.value = false
       try {
         await sendLogoutEvent()
-        // 创建登录窗口
-        await createWebviewWindow('登录', 'login', 320, 448, undefined, false, 320, 448)
-        // 发送登出事件
+        // 로그인 창 생성
+        await createWebviewWindow('로그인', 'login', 320, 448, undefined, false, 320, 448)
+        // 로그아웃 이벤트 전송
         await emit(EventEnum.LOGOUT)
 
-        // 调整托盘大小
+        // 트레이 크기 조정
         await resizeWindow('tray', 130, 44)
       } catch (error) {
-        console.error('创建登录窗口失败:', error)
+        console.error('로그인 창 생성 실패:', error)
       }
     } else {
       try {
         await sendLogoutEvent()
-        // 发送登出事件
+        // 로그아웃 이벤트 전송
         await emit(EventEnum.LOGOUT)
       } catch (error) {
-        console.error('登出失败:', error)
-        window.$message.error('登出失败')
+        console.error('로그아웃 실패:', error)
+        window.$message.error('로그아웃 실패')
       }
     }
   }
 
-  /** 重置登录的状态 */
+  /** 로그인 상태 초기화 */
   const resetLoginState = async (isAutoLogin = false) => {
-    // 清理消息已读计数监听器
+    // 메시지 읽음 카운트 리스너 정리
     clearListener()
-    // 1. 清理本地存储
+    // 1. 로컬 저장소 정리
     if (!isAutoLogin) {
-      // TODO 未来这里需要区分账号，切换不同的account；用不同的REFRESH_TOKEN调用
+      // TODO 나중에 계정을 구분하여 다른 account로 전환해야 함; 다른 REFRESH_TOKEN으로 호출
       localStorage.removeItem('user')
       localStorage.removeItem('TOKEN')
       localStorage.removeItem('REFRESH_TOKEN')
@@ -142,30 +142,30 @@ export const useLogin = () => {
     settingStore.closeAutoLogin()
     loginStore.loginStatus = LoginStatus.Init
     globalStore.updateCurrentSessionRoomId('')
-    // 2. 清除系统托盘图标上的未读数
+    // 2. 시스템 트레이 아이콘의 읽지 않은 수 지우기
     if (isMac()) {
       await invokeWithErrorHandler('set_badge_count', { count: undefined })
     }
   }
 
-  // 全量同步
+  // 전체 동기화
   const runFullSync = async (preserveSession?: string) => {
     await chatStore.getSessionList(true)
-    // 如果有需要保留的会话且该会话仍存在于列表中，则恢复选中状态
+    // 유지해야 할 세션이 있고 해당 세션이 목록에 여전히 존재하는 경우 선택 상태 복원
     if (preserveSession) {
       const sessionExists = chatStore.sessionList.some((s) => s.roomId === preserveSession)
       if (sessionExists) {
-        // 会话存在，保持选中状态不变
+        // 세션 존재, 선택 상태 유지
       } else {
-        // 会话不存在了，清空选中
+        // 세션이 존재하지 않음, 선택 해제
         globalStore.updateCurrentSessionRoomId('')
       }
     } else {
-      // 没有需要保留的会话，重置
+      // 유지할 세션 없음, 초기화
       globalStore.updateCurrentSessionRoomId('')
     }
 
-    // 加载所有群的成员数据
+    // 모든 그룹의 멤버 데이터 로드
     const groupSessions = chatStore.getGroupSessions()
     await Promise.all([
       ...groupSessions.map((session) => groupStore.getGroupUserList(session.roomId, true)),
@@ -175,40 +175,40 @@ export const useLogin = () => {
     ])
   }
 
-  // 增量同步
+  // 증분 동기화
   const runIncrementalSync = async (preserveSession?: string) => {
-    // 优先保证会话列表最新消息和未读数：拉会话即可让未读/最新一条消息就绪
+    // 세션 목록의 최신 메시지와 읽지 않은 수 우선 보장: 세션을 가져오면 읽지 않음/최신 메시지 준비 완료
     await chatStore.getSessionList(true)
-    // 如果有需要保留的会话且该会话仍存在于列表中，则保持选中状态
+    // 유지해야 할 세션이 있고 해당 세션이 목록에 여전히 존재하는 경우 선택 상태 유지
     if (preserveSession) {
       const sessionExists = chatStore.sessionList.some((s) => s.roomId === preserveSession)
       if (!sessionExists) {
-        // 会话不存在了，清空选中
+        // 세션이 존재하지 않음, 선택 해제
         globalStore.updateCurrentSessionRoomId('')
       }
-      // 会话存在则保持当前状态不变
+      // 세션이 존재하면 현재 상태 유지
     }
-    // 没有需要保留的会话时也保持当前状态（增量同步不重置）
+    // 유지할 세션이 없을 때도 현재 상태 유지 (증분 동기화는 초기화하지 않음)
 
-    // 后台同步消息：登录命令已触发一次全量/离线同步，这里避免重复拉取；仅在需要时再显式调用
-    // 将消息预取和其他预热放后台，避免阻塞 UI
+    // 백그라운드 메시지 동기화: 로그인 명령이 이미 전체/오프라인 동기화를 한 번 트리거했으므로 중복 가져오기 방지; 필요할 때만 명시적으로 호출
+    // 메시지 프리패치 및 기타 예열을 백그라운드에 배치하여 UI 차단 방지
     await Promise.allSettled([
       chatStore.setAllSessionMsgList(20),
       groupStore.setGroupDetails(),
       cachedStore.getAllBadgeList()
     ]).catch((error) => {
-      console.warn('[useLogin] 增量预热任务失败:', error)
+      console.warn('[useLogin] 증분 예열 작업 실패:', error)
     })
   }
 
   const init = async (options?: { isInitialSync?: boolean }) => {
     const emojiStore = useEmojiStore()
-    // 保存当前选中的会话，避免同步时丢失用户的选中状态
+    // 현재 선택된 세션 저장, 동기화 시 사용자의 선택 상태 손실 방지
     const previousSessionRoomId = globalStore.currentSessionRoomId
-    // 连接 ws
+    // ws 연결
     await rustWebSocketClient.initConnect()
 
-    // 用户相关数据初始化
+    // 사용자 관련 데이터 초기화
     userStatusStore.stateList = await getAllUserState()
     const userDetail: any = await getUserDetail()
     userStatusStore.stateId = userDetail.userStateId
@@ -218,24 +218,24 @@ export const useLogin = () => {
     }
     userStore.userInfo = account
     loginHistoriesStore.addLoginHistory(account)
-    // 初始化表情列表并在后台预取本地缓存（使用 worker + 并发限制）
+    // 이모티콘 목록 초기화 및 백그라운드에서 로컬 캐시 프리패치 (워커 + 동시성 제한 사용)
     void emojiStore.initEmojis().catch((error) => {
-      console.warn('[login] 初始化表情失败:', error)
+      console.warn('[login] 이모티콘 초기화 실패:', error)
     })
 
-    // 在 sqlite 中存储用户信息
+    // sqlite에 사용자 정보 저장
     await invokeWithErrorHandler(
       TauriCommand.SAVE_USER_INFO,
       {
         userInfo: userDetail
       },
       {
-        customErrorMessage: '保存用户信息失败',
+        customErrorMessage: '사용자 정보 저장 실패',
         errorType: ErrorType.Client
       }
     )
 
-    // 数据初始化
+    // 데이터 초기화
     const cachedConfig = localStorage.getItem('config')
     if (cachedConfig) {
       configStore.config = JSON.parse(cachedConfig).config
@@ -244,9 +244,9 @@ export const useLogin = () => {
     }
     const isInitialSync = options?.isInitialSync ?? !initialSyncStore.isSynced(account.uid)
 
-    // 登录后立即预热表情本地缓存（异步，不阻塞后续流程）
+    // 로그인 후 즉시 이모티콘 로컬 캐시 예열 (비동기, 후속 프로세스 차단 안 함)
     void emojiStore.prefetchEmojiToLocal().catch((error) => {
-      console.warn('[login] 预热表情缓存失败:', error)
+      console.warn('[login] 이모티콘 캐시 예열 실패:', error)
     })
 
     if (isInitialSync) {
@@ -261,11 +261,11 @@ export const useLogin = () => {
       try {
         await runIncrementalSync(previousSessionRoomId)
       } finally {
-        // 增量登录仅等待会话准备好就关闭提示，后台同步继续进行
+        // 증분 로그인은 세션 준비만 기다리고 팁을 닫으며, 백그라운드 동기화는 계속 진행됨
         chatStore.syncLoading = false
       }
     }
-    // 强制持久化
+    // 강제 지속성
     chatStore.$persist?.()
     cachedStore.$persist?.()
     globalStore.$persist?.()
@@ -274,23 +274,23 @@ export const useLogin = () => {
   }
 
   /**
-   * 根据平台类型执行不同的跳转逻辑
-   * 桌面端: 创建主窗口
-   * 移动端: 路由跳转到主页
+   * 플랫폼 유형에 따라 다른 점프 로직 실행
+   * 데스크톱: 메인 창 생성
+   * 모바일: 라우터로 홈 페이지 이동
    */
   const routerOrOpenHomeWindow = async () => {
     if (isDesktop()) {
       const registerWindow = await WebviewWindow.getByLabel('register')
       if (registerWindow) {
         await registerWindow.close().catch((error) => {
-          console.warn('关闭注册窗口失败:', error)
+          console.warn('등록 창 닫기 실패:', error)
         })
       }
       await createWebviewWindow('HuLa', 'home', 960, 720, 'login', true, 330, 480, undefined, false)
-      // 只有在成功创建home窗口并且已登录的情况下才显示托盘菜单
+      // home 창이 성공적으로 생성되고 로그인된 경우에만 트레이 메뉴 표시
       globalStore.isTrayMenuShow = true
     } else {
-      // 移动端使用路由跳转
+      // 모바일은 라우터 점프 사용
       router?.push('/mobile/home')
     }
   }
@@ -310,27 +310,27 @@ export const useLogin = () => {
       loginText.value = isOnline.value ? t('login.button.login.default') : t('login.button.login.network_error')
       uiState.value = 'manual'
       settingStore.setAutoLogin(false)
-      logInfo('自动登录信息已失效，请手动登录')
+      logInfo('자동 로그인 정보가 만료되었습니다. 수동으로 로그인해주세요.')
       return
     }
 
-    // 根据auto参数决定从哪里获取登录信息
+    // auto 매개변수에 따라 로그인 정보를 가져올 위치 결정
     const loginInfo = auto && userStore.userInfo ? (userStore.userInfo as UserInfoType) : info.value
     const account = loginInfo?.account
     const password = loginInfo?.password ?? info.value.password
     if (!account) {
       loading.value = false
       loginDisabled.value = false
-      loginText.value = isOnline.value ? '登录' : '网络异常'
+      loginText.value = isOnline.value ? '로그인' : '네트워크 오류'
       if (auto) {
         uiState.value = 'manual'
         settingStore.setAutoLogin(false)
       }
-      logInfo('账号信息缺失，请重新输入')
+      logInfo('계정 정보가 누락되었습니다. 다시 입력해주세요.')
       return
     }
 
-    // 存储此次登陆设备指纹
+    // 이번 로그인 디바이스 지문 저장
     const clientId = await getEnhancedFingerprint()
     localStorage.setItem('clientId', clientId)
 
@@ -354,41 +354,41 @@ export const useLogin = () => {
         loading.value = false
         loginText.value = t('login.status.success_redirect')
 
-        // 仅在移动端的首次手动登录时，才默认打开自动登录开关
+        // 모바일에서 처음 수동 로그인할 때만 자동 로그인 스위치를 기본적으로 켬
         if (!auto && isMobile()) {
           settingStore.setAutoLogin(true)
         }
 
-        // 移动端登录之后，初始化数据
+        // 모바일 로그인 후 데이터 초기화
         if (isMobile()) {
           await init()
-          await invoke('hide_splash_screen') // 初始化完再关闭启动页
+          await invoke('hide_splash_screen') // 초기화 완료 후 스플래시 화면 닫기
         }
-        ;+useMitt.emit(MittEnum.MSG_INIT)
+        ; +useMitt.emit(MittEnum.MSG_INIT)
 
         await routerOrOpenHomeWindow()
       })
       .catch((e: any) => {
-        console.error('登录异常：', e)
+        console.error('로그인 예외:', e)
         window.$message.error(e)
         loading.value = false
         loginDisabled.value = false
         loginText.value = t('login.button.login.default')
-        // 如果是自动登录失败，切换到手动登录界面并重置按钮状态
+        // 자동 로그인 실패 시 수동 로그인 화면으로 전환하고 버튼 상태 초기화
         if (auto) {
           uiState.value = 'manual'
           loginDisabled.value = false
           loginText.value = t('login.button.login.default')
-          // 取消自动登录
+          // 자동 로그인 취소
           settingStore.setAutoLogin(false)
-          // 自动填充之前尝试登录的账号信息到手动登录表单
+          // 이전에 로그인 시도한 계정 정보를 수동 로그인 양식에 자동 채우기
           if (userStore.userInfo) {
             info.value.account = userStore.userInfo.account || userStore.userInfo.email || ''
             info.value.avatar = userStore.userInfo.avatar
             info.value.name = userStore.userInfo.name
             info.value.uid = userStore.userInfo.uid
           }
-          // Token 过期时,移动端跳转到登录页
+          // 토큰 만료 시 모바일은 로그인 페이지로 이동
           if (isMobile()) {
             router?.replace('/mobile/login')
           }

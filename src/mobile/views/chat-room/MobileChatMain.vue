@@ -23,7 +23,7 @@
             </div>
           </n-dropdown>
           <n-button class="mobile-assistant-import" size="small" strong secondary @click="handleAssistantImport">
-            导入模型
+            모델 가져오기
           </n-button>
         </div>
         <HuLaAssistant :active="true" :custom-model="customModelPath" class="mobile-assistant-view" />
@@ -84,30 +84,30 @@ const assistantModelDropdownOptions = computed(() =>
   assistantModelPresets.value.map((preset) => ({
     key: preset.modelKey,
     label: formatPresetLabel(preset),
-    extra: preset.description ?? (preset.version ? `版本 ${preset.version}` : void 0)
+    extra: preset.description ?? (preset.version ? `버전 ${preset.version}` : void 0)
   }))
 )
 
 const selectedModelLabel = computed(() => {
   if (selectedModelKey.value === 'local') {
-    return '本地模型'
+    return '로컬 모델'
   }
   const preset = findPresetByKey(selectedModelKey.value)
   if (preset) {
     return formatPresetLabel(preset)
   }
   const first = assistantModelPresets.value[0]
-  return first ? formatPresetLabel(first) : '选择模型'
+  return first ? formatPresetLabel(first) : '모델 선택'
 })
 
 const handleChatMainClick = () => {
-  // 移动端点击聊天区域不再自动关闭面板
-  // 用户需要手动点击按钮来关闭面板
+  // 모바일에서 채팅 영역 클릭 시 패널이 자동으로 닫히지 않음
+  // 사용자가 수동으로 버튼을 클릭하여 패널을 닫아야 함
 }
 
 const handleScroll = () => {
-  // 移动端滚动聊天区域不再自动关闭面板
-  // 用户需要手动点击按钮来关闭面板
+  // 모바일에서 채팅 영역 스크롤 시 패널이 자동으로 닫히지 않음
+  // 사용자가 수동으로 버튼을 클릭하여 패널을 닫아야 함
 }
 
 const handleRoomNameClick = () => {
@@ -211,8 +211,8 @@ const handleAssistantImport = async () => {
     selectedModelKey.value = 'local'
     customModelPath.value = filePath
   } catch (error) {
-    console.error('选择模型文件失败:', error)
-    window.$message?.error?.('选择模型文件失败，请重试')
+    console.error('모델 파일 선택 실패:', error)
+    window.$message?.error?.('모델 파일 선택 실패, 다시 시도해주세요')
   }
 }
 </script>

@@ -1,7 +1,7 @@
 <template>
   <MobileLayout :safeAreaTop="true" :safeAreaBottom="true">
     <div class="h-full flex flex-col">
-      <!-- 页面全部内容 -->
+      <!-- 페이지 전체 콘텐츠 -->
       <div class="flex flex-col flex-1">
         <RouterView v-slot="{ Component }">
           <Transition name="slide" appear mode="out-in">
@@ -20,7 +20,7 @@ const route = useRoute()
 </script>
 
 <style lang="scss" scoped>
-/* 侧滑切换动画 */
+/* 슬라이드 전환 애니메이션 */
 // .slide-enter-active,
 // .slide-leave-active {
 //   transition: all 0.1s ease;

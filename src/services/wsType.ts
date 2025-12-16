@@ -1,124 +1,124 @@
 import type { UserInfoType } from '@/services/types.ts'
 
-// 1.登录返回二维码 2.用户扫描成功等待授权 3.用户登录成功返回用户信息 4.收到消息 5.上下线推送 6.前端token失效
+// 1.로그인 시 QR 코드 반환 2.사용자 스캔 성공 후 인증 대기 3.사용자 로그인 성공 시 사용자 정보 반환 4.메시지 수신 5.온/오프라인 푸시 6.프론트엔드 토큰 만료
 export enum WsResponseMessageType {
-  /** 无网络连接 */
+  /** 네트워크 연결 없음 */
   NO_INTERNET = 'noInternet',
-  /** 用户登录成功返回用户信息 */
+  /** 사용자 로그인 성공 시 사용자 정보 반환 */
   LOGIN_SUCCESS = 'loginSuccess',
-  /** 收到消息 */
+  /** 메시지 수신 */
   RECEIVE_MESSAGE = 'receiveMessage',
-  /** 上线推送 */
+  /** 온라인 푸시 */
   ONLINE = 'online',
-  /** 前端token失效 */
+  /** 프론트엔드 토큰 만료 */
   TOKEN_EXPIRED = 'tokenExpired',
-  /** 禁用的用户 */
+  /** 비활성화된 사용자 */
   INVALID_USER = 'invalidUser',
-  /** 点赞、倒赞更新通知 */
+  /** 좋아요, 싫어요 업데이트 알림 */
   MSG_MARK_ITEM = 'msgMarkItem',
-  /** 消息撤回 */
+  /** 메시지 회수 */
   MSG_RECALL = 'msgRecall',
-  /** 新好友申请 */
+  /** 새 친구 신청 */
   REQUEST_NEW_FRIEND = 'requestNewFriend',
-  /** 群成员变动 */
+  /** 그룹 멤버 변동 */
   WS_MEMBER_CHANGE = 'ws-member-change',
-  /** 设置群管理员 */
+  /** 그룹 관리자 설정 */
   GROUP_SET_ADMIN_SUCCESS = 'groupSetAdmin',
-  /** 下线通知 */
+  /** 오프라인 알림 */
   OFFLINE = 'offline',
-  /** 同意好友请求 */
+  /** 친구 요청 승인 */
   REQUEST_APPROVAL_FRIEND = 'requestApprovalFriend',
-  /** 通知事件 */
+  /** 알림 이벤트 */
   NOTIFY_EVENT = 'notifyEvent',
-  /** 用户状态改变 */
+  /** 사용자 상태 변경 */
   USER_STATE_CHANGE = 'userStateChange',
-  /** 群主修改群聊信息 */
+  /** 그룹 소유자가 그룹 채팅 정보 수정 */
   ROOM_INFO_CHANGE = 'roomInfoChange',
-  /** 自己修改我在群里的信息 */
+  /** 내가 그룹 내 정보 수정 */
   MY_ROOM_INFO_CHANGE = 'myRoomInfoChange',
-  /** 群解散 */
+  /** 그룹 해체 */
   ROOM_DISSOLUTION = 'roomDissolution',
-  /** 加入视频会议 */
+  /** 화상 회의 참여 */
   JoinVideo = 'JoinVideo',
-  /** 群公告消息 */
+  /** 그룹 공지 메시지 */
   ROOM_GROUP_NOTICE_MSG = 'roomGroupNoticeMsg',
-  /** 编辑群公告 */
+  /** 그룹 공지 편집 */
   ROOM_EDIT_GROUP_NOTICE_MSG = 'roomEditGroupNoticeMsg',
-  /** 群公告已读 */
+  /** 그룹 공지 읽음 */
   ROOM_GROUP_NOTICE_READ_MSG = 'roomGroupNoticeReadMsg',
-  /** 发起视频通话请求 */
+  /** 화상 통화 요청 시작 */
   VideoCallRequest = 'VideoCallRequest',
-  /** 通话已接通 */
+  /** 통화 연결됨 */
   CallAccepted = 'CallAccepted',
-  /** 呼叫被拒绝 */
+  /** 호출 거부됨 */
   CallRejected = 'CallRejected',
-  /** 会议已关闭 */
+  /** 회의 종료됨 */
   RoomClosed = 'RoomClosed',
-  /** 媒体组件改变 */
+  /** 미디어 구성 요소 변경 */
   MediaControl = 'MediaControl',
-  /** 通话超时 */
+  /** 통화 타임아웃 */
   TIMEOUT = 'TIMEOUT',
-  /** 挂断 */
+  /** 끊기 */
   DROPPED = 'DROPPED',
-  /** 离开视频会议 */
+  /** 화상 회의 나가기 */
   LeaveVideo = 'LeaveVideo',
-  /** 启动屏幕共享 */
+  /** 화면 공유 시작 */
   ScreenSharingStarted = 'ScreenSharingStarted',
-  /** 关闭屏幕共享 */
+  /** 화면 공유 종료 */
   ScreenSharingStopped = 'ScreenSharingStopped',
-  /** 网络状况不佳 */
+  /** 네트워크 상태 불량 */
   NetworkPoor = 'NetworkPoor',
-  /** 踢出用户 */
+  /** 사용자 강제 퇴장 */
   UserKicked = 'UserKicked',
-  /** 信令消息 */
+  /** 시그널링 메시지 */
   WEBRTC_SIGNAL = 'WEBRTC_SIGNAL',
-  /** 全局静音 */
+  /** 전체 음소거 */
   AllMuted = 'AllMuted',
   CANCEL = 'CANCEL',
-  /** 朋友圈消息推送 */
+  /** 모멘트 메시지 푸시 */
   FEED_SEND_MSG = 'feedSendMsg',
-  /** 朋友圈通知（点赞/评论，通过 comment 字段判断） */
+  /** 모멘트 알림 (좋아요/댓글, comment 필드로 판단) */
   FEED_NOTIFY = 'feedNotify'
 }
 
 export enum NoticeTypeEnum {
-  /** 设置群管理员 */
+  /** 그룹 관리자 설정 */
   GROUP_SET_ADMIN = 8,
-  /** 取消群管理员 */
+  /** 그룹 관리자 취소 */
   GROUP_RECALL_ADMIN = 9
 }
 
 /**
- * ws 请求 消息类型 1.请求登录二维码，2心跳检测 3用户认证
+ * ws 요청 메시지 타입 1.로그인 QR 코드 요청, 2.하트비트 감지 3.사용자 인증
  */
 export enum WsRequestMsgType {
-  /** 1.请求登录二维码 */
+  /** 1.로그인 QR 코드 요청 */
   RequestLoginQrCode = 1,
-  /** 2.消息心跳检测 */
+  /** 2.메시지 하트비트 감지 */
   HeartBeatDetection,
-  /** 3.用户认证 */
+  /** 3.사용자 인증 */
   Authorization,
-  /** 4.视频心跳 */
+  /** 4.비디오 하트비트 */
   VIDEO_HEARTBEAT,
-  /** 5.视频通话请求 */
+  /** 5.화상 통화 요청 */
   VIDEO_CALL_REQUEST,
-  /** 6.视频通话响应 */
+  /** 6.화상 통화 응답 */
   VIDEO_CALL_RESPONSE,
-  /** 7.媒体静音音频 */
+  /** 7.미디어 오디오 음소거 */
   MEDIA_MUTE_AUDIO,
-  /** 8.静音视频 */
+  /** 8.비디오 음소거 */
   MEDIA_MUTE_VIDEO,
-  /** 9.静音全部用户 */
+  /** 9.모든 사용자 음소거 */
   MEDIA_MUTE_ALL,
-  /** 10.屏幕共享 */
+  /** 10.화면 공유 */
   SCREEN_SHARING,
-  /** 11.关闭房间 */
+  /** 11.방 닫기 */
   CLOSE_ROOM,
-  /** 12.踢出用户 */
+  /** 12.사용자 강제 퇴장 */
   KICK_USER,
-  /** 13.通话质量监控 */
+  /** 13.통화 품질 모니터링 */
   NETWORK_REPORT,
-  /** 14.信令消息 */
+  /** 14.시그널링 메시지 */
   WEBRTC_SIGNAL
 }
 
@@ -129,11 +129,11 @@ export type WsReqMsgContentType = {
 export type LoginInitResType = { loginUrl: string }
 
 export type LoginSuccessResType = Pick<UserInfoType, 'avatar' | 'name' | 'uid' | 'account'> & {
-  /** 用户的登录凭证，每次请求携带 */
+  /** 사용자의 로그인 자격 증명, 매 요청마다 전달 */
   token: string
 }
 
-/** 用户在线状态改变 */
+/** 사용자 온라인 상태 변경 */
 export type OnStatusChangeType = {
   uid: string
   type: number
@@ -142,28 +142,28 @@ export type OnStatusChangeType = {
   lastOptTime: number
 }
 
-/** token过期 */
+/** 토큰 만료 */
 export type WsTokenExpire = {
   uid: string
   ip: string
   client: string
 }
 
-/** 用户状态 */
+/** 사용자 상태 */
 export type UserStateType = {
   id: string
   title: string
   url: string
 }
 
-// 通话请求数据类型
+// 통화 요청 데이터 타입
 export interface VideoCallRequestData {
   targetUid: string
   roomId: string
-  mediaType: 'AudioSignal' | 'VideoSignal' // 通话类型
+  mediaType: 'AudioSignal' | 'VideoSignal' // 통화 유형
 }
 
-// 通话响应数据类型
+// 통화 응답 데이터 타입
 export interface CallResponseData {
   callerUid: string
   targetUid: string
@@ -171,81 +171,81 @@ export interface CallResponseData {
   accepted: boolean
 }
 
-// 信令数据类型
+// 시그널링 데이터 타입
 export interface SignalData {
   roomId: string
-  signal: any // WebRTC信令
-  mediaType: 'AudioSignal' | 'VideoSignal' // 语音通话、视频通话
+  signal: any // WebRTC 시그널링
+  mediaType: 'AudioSignal' | 'VideoSignal' // 음성 통화, 화상 통화
 }
 
 export interface SignalSdp {
-  /** SDP 会话描述字符串 */
+  /** SDP 세션 설명 문자열 */
   sdp: string
-  /** SDP 消息类型（如 offer/answer） */
+  /** SDP 메시지 유형 (예: offer/answer) */
   type: string
 }
 
-/** 通话信令消息整体类型 */
+/** 통화 시그널링 메시지 전체 타입 */
 export interface CallSignalMessage {
-  /** 呼叫方用户 ID */
+  /** 발신자 사용자 ID */
   callerUid: string
-  /** 房间 ID */
+  /** 방 ID */
   roomId: string
-  /** 信令内容（JSON 字符串形式的 SDP 信息） */
+  /** 시그널링 내용 (JSON 문자열 형식의 SDP 정보) */
   signal: string
-  /** 信令类型（如 offer/answer/candidate 等） */
+  /** 시그널링 유형 (예: offer/answer/candidate 등) */
   signalType: string
-  /** 目标用户 ID */
+  /** 대상 사용자 ID */
   targetUid: string
-  /** 是否为视频通话 */
+  /** 화상 통화 여부 */
   video: boolean
 }
 
-// 加入/离开房间数据类型
+// 방 참여/나가기 데이터 타입
 export interface RoomActionData {
   roomId: string
   uid: string
 }
 
 export enum CallResponseStatus {
-  /** 超时未接听 */
+  /** 타임아웃 미응답 */
   TIMEOUT = -1,
-  /** 已拒绝 */
+  /** 거부됨 */
   REJECTED = 0,
-  /** 已接听 */
+  /** 응답함 */
   ACCEPTED = 1,
-  /** 已挂断 */
+  /** 끊김 */
   DROPPED = 2,
-  /** 已取消 */
+  /** 취소됨 */
   CANCEL = 3
 }
 
 /**
- * 通话状态描述映射
+ * 통화 상태 설명 매핑
  */
 export const CallResponseStatusDesc: Record<CallResponseStatus, string> = {
-  [CallResponseStatus.TIMEOUT]: '超时未接听',
-  [CallResponseStatus.REJECTED]: '已拒绝',
-  [CallResponseStatus.ACCEPTED]: '已接听',
-  [CallResponseStatus.DROPPED]: '已挂断',
-  [CallResponseStatus.CANCEL]: '已取消'
+  [CallResponseStatus.TIMEOUT]: '타임아웃 미응답',
+  [CallResponseStatus.REJECTED]: '거부됨',
+  [CallResponseStatus.ACCEPTED]: '응답함',
+  [CallResponseStatus.DROPPED]: '끊김',
+  [CallResponseStatus.CANCEL]: '취소됨'
 }
 
 /**
- * 根据状态码获取通话状态
- * @param code 状态码
- * @returns 对应的通话状态
+ * 상태 코드로 통화 상태 가져오기
+ * @param code 상태 코드
+ * @returns 해당 통화 상태
  */
 export function getCallResponseStatus(code: number): CallResponseStatus | undefined {
   return Object.values(CallResponseStatus).includes(code) ? (code as CallResponseStatus) : undefined
 }
 
 /**
- * 根据状态码获取状态描述
- * @param code 状态码
- * @returns 对应的状态描述文本
+ * 상태 코드로 상태 설명 가져오기
+ * @param code 상태 코드
+ * @returns 해당 상태 설명 텍스트
  */
 export function getCallResponseStatusDesc(code: number): string {
   const status = getCallResponseStatus(code)
-  return status !== undefined ? CallResponseStatusDesc[status] : '未知状态'
+  return status !== undefined ? CallResponseStatusDesc[status] : '알 수 없는 상태'
 }

@@ -1,11 +1,11 @@
 <template>
   <n-scrollbar ref="msg-scrollbar" style="max-height: calc(100vh / var(--page-scale, 1) - 70px)">
-    <!-- 消息同步加载提示 -->
+    <!-- 메시지 동기화 로딩 팁 -->
     <div v-if="syncLoading" class="flex-center gap-10px py-12px text-(12px [--text-color])">
       <n-spin :size="14" />
       <span>{{ t('message.message_list.sync_loading') }}</span>
     </div>
-    <!-- 当右侧 chatBox 未展示且网络离线时，在列表区域提示网络状态 -->
+    <!-- 오른쪽 chatBox가 표시되지 않고 네트워크가 오프라인일 때 목록 영역에 네트워크 상태 표시 -->
     <div
       v-if="!networkStatus.isOnline.value && !syncLoading && !globalStore.currentSessionRoomId"
       class="mx-10px mt-6px border-(1px solid [--danger-text]) flex items-center gap-8px rounded-6px bg-[--danger-bg] px-12px py-10px text-(12px [--danger-text])"
@@ -15,7 +15,7 @@
       </svg>
       <span class="leading-tight">{{ t('home.chat_main.network_offline') }}</span>
     </div>
-    <!--  会话列表  -->
+    <!--  세션 목록  -->
     <div v-if="sessionList.length > 0" class="p-[4px_10px_0px_8px]">
       <ContextMenu
         v-for="item in sessionList"
@@ -99,7 +99,7 @@
                 </span>
               </template>
 
-              <!-- 消息提示 -->
+              <!-- 메시지 팁 -->
               <template v-if="item.shield">
                 <svg
                   :class="[globalStore.currentSessionRoomId === item.roomId ? 'color-#d5304f90' : 'color-#909090']"
@@ -126,7 +126,7 @@
       </ContextMenu>
     </div>
 
-    <!-- 加载中显示的骨架屏 -->
+    <!-- 로딩 중 표시되는 스켈레톤 화면 -->
     <n-flex
       v-else-if="chatStore.sessionOptions.isLoading"
       vertical
@@ -150,7 +150,7 @@
       </n-flex>
     </n-flex>
 
-    <!-- 没有数据显示的提示 -->
+    <!-- 데이터가 없을 때 표시되는 팁 -->
     <n-result v-else class="absolute-center" status="418" :description="t('message.message_list.empty_description')">
       <template #footer>
         <n-button secondary type="primary">{{ t('message.message_list.empty_action') }}</n-button>
@@ -194,43 +194,43 @@ const { checkRoomAtMe, getMessageSenderName, formatMessageContent } = useReplace
 const { openMsgSession } = useCommon()
 const msgScrollbar = useTemplateRef<HTMLElement>('msg-scrollbar')
 const { handleMsgClick, handleMsgDelete, handleMsgDblclick, visibleMenu, visibleSpecialMenu } = useMessage()
-// 跟踪当前显示右键菜单的会话ID
+// 현재 우클릭 메뉴가 표시된 세션 ID 추적
 const activeContextMenuRoomId = ref<string | null>(null)
 const networkStatus = useNetworkStatus()
-// 未读清空的定时器
+// 읽지 않음 상태 초기화 타이머
 let clearUnreadTimer: NodeJS.Timeout | null = null
 
 type SessionMsgCacheItem = { msg: string; isAtMe: boolean; time: number; senderName: string }
 
-// 缓存每个会话的格式化消息，避免重复计算
+// 각 세션의 포맷된 메시지를 캐시하여 중복 계산 방지
 const sessionMsgCache = reactive<Record<string, SessionMsgCacheItem>>({})
-// 当会话最后一条消息需要强制刷新时递增，配合 mitt 事件触发重算
+// 세션의 마지막 메시지를 강제로 새로 고쳐야 할 때 증가, mitt 이벤트와 함께 재계산 트리거
 const sessionCacheRefreshKey = ref(0)
 
-// 会话列表
+// 세션 목록
 const sessionList = computed(() => {
-  // 依赖 refreshKey，确保外部缓存失效时触发重算
+  // refreshKey에 의존하여 외부 캐시가 무효화될 때 재계산 트리거
   sessionCacheRefreshKey.value
 
   return (
     chatStore.sessionList
       .map((item) => {
-        // 获取最新的头像
+        // 최신 아바타 가져오기
         let latestAvatar = item.avatar
         if (item.type === RoomTypeEnum.SINGLE && item.detailId) {
           latestAvatar = groupStore.getUserInfo(item.detailId)?.avatar || item.avatar
         }
 
-        // 获取群聊备注名称（如果有）
+        // 그룹 채팅 메모 이름 가져오기 (있는 경우)
         let displayName = item.name
         if (item.type === RoomTypeEnum.GROUP && item.remark) {
           displayName = item.remark
         }
 
-        // 获取该会话的所有消息用于检查@我
+        // 해당 세션의 모든 메시지를 가져와서 @나를 확인
         const messages = chatStore.chatMessageListByRoomId(item.roomId)
 
-        // 优化：使用缓存的消息，或者计算新的消息
+        // 최적화: 캐시된 메시지를 사용하거나 새 메시지 계산
         let displayMsg = ''
         let isAtMe = false
 
@@ -239,7 +239,7 @@ const sessionList = computed(() => {
         const cached = sessionMsgCache[cacheKey]
         const sendTime = lastMsg?.message?.sendTime || 0
 
-        // 如果有消息且缓存不存在或已过期，重新计算
+        // 메시지가 있고 캐시가 존재하지 않거나 만료된 경우 다시 계산
         if (lastMsg) {
           const senderName = getMessageSenderName(lastMsg, '', item.roomId, item.type)
           const shouldRefreshCache = !cached || cached.time < sendTime || cached.senderName !== senderName
@@ -252,10 +252,10 @@ const sessionList = computed(() => {
               messages,
               item.unreadCount
             )
-            // 获取纯文本消息内容（不包含 @我 标记）
+            // 일반 텍스트 메시지 내용 가져오기 (@나 태그 제외)
             displayMsg = formatMessageContent(lastMsg, item.type, senderName, item.roomId)
 
-            // 如果是群系统消息（如成员加入），不再前置发送者昵称
+            // 그룹 시스템 메시지(예: 멤버 가입)인 경우 발신자 닉네임을 앞에 붙이지 않음
             if (item.type === RoomTypeEnum.GROUP && lastMsg.message?.type === MsgEnum.SYSTEM && displayMsg) {
               const separatorIndex = displayMsg.indexOf(':')
               if (separatorIndex > -1) {
@@ -263,7 +263,7 @@ const sessionList = computed(() => {
               }
             }
 
-            // 更新缓存（只缓存纯文本消息内容）
+            // 캐시 업데이트 (일반 텍스트 메시지 내용만 캐시)
             sessionMsgCache[cacheKey] = {
               msg: displayMsg,
               isAtMe,
@@ -275,7 +275,7 @@ const sessionList = computed(() => {
             isAtMe = item.unreadCount > 0 ? cached.isAtMe : false
           }
         } else if (cached) {
-          // 使用缓存的值，但如果未读数为0，强制isAtMe为false
+          // 캐시된 값을 사용하지만 읽지 않은 수가 0이면 isAtMe를 false로 강제 설정
           displayMsg = cached.msg
           isAtMe = item.unreadCount > 0 ? cached.isAtMe : false
         }
@@ -288,18 +288,18 @@ const sessionList = computed(() => {
           ...item,
           avatar: latestAvatar,
           name: displayName,
-          lastMsg: displayMsg || '欢迎使用HuLa',
+          lastMsg: displayMsg || 'HuLa에 오신 것을 환영합니다',
           lastMsgTime: formatTimestamp(item?.activeTime),
           isAtMe
         }
       })
-      // 添加排序逻辑：先按置顶状态排序，再按活跃时间排序
+      // 정렬 로직 추가: 먼저 고정 상태로 정렬한 다음 활성 시간순으로 정렬
       .sort((a, b) => {
-        // 1. 先按置顶状态排序（置顶的排在前面）
+        // 1. 고정 상태로 먼저 정렬 (고정된 항목이 앞에 옴)
         if (a.top && !b.top) return -1
         if (!a.top && b.top) return 1
 
-        // 2. 在相同置顶状态下，按最后活跃时间降序排序（最新的排在前面）
+        // 2. 동일한 고정 상태에서 마지막 활성 시간 내림차순 정렬 (최신 항목이 앞에 옴)
         return b.activeTime - a.activeTime
       })
   )
@@ -309,12 +309,12 @@ watch(
   () => chatStore.currentSessionInfo,
   async (newVal) => {
     if (newVal) {
-      // 避免重复调用：如果新会话与当前会话相同，跳过处理，不然会触发两次
+      // 중복 호출 방지: 새 세션이 현재 세션과 동일한 경우 처리를 건너뜀, 그렇지 않으면 두 번 트리거됨
       if (newVal.roomId === globalStore.currentSessionRoomId) {
         return
       }
 
-      // 判断是否是群聊
+      // 그룹 채팅인지 확인
       if (newVal.type === RoomTypeEnum.GROUP) {
         const sessionItem = {
           ...newVal,
@@ -324,7 +324,7 @@ watch(
         }
         handleMsgClick(sessionItem)
       } else {
-        // 非群聊直接传递原始信息
+        // 비 그룹 채팅은 원본 정보를 직접 전달
         const sessionItem = newVal as SessionItem
         handleMsgClick(sessionItem)
       }
@@ -333,46 +333,46 @@ watch(
   { immediate: true }
 )
 
-// 监听路由变化：当切换回/message页面且有选中会话时，延迟2秒后清空未读并上报
+// 라우팅 변경 감지: /message 페이지로 다시 전환되고 선택된 세션이 있을 때 2초 지연 후 읽지 않음 상태를 지우고 보고
 watch(
   () => route.path,
   async (newPath) => {
-    // 清理之前的定时器
+    // 이전 타이머 정리
     if (clearUnreadTimer) {
       clearTimeout(clearUnreadTimer)
       clearUnreadTimer = null
     }
 
-    // 只在路由切换到/message时处理
+    // /message로 라우팅이 전환될 때만 처리
     if (newPath === '/message') {
-      // 检查是否有选中的会话
+      // 선택된 세션이 있는지 확인
       const currentRoomId = globalStore.currentSessionRoomId
       if (currentRoomId) {
         const session = chatStore.getSession(currentRoomId)
-        // 如果选中的会话有未读数，则延迟2秒后清空并上报
+        // 선택된 세션에 읽지 않은 메시지가 있는 경우 2초 지연 후 지우고 보고
         if (session?.unreadCount && session.unreadCount > 0) {
           clearUnreadTimer = setTimeout(async () => {
             chatStore.markSessionRead(currentRoomId)
-            // 调用已读上报接口
+            // 읽음 보고 인터페이스 호출
             try {
               await markMsgRead(currentRoomId)
             } catch (error) {
-              console.error('[message] 路由切换时已读上报失败:', error)
+              console.error('[message] 라우팅 전환 시 읽음 보고 실패:', error)
             }
             clearUnreadTimer = null
-          }, 2000) // 等待2秒
+          }, 2000) // 2초 대기
         }
       }
     }
   }
 )
 
-// 处理右键菜单显示状态变化
+// 우클릭 메뉴 표시 상태 변경 처리
 const handleMenuShow = (roomId: string, isShow: boolean) => {
   activeContextMenuRoomId.value = isShow ? roomId : null
 }
 
-// 判断对应样式
+// 해당 스타일 판단
 const getItemClasses = (item: SessionItem) => {
   const isCurrentSession = globalStore.currentSessionRoomId === item.roomId
   const isContextMenuActive = activeContextMenuRoomId.value === item.roomId
@@ -389,15 +389,15 @@ const getItemClasses = (item: SessionItem) => {
 }
 
 onBeforeMount(async () => {
-  // 从联系人页面切换回消息页面的时候自动定位到选中的会话
+  // 연락처 페이지에서 메시지 페이지로 다시 전환할 때 선택된 세션으로 자동 위치 지정
   useMitt.emit(MittEnum.LOCATE_SESSION, { roomId: globalStore.currentSessionRoomId })
 })
 
 onMounted(async () => {
-  // TODO: 待完善
+  // TODO: 개선 필요
   // SysNTF
 
-  // TODO：频繁切换会话会导致频繁请求，切换的时候也会有点卡顿
+  // TODO: 세션을 자주 전환하면 요청이 빈번하게 발생하고 전환 시 약간의 지연이 발생할 수 있음
   if (appWindow.label === 'home') {
     await addListener(
       appWindow.listen('search_to_msg', (event: { payload: { uid: string; roomType: number } }) => {
@@ -429,7 +429,7 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
-  // 清理未读清空的定时器，避免内存泄漏
+  // 메모리 누수를 방지하기 위해 읽지 않음 상태 초기화 타이머 정리
   if (clearUnreadTimer) {
     clearTimeout(clearUnreadTimer)
     clearUnreadTimer = null

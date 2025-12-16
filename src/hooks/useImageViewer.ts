@@ -38,7 +38,7 @@ const ensureWorker = () => {
     workerRequests.delete(url)
 
     if (!success || !buffer) {
-      request.reject(new Error(error || '下载失败'))
+      request.reject(new Error(error || '다운로드 실패'))
       return
     }
 
@@ -55,7 +55,7 @@ const ensureWorker = () => {
 const downloadImageWithWorker = (url: string, fileName: string) => {
   ensureWorker()
   if (!imageDownloadWorker) {
-    return Promise.reject(new Error('Web Worker 不可用'))
+    return Promise.reject(new Error('Web Worker를 사용할 수 없습니다'))
   }
 
   const existing = workerRequests.get(url)
@@ -95,7 +95,7 @@ const deduplicateList = (list: string[]) => {
 }
 
 /**
- * 图片查看器Hook，用于处理图片和表情包的查看功能
+ * 이미지 및 이모티콘 보기 기능을 처리하는 이미지 뷰어 Hook
  */
 export const useImageViewer = () => {
   const chatStore = useChatStore()
@@ -117,7 +117,7 @@ export const useImageViewer = () => {
         }
         return null
       } catch (error) {
-        console.error('检查本地图片失败:', error)
+        console.error('로컬 이미지 확인 실패:', error)
         return null
       }
     }
@@ -153,7 +153,7 @@ export const useImageViewer = () => {
       const refreshedStatus = fileDownloadStore.getFileStatus(url)
       return await validatePath(refreshedStatus.absolutePath)
     } catch (error) {
-      console.error('重新检查本地图片失败:', error)
+      console.error('로컬 이미지 재확인 실패:', error)
       return null
     }
   }
@@ -164,7 +164,7 @@ export const useImageViewer = () => {
       try {
         return convertFileSrc(localPath)
       } catch (error) {
-        console.error('转换本地图片路径失败:', error)
+        console.error('로컬 이미지 경로 변환 실패:', error)
       }
     }
     return url
@@ -188,7 +188,7 @@ export const useImageViewer = () => {
       try {
         return convertFileSrc(localPath)
       } catch (error) {
-        console.error('转换本地媒体路径失败:', error)
+        console.error('로컬 미디어 경로 변환 실패:', error)
       }
     }
     return await getDisplayUrl(url)
@@ -204,7 +204,7 @@ export const useImageViewer = () => {
       imageViewerStore.updateImageAt(index, displayUrl)
       imageViewerStore.updateSingleImageSource(displayUrl)
     } catch (error) {
-      console.error('替换本地图片路径失败:', error)
+      console.error('로컬 이미지 경로 교체 실패:', error)
     }
   }
 
@@ -217,7 +217,7 @@ export const useImageViewer = () => {
         }
       })
       .catch((error) => {
-        console.error('图片下载失败:', error)
+        console.error('이미지 다운로드 실패:', error)
       })
   }
 
@@ -237,9 +237,9 @@ export const useImageViewer = () => {
   }
 
   /**
-   * 获取当前聊天中的所有图片和表情包URL
-   * @param currentUrl 当前查看的URL
-   * @param includeTypes 要包含的消息类型数组
+   * 현재 채팅의 모든 이미지 및 이모티콘 URL 가져오기
+   * @param currentUrl 현재 보고 있는 URL
+   * @param includeTypes 포함할 메시지 유형 배열
    */
   const getAllMediaFromChat = (currentUrl: string, includeTypes: MsgEnum[] = [MsgEnum.IMAGE, MsgEnum.EMOJI]) => {
     const messages = [...Object.values(chatStore.currentMessageMap || {})]
@@ -247,10 +247,10 @@ export const useImageViewer = () => {
     let currentIndex = 0
 
     messages.forEach((msg) => {
-      // 收集指定类型的媒体URL
+      // 지정된 유형의 미디어 URL 수집
       if (includeTypes.includes(msg.message?.type) && msg.message.body?.url) {
         mediaUrls.push(msg.message.body.url)
-        // 找到当前媒体的索引
+        // 현재 미디어의 인덱스 찾기
         if (msg.message.body.url === currentUrl) {
           currentIndex = mediaUrls.length - 1
         }
@@ -264,10 +264,10 @@ export const useImageViewer = () => {
   }
 
   /**
-   * 打开图片查看器
-   * @param url 要查看的URL
-   * @param includeTypes 要包含在查看器中的消息类型
-   * @param customImageList 自定义图片列表，用于聊天历史等场景
+   * 이미지 뷰어 열기
+   * @param url 볼 URL
+   * @param includeTypes 뷰어에 포함할 메시지 유형
+   * @param customImageList 채팅 기록 등 시나리오를 위한 사용자 정의 이미지 목록
    */
   const openImageViewer = async (
     url: string,
@@ -281,16 +281,16 @@ export const useImageViewer = () => {
       let index: number
 
       if (customImageList && customImageList.length > 0) {
-        // 使用自定义图片列表
+        // 사용자 정의 이미지 목록 사용
         list = customImageList
         index = customImageList.indexOf(url)
         if (index === -1) {
-          // 如果当前图片不在列表中，将其添加到列表开头
+          // 현재 이미지가 목록에 없으면 목록 맨 앞에 추가
           list = [url, ...customImageList]
           index = 0
         }
       } else {
-        // 使用默认逻辑从聊天中获取
+        // 채팅에서 가져오는 기본 로직 사용
         const result = getAllMediaFromChat(url, includeTypes)
         list = result.list
         index = result.index
@@ -304,11 +304,11 @@ export const useImageViewer = () => {
 
       imageViewerStore.resetImageList(resolvedList, resolvedIndex, dedupedList)
 
-      // 检查图片查看器窗口是否已存在
+      // 이미지 뷰어 창이 이미 존재하는지 확인
       const existingWindow = await WebviewWindow.getByLabel('imageViewer')
 
       if (existingWindow) {
-        // 如果窗口已存在，更新图片内容并显示窗口
+        // 창이 이미 존재하는 경우 이미지 내용을 업데이트하고 창 표시
         await existingWindow.emit('update-image', { list: resolvedList, index: resolvedIndex })
         await existingWindow.show()
         await existingWindow.setFocus()
@@ -323,40 +323,40 @@ export const useImageViewer = () => {
         img.onerror = reject
       })
 
-      // 默认窗口尺寸（最小尺寸）
+      // 기본 창 크기 (최소 크기)
       const MIN_WINDOW_WIDTH = 630
       const MIN_WINDOW_HEIGHT = 660
-      // 计算实际窗口尺寸（保留一定边距）
-      const MARGIN = 100 // 窗口边距
+      // 실제 창 크기 계산 (여백 유지)
+      const MARGIN = 100 // 창 여백
       let windowWidth = MIN_WINDOW_WIDTH
       let windowHeight = MIN_WINDOW_HEIGHT
 
-      // 获取屏幕尺寸
+      // 화면 크기 가져오기
       const { width: screenWidth, height: screenHeight } = window.screen
 
-      // 计算最大可用尺寸（考虑边距）
+      // 최대 사용 가능 크기 계산 (여백 고려)
       const maxWidth = screenWidth - MARGIN * 2
       const maxHeight = screenHeight - MARGIN * 2
 
-      // 保持图片比例计算窗口尺寸
+      // 이미지 비율 유지하여 창 크기 계산
       const imageRatio = img.width / img.height
 
-      // 计算实际窗口尺寸
+      // 실제 창 크기 계산
       if (img.width > MIN_WINDOW_WIDTH || img.height > MIN_WINDOW_HEIGHT) {
         if (imageRatio > maxWidth / maxHeight) {
-          // 以宽度为基准
+          // 너비 기준
           windowWidth = Math.min(img.width + MARGIN, maxWidth)
           windowHeight = Math.max(windowWidth / imageRatio + MARGIN, MIN_WINDOW_HEIGHT)
         } else {
-          // 以高度为基准
+          // 높이 기준
           windowHeight = Math.min(img.height + MARGIN, maxHeight)
           windowWidth = Math.max(windowHeight * imageRatio + MARGIN, MIN_WINDOW_WIDTH)
         }
       }
 
-      // 创建窗口，使用计算后的尺寸
+      // 계산된 크기로 창 생성
       await createWebviewWindow(
-        '图片查看',
+        '이미지 보기',
         'imageViewer',
         Math.round(windowWidth),
         Math.round(windowHeight),
@@ -366,7 +366,7 @@ export const useImageViewer = () => {
         Math.round(windowHeight)
       )
     } catch (error) {
-      console.error('打开图片查看器失败:', error)
+      console.error('이미지 뷰어 열기 실패:', error)
     }
   }
 

@@ -7,33 +7,33 @@
           class="bg-white"
           style="border-bottom: 1px solid; border-color: #dfdfdf"
           :hidden-right="true"
-          room-name="我的相册" />
+          room-name="내 앨범" />
       </template>
 
       <template #container>
         <div class="flex flex-col bg-#fefefe overflow-auto h-full">
           <div class="flex flex-col p-20px gap-20px">
-            <!-- 加载状态 -->
+            <!-- 로딩 상태 -->
             <div v-if="loading" class="flex justify-center items-center py-40px">
               <n-spin size="medium" />
             </div>
 
-            <!-- 空状态 -->
+            <!-- 빈 상태 -->
             <div v-else-if="allImages.length === 0" class="flex flex-col justify-center items-center py-40px gap-10px">
               <svg class="iconpark-icon w-60px h-60px text-gray">
                 <use href="#xiangce"></use>
               </svg>
-              <div class="text-gray text-14px">暂无图片</div>
+              <div class="text-gray text-14px">이미지 없음</div>
             </div>
 
-            <!-- 图片网格 -->
+            <!-- 이미지 그리드 -->
             <div v-else class="grid grid-cols-4 gap-1">
               <div
                 v-for="(image, index) in allImages"
                 :key="index"
                 class="overflow-hidden bg-gray-100 aspect-square cursor-pointer"
                 @click="handleImageClick(image)">
-                <img :src="image.displayUrl" class="w-full h-full object-cover" alt="相册图片" />
+                <img :src="image.displayUrl" class="w-full h-full object-cover" alt="앨범 이미지" />
               </div>
             </div>
           </div>
@@ -41,7 +41,7 @@
       </template>
     </AutoFixHeightPage>
 
-    <!-- 图片预览组件 -->
+    <!-- 이미지 미리보기 컴포넌트 -->
     <ImagePreview
       v-model:visible="showImagePreviewRef"
       :image-url="activeImageUrl"
@@ -59,24 +59,24 @@ import ImagePreview from '@/mobile/components/ImagePreview.vue'
 const fileStore = useFileStore()
 const globalStore = useGlobalStore()
 
-// 图片预览状态
+// 이미지 미리보기 상태
 const showImagePreviewRef = ref(false)
 const activeImageUrl = ref('')
 const loading = ref(true)
 
-// 所有图片列表
+// 모든 이미지 목록
 const allImages = ref<Array<{ displayUrl: string; originalUrl: string; id: string; roomId: string }>>([])
 
 /**
- * 获取所有房间的图片
+ * 모든 방의 이미지 가져오기
  */
 const getAllImages = async () => {
   loading.value = true
   try {
-    // 检查 roomFilesMap 是否为空，如果为空则扫描本地文件
+    // roomFilesMap이 비어 있는지 확인하고, 비어 있으면 로컬 파일 스캔
     if (Object.keys(fileStore.roomFilesMap).length === 0) {
       if (globalStore.currentSessionRoomId) {
-        console.log('[MyAlbum Debug] 扫描本地文件，roomId:', globalStore.currentSessionRoomId)
+        console.log('[MyAlbum Debug] 로컬 파일 스캔, roomId:', globalStore.currentSessionRoomId)
         await fileStore.scanLocalFiles(globalStore.currentSessionRoomId)
       }
     }
@@ -85,12 +85,12 @@ const getAllImages = async () => {
     console.log('[MyAlbum Debug] roomFilesMap:', roomFilesMap)
     const imagesList: Array<{ displayUrl: string; originalUrl: string; id: string; roomId: string }> = []
 
-    // 遍历所有房间
+    // 모든 방 순회
     for (const roomId in roomFilesMap) {
       const files = await fileStore.getRoomFilesForDisplay(roomId)
       console.log('[MyAlbum Debug] roomId:', roomId, 'files:', files)
 
-      // 只获取图片类型的文件
+      // 이미지 유형의 파일만 가져오기
       const images = files.filter((file) => file.type === 'image')
       console.log('[MyAlbum Debug] roomId:', roomId, 'images:', images)
 
@@ -104,12 +104,12 @@ const getAllImages = async () => {
       )
     }
 
-    console.log('[MyAlbum Debug] 最终图片列表:', imagesList)
+    console.log('[MyAlbum Debug] 최종 이미지 목록:', imagesList)
     allImages.value = imagesList
   } catch (error) {
-    console.error('获取图片失败:', error)
+    console.error('이미지 가져오기 실패:', error)
     if (window.$message) {
-      window.$message.error('获取图片失败')
+      window.$message.error('이미지 가져오기 실패')
     }
   } finally {
     loading.value = false
@@ -117,20 +117,20 @@ const getAllImages = async () => {
 }
 
 /**
- * 处理图片点击
+ * 이미지 클릭 처리
  */
 const handleImageClick = (image: { displayUrl: string; originalUrl: string; id: string; roomId: string }) => {
-  console.log('[MyAlbum Debug] 点击图片:', image)
+  console.log('[MyAlbum Debug] 이미지 클릭:', image)
   activeImageUrl.value = image.displayUrl
   showImagePreviewRef.value = true
 }
 
 onMounted(() => {
-  console.log('[MyAlbum Debug] MyAlbum 组件已挂载')
+  console.log('[MyAlbum Debug] MyAlbum 컴포넌트 마운트됨')
   getAllImages()
 })
 </script>
 
 <style scoped>
-/* 可以添加自定义样式 */
+/* 사용자 정의 스타일 추가 가능 */
 </style>

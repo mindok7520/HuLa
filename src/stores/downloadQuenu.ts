@@ -8,21 +8,21 @@ type DownloadObjType = {
   process: number | undefined
 }
 
-// 定义一个下载队列的 store
+// 다운로드 대기열 store 정의
 export const useDownloadQuenuStore = defineStore('downloadQuenu', () => {
-  // 最多可同时执行下载的任务数量
+  // 동시에 실행할 수 있는 최대 다운로드 작업 수
   const maxDownloadCount = 1
-  // 下载队列
+  // 다운로드 대기열
   const quenu = reactive<string[]>([])
-  // 下载对象
+  // 다운로드 객체
   const downloadObjMap = reactive<Record<string, DownloadObjType>>({})
 
-  // 添加到下载队列
+  // 다운로드 대기열에 추가
   const addQuenuAction = (url: string) => {
     quenu.push(url)
   }
 
-  // 从下载队列中移除
+  // 다운로드 대기열에서 제거
   const removeQuenuAction = (url: string) => {
     const index = quenu.indexOf(url)
     if (index > -1) {
@@ -30,7 +30,7 @@ export const useDownloadQuenuStore = defineStore('downloadQuenu', () => {
     }
   }
 
-  // 出队列
+  // 대기열에서 꺼내기
   const dequeue = () => {
     if (!quenu.length || Object.keys(downloadObjMap).length >= maxDownloadCount) {
       return
@@ -41,42 +41,42 @@ export const useDownloadQuenuStore = defineStore('downloadQuenu', () => {
     }
   }
 
-  // 下载
+  // 다운로드
   const downloadAction = async (url: string) => {
     const { downloadFile, isDownloading, process, onLoaded } = useDownload()
 
     try {
-      // 让用户选择保存路径
+      // 사용자에게 저장 경로 선택 요청
       const savePath = (await save({
         filters: [
           {
-            name: '所有文件',
+            name: '모든 파일',
             extensions: ['*']
           }
         ]
-      })) as string // 确保savePath是string类型
+      })) as string // savePath가 string 타입인지 확인
 
       if (!savePath) {
-        // 用户取消了保存对话框
+        // 사용자가 저장 대화 상자를 취소함
         removeQuenuAction(url)
         return
       }
 
       const stopWatcher = watch(process, () => {
-        // 更新下载进度
+        // 다운로드 진행률 업데이트
         downloadObjMap[url] = { url, isDownloading: isDownloading.value, process: process.value }
       })
 
       onLoaded(() => {
-        stopWatcher() // 清除watcher
-        delete downloadObjMap[url] // 下载完成后 删除下载对象
+        stopWatcher() // watcher 제거
+        delete downloadObjMap[url] // 다운로드 완료 후 다운로드 객체 삭제
         dequeue()
       })
 
       await downloadFile(url, savePath)
     } catch (error) {
-      console.error('保存失败:', error)
-      window.$message.error('保存失败')
+      console.error('저장 실패:', error)
+      window.$message.error('저장 실패')
       removeQuenuAction(url)
     }
   }
@@ -86,7 +86,7 @@ export const useDownloadQuenuStore = defineStore('downloadQuenu', () => {
     dequeue()
   }
 
-  // 取消下载
+  // 다운로드 취소
   const cancelDownload = (url: string) => {
     if (quenu.includes(url)) {
       removeQuenuAction(url)

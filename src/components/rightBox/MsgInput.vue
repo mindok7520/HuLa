@@ -1,9 +1,9 @@
 <template>
   <div class="msg-input-container">
-    <!-- 录音模式 -->
+    <!-- 녹음 모드 -->
     <VoiceRecorder v-show="isVoiceMode" @cancel="handleVoiceCancel" @send="sendVoiceDirect" />
 
-    <!-- 输入框表单 -->
+    <!-- 입력 상자 폼 -->
     <form
       v-show="!isVoiceMode"
       id="message-form"
@@ -53,7 +53,7 @@
           </n-scrollbar>
         </ContextMenu>
 
-        <!-- 发送按钮 -->
+        <!-- 전송 버튼 -->
         <div
           v-if="!isMobile()"
           class="flex-shrink-0 max-h-52px p-4px pr-12px border-t border-gray-200/50 flex justify-end mb-4px">
@@ -111,7 +111,7 @@
           </n-config-provider>
         </div>
 
-        <!-- @提及框  -->
+        <!-- @멘션 상자  -->
         <div v-if="ait && activeItem?.type === RoomTypeEnum.GROUP && personList.length > 0" class="ait-options">
           <n-virtual-list
             id="image-chat-ait"
@@ -145,7 +145,7 @@
           </n-virtual-list>
         </div>
 
-        <!-- / 提及框  -->
+        <!-- / 멘션 상자  -->
         <div
           v-if="aiDialogVisible && activeItem?.type === RoomTypeEnum.GROUP && groupedAIModels.length > 0"
           class="AI-options">
@@ -196,7 +196,7 @@
             <n-config-provider class="h-full" :theme="lightTheme">
               <n-button-group size="small" :class="isMobile() ? 'h-full' : 'pr-20px'">
                 <n-button color="#13987f" :disabled="disabledSend" class="w-3rem h-full" @click="handleMobileSend">
-                  发送
+                  전송
                 </n-button>
               </n-button-group>
             </n-config-provider>
@@ -213,7 +213,7 @@
       </div>
     </form>
 
-    <!-- 文件上传弹窗 -->
+    <!-- 파일 업로드 팝업 -->
     <FileUploadModal
       v-model:show="showFileModal"
       :files="pendingFiles"
@@ -255,25 +255,25 @@ const settingStore = useSettingStore()
 const { themes } = storeToRefs(settingStore)
 const { handlePaste, processFiles } = useCommon()
 const sendOptions = useSendOptions()
-/** 发送按钮旁的箭头 */
+/** 전송 버튼 옆 화살표 */
 const arrow = ref(false)
-/** 输入框dom元素 */
+/** 입력 상자 DOM 요소 */
 const messageInputDom = ref<HTMLElement>()
 const gloabalStore = useGlobalStore()
 const { currentSession: activeItem } = storeToRefs(gloabalStore)
-/** ait 虚拟列表 */
+/** ait 가상 목록 */
 const virtualListInstAit = useTemplateRef<VirtualListInst>('virtualListInst-ait')
-/** AI 虚拟列表 */
+/** AI 가상 목록 */
 const virtualListInstAI = useTemplateRef<VirtualListInst>('virtualListInst-AI')
-// 录音模式状态
+// 녹음 모드 상태
 const isVoiceMode = ref(false)
 const groupStore = useGroupStore()
 
-// 文件上传弹窗状态
+// 파일 업로드 팝업 상태
 const showFileModal = ref(false)
 const pendingFiles = ref<File[]>([])
 
-/** 引入useMsgInput的相关方法 */
+/** useMsgInput 관련 메서드 가져오기 */
 const {
   inputKeyDown,
   handleAit,
@@ -299,29 +299,29 @@ const {
   getCursorSelectionRange
 } = useMsgInput(messageInputDom)
 
-/** 表单提交处理函数 */
+/** 폼 제출 처리 함수 */
 const handleFormSubmit = async (e: Event) => {
   e.preventDefault()
   await send()
 }
 
-/** 聚焦输入框函数 */
+/** 입력 상자 포커스 함수 */
 const focusInput = () => {
   if (messageInputDom.value) {
     focusOn(messageInputDom.value)
-    setIsFocus(true) // 移动端适配
+    setIsFocus(true) // 모바일 적응
   }
 }
 
-/** 输入框失焦处理函数 */
+/** 입력 상자 포커스 해제 처리 함수 */
 const handleBlur = () => {
-  setIsFocus(false) // 移动端适配
+  setIsFocus(false) // 모바일 적응
 }
 
-/** 当切换聊天对象时，重新获取焦点 */
+/** 채팅 대상 전환 시 포커스 다시 가져오기 */
 watch(activeItem, () => {
   nextTick(() => {
-    // 移动端不自动聚焦
+    // 모바일에서 자동 포커스 안 함
     if (!isMobile()) {
       const inputDiv = document.getElementById('message-input')
       inputDiv?.focus()
@@ -330,22 +330,22 @@ watch(activeItem, () => {
   })
 })
 
-/** 当ait人员列表发生变化的时候始终select第一个 */
+/** ait 사용자 목록 변경 시 항상 첫 번째 선택 */
 watch(personList, (newList) => {
   if (newList.length > 0) {
-    /** 先设置滚动条滚动到第一个 */
+    /** 스크롤바를 첫 번째로 이동 설정 */
     virtualListInstAit.value?.scrollTo({ key: newList[0].uid })
     selectedAitKey.value = newList[0].uid
   } else {
-    // 无匹配用户时立即关闭@状态，放开回车键让用户可以发送消息
+    // 일치하는 사용자가 없으면 즉시 @ 상태 닫고 엔터 키 해제하여 메시지 전송 가능하게 함
     ait.value = false
   }
 })
 
-// /** 当AI列表发生变化的时候始终select第一个 */
+// /** AI 목록 변경 시 항상 첫 번째 선택 */
 // watch(groupedAIModels, (newList) => {
 //   if (newList.length > 0) {
-//     /** 先设置滚动条滚动到第一个 */
+//     /** 스크롤바를 첫 번째로 이동 설정 */
 //     virtualListInstAI.value?.scrollTo({ key: newList[0].uid })
 //     selectedAIKey.value = newList[0].uid
 //   }
@@ -355,7 +355,7 @@ const handleInternalInput = (e: Event) => {
   selfEmitter('input', e)
 }
 
-// 显示文件弹窗的回调函数
+// 파일 팝업 표시 콜백 함수
 const showFileModalCallback = (files: File[]) => {
   pendingFiles.value = files
   showFileModal.value = true
@@ -365,29 +365,29 @@ const onPaste = async (e: ClipboardEvent) => {
   if (messageInputDom.value) await handlePaste(e, messageInputDom.value, showFileModalCallback)
 }
 
-// 处理弹窗确认
+// 팝업 확인 처리
 const handleFileConfirm = async (files: File[]) => {
   try {
     await sendFilesDirect(files)
   } catch (error) {
-    console.error('弹窗发送文件失败:', error)
+    console.error('팝업 파일 전송 실패:', error)
   }
   showFileModal.value = false
   pendingFiles.value = []
 }
 
-// 处理弹窗取消
+// 팝업 취소 처리
 const handleFileCancel = () => {
   showFileModal.value = false
   pendingFiles.value = []
 }
 
-/** 位置选择完成的回调 */
+/** 위치 선택 완료 콜백 */
 const handleLocationSelected = async (locationData: any) => {
   await sendLocationDirect(locationData)
 }
 
-/** 处理键盘上下键切换提及项 */
+/** 키보드 위/아래 키로 멘션 항목 전환 처리 */
 const handleAitKeyChange = (
   direction: 1 | -1,
   list: Ref<any[]>,
@@ -397,41 +397,41 @@ const handleAitKeyChange = (
   const currentIndex = list.value.findIndex((item) => item.uid === key.value)
   const newIndex = Math.max(0, Math.min(currentIndex + direction, list.value.length - 1))
   key.value = list.value[newIndex].uid
-  // 获取新选中项在列表中的索引，并滚动到该位置(使用key来进行定位)
+  // 목록에서 새 선택 항목의 인덱스 가져오기 및 해당 위치로 스크롤 (key 사용하여 위치 지정)
   virtualListInst?.scrollTo({ index: newIndex })
 }
 
 const closeMenu = (event: any) => {
-  /** 需要判断点击如果不是.context-menu类的元素的时候，menu才会关闭 */
+  /** 클릭이 .context-menu 클래스 요소가 아닌 경우에만 메뉴 닫기 판단 */
   if (!event.target.matches('#message-input, #message-input *')) {
     ait.value = false
   }
 }
 
-/** 禁用浏览器默认的全选快捷键，当输入框有内容或者聚焦时不禁用 */
+/** 브라우저 기본 전체 선택 단축키 비활성화, 입력 상자에 내용이 있거나 포커스된 경우 비활성화 안 함 */
 const disableSelectAll = (e: KeyboardEvent) => {
   if (e.ctrlKey && e.key === 'a') {
     const inputDiv = document.getElementById('message-input')
-    // 检查输入框是否存在、是否有内容、是否聚焦
+    // 입력 상자 존재 여부, 내용 유무, 포커스 여부 확인
     const hasFocus = document.activeElement === inputDiv
     const hasContent = inputDiv && inputDiv.textContent && inputDiv.textContent.trim().length > 0
 
-    // 只有当输入框没有聚焦或没有内容时才阻止默认行为
+    // 입력 상자가 포커스되지 않았거나 내용이 없을 때만 기본 동작 차단
     if (!hasFocus || !hasContent) {
       e.preventDefault()
     }
   }
 }
 
-// 语音录制相关事件处理
+// 음성 녹음 관련 이벤트 처리
 const handleVoiceCancel = () => {
   isVoiceMode.value = false
 }
 
-// 使用枚举管理移动端面板状态
+// 열거형을 사용하여 모바일 패널 상태 관리
 const mobilePanelState = ref<MobilePanelStateEnum>(MobilePanelStateEnum.NONE)
 
-// 定义公共类型
+// 공통 타입 정의
 interface ClickState {
   panelState: MobilePanelStateEnum
 }
@@ -441,10 +441,10 @@ interface AISendData {
 }
 
 /**
- * 自定义事件
- * clickMore: 点击更多按钮
- * clickEmoji: 点击表情按钮
- * clickVoice: 点击语音按钮
+ * 사용자 정의 이벤트
+ * clickMore: 더보기 버튼 클릭
+ * clickEmoji: 이모티콘 버튼 클릭
+ * clickVoice: 음성 버튼 클릭
  */
 const selfEmitter = defineEmits<{
   (e: 'clickMore', data: ClickState): void
@@ -456,9 +456,9 @@ const selfEmitter = defineEmits<{
   (e: 'send-ai', data: AISendData): void
 }>()
 
-/** 设置聚焦状态 */
+/** 포커스 상태 설정 */
 const setIsFocus = (value: boolean) => {
-  // 移动端：如果当前面板是打开状态（表情、语音、更多），不要因为聚焦而关闭面板
+  // 모바일: 현재 패널이 열려 있는 상태(이모티콘, 음성, 더보기)인 경우 포커스로 인해 패널 닫지 않음
   if (
     isMobile() &&
     !value &&
@@ -466,7 +466,7 @@ const setIsFocus = (value: boolean) => {
       mobilePanelState.value === MobilePanelStateEnum.VOICE ||
       mobilePanelState.value === MobilePanelStateEnum.MORE)
   ) {
-    // 保持当前面板状态，不关闭
+    // 현재 패널 상태 유지, 닫지 않음
     return
   }
 
@@ -477,7 +477,7 @@ const setIsFocus = (value: boolean) => {
   })
 }
 
-/** 点击更多按钮 */
+/** 더보기 버튼 클릭 */
 const handleMoreClick = () => {
   mobilePanelState.value =
     mobilePanelState.value === MobilePanelStateEnum.MORE ? MobilePanelStateEnum.NONE : MobilePanelStateEnum.MORE
@@ -487,7 +487,7 @@ const handleMoreClick = () => {
   })
 }
 
-/** 点击表情按钮 */
+/** 이모티콘 버튼 클릭 */
 const handleEmojiClick = () => {
   mobilePanelState.value =
     mobilePanelState.value === MobilePanelStateEnum.EMOJI ? MobilePanelStateEnum.NONE : MobilePanelStateEnum.EMOJI
@@ -497,7 +497,7 @@ const handleEmojiClick = () => {
   })
 }
 
-/** 点击语音按钮 */
+/** 음성 버튼 클릭 */
 const handleVoiceClick = () => {
   mobilePanelState.value =
     mobilePanelState.value === MobilePanelStateEnum.VOICE ? MobilePanelStateEnum.NONE : MobilePanelStateEnum.VOICE
@@ -511,27 +511,27 @@ const getInputContent = (): string => {
   if (messageInputDom.value) {
     const innerHTML = messageInputDom.value.innerHTML || ''
 
-    // 检查是否有表情包
+    // 이모티콘 패키지 확인
     if (innerHTML.includes('data-type="emoji"')) {
-      return 'emoji' // 返回非空字符串表示有内容
+      return 'emoji' // 내용 있음을 나타내는 비어 있지 않은 문자열 반환
     }
 
-    // 检查是否有图片
+    // 이미지 확인
     if (innerHTML.includes('<img') || innerHTML.includes('data-type=')) {
-      return 'image' // 返回非空字符串表示有内容
+      return 'image' // 내용 있음을 나타내는 비어 있지 않은 문자열 반환
     }
 
-    // 返回文本内容
+    // 텍스트 내용 반환
     return messageInputDom.value.textContent?.trim() || ''
   }
   return ''
 }
 
 /**
- * 判断逻辑：
- * 1. 如果有选中的AI模型 -> AI发送 [暂不实现]
- * 2. 如果当前是AI对话模式 -> AI发送
- * 3. 默认 -> IM发送
+ * 판단 로직:
+ * 1. 선택된 AI 모델이 있는 경우 -> AI 전송 [미구현]
+ * 2. 현재 AI 대화 모드인 경우 -> AI 전송
+ * 3. 기본 -> IM 전송
  */
 const determineSendType = (): 'ai' | 'im' => {
   if (props.isAIMode) {
@@ -540,11 +540,11 @@ const determineSendType = (): 'ai' | 'im' => {
   return 'im'
 }
 
-// 手机端发送逻辑
+// 모바일 전송 로직
 const handleMobileSend = async () => {
   const content = getInputContent()
   if (!content.trim()) {
-    window.$message.warning('请输入消息内容')
+    window.$message.warning('메시지 내용을 입력하세요')
     return
   }
 
@@ -554,32 +554,32 @@ const handleMobileSend = async () => {
     await send()
   }
 
-  // 发送后不关闭面板，保持当前状态
+  // 전송 후 패널 닫지 않고 현재 상태 유지
   selfEmitter('send', {
     panelState: mobilePanelState.value
   })
 
-  // 移动端发送消息后重新聚焦输入框
+  // 모바일 메시지 전송 후 입력 상자 다시 포커스
   if (isMobile()) {
     focusInput()
   }
 }
 
-// 清空输入框
+// 입력 상자 비우기
 const clearInput = () => {
   if (messageInputDom.value) {
     messageInputDom.value.textContent = ''
-    // 触发输入事件更新状态
+    // 입력 이벤트 트리거하여 상태 업데이트
     const event = new Event('input', { bubbles: true })
     messageInputDom.value.dispatchEvent(event)
   }
 }
 
-// AI发送逻辑
+// AI 전송 로직
 const handleAISend = async () => {
   const content = getInputContent()
   if (!content.trim()) {
-    window.$message.warning('请输入消息内容')
+    window.$message.warning('메시지 내용을 입력하세요')
     return
   }
 
@@ -589,11 +589,11 @@ const handleAISend = async () => {
   clearInput()
 }
 
-// 桌面端发送逻辑
+// 데스크톱 전송 로직
 const handleDesktopSend = async () => {
   const content = getInputContent()
   if (!content.trim()) {
-    window.$message.warning('请输入消息内容')
+    window.$message.warning('메시지 내용을 입력하세요')
     return
   }
 
@@ -614,22 +614,22 @@ const handleEnterKey = (e: KeyboardEvent) => {
   }
 }
 
-/** 监听移动端关闭面板 */
+/** 모바일 패널 닫기 감지 */
 const listenMobilePanelHandler = () => {
   mobilePanelState.value = MobilePanelStateEnum.NONE
 }
 
-/** 监听移动端关闭面板 */
+/** 모바일 패널 닫기 감지 */
 const listenMobileClosePanel = () => {
   useMitt.on(MittEnum.MOBILE_CLOSE_PANEL, listenMobilePanelHandler)
 }
 
-/** 移除移动端关闭面板 */
+/** 모바일 패널 닫기 제거 */
 const removeMobileClosePanel = () => {
   useMitt.off(MittEnum.MOBILE_CLOSE_PANEL, listenMobilePanelHandler)
 }
 
-/** 导出组件方法和属性 */
+/** 컴포넌트 메서드 및 속성 내보내기 */
 defineExpose({
   messageInputDom,
   updateSelectionRange,
@@ -644,7 +644,7 @@ defineExpose({
   handleLocationSelected
 })
 
-/** 移动端专用适配事件（结束） */
+/** 모바일 전용 적응 이벤트 (종료) */
 
 onMounted(async () => {
   if (isMobile()) {
@@ -680,45 +680,45 @@ onMounted(async () => {
       handleAitKeyChange(1, groupedAIModels, virtualListInstAI.value!, selectedAIKey)
     }
   })
-  // TODO: 暂时已经关闭了独立窗口聊天功能
+  // TODO: 독립 창 채팅 기능은 일시적으로 비활성화됨
   emit('aloneWin')
   nextTick(() => {
-    // 移动端不自动聚焦
+    // 모바일에서 자동 포커스 안 함
     if (!isMobile()) {
       const inputDiv = document.getElementById('message-input')
       inputDiv?.focus()
       setIsFocus(true)
     }
   })
-  // TODO 应该把打开的窗口的item给存到set中，需要修改输入框和消息展示的搭配，输入框和消息展示模块应该是一体并且每个用户独立的，这样当我点击这个用户框输入消息的时候就可以暂存信息了并且可以判断每个消息框是什么类型是群聊还是单聊，不然会导致比如@框可以在单聊框中出现 (nyh -> 2024-04-09 01:03:59)
-  /** 当不是独立窗口的时候也就是组件与组件之间进行通信然后监听信息对话的变化 */
+  // TODO: 열린 창의 항목을 set에 저장해야 함. 입력 상자와 메시지 표시의 조합을 수정해야 하며, 입력 상자와 메시지 표시 모듈은 일체형이어야 하고 각 사용자마다 독립적이어야 함. 그래야 사용자 상자를 클릭하여 메시지를 입력할 때 정보를 임시 저장할 수 있고 각 메시지 상자가 그룹 채팅인지 1:1 채팅인지 판단할 수 있음. 그렇지 않으면 예를 들어 @ 상자가 1:1 채팅 상자에 나타날 수 있음 (nyh -> 2024-04-09 01:03:59)
+  /** 독립 창이 아닐 때, 즉 컴포넌트 간 통신 후 정보 대화 변경 감지 */
   useMitt.on(MittEnum.AT, (event: any) => {
     handleAit(groupStore.getUserInfo(event)!)
   })
-  // 监听录音模式切换事件
+  // 녹음 모드 전환 이벤트 감지
   useMitt.on(MittEnum.VOICE_RECORD_TOGGLE, () => {
     isVoiceMode.value = !isVoiceMode.value
   })
 
-  // 添加ESC键退出语音模式
+  // ESC 키로 음성 모드 종료 추가
   onKeyStroke('Escape', () => {
     if (isVoiceMode.value) {
       isVoiceMode.value = false
     }
   })
   appWindow.listen('screenshot', async (e: any) => {
-    // 确保输入框获得焦点
+    // 입력 상자 포커스 확보
     if (messageInputDom.value) {
       messageInputDom.value.focus()
       try {
-        // 从 ArrayBuffer 数组重建 Blob 对象
+        // ArrayBuffer 배열에서 Blob 객체 재구성
         const buffer = new Uint8Array(e.payload.buffer)
         const blob = new Blob([buffer], { type: e.payload.mimeType })
         const file = new File([blob], 'screenshot.png', { type: e.payload.mimeType })
 
         await processFiles([file], messageInputDom.value, showFileModalCallback)
       } catch (error) {
-        console.error('处理截图失败:', error)
+        console.error('스크린샷 처리 실패:', error)
       }
     }
   })
@@ -747,7 +747,7 @@ watch(
 
 <style scoped lang="scss">
 @use '@/styles/scss/msg-input';
-// 传递 props 到子组件是新增了一个div 适配样式
+// 자식 컴포넌트로 props 전달 시 스타일 적응을 위해 div 추가됨
 .msg-input-container {
   display: contents;
 }

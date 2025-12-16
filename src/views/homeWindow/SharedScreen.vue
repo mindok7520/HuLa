@@ -26,7 +26,7 @@ peerConnection.ontrack = (event) => {
 }
 
 onBeforeUnmount(async () => {
-  // 保证监听在挂载阶段注册，卸载时由 useTauriListener 自动清理
+  // 마운트 단계에서 리스너가 등록되도록 보장하고, 언마운트 시 useTauriListener에 의해 자동으로 정리되도록 함
   await getCurrentWebviewWindow().show()
   await emit('SharedScreenWin')
 })

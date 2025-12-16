@@ -22,9 +22,9 @@
     :search-keyword="searchKeyword"
     :history-mode="historyMode" />
 
-  <!-- 好友或者群聊的信息 -->
+  <!-- 친구 또는 그룹 채팅 정보 -->
   <div v-else class="flex flex-col w-full" :class="{ 'justify-end': isMe }">
-    <!-- 信息时间(单聊) -->
+    <!-- 메시지 시간(1:1 채팅) -->
     <div
       v-if="!isGroup"
       class="text-(12px #909090) h-12px flex select-none"
@@ -46,14 +46,14 @@
         :focusable="false"
         @click.stop />
       <div class="flex items-start flex-1" :class="isMe ? 'flex-row-reverse' : ''">
-        <!-- 回复消息提示的箭头 -->
+        <!-- 답장 메시지 표시 화살표 -->
         <svg
           v-if="activeReply === message.message.id"
           class="size-16px pt-4px color-#909090"
           :class="isMe ? 'ml-8px' : 'mr-8px'">
           <use :href="isMe ? `#corner-down-left` : `#corner-down-right`"></use>
         </svg>
-        <!-- 头像 -->
+        <!-- 프로필 사진 -->
         <n-popover
           :ref="(el: any) => el && (infoPopoverRefs[message.message.id] = el)"
           @update:show="handlePopoverUpdate(message.message.id, $event)"
@@ -67,7 +67,7 @@
               :content="message"
               :menu="isGroup ? optionsList : void 0"
               :special-menu="report">
-              <!-- 存在头像时候显示 -->
+              <!-- 프로필 사진이 있을 때 표시 -->
               <n-avatar
                 round
                 :size="34"
@@ -79,7 +79,7 @@
                 :class="isMe ? '' : 'mr-10px'" />
             </ContextMenu>
           </template>
-          <!-- 用户个人信息框 -->
+          <!-- 사용자 개인 정보 상자 -->
           <InfoPopover v-if="selectKey === message.message.id" :uid="fromUser.uid" />
         </n-popover>
 
@@ -96,7 +96,7 @@
                 align="center"
                 v-if="isGroup"
                 :style="isMe ? 'flex-direction: row-reverse' : ''">
-                <!-- 用户徽章 -->
+                <!-- 사용자 배지 -->
                 <n-popover
                   v-if="
                     globalStore.currentSessionRoomId === '1' &&
@@ -115,7 +115,7 @@
                     {{ cachedStore.badgeById(groupStore.getUserInfo(fromUser.uid)?.wearingItemId)?.describe }}
                   </span>
                 </n-popover>
-                <!-- 用户名 -->
+                <!-- 사용자 이름 -->
                 <span
                   :class="[
                     'text-12px select-none color-#909090 inline-block align-top',
@@ -124,30 +124,30 @@
                   @click.stop="handleMentionUser">
                   {{ senderDisplayName }}
                 </span>
-                <!-- 消息归属地 -->
+                <!-- 메시지 발신지 -->
                 <span v-if="senderLocPlace" class="text-(12px #909090)">({{ senderLocPlace }})</span>
               </n-flex>
             </ContextMenu>
-            <!-- 群主 -->
+            <!-- 그룹 소유자 -->
             <div
               v-if="groupStore.isCurrentLord(fromUser.uid)"
               class="flex px-4px py-3px rounded-4px bg-#d5304f30 size-fit select-none">
               <span class="text-(9px #d5304f)">{{ t('home.chat_sidebar.roles.owner') }}</span>
             </div>
-            <!-- 管理员 -->
+            <!-- 관리자 -->
             <div
               v-if="groupStore.isAdmin(fromUser.uid)"
               class="flex px-4px py-3px rounded-4px bg-#1a7d6b30 size-fit select-none">
               <span class="text-(9px #008080)">{{ t('home.chat_sidebar.roles.admin') }}</span>
             </div>
-            <!-- 信息时间(群聊) -->
+            <!-- 메시지 시간(그룹 채팅) -->
             <Transition name="fade-group">
               <span v-if="isGroup && hoverMsgId === message.message.id" class="text-(12px #909090) select-none">
                 {{ formatTimestamp(message.message.sendTime, true) }}
               </span>
             </Transition>
           </n-flex>
-          <!--  气泡样式  -->
+          <!-- 말풍선 스타일 -->
           <ContextMenu
             v-on-long-press="[(e) => handleLongPress(e, handleItemType(message.message.type)), longPressOption]"
             :content="message"
@@ -198,7 +198,7 @@
               :search-keyword="searchKeyword"
               :history-mode="historyMode" />
 
-            <!-- 显示翻译文本 -->
+            <!-- 번역 텍스트 표시 -->
             <Transition name="fade-translate" appear mode="out-in">
               <div v-if="message.message.body.translatedText" class="translated-text cursor-default flex flex-col">
                 <n-flex align="center" justify="space-between" class="mb-6px">
@@ -216,7 +216,7 @@
                           <use href="#copy"></use>
                         </svg>
                       </template>
-                      <span>复制翻译</span>
+                      <span>번역 복사</span>
                     </n-tooltip>
                   </n-flex>
                   <svg class="size-10px cursor-pointer" @click="message.message.body.translatedText = null">
@@ -227,7 +227,7 @@
               </div>
             </Transition>
 
-            <!-- 消息状态指示器 -->
+            <!-- 메시지 상태 표시기 -->
             <div v-if="isMe" class="absolute -left-6 top-2">
               <n-icon v-if="message.message.status === MessageStatusEnum.SENDING" class="text-gray-400">
                 <img class="size-16px" src="@/assets/img/loading-one.svg" alt="" />
@@ -243,7 +243,7 @@
             </div>
           </ContextMenu>
 
-          <!-- 回复的内容 -->
+          <!-- 답장 내용 -->
           <n-flex
             align="center"
             :size="6"
@@ -271,13 +271,13 @@
             </div>
           </n-flex>
 
-          <!-- 动态渲染所有回复表情反应 -->
+          <!-- 모든 답장 이모티콘 반응 동적 렌더링 -->
           <div
             v-if="message.message"
             class="flex-y-center gap-6px flex-wrap w-270px"
             :class="{ 'justify-end': isSingleLineEmojis(message) }">
             <template v-for="emoji in emojiList" :key="emoji.value">
-              <!-- 根据表情类型获取对应的计数属性名 -->
+              <!-- 이모티콘 유형에 따른 카운트 속성 이름 가져오기 -->
               <div class="flex-y-center" v-if="message && getEmojiCount(message, emoji.value) > 0">
                 <div
                   class="emoji-reply-bubble"
@@ -359,7 +359,7 @@ const infoPopoverRefs = reactive<Record<string, any>>({})
 const { handlePopoverUpdate } = usePopover(selectKey, 'image-chat-main')
 
 const userStore = useUserStore()
-// 响应式状态变量
+// 반응형 상태 변수
 const activeReply = ref<string>('')
 const hoverMsgId = ref<string>('')
 const settingStore = useSettingStore()
@@ -398,7 +398,7 @@ const handleMentionUser = () => {
   useMitt.emit(MittEnum.AT, targetUid)
 }
 
-// 获取用户头像
+// 사용자 프로필 사진 가져오기
 const getAvatarSrc = computed(() => (uid: string) => {
   const isCurrentUser = uid === userStore.userInfo?.uid
   const storeUser = groupStore.getUserInfo(uid)
@@ -420,7 +420,7 @@ const senderDisplayName = computed(() => {
     return storeUser.myName || storeUser.name || ''
   }
 
-  return props.message.fromUser.username || '未知用户'
+  return props.message.fromUser.username || '알 수 없는 사용자'
 })
 
 const ensureSenderInfo = async (uid: string) => {
@@ -434,18 +434,18 @@ const ensureSenderInfo = async (uid: string) => {
     const users = await getUserByIds([uid])
     const user = Array.isArray(users) ? users[0] : null
     if (user?.uid) {
-      // 将缺失用户信息写入消息所属的房间，避免污染其他房间或丢弃结果
+      // 누락된 사용자 정보를 메시지가 속한 방에 기록하여 다른 방 오염이나 결과 폐기 방지
       groupStore.updateUserItem(user.uid, user, roomId)
     }
   } catch (error) {
-    console.error('[Message] 拉取缺失用户信息失败:', error)
+    console.error('[Message] 누락된 사용자 정보 가져오기 실패:', error)
   } finally {
     resolvingUserSet.delete(uid)
   }
 }
 
 watchEffect(() => {
-  if (!senderDisplayName.value || senderDisplayName.value === '未知用户') {
+  if (!senderDisplayName.value || senderDisplayName.value === '알 수 없는 사용자') {
     ensureSenderInfo(props.fromUser.uid)
   }
 })
@@ -487,11 +487,11 @@ const isSpecialMsgType = (type: number): boolean => {
   )
 }
 
-// 判断表情反应是否只有一行
+// 이모티콘 반응이 한 줄인지 확인
 const isSingleLineEmojis = (item: MessageType): boolean => {
   if (!item || !item.fromUser || !item.message) return false
 
-  // 计算有多少个表情反应
+  // 이모티콘 반응 수 계산
   let emojiCount = 0
   for (const emoji of emojiList.value) {
     if (getEmojiCount(item, emoji.value) > 0) {
@@ -499,48 +499,48 @@ const isSingleLineEmojis = (item: MessageType): boolean => {
     }
   }
 
-  // 如果表情数量小于等于3个，认为是一行
-  // 这个阈值可以根据实际UI调整
+  // 이모티콘 수가 3개 이하이면 한 줄로 간주
+  // 이 임계값은 실제 UI에 따라 조정 가능
   return isMe.value && emojiCount <= 5
 }
 
-// 取消表情反应
+// 이모티콘 반응 취소
 const cancelReplyEmoji = async (item: MessageType, type: number): Promise<void> => {
   if (!item || !item.message || !item.message.messageMarks) return
 
-  // 检查该表情是否已被当前用户标记
+  // 해당 이모티콘이 현재 사용자에 의해 표시되었는지 확인
   const userMarked = item.message.messageMarks[String(type)]?.userMarked
 
-  // 只有当用户已标记时才发送取消请求
+  // 사용자가 표시한 경우에만 취소 요청 전송
   if (userMarked) {
     try {
       const data = {
         msgId: item.message.id,
-        markType: type, // 使用对应的MarkEnum类型
-        actType: 2 // 使用Confirm作为操作类型
+        markType: type, // 해당하는 MarkEnum 유형 사용
+        actType: 2 // Confirm을 작업 유형으로 사용
       }
       await markMsg(data)
     } catch (error) {
-      console.error('取消表情标记失败:', error)
+      console.error('이모티콘 표시 취소 실패:', error)
     }
   }
 }
 
 /**
- * 根据表情类型获取对应的计数
- * @param item 消息项
- * @param emojiType 表情类型值
- * @returns 计数值
+ * 이모티콘 유형에 따른 카운트 가져오기
+ * @param item 메시지 항목
+ * @param emojiType 이모티콘 유형 값
+ * @returns 카운트 값
  */
 const getEmojiCount = (item: MessageType, emojiType: number): number => {
   if (!item || !item.message || !item.message.messageMarks) return 0
 
-  // messageMarks 是一个对象，键是表情类型，值是包含 count 和 userMarked 的对象
-  // 如果存在该表情类型的统计数据，返回其计数值，否则返回0
+  // messageMarks는 객체이며, 키는 이모티콘 유형이고 값은 count와 userMarked를 포함하는 객체입니다.
+  // 해당 이모티콘 유형의 통계 데이터가 있으면 카운트 값을 반환하고, 그렇지 않으면 0을 반환
   return item.message.messageMarks[String(emojiType)]?.count || 0
 }
 
-// 是否是当前登录用户标记
+// 현재 로그인한 사용자가 표시했는지 여부
 const hasUserMarkedEmoji = (item: MessageType, emojiType: number) => {
   if (!item || !item.message || !item.message.messageMarks) return false
 
@@ -548,15 +548,15 @@ const hasUserMarkedEmoji = (item: MessageType, emojiType: number) => {
 }
 
 const handleRetry = (item: MessageType): void => {
-  // TODO: 实现重试发送逻辑
-  console.log('重试发送消息:', item)
+  // TODO: 재전송 로직 구현
+  console.log('메시지 재전송:', item)
 }
 
-// 处理复制翻译文本
+// 번역 텍스트 복사 처리
 const handleCopyTranslation = (text: string) => {
   if (text) {
     navigator.clipboard.writeText(text)
-    window.$message.success('复制成功')
+    window.$message.success('복사 성공')
   }
 }
 
@@ -568,14 +568,14 @@ const isMe = computed(() => {
   return props.fromUser?.uid === userStore.userInfo!.uid
 })
 
-// 解决mac右键会选中文本的问题
+// mac 오른쪽 클릭 시 텍스트 선택되는 문제 해결
 const closeMenu = (event: any) => {
   if (!event.target.matches('.bubble', 'bubble-oneself')) {
     activeBubble.value = ''
   }
 }
 
-// 处理表情回应
+// 이모티콘 반응 처리
 const handleEmojiSelect = async (
   context: { label: string; value: number; title: string },
   item: MessageType
@@ -586,9 +586,9 @@ const handleEmojiSelect = async (
     item.message.messageMarks = {}
   }
 
-  // 检查该表情是否已被当前用户标记
+  // 해당 이모티콘이 현재 사용자에 의해 표시되었는지 확인
   const userMarked = item.message.messageMarks[String(context.value)]?.userMarked
-  // 只给没有标记过的图标标记
+  // 표시되지 않은 아이콘에만 표시
   if (!userMarked) {
     try {
       await markMsg({
@@ -597,20 +597,20 @@ const handleEmojiSelect = async (
         actType: 1
       })
     } catch (error) {
-      console.error('标记表情失败:', error)
+      console.error('이모티콘 표시 실패:', error)
     }
   } else {
-    window.$message.warning('该表情已标记')
+    window.$message.warning('이미 표시된 이모티콘입니다')
   }
 }
 
 useMitt.on(`${MittEnum.INFO_POPOVER}-Main`, (event: any) => {
   const messageId = event.uid
 
-  // 首先设置 selectKey 以显示 InfoPopover 组件
+  // 먼저 selectKey를 설정하여 InfoPopover 컴포넌트 표시
   selectKey.value = messageId
 
-  // 如果有对应的 popover 引用，则显示 popover
+  // 해당하는 popover 참조가 있으면 popover 표시
   if (infoPopoverRefs[messageId]) {
     infoPopoverRefs[messageId].setShow(true)
     handlePopoverUpdate(messageId)
@@ -626,13 +626,13 @@ onUnmounted(() => {
 })
 
 /**
- * 长按事件（开始）
+ * 길게 누르기 이벤트 (시작)
  */
 
 const longPressOption = computed(() => ({
   delay: 700,
   modifiers: {
-    // 只在移动端阻止默认行为，桌面端允许文本选中
+    // 모바일에서만 기본 동작 차단, 데스크톱에서는 텍스트 선택 허용
     prevent: isMobile(),
     stop: isMobile()
   },
@@ -646,11 +646,11 @@ const longPressOption = computed(() => ({
 const handleLongPress = (e: PointerEvent, _menu: any) => {
   if (!isMobile()) return
 
-  // 1. 阻止默认行为（防止系统菜单出现）
+  // 1. 기본 동작 차단 (시스템 메뉴 표시 방지)
   e.preventDefault()
   e.stopPropagation()
 
-  // // 2. 获取目标元素
+  // // 2. 대상 요소 가져오기
   const target = e.target as HTMLElement
 
   const preventClick = (event: Event) => {
@@ -660,17 +660,17 @@ const handleLongPress = (e: PointerEvent, _menu: any) => {
     document.removeEventListener('pointerup', preventClick, true)
   }
 
-  // 3. 添加临时事件监听器，阻止后续点击事件
+  // 3. 임시 이벤트 리스너 추가, 후속 클릭 이벤트 차단
   document.addEventListener('click', preventClick, true)
   document.addEventListener('pointerup', preventClick, true)
 
-  // 4. 模拟右键点击事件
+  // 4. 오른쪽 클릭 이벤트 시뮬레이션
   const contextMenuEvent = new MouseEvent('contextmenu', {
     bubbles: true,
     cancelable: true,
     clientX: e.clientX,
     clientY: e.clientY,
-    button: 2 // 明确指定右键
+    button: 2 // 명시적으로 오른쪽 버튼 지정
   })
 
   target.dispatchEvent(contextMenuEvent)
@@ -682,7 +682,7 @@ const handleLongPress = (e: PointerEvent, _menu: any) => {
 }
 
 /**
- * 长按事件（结束）
+ * 길게 누르기 이벤트 (종료)
  */
 </script>
 <style scoped lang="scss">

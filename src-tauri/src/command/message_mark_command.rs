@@ -20,7 +20,7 @@ pub struct ChatMessageMarkReq {
     mark_count: u32,
 }
 
-/// 保存或更新消息标记
+/// 메시지 표시 저장 또는 업데이트
 #[tauri::command]
 pub async fn save_message_mark(
     data: ChatMessageMarkReq,
@@ -43,24 +43,24 @@ pub async fn save_message_mark(
                     &message.login_uid,
                 )?;
 
-                // 创建ActiveModel，只设置需要更新的字段
+                // ActiveModel 생성, 업데이트할 필드만 설정
                 let mut active_message = message.into_active_model();
                 active_message.message_marks = Set(Some(new_message_marks));
 
-                // 更新数据库
+                // 데이터베이스 업데이트
                 im_message::Entity::update(active_message)
                     .exec(state.db_conn.as_ref())
                     .await?;
             }
         }
 
-        // 开启事务保存到数据库
+        // 트랜잭션을 시작하여 데이터베이스에 저장
         let tx = state.db_conn.begin().await?;
         // im_message_mark_repository::save_msg_mark(&tx, message_mark).await?;
         tx.commit().await?;
 
         info!(
-            "消息标记保存成功，消息ID: {}, 标记类型: {}",
+            "메시지 표시 저장 성공, 메시지 ID: {}, 표시 유형: {}",
             &data.msg_id, data.mark_type
         );
         Ok(())
@@ -105,6 +105,6 @@ fn get_new_message_marks(
     }
 
     let new_message_marks = serde_json::to_string(&message_marks)
-        .map_err(|e| anyhow::anyhow!("序列化消息标记错误: {}", e))?;
+        .map_err(|e| anyhow::anyhow!("메시지 표시 직렬화 오류: {}", e))?;
     Ok(new_message_marks)
 }

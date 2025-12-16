@@ -3,7 +3,7 @@
     class="voice-container select-none cursor-pointer"
     :class="{ playing: audioPlayback.isPlaying.value, loading: audioPlayback.loading.value }"
     @click="audioPlayback.togglePlayback">
-    <!-- 语音图标 -->
+    <!-- 음성 아이콘 -->
     <div class="voice-icon select-none cursor-pointer">
       <img
         v-if="audioPlayback.loading.value"
@@ -19,7 +19,7 @@
       </svg>
     </div>
 
-    <!-- 音浪波形 -->
+    <!-- 음파 파형 -->
     <div
       class="waveform-container select-none cursor-pointer"
       :style="{ width: `${waveformRenderer.waveformWidth.value}px` }">
@@ -43,7 +43,7 @@
             audioPlayback.isPlaying.value || dragControl.isDragging.value ? `0 0 8px ${voiceIconColor}50` : 'none'
         }"></div>
 
-      <!-- 时间预览提示 -->
+      <!-- 시간 미리보기 팁 -->
       <div
         v-if="dragControl.showTimePreview.value"
         class="time-preview"
@@ -57,7 +57,7 @@
       </div>
     </div>
 
-    <!-- 语音时长 -->
+    <!-- 음성 길이 -->
     <div class="voice-second select-none cursor-pointer" :style="{ color: voiceIconColor }">
       {{ formatTime(second) }}
     </div>
@@ -84,21 +84,21 @@ const settingStore = useSettingStore()
 const userStore = useUserStore()
 const { themes } = storeToRefs(settingStore)
 
-// 使用messageId作为音频ID，确保唯一性
+// messageId를 오디오 ID로 사용하여 고유성 보장
 const audioId = props.body.url
 const waveformCanvas = ref<HTMLCanvasElement | null>(null)
 
-// 判断是否为深色模式
+// 다크 모드 여부 확인
 const isDarkMode = computed(() => {
   return themes.value.content === ThemeEnum.DARK
 })
 
-// 判断是否为当前用户发送的消息
+// 현재 사용자가 보낸 메시지인지 확인
 const isCurrentUser = computed(() => {
   return props.fromUserUid === userStore.userInfo?.uid
 })
 
-// 计算语音图标颜色
+// 음성 아이콘 색상 계산
 const voiceIconColor = computed(() => {
   if (isCurrentUser.value) {
     return '#fff'
@@ -107,17 +107,17 @@ const voiceIconColor = computed(() => {
   }
 })
 
-// 音频时长
+// 오디오 길이
 const second = computed(() => props.body.second || 0)
-// 音频文件管理
+// 오디오 파일 관리
 const fileManager = useAudioFileManager(userStore.userInfo?.uid as string)
-// 音频播放控制
+// 오디오 재생 제어
 const audioPlayback = useAudioPlayback(audioId, (_currentTime: number, _progress: number) => {
-  // 时间更新回调，用于重绘波形
+  // 시간 업데이트 콜백, 파형 다시 그리기용
   waveformRenderer.drawWaveformThrottled()
 })
 
-// 拖拽控制
+// 드래그 제어
 const dragControl = useVoiceDragControl(
   waveformCanvas,
   second,
@@ -138,7 +138,7 @@ const dragControl = useVoiceDragControl(
   }
 )
 
-// 波形渲染
+// 파형 렌더링
 const waveformRenderer = useWaveformRenderer(
   second,
   audioPlayback.playbackProgress,
@@ -147,14 +147,14 @@ const waveformRenderer = useWaveformRenderer(
   () => getWaveformColors()
 )
 
-// 计算波形颜色状态
+// 파형 색상 상태 계산
 const getWaveformColors = () => {
   const baseColor = isCurrentUser.value ? '#ffffff' : isDarkMode.value ? '#ffffff' : '#000000'
 
-  // 已播放区域颜色（始终完全不透明）
+  // 재생된 영역 색상 (항상 완전 불투명)
   const playedColor = baseColor
 
-  // 未播放区域颜色（根据播放状态调整透明度）
+  // 미재생 영역 색상 (재생 상태에 따라 투명도 조정)
   let unplayedOpacity: number
   if (audioPlayback.isPlaying.value || dragControl.isDragging.value) {
     unplayedOpacity = 0.3
@@ -169,14 +169,14 @@ const getWaveformColors = () => {
   return { playedColor, unplayedColor }
 }
 
-// 格式化时间
+// 시간 형식화
 const formatTime = (seconds: number) => {
   const mins = Math.floor(seconds / 60)
   const secs = Math.floor(seconds % 60)
   return `${mins}:${secs.toString().padStart(2, '0')}`
 }
 
-// 点击波形跳转到指定位置
+// 파형 클릭 시 지정된 위치로 이동
 const handleSeekToPosition = (event: MouseEvent) => {
   if (!audioPlayback.audioElement.value || !waveformCanvas.value || dragControl.isDragging.value) return
 
@@ -199,21 +199,21 @@ watch(audioPlayback.isPlaying, () => {
   waveformRenderer.drawWaveform()
 })
 
-// 组件挂载
+// 컴포넌트 마운트
 onMounted(async () => {
   try {
-    // 设置Canvas引用
+    // Canvas 참조 설정
     waveformRenderer.waveformCanvas.value = waveformCanvas.value
 
-    // 加载音频波形数据
+    // 오디오 파형 데이터 로드
     const audioBuffer = await fileManager.loadAudioWaveform(props.body.url)
     await waveformRenderer.generateWaveformData(audioBuffer)
 
-    // 创建音频元素
+    // 오디오 요소 생성
     const audioUrl = await fileManager.getAudioUrl(props.body.url)
     await audioPlayback.createAudioElement(audioUrl, audioId, second.value)
   } catch (error) {
-    console.error('组件初始化失败:', error)
+    console.error('컴포넌트 초기화 실패:', error)
   }
 })
 onUnmounted(() => {
@@ -261,7 +261,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   cursor: pointer;
-  // 扩展触摸区域（移动端优化）
+  // 터치 영역 확장 (모바일 최적화)
   padding: 4px 0;
   margin: -4px 0;
 
@@ -290,8 +290,8 @@ onUnmounted(() => {
 
     &.dragging {
       opacity: 1;
-      width: 4px; // 拖拽时加宽
-      transition: none; // 禁用过渡效果，实现即时响应
+      width: 4px; // 드래그 시 넓게
+      transition: none; // 전환 효과 비활성화, 즉각적인 반응 구현
     }
   }
 

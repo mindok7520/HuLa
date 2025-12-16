@@ -29,7 +29,7 @@
               quaternary
               size="medium"
               @click.stop="handleForward"
-              aria-label="转发"
+              aria-label="전달"
               class="bg-white/20">
               <template #icon>
                 <svg class="size-22px text-white">
@@ -43,7 +43,7 @@
               quaternary
               size="medium"
               @click.stop="handleSave"
-              aria-label="保存"
+              aria-label="저장"
               class="bg-white/20">
               <template #icon>
                 <svg class="size-22px text-white">
@@ -57,7 +57,7 @@
               quaternary
               size="medium"
               @click.stop="handleMore"
-              aria-label="更多"
+              aria-label="더보기"
               class="bg-white/20">
               <template #icon>
                 <svg class="size-22px text-white">
@@ -127,9 +127,9 @@ const actionStyle = computed(() => ({
   bottom: `${Math.max(safeAreaInsets.value.bottom + 16, 16)}px`
 }))
 
-// 获取当前房间ID的方法
+// 현재 방 ID 가져오는 메서드
 const getCurrentRoomId = () => {
-  // 从 props.message 中获取房间ID，如果没有则从 chatStore 获取
+  // props.message에서 방 ID를 가져오고, 없으면 chatStore에서 가져옴
   return props.message?.roomId || chatStore.currentSessionInfo?.roomId || ''
 }
 
@@ -141,14 +141,14 @@ const handleForward = () => {
   const msgId = props.message?.id
   if (!msgId) {
     if (window.$message) {
-      window.$message.warning('无法转发：消息ID缺失')
+      window.$message.warning('전달 불가: 메시지 ID 누락')
     }
     return
   }
   const target = chatStore.chatMessageList.find((m: any) => m.message.id === msgId)
   if (!target) {
     if (window.$message) {
-      window.$message.warning('未找到可转发的消息')
+      window.$message.warning('전달할 메시지를 찾을 수 없음')
     }
     return
   }
@@ -164,7 +164,7 @@ const handleSave = async () => {
   const imageUrl = props.imageUrl
   if (!imageUrl) {
     if (window.$message) {
-      window.$message.warning('无法保存：图片地址缺失')
+      window.$message.warning('저장 불가: 이미지 주소 누락')
     }
     return
   }
@@ -172,33 +172,33 @@ const handleSave = async () => {
     const fileName = extractFileName(imageUrl) || 'image.png'
     const result = await fileDownloadStore.downloadFile(imageUrl, fileName)
     if (result && window.$message) {
-      console.log('图片保存路径:', result)
-      window.$message.success('图片已保存')
+      console.log('이미지 저장 경로:', result)
+      window.$message.success('이미지 저장됨')
 
-      // 保存文件信息到 file store
+      // 파일 정보를 file store에 저장
       const roomId = getCurrentRoomId()
       if (roomId) {
-        // 获取文件状态，使用相对路径（localPath）而不是绝对路径
+        // 파일 상태 가져오기, 절대 경로 대신 상대 경로(localPath) 사용
         const fileStatus = fileDownloadStore.getFileStatus(imageUrl)
         const localPath = fileStatus.localPath || result
 
-        // 如果没有消息信息，手动创建文件信息
+        // 메시지 정보가 없으면 수동으로 파일 정보 생성
         const fileInfo = {
-          id: props.message!.id, // 生成唯一ID
+          id: props.message!.id, // 고유 ID 생성
           roomId,
           fileName,
           type: 'image' as const,
-          url: localPath, // 使用相对路径
+          url: localPath, // 상대 경로 사용
           suffix: fileName.split('.').pop()?.toLowerCase()
         }
         fileStore.addFile(fileInfo)
-        console.log('[ImagePreview Debug] 保存文件信息到 fileStore:', fileInfo)
+        console.log('[ImagePreview Debug] fileStore에 파일 정보 저장:', fileInfo)
       }
     }
   } catch (e) {
-    console.error('保存图片失败:', e)
+    console.error('이미지 저장 실패:', e)
     if (window.$message) {
-      window.$message.error('保存失败')
+      window.$message.error('저장 실패')
     }
   }
 
@@ -207,7 +207,7 @@ const handleSave = async () => {
 
 const handleMore = () => {
   if (window.$message) {
-    window.$message.warning('更多功能暂未实现')
+    window.$message.warning('더보기 기능은 아직 구현되지 않았습니다')
   }
 
   emit('more')
@@ -342,7 +342,7 @@ const handleTouchEnd = (event: TouchEvent) => {
 </script>
 
 <style scoped>
-/* 图片预览背景淡入淡出动画 */
+/* 이미지 미리보기 배경 페이드 인/아웃 애니메이션 */
 .image-preview-enter-active,
 .image-preview-leave-active {
   transition: opacity 0.3s ease;
@@ -353,7 +353,7 @@ const handleTouchEnd = (event: TouchEvent) => {
   opacity: 0;
 }
 
-/* 图片缩放动画 */
+/* 이미지 줌 애니메이션 */
 .image-zoom-enter-active,
 .image-zoom-leave-active {
   transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);

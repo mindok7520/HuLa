@@ -12,7 +12,7 @@ import { md5FromString } from '@/utils/Md5Util'
 import { isMobile } from '@/utils/PlatformConstants'
 
 export const useEmojiStore = defineStore(StoresEnum.EMOJI, () => {
-  const isLoading = ref(false) // 是否正在加载
+  const isLoading = ref(false) // 로딩 중 여부
   const isPrefetching = ref(false)
   const userStore = useUserStore()
   const emojiList = ref<EmojiItem[]>([])
@@ -54,7 +54,7 @@ export const useEmojiStore = defineStore(StoresEnum.EMOJI, () => {
     if (!worker) {
       const response = await fetch(url)
       if (!response.ok) {
-        throw new Error(`下载表情失败: ${response.status} ${response.statusText}`)
+        throw new Error(`이모티콘 다운로드 실패: ${response.status} ${response.statusText}`)
       }
       return new Uint8Array(await response.arrayBuffer())
     }
@@ -67,7 +67,7 @@ export const useEmojiStore = defineStore(StoresEnum.EMOJI, () => {
         if (data.success && data.buffer) {
           resolve(new Uint8Array(data.buffer))
         } else {
-          reject(new Error(data.error || '下载表情失败'))
+          reject(new Error(data.error || '이모티콘 다운로드 실패'))
         }
       }
       const handleError = (event: ErrorEvent) => {
@@ -89,7 +89,7 @@ export const useEmojiStore = defineStore(StoresEnum.EMOJI, () => {
       const info = await detectRemoteFileType({ url, fileSize: 1 })
       if (info?.ext) return info.ext
     } catch (error) {
-      console.warn('[emoji] 识别表情类型失败:', error)
+      console.warn('[emoji] 이모티콘 유형 식별 실패:', error)
     }
     const match = url.match(/\\.([a-zA-Z0-9]+)(?:\\?|$)/)
     return match?.[1] || 'png'
@@ -106,7 +106,7 @@ export const useEmojiStore = defineStore(StoresEnum.EMOJI, () => {
     const relativePath = await join(emojiDir, fileName)
     const absolutePath = await join(baseDirPath, relativePath)
     const hasFile = await exists(relativePath, { baseDir })
-    // 如果本地文件不存在，先移除失效的本地链接，后续使用服务器URL渲染
+    // 로컬 파일이 존재하지 않는 경우, 잘못된 로컬 링크를 먼저 제거하고 나중에 서버 URL을 사용하여 렌더링
     if (!hasFile && emoji.localUrl) {
       setLocalUrl(emoji.id, null)
     }
@@ -134,7 +134,7 @@ export const useEmojiStore = defineStore(StoresEnum.EMOJI, () => {
         emojiList.value.map((emoji) =>
           limit(() =>
             ensureEmojiCached(emoji, emojiDir, baseDir, baseDirPath).catch((error) => {
-              console.error('[emoji] 缓存失败:', emoji.expressionUrl, error)
+              console.error('[emoji] 캐싱 실패:', emoji.expressionUrl, error)
             })
           )
         )
@@ -150,7 +150,7 @@ export const useEmojiStore = defineStore(StoresEnum.EMOJI, () => {
   }
 
   /**
-   * 获取我的全部表情
+   * 내 모든 이모티콘 가져오기
    */
   const getEmojiList = async () => {
     isLoading.value = true
@@ -177,27 +177,27 @@ export const useEmojiStore = defineStore(StoresEnum.EMOJI, () => {
     }
     isLoading.value = false
     if (requestUid !== currentEmojiOwnerUid.value) {
-      // 期间用户已切换，丢弃旧账号的表情数据
+      // 기간 중 사용자 전환됨, 이전 계정의 이모티콘 데이터 폐기
       return
     }
   }
 
   /**
-   * 添加表情
+   * 이모티콘 추가
    */
   const addEmoji = async (emojiUrl: string) => {
     const { uid } = userStore.userInfo!
     if (!uid || !emojiUrl) return
     imRequestUtils.addEmoji({ expressionUrl: emojiUrl }).then((res) => {
       if (res) {
-        window.$message.success('添加表情成功')
+        window.$message.success('이모티콘 추가 성공')
       }
     })
     await getEmojiList()
   }
 
   /**
-   * 删除表情
+   * 이모티콘 삭제
    */
   const deleteEmoji = async (id: string) => {
     if (!id) return
@@ -206,7 +206,7 @@ export const useEmojiStore = defineStore(StoresEnum.EMOJI, () => {
   }
 
   /**
-   * 记录表情对应的本地缓存地址
+   * 이모티콘에 해당하는 로컬 캐시 주소 기록
    */
   const setLocalUrl = (id: string, localUrl: string | null | undefined) => {
     if (!id) return

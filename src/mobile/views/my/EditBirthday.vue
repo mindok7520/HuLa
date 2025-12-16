@@ -6,7 +6,7 @@
         class="bg-white"
         style="border-bottom: 1px solid; border-color: #dfdfdf"
         :hidden-right="true"
-        room-name="编辑生日" />
+        room-name="생일 편집" />
     </template>
 
     <template #container>
@@ -19,11 +19,11 @@
 
           <div class="flex bg-white rounded-10px w-full h-auto shadow">
             <div class="px-15px flex flex-col w-full">
-              <!-- 群号 -->
+              <!-- 그룹 번호 -->
               <div
                 style="border-bottom: 1px solid; border-color: #ebebeb"
                 class="flex justify-between py-12px items-center">
-                <div class="text-14px">展示生日标签</div>
+                <div class="text-14px">생일 태그 표시</div>
                 <n-switch />
               </div>
             </div>
@@ -34,13 +34,13 @@
               <div
                 style="border-bottom: 1px solid; border-color: #ebebeb"
                 class="flex justify-between py-12px items-center">
-                <div class="text-14px">展示年龄</div>
+                <div class="text-14px">나이 표시</div>
                 <n-switch />
               </div>
               <div
                 style="border-bottom: 1px solid; border-color: #ebebeb"
                 class="flex justify-between py-12px items-center">
-                <div class="text-14px">展示星座</div>
+                <div class="text-14px">별자리 표시</div>
                 <n-switch />
               </div>
             </div>
@@ -59,7 +59,7 @@
                 text-align: center;
                 display: inline-block;
               ">
-              保存
+              저장
             </div>
           </div>
         </div>

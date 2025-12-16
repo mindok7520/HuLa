@@ -1,35 +1,40 @@
 .item-box {
   @apply relative flex flex-col h-100vh box-border select-none text-[--text-color];
+
   .item {
     height: 46px;
     padding: 0 4px;
     width: 95%;
     box-sizing: border-box;
     border-radius: 6px;
+
     &:hover {
       cursor: pointer;
       background-color: var(--list-hover-color);
     }
   }
+
   &:hover {
     .contraction {
       opacity: 1;
     }
   }
 }
-/**! 修改naive-ui虚拟列表滚动条的宽度 */
-:deep(
-    .n-scrollbar > .n-scrollbar-rail.n-scrollbar-rail--vertical,
-    .n-scrollbar + .n-scrollbar-rail.n-scrollbar-rail--vertical
-  ) {
+
+/**! naive-ui 가상 목록 스크롤바 너비 수정 */
+:deep(.n-scrollbar > .n-scrollbar-rail.n-scrollbar-rail--vertical,
+  .n-scrollbar + .n-scrollbar-rail.n-scrollbar-rail--vertical) {
   width: 6px;
 }
 
 .announcement-text {
-  white-space: normal; /** 保留空白符号并正常换行 */
-  word-break: break-all; /** 强制在单词内部进行换行 */
+  white-space: normal;
+  /** 공백 문자 유지 및 정상 줄바꿈 */
+  word-break: break-all;
+  /** 단어 내부에서 강제 줄바꿈 */
   overflow-wrap: break-all;
-  -webkit-white-space: normal; /** 兼容webkit浏览器 */
+  -webkit-white-space: normal;
+  /** webkit 브라우저 호환 */
   -webkit-word-break: break-all;
   -webkit-overflow-wrap: break-all;
 }
