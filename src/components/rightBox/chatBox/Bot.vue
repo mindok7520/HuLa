@@ -182,13 +182,26 @@ const loadingBarContainerStyle = {
   pointerEvents: 'none'
 } as const
 
-// README/Markdown 内容过滤：本地文件可信，尽量少改动布局；如未来需要过滤可扩展此方法
-const sanitizeMarkdown = (html: string, options?: { trustContent?: boolean }) => {
-  if (options?.trustContent ?? true) {
-    return html
-  }
+// README/Markdown 内容过滤：始终进行基础净化，防止 XSS
+// 移除 trustContent 选项，确保所有内容都经过净化
+const sanitizeMarkdown = (html: string) => {
+  // 使用 DOMPurify 净化内容
+  // 允许的标签和属性需要保留以支持 markdown 渲染的样式
   return DOMPurify.sanitize(html, {
-    ADD_ATTR: ['style', 'align', 'width', 'height', 'cellpadding', 'cellspacing', 'border']
+    ADD_ATTR: [
+      'style',
+      'align',
+      'width',
+      'height',
+      'cellpadding',
+      'cellspacing',
+      'border',
+      'class',
+      'id',
+      'href',
+      'target'
+    ],
+    ADD_TAGS: ['svg', 'use', 'iframe'] // 如果 markdown 包含这些标签
   })
 }
 
@@ -529,7 +542,7 @@ const loadReadme = async (recordHistory = false, resetHistory = false) => {
     const html = await invoke<string>('get_readme_html', {
       language: currentLang.value
     })
-    // README 来源可信，直接渲染以保留原有布局
+    // 尽管来源可信，仍进行基础净化
     renderedMarkdown.value = sanitizeMarkdown(html)
     // 先更新视图状态, 确保 nextTick 时容器已挂载
     currentView.value = { type: 'readme' }
@@ -563,7 +576,7 @@ const loadMarkdownFile = async (filePath: string, recordHistory = true) => {
     const html = await invoke<string>('parse_markdown', {
       filePath: filePath
     })
-    // 本地 Markdown 可信，直接渲染以保留原有布局
+    // 尽管来源可信，仍进行基础净化
     renderedMarkdown.value = sanitizeMarkdown(html)
 
     // 显示在 markdown 视图中,而不是 iframe

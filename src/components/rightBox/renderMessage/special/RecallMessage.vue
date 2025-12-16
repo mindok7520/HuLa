@@ -8,7 +8,7 @@
           重新编辑
         </p>
       </n-flex>
-      <span v-else class="text-12px color-#909090 select-none" v-html="recallText"></span>
+      <span v-else class="text-12px color-#909090 select-none" v-html="sanitizedRecallText"></span>
     </template>
     <template v-else>
       <n-flex align="center" :size="6">
@@ -29,6 +29,7 @@ import { useMitt } from '@/hooks/useMitt.ts'
 import type { MessageBody, MsgType } from '@/services/types'
 import { useChatStore } from '@/stores/chat.ts'
 import { useUserStore } from '@/stores/user.ts'
+import DOMPurify from 'dompurify'
 
 const props = defineProps<{
   message: MsgType
@@ -50,6 +51,11 @@ const recallText = computed(() => {
     return props.body.content
   }
   return '撤回了一条消息'
+})
+
+// 使用 DOMPurify 净化内容，防止 XSS
+const sanitizedRecallText = computed(() => {
+  return DOMPurify.sanitize(recallText.value)
 })
 
 // 直接访问 recalledMessages 以确保响应式依赖收集正常工作
