@@ -46,7 +46,7 @@
     "withGlobalTauri": true,
     "windows": [],
     "security": {
-      "csp": null,
+      "csp": "default-src 'self'; img-src 'self' data: blob: https://*.aliyuncs.com https://picsum.photos https://*.baidu.com https://gitee.com https://www.apple.com; media-src 'self' blob: https://*.aliyuncs.com; connect-src 'self' https://hulaspark.com wss: https://gitee.com https://www.apple.com; style-src 'self' 'unsafe-inline'; script-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self';",
       "capabilities": [
         "default-capability",
         "mobile-capability",
