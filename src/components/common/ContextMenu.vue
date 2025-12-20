@@ -3,7 +3,7 @@
     <slot></slot>
     <Teleport to="body">
       <transition-group @beforeEnter="handleBeforeEnter" @enter="handleEnter">
-        <!-- emoji表情菜单 -->
+        <!-- 이모지 메뉴 -->
         <div
           v-if="showMenu && emoji && emoji.length > 0"
           class="context-menu select-none"
@@ -25,7 +25,7 @@
             </div>
           </div>
         </div>
-        <!-- 普通右键菜单 -->
+        <!-- 일반 우클릭 메뉴 -->
         <div
           v-if="!isMobile() && showMenu && !(emoji && emoji.length > 0 && showAllEmojis)"
           class="context-menu select-none"
@@ -38,7 +38,7 @@
             v-if="(visibleMenu && visibleMenu.length > 0) || (visibleSpecialMenu && visibleSpecialMenu.length > 0)"
             class="menu-list">
             <div v-for="(item, index) in visibleMenu" :key="index">
-              <!-- 禁止的菜单选项需要禁止点击事件  -->
+              <!-- 비활성화된 메뉴 옵션은 클릭 이벤트 차단 필요  -->
               <div class="menu-item-disabled" v-if="item.disabled" @click.prevent="$event.preventDefault()">
                 <div class="menu-item-content">
                   <svg><use :href="`#${getMenuItemProp(item, 'icon')}`"></use></svg>
@@ -61,9 +61,9 @@
                 </div>
               </div>
             </div>
-            <!-- 判断是否有特别的菜单项才需要分割线 -->
+            <!-- 특별한 메뉴 항목이 있는 경우에만 구분선 필요 -->
             <div v-if="visibleSpecialMenu.length > 0" class="flex-col-y-center gap-6px">
-              <!-- 分割线（只有当常规菜单存在时才显示） -->
+              <!-- 구분선 (일반 메뉴가 있을 때만 표시) -->
               <div v-if="visibleMenu && visibleMenu.length > 0" class="h-1px bg-[--line-color] m-[2px_8px]"></div>
               <div
                 @click="handleClick(item)"
@@ -78,7 +78,7 @@
           </div>
         </div>
 
-        <!-- 移动端菜单 -->
+        <!-- 모바일 메뉴 -->
         <div
           v-if="isMobile() && showMenu && !(emoji && emoji.length > 0 && showAllEmojis)"
           class="context-menu select-none"
@@ -106,7 +106,7 @@
           </div>
         </div>
 
-        <!-- 二级菜单 -->
+        <!-- 하위 메뉴 -->
         <div v-if="showSubmenu && activeSubmenu" class="context-submenu" :style="submenuPosition">
           <div class="menu-list">
             <div
@@ -149,27 +149,27 @@ const props = withDefaults(defineProps<Props>(), {
   specialMenu: () => []
 })
 
-// 控制是否显示全部表情
+// 전체 이모지 표시 여부 제어
 const showAllEmojis = ref(false)
 
-// 计算要显示的表情列表
+// 표시할 이모지 목록 계산
 const displayedEmojis = computed(() => {
   return showAllEmojis.value ? props.emoji : props.emoji.slice(0, 4)
 })
 
-// 使用计算属性过滤显示的菜单项
+// 계산된 속성을 사용하여 표시할 메뉴 항목 필터링
 const visibleMenu = computed(() => {
-  // 检查是否有 visible 属性并作为函数调用
+  // visible 속성이 함수인지 확인하고 호출
   return props.menu?.filter((item: any) => {
     if (typeof item.visible === 'function') {
-      return item.visible(props.content) // 如果 visible 是函数，则调用它
+      return item.visible(props.content) // visible이 함수인 경우 호출
     }
-    // 如果没有 visible 属性，则默认显示
+    // visible 속성이 없으면 기본적으로 표시
     return true
   })
 })
 
-// 添加 specialMenu 的过滤功能
+// specialMenu 필터링 기능 추가
 const visibleSpecialMenu = computed(() => {
   return props.specialMenu?.filter((item: any) => {
     if (typeof item.visible === 'function') {
@@ -179,14 +179,14 @@ const visibleSpecialMenu = computed(() => {
   })
 })
 
-/** 判断是否传入了menu */
+/** menu 전달 여부 확인 */
 const isNull = computed(() => props.menu === void 0)
 const ContextMenuRef = useTemplateRef('ContextMenuRef')
 const emit = defineEmits(['select', 'reply-emoji', 'menu-show'])
-/** 获取鼠标位置和是否显示右键菜单 */
+/** 마우스 위치 및 우클릭 메뉴 표시 여부 확인 */
 const { x, y, showMenu } = useContextMenu(ContextMenuRef, isNull)
 
-// 监听showMenu状态变化并向父组件发送事件
+// showMenu 상태 변화 감지 및 부모 컴포넌트에 이벤트 전송
 watch(
   () => showMenu.value,
   (newVal) => {
@@ -194,27 +194,27 @@ watch(
   },
   { immediate: true }
 )
-/** 获取视口的宽高 */
+/** 뷰포트 너비/높이 확인 */
 const { vw, vh } = useViewport()
-/** 定义右键菜单尺寸 */
+/** 우클릭 메뉴 크기 정의 */
 const w = ref(0)
 const h = ref(0)
-// 二级菜单状态
+// 하위 메뉴 상태
 const showSubmenu = ref(false)
 const activeSubmenu = ref<any[]>([])
 const submenuPosition = ref({
   left: '0px',
   top: '0px'
 })
-/** 计算右键菜单的位置 */
+/** 우클릭 메뉴 위치 계산 */
 const pos = computed(() => {
   let posX = x.value
   let posY = y.value
-  // x坐标
+  // x 좌표
   if (x.value > vw.value - w.value) {
     posX -= w.value
   }
-  // y坐标
+  // y 좌표
   if (y.value > vh.value - h.value) {
     posY -= y.value - vh.value + h.value
   }
@@ -224,43 +224,43 @@ const pos = computed(() => {
   }
 })
 
-/** 表情菜单的尺寸和位置 */
-const emojiWidth = ref(180) // 表情菜单的大约宽度，根据.emoji-container的max-w-180px设置
+/** 이모지 메뉴 크기 및 위치 */
+const emojiWidth = ref(180) // 이모지 메뉴 대략적인 너비, .emoji-container의 max-w-180px 설정 기준
 
-// 根据是否展示全部表情动态计算菜单高度
+// 모든 이모지 표시 여부에 따라 메뉴 높이 동적 계산
 const emojiHeight = computed(() => {
-  return showAllEmojis.value ? 114 : 40 // 没有展示更多时为56，展开更多时为126
+  return showAllEmojis.value ? 114 : 40 // 더보기 미표시 시 40, 펼쳤을 때 114
 })
 
-/** 计算表情菜单的位置 */
+/** 이모지 메뉴 위치 계산 */
 const emojiMenuPosition = computed(() => {
-  // 使用普通右键菜单计算后的位置作为基础
+  // 일반 우클릭 메뉴 계산 위치를 기준으로 사용
   let posX = pos.value.posX
-  let posY = pos.value.posY - emojiHeight.value // 默认在右键菜单位置上方显示
+  let posY = pos.value.posY - emojiHeight.value // 기본적으로 우클릭 메뉴 위쪽에 표시
 
-  // 判断消息是在左边还是右边（通过原始鼠标位置与屏幕中心的关系）
+  // 메시지가 왼쪽인지 오른쪽인지 판단 (마우스 원래 위치와 화면 중앙 관계 이용)
   const isRightSideMessage = x.value > vw.value / 2
 
   if (isRightSideMessage) {
-    // emoji菜单的左边位置 = 右键菜单右边界 - emoji菜单宽度
+    // 이모지 메뉴 왼쪽 위치 = 우클릭 메뉴 오른쪽 경계 - 이모지 메뉴 너비
     posX = pos.value.posX + w.value - emojiWidth.value
 
-    // 确保不会超出左边界
+    // 왼쪽 경계를 벗어나지 않도록 보장
     if (posX < 10) {
       posX = 10
     }
   } else {
     posX = pos.value.posX
 
-    // 检查是否会超出右边界
+    // 오른쪽 경계를 벗어나지 않는지 확인
     if (posX + emojiWidth.value > vw.value) {
       posX = vw.value - emojiWidth.value - 10
     }
   }
 
-  // 检查垂直方向是否超出视口
+  // 수직 방향으로 뷰포트를 벗어나지 않는지 확인
   if (posY < 10) {
-    // 如果上方空间不足，则在右键菜单位置下方显示
+    // 위쪽 공간이 부족하면 우클릭 메뉴 아래쪽에 표시
     posY = pos.value.posY + 10
   }
 
@@ -270,15 +270,15 @@ const emojiMenuPosition = computed(() => {
   }
 })
 
-// 添加 watch 监听主菜单显示状态
+// 주 메뉴 표시 상태 감지용 watch 추가
 watch(
   () => showMenu.value,
   (newVal) => {
     if (!newVal) {
-      // 主菜单隐藏时,同时隐藏二级菜单
+      // 주 메뉴가 숨겨질 때 하위 메뉴도 함께 숨김
       showSubmenu.value = false
       activeSubmenu.value = []
-      // 重置表情显示状态
+      // 이모지 표시 상태 초기화
       showAllEmojis.value = false
     }
   }
@@ -289,7 +289,7 @@ const handleSize = ({ width, height }: any) => {
   h.value = height
 }
 
-/** 处理右键主菜单点击事件 */
+/** 우클릭 주 메뉴 클릭 이벤트 처리 */
 const handleClick = (item: string) => {
   nextTick(() => {
     showMenu.value = false
@@ -297,7 +297,7 @@ const handleClick = (item: string) => {
   })
 }
 
-/** 处理回复表情事件 */
+/** 이모지 답장 이벤트 처리 */
 const handleReplyEmoji = (item: string) => {
   if (!item) return
   nextTick(() => {
@@ -306,7 +306,7 @@ const handleReplyEmoji = (item: string) => {
   })
 }
 
-// 处理子菜单项点击
+// 하위 메뉴 항목 클릭 처리
 const handleSubItemClick = (item: any) => {
   if (typeof item.click === 'function') {
     item.click(props.content)
@@ -328,64 +328,64 @@ const handleEnter = (el: any) => {
 }
 
 /**
- * 获取菜单项的属性值（处理函数式和静态值）
- * @param item 菜单项
- * @param prop 属性名 ('icon' | 'label')
+ * 메뉴 항목 속성 값 가져오기 (함수형 및 정적 값 처리)
+ * @param item 메뉴 항목
+ * @param prop 속성명 ('icon' | 'label')
  */
 const getMenuItemProp = (item: any, prop: 'icon' | 'label') => {
   return typeof item[prop] === 'function' ? item[prop](props.content) : item[prop]
 }
 
 /**
- * 判断菜单项是否需要危险样式
- * @param item 菜单项
+ * 메뉴 항목에 위험 스타일이 필요한지 판단
+ * @param item 메뉴 항목
  */
 const isDangerousItem = (item: any) => {
   const icon = getMenuItemProp(item, 'icon')
   return ['logout', 'forbid'].includes(icon)
 }
 
-// 修改 handleMouseEnter 函数
+// handleMouseEnter 함수 수정
 const handleMouseEnter = (item: any, index: number) => {
-  // 检查是否有子菜单（包括函数形式的 children）
+  // 하위 메뉴 존재 여부 확인 (함수 형태 children 포함)
   const hasChildren = typeof item.children === 'function' ? true : Array.isArray(item.children)
   if (!hasChildren) {
     showSubmenu.value = false
     return
   }
 
-  // 获取子菜单内容
+  // 하위 메뉴 내용 가져오기
   const children = typeof item.children === 'function' ? item.children(props.content) : item.children
   if (!children || children.length === 0) {
     showSubmenu.value = false
     return
   }
 
-  // 获取当前菜单项的位置
+  // 현재 메뉴 항목 위치 확인
   const menuItem = document.querySelectorAll('.menu-item')[index]
   const rect = menuItem.getBoundingClientRect()
 
-  // 计算子菜单的预期宽度和高度
-  const submenuWidth = 120 // 子菜单的最小宽度
-  const submenuHeight = children.length * 30 // 预估每项高度
+  // 하위 메뉴 예상 너비 및 높이 계산
+  const submenuWidth = 120 // 하위 메뉴 최소 너비
+  const submenuHeight = children.length * 30 // 각 항목 예상 높이
 
   let left = rect.right + 5
   let top = rect.top
 
-  // 判断右侧空间是否足够
+  // 오른쪽 공간이 충분한지 판단
   if (rect.right + submenuWidth > vw.value) {
-    // 右侧空间不足，改为显示在下方
+    // 오른쪽 공간 부족 시 아래쪽에 표시
     left = rect.left
-    top = rect.bottom + 5 // 添加一点间距
+    top = rect.bottom + 5 // 간격 약간 추가
 
-    // 检查下方空间是否足够，不够则向上显示
+    // 아래쪽 공간이 충분한지 확인, 부족하면 위쪽으로 표시
     if (top + submenuHeight > vh.value) {
       top = rect.top - submenuHeight - 5
     }
   } else {
-    // 右侧空间足够，但需要检查垂直方向
+    // 오른쪽 공간은 충분하지만 수직 방향 확인 필요
     if (rect.top + submenuHeight > vh.value) {
-      // 如果超出视口底部，向上偏移
+      // 뷰포트 하단을 벗어나면 위로 오프셋
       top = vh.value - submenuHeight - 10
     }
   }
@@ -399,17 +399,17 @@ const handleMouseEnter = (item: any, index: number) => {
   showSubmenu.value = true
 }
 
-// 修改鼠标离开处理函数
+// 마우스 이탈 처리 함수 수정
 const handleMouseLeave = (e: MouseEvent) => {
-  // 增加一个状态来跟踪鼠标移动
+  // 마우스 이동 추적을 위한 상태 추가
   const relatedTarget = e.relatedTarget as HTMLElement
 
-  // 如果鼠标是移动到子菜单或者子菜单的子元素上，则不关闭菜单
+  // 마우스가 하위 메뉴 또는 하위 메뉴 요소로 이동하면 메뉴를 닫지 않음
   if (relatedTarget?.closest('.context-submenu')) {
     return
   }
 
-  // 如果既不在主菜单也不在子菜单内，则关闭子菜单
+  // 주 메뉴와 하위 메뉴 모두에 없으면 하위 메뉴 닫기
   setTimeout(() => {
     if (!isMouseInSubmenu(e) && !isMouseInMainMenu(e)) {
       showSubmenu.value = false
@@ -417,18 +417,18 @@ const handleMouseLeave = (e: MouseEvent) => {
   }, 100)
 }
 
-// 修改检查鼠标是否在子菜单内的函数
+// 마우스가 하위 메뉴 내에 있는지 확인하는 함수 수정
 const isMouseInSubmenu = (e: MouseEvent) => {
   const submenu = document.querySelector('.context-submenu')
   if (!submenu) return false
 
-  // 使用 document.elementFromPoint 来检查鼠标下的元素
+  // document.elementFromPoint를 사용하여 마우스 아래 요소 확인
   const elementsUnderMouse = document.elementsFromPoint(e?.clientX || 0, e?.clientY || 0)
 
   return elementsUnderMouse.some((el) => el.closest('.context-submenu'))
 }
 
-// 修改检查鼠标是否在主菜单内的函数
+// 마우스가 주 메뉴 내에 있는지 확인하는 함수 수정
 const isMouseInMainMenu = (e: MouseEvent) => {
   const mainMenu = document.querySelector('.context-menu')
   if (!mainMenu) return false
@@ -437,12 +437,12 @@ const isMouseInMainMenu = (e: MouseEvent) => {
   return elementsUnderMouse.some((el) => el.closest('.context-menu'))
 }
 
-// 添加判断是否显示箭头的函数
+// 화살표 표시 여부 판단 함수 추가
 const shouldShowArrow = (item: any) => {
-  // 如果 children 是函数，先获取结果
+  // children이 함수인 경우 먼저 결과 확인
   const children = typeof item.children === 'function' ? item.children(props.content) : item.children
 
-  // 检查是否有有效的子菜单内容
+  // 유효한 하위 메뉴 내용이 있는지 확인
   return Array.isArray(children) && children.length > 0
 }
 </script>
@@ -450,7 +450,7 @@ const shouldShowArrow = (item: any) => {
 <style scoped lang="scss">
 @use '@/styles/scss/global/variable.scss' as *;
 
-// 通用的menu-item样式
+// 공통 menu-item 스타일
 @mixin menu-item {
   padding: 2px 8px;
   border-radius: 4px;
@@ -489,7 +489,7 @@ const shouldShowArrow = (item: any) => {
   }
 }
 
-// menu-list通用样式
+// menu-list 공통 스타일
 @mixin menu-list {
   -webkit-backdrop-filter: blur(10px);
   padding: 5px;
@@ -531,7 +531,7 @@ const shouldShowArrow = (item: any) => {
   }
 }
 
-// menu-list通用样式
+// menu-list 공통 스타일
 @mixin menu-list-wrap {
   -webkit-backdrop-filter: blur(10px);
   padding: 5px;
@@ -557,7 +557,7 @@ const shouldShowArrow = (item: any) => {
   .emoji-container {
     -webkit-backdrop-filter: blur(10px);
     background: var(--bg-menu);
-    /* 允许放置表情符号，每个28px宽，加上间隔 */
+    /* 이모지 배치 허용, 각 28px 너비 및 간격 추가 */
     @apply flex flex-wrap max-w-180px px-6px select-none;
   }
 

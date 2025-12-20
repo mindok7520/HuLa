@@ -1,6 +1,6 @@
 <template>
   <div class="min-w-0 cursor-default select-none flex-1 flex flex-col bg-[--right-bg-color] overflow-hidden">
-    <!-- 内容头部 -->
+    <!-- 컨텐츠 헤더 -->
     <div class="flex-shrink-0 px-20px py-16px border-b border-solid border-[--line-color]">
       <div class="flex items-center justify-between gap-32px">
         <n-flex vertical class="flex-shrink-0">
@@ -12,7 +12,7 @@
           </p>
         </n-flex>
 
-        <!-- 搜索框 -->
+        <!-- 검색창 -->
         <n-input
           v-model:value="fileSearchKeyword"
           :placeholder="getFileSearchPlaceholder()"
@@ -34,18 +34,18 @@
       </div>
     </div>
 
-    <!-- 文件列表区域 -->
+    <!-- 파일 목록 영역 -->
     <div class="relative overflow-hidden flex-1">
-      <!-- 文件列表 -->
+      <!-- 파일 목록 -->
       <n-scrollbar v-if="displayedTimeGroupedFiles.length > 0">
         <div class="p-20px flex flex-col gap-24px">
-          <!-- 时间分组 -->
+          <!-- 시간별 그룹화 -->
           <div v-for="timeGroup in displayedTimeGroupedFiles" :key="timeGroup.date" class="flex flex-col gap-12px">
             <div class="time-group">
               <span class="text-14px font-600">{{ timeGroup.displayDate || timeGroup.date }}</span>
               <span class="text-12px">{{ t('fileManager.list.fileCount', { count: timeGroup.files.length }) }}</span>
             </div>
-            <!-- 文件列表 -->
+            <!-- 파일 목록 -->
             <div class="flex flex-col gap-15px">
               <ContextMenu
                 v-for="file in timeGroup.files"
@@ -55,7 +55,7 @@
                 class="flex flex-col gap-8px"
                 @select="handleFileMenuSelect($event, file)">
                 <File :body="convertToFileBody(file)" :search-keyword="fileSearchKeyword" />
-                <!-- 文件元信息 -->
+                <!-- 파일 메타 정보 -->
                 <div class="file-meta-info">
                   <div class="flex-center gap-4px">
                     <p>{{ t('fileManager.list.meta.from') }}</p>
@@ -69,7 +69,7 @@
         </div>
       </n-scrollbar>
 
-      <!-- 空状态 -->
+      <!-- 빈 상태 -->
       <EmptyState v-else :icon="getEmptyStateIcon()" :title="getEmptyStateTitle()">
         <template #actions>
           <n-button v-if="hasActiveSearch" @click="clearSearch" secondary type="primary" size="small">
@@ -136,7 +136,7 @@ const fileSearchKeyword = computed({
 const normalizedFileSearchKeyword = computed(() => fileSearchKeyword.value.trim().toLowerCase())
 const hasActiveSearch = computed(() => normalizedFileSearchKeyword.value.length > 0)
 
-// 检查文件是否匹配搜索关键词
+// 파일이 검색 키워드와 일치하는지 확인
 const matchesFileByKeyword = (file: any, keyword: string) => {
   if (!keyword) {
     return true
@@ -161,7 +161,7 @@ const matchesFileByKeyword = (file: any, keyword: string) => {
   })
 }
 
-// 过滤显示的时间分组文件
+// 표시되는 시간별 그룹화 파일 필터링
 const displayedTimeGroupedFiles = computed(() => {
   const keyword = normalizedFileSearchKeyword.value
   if (!keyword) {
@@ -185,7 +185,7 @@ const displayedTimeGroupedFiles = computed(() => {
     .filter((group): group is TimeGroup => group !== null)
 })
 
-// 计算过滤后的文件总数
+// 필터링된 총 파일 수 계산
 const totalDisplayedFiles = computed(() => sumBy(displayedTimeGroupedFiles.value, (group) => group.files.length))
 
 const { downloadFile } = useDownload()
@@ -216,7 +216,7 @@ const fileContextMenu = computed<OPT.RightMenu[]>(() => [
           await saveFileAttachmentAs(saveParams)
         }
       } catch (error) {
-        console.error('文件另存为失败:', error)
+        console.error('파일 다른 이름으로 저장 실패:', error)
       }
     }
   }
@@ -230,11 +230,11 @@ const handleFileMenuSelect = async (menuItem: OPT.RightMenu | null, file: any) =
   try {
     await menuItem.click(file)
   } catch (error) {
-    console.error('执行文件菜单操作失败:', error)
+    console.error('파일 메뉴 작업 실행 실패:', error)
   }
 }
 
-// 根据 uid 获取用户显示名称
+// uid를 기반으로 사용자 표시 이름 가져오기
 const getUserDisplayName = (uid: string) => {
   const groupName = groupStore.getUserDisplayName(uid)
   if (groupName) {
@@ -243,7 +243,7 @@ const getUserDisplayName = (uid: string) => {
   return t('fileManager.common.unknownUser')
 }
 
-// 获取文件搜索占位符
+// 파일 검색 플레이스홀더 가져오기
 const getFileSearchPlaceholder = () => {
   switch (activeNavigation.value) {
     case 'myFiles':
@@ -259,7 +259,7 @@ const getFileSearchPlaceholder = () => {
   }
 }
 
-// 获取内容标题
+// 컨텐츠 제목 가져오기
 const getContentTitle = () => {
   const navigationTitles: { [key: string]: string } = {
     myFiles: t('fileManager.header.titles.myFiles'),
@@ -271,7 +271,7 @@ const getContentTitle = () => {
   return navigationTitles[activeNavigation.value] || t('fileManager.header.titles.default')
 }
 
-// 获取内容副标题
+// 컨텐츠 부제목 가져오기
 const getContentSubtitle = () => {
   const totalFiles = totalDisplayedFiles.value
 
@@ -325,17 +325,17 @@ const getEmptyStateTitle = () => {
   return navigationTitles[activeNavigation.value] || t('fileManager.empty.default')
 }
 
-// 清除搜索
+// 검색 초기화
 const clearSearch = () => {
   setSearchKeyword('')
 }
 
-// 清除用户筛选
+// 사용자 필터 초기화
 const clearUserFilter = () => {
   setSelectedUser('')
 }
 
-// 转换文件数据为 FileBody 格式
+// 파일 데이터를 FileBody 형식으로 변환
 const convertToFileBody = (file: any): FileBody => {
   return {
     fileName: file.fileName || '',

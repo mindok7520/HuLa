@@ -1,9 +1,9 @@
 <template>
-  <!-- 底部栏 -->
+  <!-- 하단 바 -->
   <main
     :class="[isMobile() ? 'flex-col w-full' : 'border-t-(1px solid [--right-chat-footer-line-color])']"
     class="h-full flex flex-col relative">
-    <!-- 添加遮罩层 -->
+    <!-- 마스크 레이어 추가 -->
     <div
       v-if="isSingleChat && !isFriend"
       :style="{ height: `${footerHeight}px` }"
@@ -19,14 +19,14 @@
     <ChatMsgMultiChoose v-if="chatStore.isMsgMultiChoose" />
 
     <div v-if="!chatStore.isMsgMultiChoose" class="color-[--icon-color] flex flex-col flex-1 min-h-0">
-      <!-- 输入框顶部选项栏 -->
+      <!-- 입력창 상단 옵션바 -->
       <n-flex
         v-if="!isMobile()"
         align="center"
         justify="space-between"
         class="p-[10px_22px_5px] select-none flex-shrink-0">
         <n-flex align="center" :size="0" class="input-options">
-          <!-- emoji表情 -->
+          <!-- 이모지 표정 -->
           <n-popover
             v-model:show="emojiShow"
             trigger="click"
@@ -56,7 +56,7 @@
                   </svg>
                 </template>
                 <div v-if="recentEmojis.length > 0" class="p-4px">
-                  <div class="text-xs text-gray-500 mb-4px">最近使用</div>
+                  <div class="text-xs text-gray-500 mb-4px">최근 사용</div>
                   <div class="flex flex-wrap gap-8px max-w-212px">
                     <div
                       v-for="(emoji, index) in recentEmojis"
@@ -176,7 +176,7 @@
         </n-popover>
       </n-flex>
 
-      <!-- 输入框区域 -->
+      <!-- 입력란 영역 -->
       <div :class="[isMobile() ? '' : 'pl-20px ']" class="flex flex-1 min-h-0">
         <MsgInput
           ref="MsgInputRef"
@@ -188,13 +188,13 @@
       </div>
     </div>
 
-    <!-- 位置选择弹窗 -->
+    <!-- 위치 선택 팝업 -->
     <LocationModal
       v-model:visible="showLocationModal"
       @location-selected="handleLocationSelected"
       @cancel="showLocationModal = false" />
 
-    <!-- 移动端输入框点击icon弹起的面板 -->
+    <!-- 모바일 입력란 아이콘 클릭 시 나타나는 패널 -->
     <Transition v-if="isMobile()" name="panel-slide">
       <div v-show="isPanelVisible" class="panel-container panel-container--fixed">
         <Transition name="panel-content" mode="out-in">
@@ -238,7 +238,7 @@ import { useDebounceFn } from '@vueuse/core'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
-// 移动端组件条件导入
+// 모바일 컴포넌트 조건부 임포트
 const More = isMobile() ? defineAsyncComponent(() => import('@/mobile/components/chat-room/panel/More.vue')) : void 0
 const VoicePanel = isMobile()
   ? defineAsyncComponent(() => import('@/mobile/components/chat-room/panel/VoicePanel.vue'))
@@ -274,27 +274,27 @@ const recentEmojis = computed(() => {
 })
 const { insertNodeAtRange, triggerInputEvent, processFiles, imgPaste } = useCommon()
 
-// 使用全局布局状态
+// 글로벌 레이아웃 상태 사용
 const { footerHeight, setFooterHeight } = useChatLayoutGlobal()
 
-// 使用窗口管理
+// 창 관리 사용
 const { createWebviewWindow } = useWindow()
 
-// 容器高度响应式状态
-const containerHeight = ref(600) // 默认高度
+// 컨테이너 높이 반응형 상태
+const containerHeight = ref(600) // 기본 높이
 
-// 动态计算最大高度
+// 최대 높이 동적 계산
 const maxHeight = computed(() => {
-  // 确保最大高度不超过390px，也不小于最小高度200px
+  // 최대 높이가 390px을 넘지 않고, 최소 높이 200px보다 작지 않도록 보장
   return Math.max(Math.min(MAX_FOOTER_HEIGHT), MIN_FOOTER_HEIGHT)
 })
 
-// 动态计算当前最小高度（根据录音模式状态）
+// 현재 최소 높이 동적 계산 (음성 녹음 모드 상태에 따라)
 const currentMinHeight = computed(() => {
   return MsgInputRef.value?.isVoiceMode ? FOOTER_HEIGHT : MIN_FOOTER_HEIGHT
 })
 
-// 监听maxHeight变化，确保footerHeight不超过最大值（即时响应）
+// maxHeight 변화 감지, footerHeight가 최대값을 넘지 않도록 보장 (즉시 응답)
 watch(
   maxHeight,
   (newMaxHeight) => {
@@ -308,7 +308,7 @@ watch(
   }
 )
 
-// 监听最小高度变化，确保footerHeight不低于最小值
+// 최소 높이 변화 감지, footerHeight가 최소값보다 낮아지지 않도록 보장
 watch(
   currentMinHeight,
   (newMinHeight) => {
@@ -322,16 +322,16 @@ watch(
   }
 )
 
-// 高效的尺寸变化监听
+// 효율적인 크기 변화 감지
 const observeContainerResize = () => {
   const chatContainer = document.querySelector('.h-full') || document.querySelector('[data-chat-container]')
   if (!chatContainer) return
-  // 设置初始高度
+  // 초기 높이 설정
   containerHeight.value = (chatContainer as HTMLElement).clientHeight
 }
 
 /**
- * 检查字符串是否为URL
+ * 문자열이 URL인지 확인
  */
 const checkIsUrl = (str: string) => {
   try {
@@ -342,18 +342,18 @@ const checkIsUrl = (str: string) => {
   }
 }
 
-// 最近使用的表情包在顶层快捷栏也优先使用本地渲染
+// 최근 사용한 이모지 팩은 최상위 퀵 바에서도 로컬 렌더링을 우선 사용
 const resolveRecentRenderUrl = (url: string) => {
   const matched = emojiStore.emojiList.find((item) => item.expressionUrl === url)
   return matched?.localUrl || url
 }
 
-// 判断是否为单聊
+// 1:1 채팅 여부 판단
 const isSingleChat = computed(() => {
   return globalStore.currentSession?.type === RoomTypeEnum.SINGLE
 })
 
-/** 是否是好友关系 */
+/** 친구 관계 여부 */
 const isFriend = computed(() => {
   if (!isSingleChat.value) return true
   const target = detailId.value
@@ -361,22 +361,22 @@ const isFriend = computed(() => {
   return contactStore.contactsList.some((contact: FriendItem) => contact.uid === target)
 })
 
-// 监听emojiShow的变化，当emojiShow为true时关闭recentlyTip
+// emojiShow 변화 감지, emojiShow가 true일 때 recentlyTip 닫기
 watch(emojiShow, (newValue) => {
   if (newValue === true) {
     recentlyTip.value = false
   }
 })
 
-// 文件选择（不限制类型）
+// 파일 선택 (유형 제한 없음)
 const handleFileOpen = async () => {
   const filesData = await FileUtil.openAndCopyFile()
   if (!filesData) return
-  // 使用processFiles方法进行文件类型验证
+  // processFiles 메서드를 사용하여 파일 유형 검증
   await processFiles(filesData.files, MsgInputRef.value.messageInputDom, MsgInputRef.value?.showFileModal)
 }
 
-// 图片选择（只能选择图片类型）
+// 이미지 선택 (이미지 유형만 선택 가능)
 const handleImageOpen = async () => {
   const selected = await open({
     multiple: true,
@@ -389,7 +389,7 @@ const handleImageOpen = async () => {
   })
 
   if (selected && Array.isArray(selected)) {
-    // 并行处理所有图片文件
+    // 모든 이미지 파일 병렬 처리
     const imagePromises = selected.map(async (path) => {
       const fileData = await readFile(path)
       const fileName = extractFileName(path)
@@ -401,36 +401,36 @@ const handleImageOpen = async () => {
 
     const files = await Promise.all(imagePromises)
 
-    // 将所有图片插入到输入框
+    // 모든 이미지를 입력창에 삽입
     for (const file of files) {
       await imgPaste(file, MsgInputRef.value.messageInputDom)
     }
   }
 }
 
-// 使用 VueUse 的防抖函数处理表情包发送（300ms 防抖）
+// VueUse의 디바운스 함수를 사용하여 이모지 팩 전송 처리 (200ms 디바운스)
 type EmojiUrlPayload = { renderUrl: string; serverUrl: string }
 
 const sendEmojiWithDebounce = useDebounceFn((payload: EmojiUrlPayload) => {
   try {
-    // 不等待发送完成，立即返回（避免卡顿）
+    // 전송 완료를 기다리지 않고 즉시 반환 (지연 방지)
     MsgInputRef.value?.sendEmojiDirect(payload.serverUrl).catch((error: unknown) => {
-      console.error('[ChatFooter] 发送表情包失败:', error)
-      window.$message?.error?.('发送表情包失败')
+      console.error('[ChatFooter] 이모지 팩 전송 실패:', error)
+      window.$message?.error?.('이모지 팩 전송 실패')
     })
 
-    // 添加到最近使用表情列表
+    // 최근 사용 이모지 목록에 추가
     updateRecentEmojis(payload.serverUrl)
   } catch (error) {
-    console.error('[ChatFooter] 发送表情包失败:', error)
-    window.$message?.error?.('发送表情包失败')
+    console.error('[ChatFooter] 이모지 팩 전송 실패:', error)
+    window.$message?.error?.('이모지 팩 전송 실패')
   }
 }, 200)
 
 /**
- * 选择表情，并把表情插入输入框
- * @param item 选择的表情
- * @param type 表情类型，'emoji' 为普通表情，'emoji-url' 为表情包URL
+ * 이모지 선택 및 입력창에 삽입
+ * @param item 선택한 이모지
+ * @param type 이모지 유형, 'emoji'는 일반 이모지, 'emoji-url'은 이모지 팩 URL
  */
 const emojiHandle = async (item: string | EmojiUrlPayload, type: 'emoji' | 'emoji-url' = 'emoji') => {
   emojiShow.value = false
@@ -443,7 +443,7 @@ const emojiHandle = async (item: string | EmojiUrlPayload, type: 'emoji' | 'emoj
   const isEmojiUrlPayload = (value: any): value is EmojiUrlPayload =>
     value && typeof value === 'object' && typeof value.serverUrl === 'string'
 
-  // 移动端且是表情包URL时，使用防抖发送（发送服务端URL）
+  // 모바일 환경이고 이모지 팩 URL인 경우 디바운스 전송 사용 (서버 URL 전송)
   if (isMobile() && type === 'emoji-url') {
     const payload: EmojiUrlPayload = isEmojiUrlPayload(item)
       ? item
@@ -452,14 +452,14 @@ const emojiHandle = async (item: string | EmojiUrlPayload, type: 'emoji' | 'emoj
     return
   }
 
-  // 桌面端或普通emoji，插入到输入框
-  // 确保输入框有焦点
+  // 데스크톱 또는 일반 이모지, 입력창에 삽입
+  // 입력창 포커스 유지
   MsgInputRef.value?.focus()
 
-  // 尝试获取最后的编辑范围
+  // 마지막 편집 범위 가져오기 시도
   let lastEditRange: SelectionRange | null = MsgInputRef.value?.getLastEditRange()
 
-  // 如果没有最后的编辑范围，尝试获取当前选区
+  // 마지막 편집 범위가 없으면 현재 선택 영역 가져오기 시도
   if (!lastEditRange) {
     const selection = window.getSelection()
     if (selection && selection.rangeCount > 0) {
@@ -468,7 +468,7 @@ const emojiHandle = async (item: string | EmojiUrlPayload, type: 'emoji' | 'emoj
         selection
       }
     } else {
-      // 如果没有选区，创建一个新的范围到最后
+      // 선택 영역이 없으면 마지막에 새 범위 생성
       const range = document.createRange()
       range.selectNodeContents(inp)
       range.collapse(false)
@@ -479,14 +479,14 @@ const emojiHandle = async (item: string | EmojiUrlPayload, type: 'emoji' | 'emoj
     }
   }
 
-  // 清空上下文选区并设置新的选区
+  // 컨텍스트 선택 영역을 비우고 새 선택 영역 설정
   const selection = window.getSelection()
   if (selection) {
     selection.removeAllRanges()
     selection.addRange(lastEditRange.range)
   }
 
-  // 根据内容类型插入不同的节点
+  // 콘텐츠 유형에 따라 다른 노드 삽입
   if (type === 'emoji-url') {
     const payload: EmojiUrlPayload = isEmojiUrlPayload(item)
       ? item
@@ -494,21 +494,21 @@ const emojiHandle = async (item: string | EmojiUrlPayload, type: 'emoji' | 'emoj
     const renderUrl = payload.renderUrl || payload.serverUrl
     const serverUrl = payload.serverUrl || payload.renderUrl
     if (!renderUrl) return
-    // 如果是URL，创建图片元素并插入
+    // URL인 경우 이미지 요소 생성 및 삽입
     const imgElement = document.createElement('img')
     imgElement.src = renderUrl
     imgElement.style.maxWidth = '80px'
     imgElement.style.maxHeight = '80px'
-    // 设置数据类型，区分是普通图片还是表情包
+    // 데이터 유형 설정, 일반 이미지와 이모지 팩 구분
     imgElement.dataset.type = 'emoji'
     if (serverUrl) {
       imgElement.dataset.serverUrl = serverUrl
     }
 
-    // 在用户光标位置插入表情包
+    // 사용자 커서 위치에 이모지 팩 삽입
     lastEditRange.range.insertNode(imgElement)
 
-    // 移动光标到图片后面
+    // 커서를 이미지 뒤로 이동
     const range = document.createRange()
     range.setStartAfter(imgElement)
     range.collapse(true)
@@ -519,16 +519,16 @@ const emojiHandle = async (item: string | EmojiUrlPayload, type: 'emoji' | 'emoj
     insertNodeAtRange(MsgEnum.TEXT, emojiText, inp, lastEditRange)
   }
 
-  // 记录新的选区位置
+  // 새 선택 영역 위치 기록
   MsgInputRef.value?.updateSelectionRange()
 
-  // 触发输入事件
+  // 입력 이벤트 트리거
   triggerInputEvent(inp)
 
-  // 保持焦点在输入框
+  // 입력창 포커스 유지
   MsgInputRef.value?.focus()
 
-  // 添加到最近使用表情列表
+  // 최근 사용 이모지 목록에 추가
   if (type === 'emoji-url') {
     const payload: EmojiUrlPayload = isEmojiUrlPayload(item)
       ? item
@@ -540,7 +540,7 @@ const emojiHandle = async (item: string | EmojiUrlPayload, type: 'emoji' | 'emoj
 }
 
 /**
- * 更新最近使用的表情列表
+ * 최근 사용 이모지 목록 업데이트
  */
 const updateRecentEmojis = (emoji: string) => {
   const currentEmojis = [...historyStore.emoji]
@@ -554,41 +554,41 @@ const updateRecentEmojis = (emoji: string) => {
 }
 
 const handleVoiceRecord = () => {
-  // 触发录音模式切换事件
+  // 음성 녹음 모드 전환 이벤트 트리거
   useMitt.emit(MittEnum.VOICE_RECORD_TOGGLE)
 }
 
-// 处理位置选择
+// 위치 선택 처리
 const handleLocationSelected = async (locationData: any) => {
   try {
     await MsgInputRef.value.handleLocationSelected(locationData)
     showLocationModal.value = false
   } catch (error) {
-    console.error('发送位置消息失败:', error)
+    console.error('위치 메시지 전송 실패:', error)
   }
 }
 
-// 打开聊天记录窗口
+// 채팅 기록 창 열기
 const openChatHistory = async () => {
   const currentRoomId = globalStore.currentSessionRoomId
 
-  // 创建聊天记录窗口
-  await createWebviewWindow('聊天记录', 'chat-history', 800, 600, undefined, true, 600, 400, false, false, {
+  // 채팅 기록 창 생성
+  await createWebviewWindow('채팅 기록', 'chat-history', 800, 600, undefined, true, 600, 400, false, false, {
     roomId: currentRoomId
   })
 }
 
 /**
  *
- * 移动端代码（开始）
+ * 모바일 코드 (시작)
  *
  *
  */
 
-// 移动端面板状态 - 从 MsgInput 同步过来
+// 모바일 패널 상태 - MsgInput에서 동기화
 const mobilePanelState = ref<MobilePanelStateEnum>(MobilePanelStateEnum.NONE)
 
-// 计算面板是否可见
+// 패널 가시성 계산
 const isPanelVisible = computed(() => {
   return (
     mobilePanelState.value === MobilePanelStateEnum.EMOJI ||
@@ -597,24 +597,24 @@ const isPanelVisible = computed(() => {
   )
 })
 
-/** 点击更多按钮 */
+/** 더 보기 버튼 클릭 */
 const handleMoreClick = (value: { panelState: MobilePanelStateEnum }) => {
   mobilePanelState.value = value.panelState
 }
 
-/** 点击表情按钮 */
+/** 이모지 버튼 클릭 */
 const handleEmojiClick = (value: { panelState: MobilePanelStateEnum }) => {
   mobilePanelState.value = value.panelState
 }
 
-/** 点击语音按钮 */
+/** 음성 버튼 클릭 */
 const handleVoiceClick = (value: { panelState: MobilePanelStateEnum }) => {
   mobilePanelState.value = value.panelState
 }
 
-/** 自定义聚焦事件 */
+/** 사용자 정의 포커스 이벤트 */
 const handleCustomFocus = (value: { panelState: MobilePanelStateEnum }) => {
-  // 如果是聚焦状态，关闭面板
+  // 포커스 상태인 경우 패널 닫기
   if (value.panelState === MobilePanelStateEnum.FOCUS) {
     mobilePanelState.value = MobilePanelStateEnum.NONE
   } else {
@@ -622,21 +622,21 @@ const handleCustomFocus = (value: { panelState: MobilePanelStateEnum }) => {
   }
 }
 
-/** 取消语音录制 */
+/** 음성 녹음 취소 */
 const handleMobileVoiceCancel = () => {
   useMitt.emit(MittEnum.MOBILE_CLOSE_PANEL)
-  // 重置状态
+  // 상태 재설정
   mobilePanelState.value = MobilePanelStateEnum.NONE
 }
 
-/** 发送语音消息 */
+/** 음성 메시지 전송 */
 const handleMobileVoiceSend = async (voiceData: any) => {
   try {
     await MsgInputRef.value?.sendVoiceDirect(voiceData)
   } catch (error) {
-    console.error('发送语音失败', error)
+    console.error('음성 전송 실패', error)
   }
-  // 发送后关闭面板
+  // 전송 후 패널 닫기
   handleMobileVoiceCancel()
 }
 
@@ -645,33 +645,33 @@ const handleMoreSendFiles = async (files: File[]) => {
   try {
     await MsgInputRef.value?.sendFilesDirect(files)
   } catch (error) {
-    console.error('移动端发送文件失败:', error)
-    window.$message?.error?.('发送文件失败')
+    console.error('모바일 파일 전송 실패:', error)
+    window.$message?.error?.('파일 전송 실패')
   }
 }
 
-/** 处理发送事件 */
+/** 전송 이벤트 처리 */
 const handleSend = () => {
-  // 发送后不关闭面板，保持当前状态
+  // 전송 후 패널을 닫지 않고 현재 상태 유지
   // mobilePanelState.value = MobilePanelStateEnum.NONE
 }
 
 /**
- * 监听移动端关闭面板事件
+ * 모바일 패널 닫기 이벤트 리스너
  */
 const listenMobilePanelHandler = () => {
   mobilePanelState.value = MobilePanelStateEnum.NONE
 }
 
 /**
- * 监听移动端关闭面板事件
+ * 모바일 패널 닫기 이벤트 리스너
  */
 const listenMobileClosePanel = () => {
   useMitt.on(MittEnum.MOBILE_CLOSE_PANEL, listenMobilePanelHandler)
 }
 
 /**
- * 移除移动端关闭面板事件
+ * 모바일 패널 닫기 이벤트 리스너 제거
  */
 const removeMobileClosePanel = () => {
   useMitt.off(MittEnum.MOBILE_CLOSE_PANEL, listenMobilePanelHandler)
@@ -679,18 +679,19 @@ const removeMobileClosePanel = () => {
 
 /**
  *
- * 移动端代码（结束）
+ * 모바일 코드 (종료)
+ *
  *
  */
 
 onMounted(async () => {
   if (isMobile()) {
-    // 监听移动端关闭面板事件
+    // 모바일 패널 닫기 이벤트 리스너
     listenMobileClosePanel()
   }
 
   await nextTick()
-  // 启动高效的容器尺寸监听
+  // 효율적인 컨테이너 크기 리스너 시작
   observeContainerResize()
 
   if (MsgInputRef.value) {
@@ -700,7 +701,7 @@ onMounted(async () => {
 
 onUnmounted(() => {
   if (isMobile()) {
-    // 移除移动端关闭面板事件
+    // 모바일 패널 닫기 이벤트 제거
     removeMobileClosePanel()
   }
 })
@@ -783,9 +784,9 @@ onUnmounted(() => {
   padding: 0;
 }
 
-// 移动端样式（下面都是）
+// 모바일 스타일 (이하 동일)
 
-/* 面板容器样式 */
+/* 패널 컨테이너 스타일 */
 .panel-container {
   width: 100%;
   overflow: hidden;
@@ -799,7 +800,7 @@ onUnmounted(() => {
   height: 18rem;
 }
 
-/* 使用 transform 实现高性能动画 - 从下往上滑出 */
+/* transform을 사용한 고성능 애니메이션 - 아래에서 위로 슬라이드 */
 .panel-slide-enter-active,
 .panel-slide-leave-active {
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);

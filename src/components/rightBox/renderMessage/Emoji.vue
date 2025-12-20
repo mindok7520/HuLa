@@ -38,7 +38,7 @@
       </template>
     </n-image>
 
-    <!-- 移动端表情包预览 -->
+    <!-- 모바일 이모티콘 미리보기 -->
     <component
       :is="ImagePreview"
       v-if="ImagePreview"
@@ -63,7 +63,7 @@ const props = defineProps<{
   onImageClick?: (url: string) => void
   message?: MsgType
 }>()
-// 允许父组件透传 class / data-* 等到包裹 div，避免 Fragment 导致的非 Props 警告
+// 부모 컴포넌트에서 class / data-* 등을 div로 전달할 수 있도록 설정하며, Fragment로 인한 Props 경고를 방지합니다.
 defineOptions({
   inheritAttrs: false
 })
@@ -79,7 +79,7 @@ const displayEmojiSrc = computed(() => localEmojiSrc.value || props.body?.url ||
 
 const handleImageError = () => {
   isError.value = true
-  console.error('表情包加载失败:', props.body.url)
+  console.error('이모티콘 로드 실패:', props.body.url)
 }
 
 const handleOpenImage = () => {
@@ -115,7 +115,7 @@ const ensureLocalEmoji = async () => {
       return
     }
   } catch (error) {
-    console.warn('[Emoji] 检查本地表情失败:', error)
+    console.warn('[Emoji] 로컬 이모티콘 확인 실패:', error)
   }
   localEmojiSrc.value = null
   await maybeDownloadEmoji()
@@ -138,7 +138,7 @@ const maybeDownloadEmoji = async () => {
       localEmojiSrc.value = convertFileSrc(path)
     }
   } catch (error) {
-    console.warn('[Emoji] 自动下载失败:', error)
+    console.warn('[Emoji] 자동 다운로드 실패:', error)
   }
 }
 

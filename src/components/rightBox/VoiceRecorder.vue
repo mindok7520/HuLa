@@ -1,8 +1,8 @@
 <template>
   <div class="voice-recorder-container">
-    <!-- 录音状态显示 -->
+    <!-- 녹음 상태 표시 -->
     <div class="voice-recorder-main">
-      <!-- 录音状态文字 -->
+      <!-- 녹음 상태 텍스트 -->
       <div class="voice-status">
         <div v-if="!isRecording && !audioBlob && !isProcessing">
           <span class="text-#909090 flex-y-center gap-6px select-none">
@@ -41,9 +41,9 @@
         </div>
       </div>
 
-      <!-- 录音控制按钮 -->
+      <!-- 녹음 제어 버튼 -->
       <div class="voice-controls">
-        <!-- 未录音状态 -->
+        <!-- 녹음 대기 상태 -->
         <div v-if="!isRecording && !audioBlob && !isProcessing" class="controls-idle">
           <div
             @mousedown="startRecording"
@@ -59,7 +59,7 @@
           </div>
         </div>
 
-        <!-- 录音中状态 -->
+        <!-- 녹음 중 상태 -->
         <div v-if="isRecording" class="controls-recording">
           <div @click="stopRecording" class="stop-btn">
             <svg viewBox="0 0 24 24">
@@ -71,14 +71,14 @@
           </div>
         </div>
 
-        <!-- 处理中状态 -->
+        <!-- 처리 중 상태 -->
         <div v-if="!isRecording && isProcessing" class="controls-processing">
           <!-- <div @click="handleCancel" class="cancel-btn">
             <svg><use href="#close"></use></svg>
           </div> -->
         </div>
 
-        <!-- 录音完成状态 -->
+        <!-- 녹음 완료 상태 -->
         <div v-if="!isRecording && audioBlob && !isProcessing" class="controls-completed">
           <div @click="reRecord" class="refresh-btn">
             <svg><use href="#refresh"></use></svg>
@@ -102,24 +102,24 @@ import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
 
-// 事件定义
+// 이벤트 정의
 const emit = defineEmits<{
   cancel: []
   send: [voiceData: any]
 }>()
 
-// 录音状态
+// 녹음 상태
 const audioBlob = ref<Blob | null>(null)
 const recordingDuration = ref(0)
 const sending = ref(false)
 const localAudioPath = ref<string>('')
 
-// 播放状态
+// 재생 상태
 const isPlaying = ref(false)
 const isProcessing = ref(false)
 const audioElement = ref<HTMLAudioElement | null>(null)
 
-// 语音录制功能
+// 음성 녹음 기능
 const {
   isRecording,
   recordingTime,
@@ -129,10 +129,10 @@ const {
   formatTime
 } = useVoiceRecordRust({
   onStart: () => {
-    console.log('开始录音')
+    console.log('녹음 시작')
   },
   onStop: (blob, duration, localPath) => {
-    console.log('录音结束', duration, '本地路径:', localPath)
+    console.log('녹음 종료', duration, '로컬 경로:', localPath)
     audioBlob.value = blob
     recordingDuration.value = duration
     localAudioPath.value = localPath
@@ -145,12 +145,12 @@ const {
   }
 })
 
-// 开始录音
+// 녹음 시작
 const startRecording = async () => {
   await startRecord()
 }
 
-// 停止录音
+// 녹음 중지
 const stopRecording = async () => {
   if (isRecording.value) {
     isProcessing.value = true
@@ -158,9 +158,9 @@ const stopRecording = async () => {
   await stopRecord()
 }
 
-// 重置录音状态
+// 녹음 상태 초기화
 const resetRecordingState = () => {
-  // 清理音频播放器
+  // 오디오 플레이어 정리
   if (audioElement.value) {
     audioElement.value.pause()
     if (audioElement.value.src) {
@@ -169,7 +169,7 @@ const resetRecordingState = () => {
     audioElement.value = null
   }
 
-  // 重置所有状态
+  // 모든 상태 초기화
   audioBlob.value = null
   recordingDuration.value = 0
   localAudioPath.value = ''
@@ -177,7 +177,7 @@ const resetRecordingState = () => {
   isProcessing.value = false
 }
 
-// 取消录音
+// 녹음 취소
 const cancelRecording = () => {
   cancelRecord()
   audioBlob.value = null
@@ -185,12 +185,12 @@ const cancelRecording = () => {
   isProcessing.value = false
 }
 
-// 重新录制
+// 재녹음
 const reRecord = () => {
   resetRecordingState()
 }
 
-// 创建音频元素用于播放
+// 재생용 오디오 요소 생성
 const createAudioElement = () => {
   if (audioBlob.value) {
     const url = URL.createObjectURL(audioBlob.value)
@@ -202,7 +202,7 @@ const createAudioElement = () => {
   }
 }
 
-// 切换播放状态
+// 재생 상태 전환
 const togglePlayback = () => {
   if (audioElement.value) {
     if (isPlaying.value) {
@@ -214,18 +214,18 @@ const togglePlayback = () => {
   }
 }
 
-// 发送语音
+// 음성 전송
 const handleSend = async () => {
   if (!audioBlob.value || !localAudioPath.value) {
-    console.log('🎤 缺少音频数据，退出发送')
+    console.log('🎤 오디오 데이터 없음, 전송 취소')
     return
   }
 
   try {
     sending.value = true
 
-    // 直接使用本地路径，不需要重新上传文件
-    // 这样和其他文件发送逻辑保持一致，都是先缓存到本地再处理
+    // 로컬 경로를 직접 사용, 파일 재업로드 불필요
+    // 다른 파일 전송 로직과 일관성 유지 (먼저 로컬에 캐시 후 처리)
     const voiceData = {
       localPath: localAudioPath.value,
       size: audioBlob.value.size,
@@ -234,21 +234,21 @@ const handleSend = async () => {
       type: 'audio/mp3'
     }
 
-    console.log('🎤 发送语音数据:', voiceData)
+    console.log('🎤 음성 데이터 전송:', voiceData)
     emit('send', voiceData)
 
-    // 发送后立即重置状态，避免下次打开时还显示这条录音
+    // 전송 후 즉시 상태 초기화하여 다음에 열 때 이 녹음이 표시되지 않도록 함
     resetRecordingState()
   } catch (error) {
-    console.error('🎤 发送语音失败:', error)
+    console.error('🎤 음성 전송 실패:', error)
   } finally {
     sending.value = false
   }
 }
 
-// 取消/关闭
+// 취소/닫기
 const handleCancel = () => {
-  // 清理资源
+  // 리소스 정리
   if (audioElement.value) {
     audioElement.value.pause()
     URL.revokeObjectURL(audioElement.value.src)
@@ -257,7 +257,7 @@ const handleCancel = () => {
   emit('cancel')
 }
 
-// 生命周期
+// 라이프사이클
 onUnmounted(() => {
   if (audioElement.value) {
     audioElement.value.pause()

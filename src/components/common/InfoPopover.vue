@@ -1,7 +1,7 @@
 <template>
-  <!-- 个人信息框 -->
+  <!-- 개인 정보 상자 -->
   <n-flex vertical :size="26" class="size-fit box-border rounded-8px relative min-h-[300px] select-none cursor-default">
-    <!-- 背景 -->
+    <!-- 배경 -->
     <img
       class="absolute rounded-t-8px z-2 top-0 left-0 w-full h-100px"
       :class="
@@ -26,7 +26,7 @@
             :fallback-src="themes.content === ThemeEnum.DARK ? '/logoL.png' : '/logoD.png'" />
         </div>
 
-        <!-- 在线状态点 -->
+        <!-- 온라인 상태 표시 점 -->
         <template v-if="!statusIcon">
           <n-popover trigger="hover" placement="top" :show-arrow="false">
             <template #trigger>
@@ -52,7 +52,7 @@
           </n-popover>
         </template>
 
-        <!-- 独立的状态图标 -->
+        <!-- 독립적인 상태 아이콘 -->
         <template v-if="statusIcon">
           <n-popover trigger="hover" placement="top" :show-arrow="false">
             <template #trigger>
@@ -100,7 +100,7 @@
           </span>
         </n-flex>
 
-        <!-- 账号 -->
+        <!-- 계정 -->
         <n-flex align="center" :size="10">
           <n-flex align="center" :size="12">
             <p class="text-[--info-text-color]">{{ t('home.profile_card.labels.account') }}</p>
@@ -117,14 +117,14 @@
         </n-flex>
       </n-flex>
 
-      <!-- 地址 -->
+      <!-- 주소 -->
       <n-flex align="center" :size="26" class="select-none">
         <span class="text-[--info-text-color]">{{ t('home.profile_card.labels.location') }}</span>
         <span class="text-(13px [--chat-text-color])">
           {{ groupStore.getUserInfo(uid)?.locPlace || t('home.profile_card.location_unknown') }}
         </span>
       </n-flex>
-      <!-- 获得的徽章 -->
+      <!-- 획득한 배지 -->
       <n-flex v-if="groupStore.getUserInfo(uid)?.itemIds" :size="26" class="select-none">
         <span class="text-[--info-text-color]">{{ t('home.profile_card.labels.badges') }}</span>
         <n-flex :size="8">
@@ -155,7 +155,7 @@
           </template>
         </n-flex>
       </n-flex>
-      <!-- 动态 -->
+      <!-- 동영상 -->
       <n-flex :size="40" class="select-none">
         <span class="text-[--info-text-color]">{{ t('home.profile_card.labels.activities') }}</span>
         <n-image-group>
@@ -221,38 +221,38 @@ const cachedStore = useCachedStore()
 const { stateList } = storeToRefs(userStatusStore)
 
 const resolvedUserInfo = computed(() => groupStore.getUserInfo(uid) ?? null)
-/** 头像加载状态 */
+/** 아바타 로딩 상태 */
 const badgeLoadedMap = ref<Record<string, boolean>>({})
 const avatarSrc = computed(() => AvatarUtils.getAvatarUrl((resolvedUserInfo.value?.avatar as string) || ''))
-/** 是否是当前登录的用户 */
+/** 현재 로그인한 사용자인지 확인 */
 const isCurrentUserUid = computed(() => userUid.value === uid)
-/** 是否是我的好友 */
+/** 내 친구인지 확인 */
 const isMyFriend = computed(() => !!contactStore.contactsList.find((item) => item.uid === uid))
-/** 是否为群聊 */
+/** 그룹 채팅 여부 */
 const isGroupChat = computed<boolean>(() => chatStore.isGroup)
-/** 当前会话 roomId */
+/** 현재 세션 roomId */
 const currentRoomId = computed(() => globalStore.currentSessionRoomId)
-/** 当前房间用户信息 */
+/** 현재 방 사용자 정보 */
 const currentRoomUserInfo = computed(() => {
   if (!isGroupChat.value || !currentRoomId.value) return null
   return groupStore.getUserInfo(uid, currentRoomId.value) ?? null
 })
-/** 群昵称 */
+/** 그룹 닉네임 */
 const groupNickname = computed(() => {
   if (!currentRoomUserInfo.value) return ''
   const nickname = currentRoomUserInfo.value.myName?.trim()
   return nickname || ''
 })
-// 显示的在线状态
+// 표시되는 온라인 상태
 const displayActiveStatus = computed(() => {
   return resolvedUserInfo.value?.activeStatus ?? OnlineEnum.OFFLINE
 })
 
-// 计算当前用户状态图标
+// 현재 사용자 상태 아이콘 계산
 const statusIcon = computed(() => {
   const userStateId = resolvedUserInfo.value?.userStateId
 
-  // 如果在线且有特殊状态
+  // 온라인이고 특수 상태가 있는 경우
   if (userStateId && userStateId !== '1') {
     const state = stateList.value.find((s: { id: string }) => s.id === userStateId)
     if (state) {
@@ -262,7 +262,7 @@ const statusIcon = computed(() => {
   return null
 })
 
-// 计算当前状态的标题
+// 현재 상태 타이틀 계산
 const currentStateTitle = computed(() => {
   const userStateId = resolvedUserInfo.value?.userStateId
 
@@ -283,7 +283,7 @@ const openEditInfo = () => {
   }
 }
 
-// 处理复制账号
+// 계정 복사 처리
 const handleCopy = () => {
   const account = groupStore.getUserInfo(uid)?.account
   if (account) {
@@ -301,12 +301,12 @@ const addFriend = async () => {
 let enableScroll = () => {}
 
 const handleOpenMsgSession = async (uid: string) => {
-  enableScroll() // 在打开新会话前恢复所有滚动
+  enableScroll() // 새 세션을 열기 전에 모든 스크롤 복구
   await openMsgSession(uid)
 }
 
 onMounted(() => {
-  // 注入 enableAllScroll 方法
+  // enableAllScroll 메서드 주입
   const popoverControls = inject('popoverControls', { enableScroll: () => {} })
   enableScroll = () => {
     if (typeof popoverControls.enableScroll === 'function') {

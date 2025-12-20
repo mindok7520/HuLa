@@ -1,5 +1,5 @@
 <template>
-  <!-- 公告消息 -->
+  <!-- 공지 메시지 -->
   <n-flex vertical :size="0" class="h-170px bg-[--group-notice-bg] rounded-8px custom-shadow" :style="cardStyle">
     <n-flex class="h-34px px-12px select-none cursor-default" align="center" justify="space-between">
       <n-flex align="center" :size="8">
@@ -78,12 +78,12 @@ const openAnnouncementDetail = async () => {
     return
   }
 
-  // 判断是否为手机端
+  // 모바일 환경인지 확인
   if (isMobile()) {
-    // 手机端跳转到详情页
+    // 모바일은 상세 페이지로 이동
     router.push(`/mobile/chatRoom/notice/detail/${props.body.id}`)
   } else {
-    // 桌面端打开新窗口
+    // 데스크톱은 새 창 열기
     await createWebviewWindow(t('components.announcementCard.windowTitle'), `announList/${roomId}/1`, 420, 620)
   }
 }

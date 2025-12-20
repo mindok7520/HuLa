@@ -2,7 +2,7 @@
   <div
     v-if="chatStore.isMsgMultiChoose && chatStore.msgMultiChooseMode !== 'forward' && !showModal"
     class="relative flex-center gap-22px h-full">
-    <!-- 功能模块 -->
+    <!-- 기능 모듈 -->
     <div class="flex items-start gap-14px">
       <div class="flex flex-col items-center gap-14px w-64px" v-for="opt in opts">
         <n-button :disabled="opt.disabled" secondary circle @click="opt.click" class="size-46px mx-auto">
@@ -35,7 +35,7 @@
       </svg>
       <div class="pt-8px flex flex-col select-none">
         <div class="flex flex-row">
-          <!-- 搜索会话 -->
+          <!-- 대화 검색 -->
           <div class="flex-1 h-64vh bg-#e3e3e360 dark:bg-#222 rounded-8px px-12px mt-6px flex flex-col">
             <n-input
               id="search"
@@ -65,7 +65,7 @@
               </template>
             </n-scrollbar>
           </div>
-          <!-- 已选择会话 -->
+          <!-- 선택된 대화 -->
           <div class="flex-1 min-w-0 h-64vh px-12px pt-4px flex flex-col">
             <p class="text-(12px #909090) pb-10px">{{ t('message.multi_choose.send_to_separately') }}</p>
             <n-scrollbar class="flex-1">
@@ -251,7 +251,7 @@ const handleBatchDelete = async () => {
     useMitt.emit(MittEnum.UPDATE_SESSION_LAST_MSG, { roomId })
     showDeleteConfirm.value = false
   } catch (error) {
-    console.error('批量删除消息失败:', error)
+    console.error('메시지 일괄 삭제 실패:', error)
     window.$message?.error(t('message.multi_choose.delete_failed_retry'))
   } finally {
     isDeleting.value = false
@@ -280,10 +280,10 @@ const opts = computed(() => [
     }
   },
   // {
-  //   text: '收藏',
+  //   text: '컬렉션',
   //   icon: '#collect',
   //   click: () => {
-  //     window.$message.warning('暂未实现')
+  //     window.$message.warning('아직 구현되지 않았습니다.')
   //   }
   // },
   {
@@ -343,7 +343,7 @@ const sendMsg = async () => {
       window.$message.success(t('message.multi_choose.forward_success'))
     })
     .catch((e) => {
-      console.error('消息转发失败', e)
+      console.error('메시지 전달 실패', e)
       window.$message.error(t('message.multi_choose.forward_failed'))
     })
     .finally(() => {
@@ -364,7 +364,7 @@ useMitt.on(MittEnum.MSG_MULTI_CHOOSE, (payload?: { action?: string; mergeType?: 
 })
 </script>
 <style scoped>
-/**! 修改naive-ui复选框的样式 */
+/**! Naive UI 체크박스 스타일 수정 */
 :deep(.n-checkbox .n-checkbox-box) {
   border-radius: 50%;
   width: 16px;

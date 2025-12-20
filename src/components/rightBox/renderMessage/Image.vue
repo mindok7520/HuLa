@@ -39,7 +39,7 @@
       </template>
     </n-image>
 
-    <!-- 图片预览组件 -->
+    <!-- 이미지 미리보기 컴포넌트 -->
     <component
       :is="ImagePreview"
       v-if="ImagePreview"
@@ -66,7 +66,7 @@ const props = defineProps<{
   onImageClick?: (url: string) => void
   message: MsgType
 }>()
-// 图片显示相关常量
+// 이미지 표시 관련 상수
 const MOBILE_MAX_WIDTH_RATIO = 0.7
 const MAX_WIDTH = isMobile()
   ? Math.round((typeof window !== 'undefined' ? window.innerWidth : 0) * MOBILE_MAX_WIDTH_RATIO) || 240
@@ -75,22 +75,22 @@ const MAX_HEIGHT = 240
 const MIN_WIDTH = 60
 const MIN_HEIGHT = 60
 const THUMB_QUALITY = 60
-// 错误状态控制
+// 에러 상태 제어
 const isError = ref(false)
-// 使用图片查看器hook
+// 이미지 뷰어 hook 사용
 const { openImageViewer } = useImageViewer()
 const showImagePreviewRef = ref(false)
 const imagesRef = ref<string[]>([])
 const thumbnailStore = useThumbnailCacheStore()
 const localThumbnailSrc = ref<string | null>(null)
 
-// 处理图片加载错误
+// 이미지 로드 오류 처리
 const handleImageError = () => {
   isError.value = true
 }
 
 const handleOpenImage = () => {
-  if (!isMobile()) return // 非移动端直接返回
+  if (!isMobile()) return // 모바일이 아니면 바로 반환
 
   if (props.body?.url) {
     imagesRef.value = [props.body.url]
@@ -98,14 +98,14 @@ const handleOpenImage = () => {
   }
 }
 
-// 处理打开图片查看器
+// 이미지 뷰어 열기 처리
 const handleOpenImageViewer = () => {
   if (isMobile()) {
     return
   }
 
   if (props.body?.url) {
-    // 如果有自定义点击处理函数，使用它；否则使用默认逻辑
+    // 사용자 정의 클릭 처리 함수가 있으면 사용하고, 없으면 기본 로직 사용
     if (props.onImageClick) {
       props.onImageClick(props.body.url)
     } else {
@@ -115,7 +115,7 @@ const handleOpenImageViewer = () => {
 }
 
 /**
- * 计算图片样式
+ * 이미지 스타일 계산
  */
 const remoteThumbnailSrc = computed(() => {
   const originalUrl = props.body?.url
@@ -160,7 +160,7 @@ const ensureLocalThumbnail = async () => {
       return
     }
   } catch (error) {
-    console.warn('[Image] 检查缩略图文件失败:', error)
+    console.warn('[Image] 썸네일 파일 확인 실패:', error)
   }
   localThumbnailSrc.value = null
   thumbnailStore.invalidate(downloadKey.value)
@@ -185,11 +185,11 @@ watch(
 )
 
 const imageStyle = computed(() => {
-  // 如果有原始尺寸，使用原始尺寸计算
+  // 원본 크기가 있으면 원본 크기로 계산
   let width = props.body?.width
   let height = props.body?.height
 
-  // 如果没有原始尺寸，使用默认尺寸
+  // 원본 크기가 없으면 기본 크기 사용
   if (!width || !height) {
     width = MAX_WIDTH
     height = MAX_HEIGHT
@@ -199,24 +199,24 @@ const imageStyle = computed(() => {
   let finalWidth = width
   let finalHeight = height
 
-  // 如果图片太大,需要等比缩放
+  // 이미지가 너무 크면 비율에 맞춰 축소
   if (width > MAX_WIDTH || height > MAX_HEIGHT) {
     if (width / height > MAX_WIDTH / MAX_HEIGHT) {
-      // 宽度超出更多,以最大宽度为基准缩放
+      // 너비가 더 많이 초과된 경우, 최대 너비를 기준으로 축소
       finalWidth = MAX_WIDTH
       finalHeight = MAX_WIDTH / aspectRatio
     } else {
-      // 高度超出更多,以最大高度为基准缩放
+      // 높이가 더 많이 초과된 경우, 최대 높이를 기준으로 축소
       finalHeight = MAX_HEIGHT
       finalWidth = MAX_HEIGHT * aspectRatio
     }
   }
 
-  // 确保不小于最小尺寸
+  // 최소 크기보다 작지 않도록 설정
   finalWidth = Math.max(finalWidth, MIN_WIDTH)
   finalHeight = Math.max(finalHeight, MIN_HEIGHT)
 
-  // 向上取整避免小数导致的抖动
+  // 소수점으로 인한 떨림 방지를 위해 올림 처리
   return {
     width: `${Math.ceil(finalWidth)}px`,
     height: `${Math.ceil(finalHeight)}px`

@@ -1,5 +1,5 @@
 <template>
-  <!-- 消息为机器人消息时 -->
+  <!-- 봇 메시지일 때 -->
   <main class="w-full flex-center">
     <div
       class="chat-message-max-width dark:bg-[#fbb99020] bg-[#fbb99030] dark:border-(1px solid #fbb99020) border-(1px solid #fbb99040) flex-center chat-bot-message-gap px-12px py-4px rounded-8px">
@@ -36,11 +36,11 @@ const groupStore = useGroupStore()
 
 const userUid = computed(() => userStore.userInfo!.uid)
 
-// 处理机器人消息内容，高亮[]包裹的内容
+// 봇 메시지 내용 처리, []로 감싸진 내용 하이라이트
 const parseMessage = (content: string) => {
   if (!content) return []
 
-  // 安全的文本解析，无HTML注入风险
+  // 안전한 텍스트 파싱, HTML 주입 위험 없음
   return content
     .split(/(\[.*?\]|\d+)/)
     .map((part) => {
@@ -54,7 +54,7 @@ const parseMessage = (content: string) => {
     .filter((part) => part.text)
 }
 
-// 获取用户头像
+// 사용자 아바타 가져오기
 const getAvatarSrc = (uid: string) => {
   const avatar = uid === userUid.value ? userStore.userInfo!.avatar : groupStore.getUserInfo(uid)?.avatar
   return AvatarUtils.getAvatarUrl(avatar as string)
