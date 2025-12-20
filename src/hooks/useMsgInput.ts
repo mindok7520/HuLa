@@ -26,15 +26,15 @@ import { UploadProviderEnum, useUpload } from './useUpload.ts'
 import { useI18n } from 'vue-i18n'
 
 /**
- * 光标管理器
+ * 커서 관리자
  */
 export function useCursorManager() {
   /**
-   * 记录当前光标范围
+   * 현재 커서 범위 기록
    */
   let cursorSelectionRange: SelectionRange | null = null
   /**
-   * 记录当前编辑器的选取范围
+   * 현재 에디터의 선택 범위 기록
    */
   const updateSelectionRange = (sr: SelectionRange | null) => {
     cursorSelectionRange = sr
@@ -45,8 +45,8 @@ export function useCursorManager() {
   }
 
   /**
-   * 聚焦指定的编辑器元素
-   * @param editor 可聚焦的编辑器元素
+   * 지정된 에디터 요소에 포커스
+   * @param editor 포커스할 에디터 요소
    */
   const focusOn = (editor: HTMLElement) => {
     editor.focus()
@@ -85,11 +85,11 @@ export const useMsgInput = (messageInputDom: Ref) => {
   } = useCommon()
   const settingStore = useSettingStore()
   const { chat } = storeToRefs(settingStore)
-  /** 艾特选项的key  */
+  /** 멘션(@) 옵션의 key */
   const chatKey = ref(chat.value.sendKey)
-  /** 输入框内容  */
+  /** 입력 상자 내용 */
   const msgInput = ref('')
-  /** 发送按钮是否禁用 */
+  /** 보내기 버튼 비활성화 여부 */
   const disabledSend = computed(() => {
     const plainText = stripHtml(msgInput.value)
     return (
@@ -100,10 +100,10 @@ export const useMsgInput = (messageInputDom: Ref) => {
         .trim().length === 0
     )
   })
-  // @艾特弹出框
+  // @멘션 팝업
   const ait = ref(false)
   const aitKey = ref('')
-  // AI弹出框
+  // AI 팝업
   const aiDialogVisible = ref(false)
   const aiKeyword = ref('')
   const aiModelList = ref<AIModel[]>([
@@ -124,7 +124,7 @@ export const useMsgInput = (messageInputDom: Ref) => {
     {
       uid: '2',
       type: 'Ollama',
-      name: '通义千问-Plus',
+      name: 'Tongyi Qianwen-Plus',
       value: 'qwen-plus',
       avatar: '/AI/QW.png'
     },
@@ -136,7 +136,7 @@ export const useMsgInput = (messageInputDom: Ref) => {
       avatar: '/AI/openai.svg'
     }
   ])
-  // 使用计算属性获取分组后的数据
+  // 계산된 속성을 사용하여 그룹화된 데이터 가져오기
   const groupedAIModels = computed(() => {
     if (aiKeyword.value && !isChinese.value) {
       return aiModelList.value.filter((i) => i.name?.startsWith(aiKeyword.value))
@@ -144,46 +144,46 @@ export const useMsgInput = (messageInputDom: Ref) => {
       return aiModelList.value
     }
   })
-  /** 记录当前选中的AI选项 key */
-  // 允许为空是因为 / 触发面板关闭时需要清空当前选中项
+  /** 현재 선택된 AI 옵션 key 기록 */
+  // /로 패널이 닫힐 때 현재 선택 항목을 비워야 하므로 null 허용
   const selectedAIKey = ref<string | null>(groupedAIModels.value[0]?.uid ?? null)
 
-  // #话题弹出框
+  // #토픽 팝업
   const topicDialogVisible = ref(false)
   const topicKeyword = ref('')
   const topicList = ref([
     {
       uid: '1',
-      label: '话题1',
-      value: '话题1'
+      label: '토픽1',
+      value: '토픽1'
     },
     {
       uid: '2',
-      label: '话题2',
-      value: '话题2'
+      label: '토픽2',
+      value: '토픽2'
     }
   ])
 
-  /** 是否正在输入拼音 */
+  /** 병음 입력 중인지 여부 */
   const isChinese = ref(false)
-  // 记录编辑器光标的位置
+  // 에디터 커서 위치 기록
   const editorRange = ref<{ range: Range; selection: Selection } | null>(null)
-  /** @ 候选人列表 */
+  /** @ 후보 목록 */
   const personList = computed(() => {
     if (aitKey.value && !isChinese.value) {
       return groupStore.userList.filter((user) => {
-        // 同时匹配群昵称（myName）和原名称（name）
+        // 그룹 닉네임(myName)과 원래 이름(name)을 모두 일치시킴
         const displayName = user.myName || user.name
         return displayName?.startsWith(aitKey.value) && user.uid !== userUid.value
       })
     } else {
-      // 过滤当前登录的用户
+      // 현재 로그인한 사용자 필터링
       return groupStore.userList.filter((user) => user.uid !== userUid.value)
     }
   })
-  /** 记录当前选中的提及项 key */
+  /** 현재 선택된 멘션 항목 key 기록 */
   const selectedAitKey = ref(personList.value[0]?.uid ?? null)
-  /** 右键菜单列表 */
+  /** 우클릭 메뉴 목록 */
   const menuList = ref([
     { label: () => t('editor.menu.cut'), icon: 'screenshot', disabled: true },
     { label: () => t('editor.menu.copy'), icon: 'copy', disabled: true },
@@ -194,26 +194,26 @@ export const useMsgInput = (messageInputDom: Ref) => {
         try {
           let imageProcessed = false
 
-          // 使用Tauri的readImage API获取剪贴板图片
+          // Tauri의 readImage API를 사용하여 클립보드 이미지 가져오기
           const clipboardImage = await readImage().catch(() => null)
           if (clipboardImage) {
             try {
-              // 使用工具函数处理剪贴板图片数据
+              // 유틸리티 함수를 사용하여 클립보드 이미지 데이터 처리
               const file = await processClipboardImage(clipboardImage)
 
               messageInputDom.value.focus()
               nextTick(() => {
-                // 使用File对象触发缓存机制
+                // File 객체를 사용하여 캐시 메커니즘 트리거
                 imgPaste(file, messageInputDom.value)
               })
 
               imageProcessed = true
             } catch (error) {
-              console.error('Tauri处理图片数据失败:', error)
+              console.error('Tauri 이미지 데이터 처리 실패:', error)
             }
           }
 
-          // 如果没有图片，尝试读取文本
+          // 이미지가 없으면 텍스트 읽기 시도
           if (!imageProcessed) {
             const content = await readText().catch(() => null)
             if (content) {
@@ -224,12 +224,12 @@ export const useMsgInput = (messageInputDom: Ref) => {
               })
               return
             } else {
-              // 当既没有图片也没有文本时，显示提示信息
-              alert('无法获取当前剪贴板中对于的类型的内容，请使用 ctrl/command + v')
+              // 이미지도 텍스트도 없을 때 메시지 표시
+              alert('클립보드에서 지원하는 형식의 내용을 가져올 수 없습니다. ctrl/command + v를 사용해 주세요')
             }
           }
         } catch (error) {
-          console.error('粘贴失败:', error)
+          console.error('붙여넣기 실패:', error)
         }
       }
     },
@@ -237,7 +237,7 @@ export const useMsgInput = (messageInputDom: Ref) => {
     { label: () => t('editor.menu.select_all'), icon: 'check-one' }
   ])
 
-  // 将 useTrigger 的初始化移到这里
+  // useTrigger 초기화를 여기로 이동
   const { handleTrigger, resetAllStates } = useTrigger(
     personList,
     groupedAIModels,
@@ -256,13 +256,13 @@ export const useMsgInput = (messageInputDom: Ref) => {
       selectedAitKey.value = personList.value[0]?.uid
     }
     if (groupedAIModels.value.length === 0) {
-      // 没有可选模型时关闭弹层并清空游标，避免 Enter 键误触发
+      // 선택 가능한 모델이 없을 때 팝업을 닫고 커서를 비워 Enter 키 오작동 방지
       selectedAIKey.value = null
       aiDialogVisible.value = false
     } else if (!aiDialogVisible.value) {
       selectedAIKey.value = groupedAIModels.value[0]?.uid
     }
-    // 如果输入框没有值就把回复内容清空
+    // 입력 상자에 값이 없으면 답장 내용 지우기
     if (msgInput.value === '') {
       reply.value = { avatar: '', imgCount: 0, accountName: '', content: '', key: 0 }
     }
@@ -273,20 +273,20 @@ export const useMsgInput = (messageInputDom: Ref) => {
   })
 
   /**
-   * 从HTML内容中提取 @ 用户的uid
-   * @param content HTML格式的消息内容
-   * @param userList 用户列表
-   * @returns 被 @ 用户的uid数组
+   * HTML 내용에서 @ 사용자의 uid 추출
+   * @param content HTML 형식의 메시지 내용
+   * @param userList 사용자 목록
+   * @returns @된 사용자의 uid 배열
    */
   const extractAtUserIds = (content: string, userList: BaseUserItem[]): string[] => {
     const atUserIds: string[] = []
 
-    // 创建临时DOM元素来解析HTML
+    // HTML 파싱을 위한 임시 DOM 요소 생성
     const tempDiv = document.createElement('div')
     tempDiv.innerHTML = content
 
-    // 优先通过@标签节点提取
-    // 优先读取带有uid的@节点，确保只统计真正选择过的成员
+    // @ 태그 노드를 통해 우선 추출
+    // uid가 있는 @ 노드를 우선 읽어 실제로 선택된 멤버만 집계
     const mentionNodes = tempDiv.querySelectorAll<HTMLElement>('#aitSpan, [data-ait-uid]')
     mentionNodes.forEach((node) => {
       const uid = node.dataset.aitUid
@@ -306,17 +306,17 @@ export const useMsgInput = (messageInputDom: Ref) => {
       return [...new Set(atUserIds)]
     }
 
-    // 获取纯文本内容
+    // 일반 텍스트 내용 가져오기
     const textContent = tempDiv.textContent || ''
 
-    // 使用更精确的正则表达式匹配@用户
-    // 匹配@后面的非空白字符，直到遇到空白字符或字符串结束
+    // 더 정확한 정규식을 사용하여 @ 사용자 일치
+    // @ 뒤의 공백이 아닌 문자를 일치시키고, 공백 문자나 문자열 끝을 만날 때까지
     const regex = /@([^\s]+)/g
     const matches = textContent.match(regex)
 
     if (matches) {
       matches.forEach((match) => {
-        const username = match.slice(1) // 移除@符号
+        const username = match.slice(1) // @ 기호 제거
         const user = userList.find((u) => u.name === username)
         if (user) {
           atUserIds.push(user.uid)
@@ -324,11 +324,11 @@ export const useMsgInput = (messageInputDom: Ref) => {
       })
     }
 
-    // 去重并返回
+    // 중복 제거 후 반환
     return [...new Set(atUserIds)]
   }
 
-  // 在 HTML 字符串中安全解析为 Document 对象
+  // HTML 문자열을 Document 객체로 안전하게 파싱
   const parseHtmlSafely = (html: string) => {
     if (!html) return null
 
@@ -339,10 +339,10 @@ export const useMsgInput = (messageInputDom: Ref) => {
     return null
   }
 
-  /** 去除html标签(用于鉴别回复时是否有输入内容) */
+  /** html 태그 제거 (답장 시 입력 내용이 있는지 확인하기 위함) */
   const stripHtml = (html: string) => {
     try {
-      // 检查是否是表情包
+      // 이모티콘인지 확인
       if (html.includes('data-type="emoji"')) {
         const doc = parseHtmlSafely(html)
         const imgElement = doc?.querySelector<HTMLImageElement>('img[data-type]')
@@ -356,7 +356,7 @@ export const useMsgInput = (messageInputDom: Ref) => {
           }
         }
       }
-      // 检查是否是视频
+      // 비디오인지 확인
       if (html.includes('data-type="video"')) {
         return html
       }
@@ -375,10 +375,10 @@ export const useMsgInput = (messageInputDom: Ref) => {
       const replyDiv = doc.querySelector('#replyDiv')
       replyDiv?.remove()
 
-      // 检查是否包含粘贴的图片（有temp-image id的图片元素）
+      // 붙여넣은 이미지가 포함되어 있는지 확인 (temp-image id가 있는 이미지 요소)
       const pastedImage = doc.querySelector('#temp-image')
       if (pastedImage) {
-        return 'image' // 返回非空字符串，表示有内容
+        return 'image' // 내용이 있음을 나타내는 비어 있지 않은 문자열 반환
       }
 
       const textContent = doc.body.textContent?.trim()
@@ -389,47 +389,47 @@ export const useMsgInput = (messageInputDom: Ref) => {
 
       return ''
     } catch (error) {
-      console.error('Error in stripHtml:', error)
+      console.error('stripHtml 오류:', error)
       return ''
     }
   }
 
-  /** 重置输入框内容 */
+  /** 입력 상자 내용 초기화 */
   const resetInput = () => {
     try {
       msgInput.value = ''
       messageInputDom.value.innerHTML = ''
-      // 确保完全清除所有空白字符
+      // 모든 공백 문자를 완전히 제거
       messageInputDom.value.textContent = ''
       reply.value = { avatar: '', imgCount: 0, accountName: '', content: '', key: 0 }
     } catch (error) {
-      console.error('Error in resetInput:', error)
+      console.error('resetInput 오류:', error)
     }
   }
 
   const retainRawContent = (type: MsgEnum) => [MsgEnum.EMOJI, MsgEnum.IMAGE].includes(type)
 
-  /** 处理发送信息事件 */
-  // TODO 输入框中的内容当我切换消息的时候需要记录之前输入框的内容 (nyh -> 2024-03-01 07:03:43)
+  /** 정보 전송 이벤트 처리 */
+  // TODO 메시지를 전환할 때 이전에 입력 상자에 있던 내용을 기록해야 함 (nyh -> 2024-03-01 07:03:43)
   const send = async () => {
     const targetRoomId = globalStore.currentSessionRoomId
-    // 判断输入框中的图片或者文件数量是否超过限制
+    // 입력 상자의 이미지 또는 파일 수가 제한을 초과하는지 확인
     if (messageInputDom.value.querySelectorAll('img').length > LimitEnum.COM_COUNT) {
-      window.$message.warning(`一次性只能上传${LimitEnum.COM_COUNT}个文件或图片`)
+      window.$message.warning(`한 번에 ${LimitEnum.COM_COUNT}개의 파일 또는 이미지만 업로드할 수 있습니다`)
       return
     }
     const contentType = getMessageContentType(messageInputDom)
-    //根据消息类型获取消息处理策略
+    // 메시지 유형에 따른 메시지 처리 전략 가져오기
     const messageStrategy = messageStrategyMap[contentType]
     if (!messageStrategy) {
-      window.$message.warning('暂不支持发送类型消息')
+      window.$message.warning('해당 유형의 메시지 전송은 지원되지 않습니다')
       return
     }
-    // 排除id="replyDiv"的元素的内容
+    // id="replyDiv" 요소의 내용 제외
     const replyDiv = messageInputDom.value.querySelector('#replyDiv')
     if (replyDiv) {
       replyDiv?.remove()
-      // 如果回复的内容是一个链接，那么需要保留链接数据
+      // 답장 내용이 링크인 경우 링크 데이터 유지
       if (!retainRawContent(contentType))
         msgInput.value = messageInputDom.value.innerHTML.replace(replyDiv.outerHTML, '')
     }
@@ -437,27 +437,27 @@ export const useMsgInput = (messageInputDom: Ref) => {
     const atUidList = extractAtUserIds(msgInput.value, groupStore.userList)
     const tempMsgId = 'T' + Date.now().toString()
 
-    // 根据消息类型创建消息体
+    // 메시지 유형에 따라 메시지 본문 생성
     const messageBody = {
       ...messageStrategy.buildMessageBody(msg, reply),
       atUidList
     }
 
-    // 创建临时消息对象
+    // 임시 메시지 객체 생성
     const tempMsg = await messageStrategy.buildMessageType(tempMsgId, messageBody, globalStore, userUid)
     resetInput()
 
     tempMsg.message.status = MessageStatusEnum.SENDING
-    // 先添加到消息列表
+    // 메시지 목록에 먼저 추가
     chatStore.pushMsg(tempMsg)
 
-    // 设置发送状态的定时器
+    // 전송 상태 설정 타이머
     chatStore.updateMsg({
       msgId: tempMsgId,
       status: MessageStatusEnum.SENDING
     })
 
-    // 移动端发送消息后重新聚焦输入框
+    // 모바일에서 메시지 전송 후 입력 상자에 다시 포커스
     if (isMobile()) {
       nextTick(() => {
         focusOn(messageInputDom.value)
@@ -465,19 +465,19 @@ export const useMsgInput = (messageInputDom: Ref) => {
     }
 
     try {
-      // 如果是图片或表情消息,需要先上传文件
+      // 이미지 또는 이모티콘 메시지인 경우 먼저 파일 업로드 필요
       if (msg.type === MsgEnum.IMAGE || msg.type === MsgEnum.EMOJI) {
-        // TODO: 如果使用的是默认上传方式,则uploadFile方法就会返回上传和下载链接了，但是使用七牛云上传方式则需要调用doUpload方法后才会返回对应的下载链接
+        // TODO: 기본 업로드 방식을 사용하면 uploadFile 메소드가 업로드 및 다운로드 링크를 반환하지만, Qiniu 클라우드 업로드 방식을 사용하면 doUpload 메소드를 호출해야 해당 다운로드 링크가 반환됨
         const { uploadUrl, downloadUrl, config } = await messageStrategy.uploadFile(msg.path, {
           provider: UploadProviderEnum.QINIU
         })
         const doUploadResult = await messageStrategy.doUpload(msg.path, uploadUrl, config)
-        // 更新消息体中的URL为服务器URL(判断使用的是七牛云还是默认上传方式),如果没有provider就默认赋值downloadUrl
+        // 메시지 본문의 URL을 서버 URL로 업데이트 (Qiniu 클라우드인지 기본 업로드 방식인지 판단), provider가 없으면 기본값으로 downloadUrl 할당
         messageBody.url =
           config?.provider && config?.provider === UploadProviderEnum.QINIU ? doUploadResult?.qiniuUrl : downloadUrl
-        delete messageBody.path // 删除临时路径
+        delete messageBody.path // 임시 경로 삭제
 
-        // 更新临时消息的URL
+        // 임시 메시지 URL 업데이트
         chatStore.updateMsg({
           msgId: tempMsgId,
           body: {
@@ -486,7 +486,7 @@ export const useMsgInput = (messageInputDom: Ref) => {
           status: MessageStatusEnum.SENDING
         })
       } else if (msg.type === MsgEnum.VIDEO) {
-        // 先上传缩略图（使用去重功能）
+        // 썸네일 먼저 업로드 (중복 제거 기능 사용)
         let uploadResult: string
         if (messageStrategy.uploadThumbnail && messageStrategy.doUploadThumbnail) {
           const thumbnailUploadInfo = await messageStrategy.uploadThumbnail(msg.thumbnail, {
@@ -512,20 +512,20 @@ export const useMsgInput = (messageInputDom: Ref) => {
             })
         }
 
-        // 再上传视频文件
+        // 비디오 파일 업로드
         const { uploadUrl, downloadUrl, config } = await messageStrategy.uploadFile(msg.path, {
           provider: UploadProviderEnum.QINIU
         })
         const doUploadResult = await messageStrategy.doUpload(msg.path, uploadUrl, config)
         messageBody.url =
           config?.provider && config?.provider === UploadProviderEnum.QINIU ? doUploadResult?.qiniuUrl : downloadUrl
-        delete messageBody.path // 删除临时路径
+        delete messageBody.path // 임시 경로 삭제
         messageBody.thumbUrl = uploadResult
         messageBody.thumbSize = msg.thumbnail.size
         messageBody.thumbWidth = 300
         messageBody.thumbHeight = 150
 
-        // 更新临时消息的URL
+        // 임시 메시지 URL 업데이트
         chatStore.updateMsg({
           msgId: tempMsgId,
           body: {
@@ -534,11 +534,11 @@ export const useMsgInput = (messageInputDom: Ref) => {
           status: MessageStatusEnum.SENDING
         })
       }
-      // 发送消息到服务器 - 使用 channel 方式
+      // 서버로 메시지 전송 - channel 방식 사용
       const successChannel = new Channel<any>()
       const errorChannel = new Channel<string>()
 
-      // 监听成功响应
+      // 성공 응답 수신
       successChannel.onmessage = (message) => {
         chatStore.updateMsg({
           msgId: message.oldMsgId,
@@ -550,7 +550,7 @@ export const useMsgInput = (messageInputDom: Ref) => {
         useMitt.emit(MittEnum.CHAT_SCROLL_BOTTOM)
       }
 
-      // 监听错误响应
+      // 오류 응답 수신
       errorChannel.onmessage = (msgId) => {
         chatStore.updateMsg({
           msgId: msgId,
@@ -570,90 +570,90 @@ export const useMsgInput = (messageInputDom: Ref) => {
         errorChannel
       })
 
-      // 更新会话最后活动时间
+      // 세션 마지막 활동 시간 업데이트
       chatStore.updateSessionLastActiveTime(targetRoomId)
 
-      // 消息发送成功后释放预览URL
+      // 메시지 전송 성공 후 미리보기 URL 해제
       if ((msg.type === MsgEnum.IMAGE || msg.type === MsgEnum.EMOJI) && msg.url.startsWith('blob:')) {
         URL.revokeObjectURL(msg.url)
       }
 
-      // 释放视频缩略图的本地预览URL
+      // 비디오 썸네일 로컬 미리보기 URL 해제
       if (msg.type === MsgEnum.VIDEO && messageBody.thumbUrl && messageBody.thumbUrl.startsWith('blob:')) {
         URL.revokeObjectURL(messageBody.thumbUrl)
       }
     } catch (error) {
-      console.error('消息发送失败:', error)
+      console.error('메시지 전송 실패:', error)
       chatStore.updateMsg({
         msgId: tempMsgId,
         status: MessageStatusEnum.FAILED
       })
 
-      // 释放预览URL
+      // 미리보기 URL 해제
       if ((msg.type === MsgEnum.IMAGE || msg.type === MsgEnum.EMOJI) && msg.url.startsWith('blob:')) {
         URL.revokeObjectURL(msg.url)
       }
 
-      // 释放视频缩略图的本地预览URL
+      // 비디오 썸네일 로컬 미리보기 URL 해제
       if (msg.type === MsgEnum.VIDEO && messageBody.thumbUrl && messageBody.thumbUrl.startsWith('blob:')) {
         URL.revokeObjectURL(messageBody.thumbUrl)
       }
     }
   }
 
-  /** 当输入框手动输入值的时候触发input事件(使用vueUse的防抖) */
+  /** 입력 상자가 수동으로 값을 입력할 때 input 이벤트 트리거 (vueUse의 debounce 사용) */
   const handleInput = useDebounceFn(async (e: Event) => {
     const inputElement = e.target as HTMLInputElement
 
-    // 检查输入框内容，如果只有空白字符、br标签或空元素则清空
+    // 입력 상자 내용 확인. 공백 문자, br 태그 또는 빈 요소만 있는 경우 지우기
     const textContent = inputElement.textContent || ''
     const innerHTML = inputElement.innerHTML || ''
 
-    // 检查是否有实际内容（图片、视频、表情等）
+    // 실제 내용(이미지, 비디오, 이모티콘 등)이 있는지 확인
     const hasMediaContent =
       innerHTML.includes('<img') || innerHTML.includes('<video') || innerHTML.includes('data-type=')
 
-    // 清理各种空白字符和空标签
+    // 각종 공백 문자와 빈 태그 정리
     const cleanText = textContent.replace(/[\u00A0\u0020\u2000-\u200B\u2028\u2029]/g, '').trim()
     const hasOnlyEmptyElements =
       innerHTML === '<br>' ||
       innerHTML === '<div><br></div>' ||
       innerHTML.match(/^(<br>|<div><br><\/div>|<p><br><\/p>|\s)*$/)
 
-    // 只有在没有媒体内容且没有有效文本时才清空
+    // 미디어 내용이 없고 유효한 텍스트도 없는 경우에만 지우기
     if (!hasMediaContent && (cleanText === '' || hasOnlyEmptyElements)) {
       inputElement.innerHTML = ''
       inputElement.textContent = ''
       msgInput.value = ''
-      // 输入框为空时重置所有状态
+      // 입력 상자가 비어있을 때 모든 상태 재설정
       resetAllStates()
       return
     }
     msgInput.value = inputElement.innerHTML || ''
 
-    /** 获取当前光标所在的节点和文本内容 */
+    /** 현재 커서가 있는 노드와 텍스트 내용 가져오기 */
     const { range, selection } = getEditorRange()!
     if (!range || !selection) {
       resetAllStates()
       return
     }
 
-    /** 获取当前节点 */
+    /** 현재 노드 가져오기 */
     const curNode = range.endContainer
-    /** 判断当前节点是否是文本节点 */
+    /** 현재 노드가 텍스트 노드인지 확인 */
     if (!curNode || !curNode.textContent || curNode.nodeName !== '#text') {
       resetAllStates()
       return
     }
 
-    /** 获取当前光标位置和文本内容 */
+    /** 현재 커서 위치와 텍스트 내용 가져오기 */
     const cursorPosition = selection.focusOffset
     const text = curNode.textContent
 
     await handleTrigger(text, cursorPosition, { range, selection, keyword: '' })
   }, 0)
 
-  /** input的keydown事件 */
+  /** input의 keydown 이벤트 */
   const inputKeyDown = async (e: KeyboardEvent) => {
     if (disabledSend.value) {
       e.preventDefault()
@@ -662,13 +662,13 @@ export const useMsgInput = (messageInputDom: Ref) => {
       return
     }
 
-    // 当 ait 或 aiDialogVisible 为 true 时，阻止默认行为
+    // ait 또는 aiDialogVisible이 true일 때 기본 동작 방지
     if (ait.value || aiDialogVisible.value) {
       e?.preventDefault()
       return
     }
 
-    // 正在输入拼音，并且是macos系统
+    // 병음 입력 중이고 macOS 시스템인 경우
     if (isChinese.value && isMac()) {
       return
     }
@@ -679,9 +679,9 @@ export const useMsgInput = (messageInputDom: Ref) => {
     const sendKeyIsEnter = chat.value.sendKey === 'Enter'
     const sendKeyIsCtrlEnter = chat.value.sendKey === `${isWindowsPlatform ? 'Ctrl' : '⌘'}+Enter`
 
-    // 如果当前的系统是mac，我需要判断当前的chat.value.sendKey是否是Enter，再判断当前是否是按下⌘+Enter
+    // 현재 시스템이 mac인 경우, 현재 chat.value.sendKey가 Enter인지 판단하고, 현재 ⌘+Enter를 눌렀는지 판단
     if (!isWindowsPlatform && chat.value.sendKey === 'Enter' && e.metaKey && e.key === 'Enter') {
-      // 就进行换行操作
+      // 줄바꿈 작업 수행
       e.preventDefault()
       insertNode(MsgEnum.TEXT, '\n', {} as HTMLElement)
       triggerInputEvent(messageInputDom.value)
@@ -696,7 +696,7 @@ export const useMsgInput = (messageInputDom: Ref) => {
     }
     if ((sendKeyIsEnter && isEnterKey && !isCtrlOrMetaKey) || (sendKeyIsCtrlEnter && isCtrlOrMetaKey && isEnterKey)) {
       e?.preventDefault()
-      // 触发form提交而不是直接调用send
+      // send를 직접 호출하는 대신 form 제출 트리거
       const form = document.getElementById('message-form') as HTMLFormElement
       if (form) {
         form.requestSubmit()
@@ -705,43 +705,43 @@ export const useMsgInput = (messageInputDom: Ref) => {
     }
   }
 
-  /** 处理点击 @ 提及框事件 */
+  /** @ 멘션 클릭 이벤트 처리 */
   const handleAit = (item: BaseUserItem) => {
-    // 如果正在输入拼音，不发送消息
+    // 병음 입력 중이면 메시지 보내지 않음
     if (isChinese.value) {
       return
     }
-    // 先确保输入框获得焦点
+    // 입력 상자에 포커스 확인
     focusOn(messageInputDom.value)
-    // 先获取并保存当前的编辑器范围
+    // 현재 에디터 범위 먼저 가져오고 저장
     const { range: currentRange, selection: currentSelection } = getEditorRange()!
     editorRange.value = { range: currentRange, selection: currentSelection }
 
     const myEditorRange = editorRange?.value?.range
-    /** 获取光标所在位置的文本节点 */
+    /** 커서 위치의 텍스트 노드 가져오기 */
     const textNode = myEditorRange?.endContainer
 
-    // 如果有文本节点，说明是通过输入框@触发的
+    // 텍스트 노드가 있으면 입력 상자 @를 통해 트리거된 것임
     if (textNode) {
-      /** 获取光标在所在文本节点中的偏移位置 */
+      /** 텍스트 노드에서 커서의 오프셋 위치 가져오기 */
       const endOffset = myEditorRange?.endOffset
-      /** 获取文本节点的值，并将其转换为字符串类型 */
+      /** 텍스트 노드의 값을 가져와 문자열로 변환 */
       const textNodeValue = textNode?.nodeValue as string
-      /** 使用正则表达式匹配@符号之后获取到的文本节点的值 */
+      /** 정규식을 사용하여 @ 기호 뒤에 얻은 텍스트 노드 값 일치 */
       const expRes = /@([^@]*)$/.exec(textNodeValue)
       if (expRes) {
-        /** 设置范围的起始位置为文本节点中@符号的位置 */
+        /** 범위의 시작 위치를 텍스트 노드의 @ 기호 위치로 설정 */
         currentRange.setStart(textNode, expRes.index)
-        /** 设置范围的结束位置为光标的位置 */
+        /** 범위의 끝 위치를 커서 위치로 설정 */
         currentRange.setEnd(textNode, endOffset!)
       }
     }
 
-    // 获取用户的完整信息，优先使用群昵称（myName），与渲染逻辑保持一致
+    // 사용자의 전체 정보 가져오기, 그룹 닉네임(myName) 우선 사용, 렌더링 로직과 일치
     const userInfo = groupStore.getUserInfo(item.uid)
     const displayName = userInfo?.myName || item.name
 
-    // 无论是哪种情况，都在当前光标位置插入@提及
+    // 어떤 상황이든 현재 커서 위치에 @멘션 삽입
     insertNode(
       MsgEnum.AIT,
       {
@@ -754,50 +754,50 @@ export const useMsgInput = (messageInputDom: Ref) => {
     ait.value = false
   }
 
-  /** 处理点击 / 提及框事件 */
+  /** / 멘션 클릭 이벤트 처리 */
   const handleAI = (_item: any) => {
-    // 如果正在输入拼音，不发送消息
+    // 병음 입력 중이면 메시지 보내지 않음
     if (isChinese.value) {
       return
     }
 
-    // TODO: (临时展示) 显示AI对接中的提示
-    window.$message.info('当前ai正在对接，敬请期待')
-    // 关闭AI选择弹窗
+    // TODO: (임시 표시) AI 연결 중이라는 힌트 표시
+    window.$message.info('현재 AI 연결 중입니다. 기대해 주세요')
+    // AI 선택 팝업 닫기
     aiDialogVisible.value = false
 
-    // 清理输入框中的/触发词
-    // 先确保输入框获得焦点
+    // 입력 상자의 / 트리거 단어 정리
+    // 입력 상자에 포커스 확인
     focusOn(messageInputDom.value)
-    // 先获取并保存当前的编辑器范围
+    // 현재 에디터 범위 먼저 가져오고 저장
     const { range: currentRange, selection: currentSelection } = getEditorRange()!
     editorRange.value = { range: currentRange, selection: currentSelection }
 
     const myEditorRange = editorRange?.value?.range
-    /** 获取光标所在位置的文本节点 */
+    /** 커서 위치의 텍스트 노드 가져오기 */
     const textNode = myEditorRange?.endContainer
 
-    // 如果有文本节点，说明是通过输入框 / 触发的
+    // 텍스트 노드가 있으면 입력 상자 /를 통해 트리거된 것임
     if (textNode) {
-      /** 获取光标在所在文本节点中的偏移位置 */
+      /** 텍스트 노드에서 커서의 오프셋 위치 가져오기 */
       const endOffset = myEditorRange?.endOffset
-      /** 获取文本节点的值，并将其转换为字符串类型 */
+      /** 텍스트 노드의 값을 가져와 문자열로 변환 */
       const textNodeValue = textNode?.nodeValue as string
-      /** 使用正则表达式匹配 / 符号之后获取到的文本节点的值 */
+      /** 정규식을 사용하여 / 기호 뒤에 얻은 텍스트 노드 값 일치 */
       const expRes = /([^/]*)$/.exec(textNodeValue)
       if (expRes) {
-        /** 设置范围的起始位置为文本节点中 / 符号的位置 */
+        /** 범위의 시작 위치를 텍스트 노드의 / 기호 위치로 설정 */
         currentRange.setStart(textNode, expRes.index)
-        /** 设置范围的结束位置为光标的位置 */
+        /** 범위의 끝 위치를 커서 위치로 설정 */
         currentRange.setEnd(textNode, endOffset!)
-        //TODO: (临时删除)  删除/触发词
+        //TODO: (임시 삭제) / 트리거 단어 삭제
         currentRange.deleteContents()
         triggerInputEvent(messageInputDom.value)
       }
     }
   }
 
-  // ==================== 视频文件处理函数 ====================
+  // ==================== 비디오 파일 처리 함수 ====================
   const processVideoFile = async (
     file: File,
     tempMsgId: string,
@@ -915,7 +915,7 @@ export const useMsgInput = (messageInputDom: Ref) => {
     }
   }
 
-  // ==================== 图片文件处理函数 ====================
+  // ==================== 이미지 파일 처리 함수 ====================
   const processImageFile = async (
     file: File,
     tempMsgId: string,
@@ -977,7 +977,7 @@ export const useMsgInput = (messageInputDom: Ref) => {
     chatStore.updateSessionLastActiveTime(targetRoomId)
   }
 
-  // ==================== 通用文件处理函数 ====================
+  // ==================== 일반 파일 처리 함수 ====================
   const processGenericFile = async (
     file: File,
     tempMsgId: string,
@@ -1067,7 +1067,7 @@ export const useMsgInput = (messageInputDom: Ref) => {
       await nextTick(() => {
         messageInputDom.value.innerHTML = event
         msgInput.value = event
-        // 将光标设置到内容末尾
+        // 커서를 내용 끝으로 설정
         const selection = window.getSelection()
         const range = document.createRange()
         range.selectNodeContents(messageInputDom.value)
@@ -1078,11 +1078,11 @@ export const useMsgInput = (messageInputDom: Ref) => {
     })
 
     if (messageInputDom.value) {
-      /** 正在输入拼音时触发 */
+      /** 병음 입력 시작 시 트리거 */
       messageInputDom.value.addEventListener('compositionstart', () => {
         isChinese.value = true
       })
-      /** 结束输入拼音时触发 */
+      /** 병음 입력 종료 시 트리거 */
       messageInputDom.value.addEventListener('compositionend', (e: CompositionEvent) => {
         setTimeout(() => {
           isChinese.value = false
@@ -1091,9 +1091,9 @@ export const useMsgInput = (messageInputDom: Ref) => {
         }, 10)
       })
     }
-    /** 监听回复信息的传递 */
+    /** 답장 메시지 전달 감지 */
     useMitt.on(MittEnum.REPLY_MEG, (event: any) => {
-      // 如果输入框不存在，直接返回
+      // 입력 상자가 존재하지 않으면 바로 반환
       if (!messageInputDom.value) return
 
       try {
@@ -1101,23 +1101,23 @@ export const useMsgInput = (messageInputDom: Ref) => {
         const accountName = userInfo.name
         const avatar = userInfo.avatar
 
-        // 步骤1: 确保输入框先获得焦点
+        // 1단계: 입력 상자가 먼저 포커스를 얻도록 함
         focusOn(messageInputDom.value)
 
-        // 步骤2: 完全清理现有的回复状态
-        // 如果已经有回复消息，需要先移除现有的回复框
+        // 2단계: 기존 답장 상태를 완전히 정리
+        // 이미 답장 메시지가 있는 경우 기존 답장 상자를 먼저 제거
         const existingReplyDiv = document.getElementById('replyDiv')
         if (existingReplyDiv) {
           existingReplyDiv.remove()
         }
 
-        // 始终重置reply状态，确保完全清除之前的回复状态
+        // 이전 답장 상태를 완전히 지우기 위해 항상 reply 상태 재설정
         reply.value = { avatar: '', imgCount: 0, accountName: '', content: '', key: 0 }
 
-        // 步骤3: 处理回复内容
+        // 3단계: 답장 내용 처리
         const content = getReplyContent(event.message)
 
-        // 步骤4: 设置新的回复内容
+        // 4단계: 새로운 답장 내용 설정
         reply.value = {
           imgCount: 0,
           avatar: avatar,
@@ -1126,49 +1126,49 @@ export const useMsgInput = (messageInputDom: Ref) => {
           key: event.message.id
         }
 
-        // 步骤5: 在DOM更新后插入回复框
+        // 5단계: DOM 업데이트 후 답장 상자 삽입
         nextTick().then(() => {
           try {
-            // 再次确保输入框获得焦点
+            // 다시 입력 상자가 포커스를 얻도록 함
             focusOn(messageInputDom.value)
 
-            // 插入回复框
+            // 답장 상자 삽입
             insertNode(
               MsgEnum.REPLY,
               { avatar: avatar, accountName: accountName, content: reply.value.content },
               {} as HTMLElement
             )
 
-            // 确保光标位置在正确的位置
+            // 커서 위치가 올바른 위치에 있는지 확인
             updateSelectionRange(getEditorRange())
             focusOn(messageInputDom.value)
 
-            // 触发input事件以更新UI
+            // UI 업데이트를 위해 input 이벤트 트리거
             triggerInputEvent(messageInputDom.value)
           } catch (err) {
-            console.error('插入回复框时错误:', err)
+            console.error('답장 상자 삽입 중 오류:', err)
           }
         })
       } catch (err) {
-        console.error('回复_meg处理程序错误:', err)
+        console.error('답장_meg 처리기 오류:', err)
       }
     })
   })
 
   /**
-   * 发送文件的函数（优化版 - 并发处理，逐个显示）
-   * @param files 要发送的文件数组
+   * 파일 직접 전송 함수 (최적화 버전 - 동시 처리, 순차 표시)
+   * @param files 전송할 파일 배열
    */
   const sendFilesDirect = async (files: File[]) => {
     const targetRoomId = globalStore.currentSessionRoomId
 
-    // 初始化文件上传队列
+    // 파일 업로드 대기열 초기화
     globalFileUploadQueue.initQueue(files)
 
-    // 创建并发限制器（同时处理3个文件）
+    // 동시성 제한자 생성 (동시에 3개 파일 처리)
     const limit = pLimit(3)
 
-    // 并发处理所有文件
+    // 모든 파일 동시 처리
     const tasks = files.map((file, index) => {
       const fileId = globalFileUploadQueue.queue.items[index]?.id
 
@@ -1177,21 +1177,21 @@ export const useMsgInput = (messageInputDom: Ref) => {
         let tempMsgId = ''
 
         try {
-          // 更新队列状态
+          // 대기열 상태 업데이트
           if (fileId) {
             globalFileUploadQueue.updateFileStatus(fileId, 'uploading', 0)
           }
 
-          // 文件类型处理
+          // 파일 유형 처리
           const processedFile = fixFileMimeType(file)
           msgType = getMessageTypeByFile(processedFile)
           if (msgType === MsgEnum.VOICE) msgType = MsgEnum.FILE
 
-          // 生成唯一消息ID
+          // 고유 메시지 ID 생성
           tempMsgId = `${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
           const messageStrategy = messageStrategyMap[msgType]
 
-          // 根据类型调用对应处理函数，传递固定的 roomId
+          // 유형에 따라 해당 처리 함수 호출, 고정된 roomId 전달
           if (msgType === MsgEnum.VIDEO) {
             await processVideoFile(processedFile, tempMsgId, messageStrategy, targetRoomId)
           } else if (msgType === MsgEnum.IMAGE) {
@@ -1200,14 +1200,14 @@ export const useMsgInput = (messageInputDom: Ref) => {
             await processGenericFile(processedFile, tempMsgId, messageStrategy, targetRoomId)
           }
 
-          // 成功 - 更新队列状态
+          // 성공 - 대기열 상태 업데이트
           if (fileId) {
             globalFileUploadQueue.updateFileStatus(fileId, 'completed', 100)
           }
         } catch (error) {
-          console.error(`${file.name} 发送失败:`, error)
+          console.error(`${file.name} 전송 실패:`, error)
 
-          // 失败 - 更新队列和消息状态
+          // 실패 - 대기열 및 메시지 상태 업데이트
           if (fileId) {
             globalFileUploadQueue.updateFileStatus(fileId, 'failed', 0)
           }
@@ -1219,15 +1219,15 @@ export const useMsgInput = (messageInputDom: Ref) => {
             })
           }
 
-          window.$message.error(`${file.name} 发送失败`)
+          window.$message.error(`${file.name} 전송 실패`)
         }
       })
     })
 
-    // 等待所有文件完成（不阻塞UI，文件会逐个显示成功）
+    // 모든 파일이 완료될 때까지 대기 (UI 차단하지 않음, 파일은 순차적으로 성공 표시됨)
     await Promise.allSettled(tasks)
 
-    // 检查输入框中是否有图片需要自动发送
+    // 입력 상자에 자동 전송할 이미지가 있는지 확인
     try {
       await nextTick()
       if (
@@ -1240,25 +1240,25 @@ export const useMsgInput = (messageInputDom: Ref) => {
         }
       }
     } catch (error) {
-      console.error('自动发送输入框图片失败:', error)
+      console.error('입력 상자 이미지 자동 전송 실패:', error)
     }
   }
 
   const sendVoiceDirect = async (voiceData: any) => {
     const targetRoomId = globalStore.currentSessionRoomId
     try {
-      // 创建语音消息数据
+      // 음성 메시지 데이터 생성
       const msg = {
         type: MsgEnum.VOICE,
-        path: voiceData.localPath, // 本地路径用于上传
-        url: `asset://${voiceData.localPath}`, // 本地预览URL
+        path: voiceData.localPath, // 업로드용 로컬 경로
+        url: `asset://${voiceData.localPath}`, // 로컬 미리보기 URL
         size: voiceData.size,
         duration: voiceData.duration,
         filename: voiceData.filename
       }
       const tempMsgId = 'T' + Date.now().toString()
 
-      // 创建消息体（初始使用本地路径）
+      // 메시지 본문 생성 (초기에는 로컬 경로 사용)
       const messageBody = {
         url: msg.url,
         path: msg.path,
@@ -1266,7 +1266,7 @@ export const useMsgInput = (messageInputDom: Ref) => {
         second: Math.round(msg.duration)
       }
 
-      // 创建临时消息对象
+      // 임시 메시지 객체 생성
       const userInfo = groupStore.getUserInfo(userUid.value)
       const tempMsg = {
         fromUser: {
@@ -1288,31 +1288,31 @@ export const useMsgInput = (messageInputDom: Ref) => {
         loading: false
       }
 
-      // 添加到消息列表（显示本地预览）
+      // 메시지 목록에 추가 (로컬 미리보기 표시)
       chatStore.pushMsg(tempMsg)
 
-      // 设置发送状态的定时器
+      // 전송 상태 설정 타이머
       chatStore.updateMsg({
         msgId: tempMsgId,
         status: MessageStatusEnum.SENDING
       })
 
       try {
-        // 获取语音消息策略
+        // 음성 메시지 전략 가져오기
         const messageStrategy = messageStrategyMap[MsgEnum.VOICE]
-        // 上传语音文件到七牛云
+        // Qiniu 클라우드에 음성 파일 업로드
         const { uploadUrl, downloadUrl, config } = await messageStrategy.uploadFile(msg.path, {
           provider: UploadProviderEnum.QINIU
         })
         const doUploadResult = await messageStrategy.doUpload(msg.path, uploadUrl, config)
 
-        // 更新消息体中的URL为服务器URL
+        // 메시지 본문의 URL을 서버 URL로 업데이트
         const finalUrl =
           config?.provider && config?.provider === UploadProviderEnum.QINIU ? doUploadResult?.qiniuUrl : downloadUrl
         messageBody.url = finalUrl || ''
-        delete messageBody.path // 删除临时路径
+        delete messageBody.path // 임시 경로 삭제
 
-        // 更新临时消息的URL
+        // 임시 메시지 URL 업데이트
         chatStore.updateMsg({
           msgId: tempMsgId,
           body: {
@@ -1329,11 +1329,11 @@ export const useMsgInput = (messageInputDom: Ref) => {
         }
 
         try {
-          // 发送消息到服务器 - 使用 channel 方式
+          // 서버로 메시지 전송 - channel 방식 사용
           const voiceSuccessChannel = new Channel<any>()
           const voiceErrorChannel = new Channel<string>()
 
-          // 监听成功响应
+          // 성공 응답 수신
           voiceSuccessChannel.onmessage = (message) => {
             chatStore.updateMsg({
               msgId: message.oldMsgId,
@@ -1345,7 +1345,7 @@ export const useMsgInput = (messageInputDom: Ref) => {
             useMitt.emit(MittEnum.CHAT_SCROLL_BOTTOM)
           }
 
-          // 监听错误响应
+          // 오류 응답 수신
           voiceErrorChannel.onmessage = (msgId) => {
             chatStore.updateMsg({
               msgId: msgId,
@@ -1360,19 +1360,19 @@ export const useMsgInput = (messageInputDom: Ref) => {
             errorChannel: voiceErrorChannel
           })
 
-          // 更新会话最后活动时间
+          // 세션 마지막 활동 시간 업데이트
           chatStore.updateSessionLastActiveTime(targetRoomId)
 
-          // 释放本地预览URL
+          // 로컬 미리보기 URL 해제
           if (msg.url.startsWith('asset://')) {
-            // asset:// 协议不需要手动释放
+            // asset:// 프로토콜은 수동 해제 필요 없음
           }
         } catch (apiError: any) {
           chatStore.updateMsg({
             msgId: tempMsgId,
             status: MessageStatusEnum.FAILED
           })
-          throw new Error(`发送消息失败: ${apiError.message || apiError}`)
+          throw new Error(`메시지 전송 실패: ${apiError.message || apiError}`)
         }
       } catch (uploadError) {
         chatStore.updateMsg({
@@ -1382,13 +1382,13 @@ export const useMsgInput = (messageInputDom: Ref) => {
         throw uploadError
       }
     } catch (error) {
-      console.error('语音消息发送失败:', error)
+      console.error('음성 메시지 전송 실패:', error)
     }
   }
 
   /**
-   * 发送地图的函数
-   * @param locationData 地图数据
+   * 지도 전송 함수
+   * @param locationData 지도 데이터
    */
   const sendLocationDirect = async (locationData: any) => {
     const targetRoomId = globalStore.currentSessionRoomId
@@ -1396,31 +1396,31 @@ export const useMsgInput = (messageInputDom: Ref) => {
       const tempMsgId = 'T' + Date.now().toString()
       const messageStrategy = messageStrategyMap[MsgEnum.LOCATION]
 
-      // 将位置数据转换为JSON字符串作为消息内容
+      // 위치 데이터를 JSON 문자열로 변환하여 메시지 내용으로 사용
       const content = JSON.stringify(locationData)
 
-      // 构建位置消息
+      // 위치 메시지 생성
       const msg = messageStrategy.getMsg(content, reply.value)
       const messageBody = messageStrategy.buildMessageBody(msg, reply)
 
-      // 创建临时消息对象
+      // 임시 메시지 객체 생성
       const tempMsg = messageStrategy.buildMessageType(tempMsgId, messageBody, globalStore, userUid)
       tempMsg.message.status = MessageStatusEnum.SENDING
 
-      // 添加到消息列表
+      // 메시지 목록에 추가
       chatStore.pushMsg(tempMsg)
 
-      // 设置发送状态
+      // 전송 상태 설정
       chatStore.updateMsg({
         msgId: tempMsgId,
         status: MessageStatusEnum.SENDING
       })
 
-      // 发送消息到服务器 - 使用 channel 方式
+      // 서버로 메시지 전송 - channel 방식 사용
       const successChannel = new Channel<any>()
       const errorChannel = new Channel<string>()
 
-      // 监听成功响应
+      // 성공 응답 수신
       successChannel.onmessage = (message) => {
         chatStore.updateMsg({
           msgId: message.oldMsgId,
@@ -1432,7 +1432,7 @@ export const useMsgInput = (messageInputDom: Ref) => {
         useMitt.emit(MittEnum.CHAT_SCROLL_BOTTOM)
       }
 
-      // 监听错误响应
+      // 오류 응답 수신
       errorChannel.onmessage = (msgId) => {
         chatStore.updateMsg({
           msgId: msgId,
@@ -1452,16 +1452,16 @@ export const useMsgInput = (messageInputDom: Ref) => {
         errorChannel
       })
 
-      // 更新会话最后活动时间
+      // 세션 마지막 활동 시간 업데이트
       chatStore.updateSessionLastActiveTime(targetRoomId)
     } catch (error) {
-      console.error('位置消息发送失败:', error)
+      console.error('위치 메시지 전송 실패:', error)
     }
   }
 
   /**
-   * 直接发送表情包的函数（移动端专用）
-   * @param emojiUrl 表情包URL
+   * 이모티콘 직접 전송 함수 (모바일 전용)
+   * @param emojiUrl 이모티콘 URL
    */
   const sendEmojiDirect = async (emojiUrl: string) => {
     const targetRoomId = globalStore.currentSessionRoomId
@@ -1471,28 +1471,28 @@ export const useMsgInput = (messageInputDom: Ref) => {
 
       const messageStrategy = messageStrategyMap[MsgEnum.EMOJI]
 
-      // 构建表情包消息
+      // 이모티콘 메시지 생성
       const msg = messageStrategy.getMsg(emojiUrl, reply.value)
       const messageBody = messageStrategy.buildMessageBody(msg, reply)
 
-      // 创建临时消息对象
+      // 임시 메시지 객체 생성
       const tempMsg = messageStrategy.buildMessageType(tempMsgId, messageBody, globalStore, userUid)
       tempMsg.message.status = MessageStatusEnum.SENDING
 
-      // 添加到消息列表
+      // 메시지 목록에 추가
       chatStore.pushMsg(tempMsg)
 
-      // 设置发送状态
+      // 전송 상태 설정
       chatStore.updateMsg({
         msgId: tempMsgId,
         status: MessageStatusEnum.SENDING
       })
 
-      // 发送消息到服务器 - 使用 channel 方式
+      // 서버로 메시지 전송 - channel 방식 사용
       const successChannel = new Channel<any>()
       const errorChannel = new Channel<string>()
 
-      // 监听成功响应
+      // 성공 응답 수신
       successChannel.onmessage = (message) => {
         chatStore.updateMsg({
           msgId: message.oldMsgId,
@@ -1504,7 +1504,7 @@ export const useMsgInput = (messageInputDom: Ref) => {
         useMitt.emit(MittEnum.CHAT_SCROLL_BOTTOM)
       }
 
-      // 监听错误响应
+      // 오류 응답 수신
       errorChannel.onmessage = (msgId) => {
         chatStore.updateMsg({
           msgId: msgId,
@@ -1524,10 +1524,10 @@ export const useMsgInput = (messageInputDom: Ref) => {
         errorChannel
       })
 
-      // 更新会话最后活动时间
+      // 세션 마지막 활동 시간 업데이트
       chatStore.updateSessionLastActiveTime(targetRoomId)
     } catch (error) {
-      console.error('[useMsgInput] 表情包消息发送失败:', error)
+      console.error('[useMsgInput] 이모티콘 메시지 전송 실패:', error)
       throw error
     }
   }

@@ -69,23 +69,23 @@ pub struct FileQueryResponse {
     pub current_page: u32,
 }
 
-/// 查询文件的 Tauri 命令
+/// 파일 조회를 위한 Tauri 명령
 #[tauri::command]
 pub async fn query_files(
     param: FileQueryParam,
     state: State<'_, AppData>,
 ) -> Result<FileQueryResponse, String> {
-    // 获取当前登录用户的 uid
+    // 현재 로그인한 사용자의 uid 가져오기
     let login_uid = {
         let user_info = state.user_info.lock().await;
         user_info.uid.clone()
     };
 
-    // 构建查询条件 - 只查询文件类型的消息
+    // 조회 조건 구축 - 파일 유형의 메시지만 조회
     let _query_condition = crate::command::chat_history_command::ChatHistoryQueryCondition {
         room_id: param.room_id.clone().unwrap_or_default(),
         login_uid: login_uid.clone(),
-        message_type: Some(vec![4, 6]), // 文件、视频类型
+        message_type: Some(vec![4, 6]), // 파일, 비디오 유형
         search_keyword: param.search_keyword.clone(),
         sort_order: crate::command::chat_history_command::SortOrder::Desc,
         date_range: None,
@@ -95,35 +95,35 @@ pub async fn query_files(
         },
     };
 
-    // 查询数据库
+    // 데이터베이스 조회
     let messages = match param.navigation_type.as_str() {
         "myFiles" => {
-            // 查询所有房间的文件
+            // 모든 방의 파일 조회
             query_all_files(state.db_conn.deref(), &login_uid, &param).await?
         }
         "senders" => {
-            // 按发送人分组查询文件
+            // 발신자별로 그룹화하여 파일 조회
             query_files_by_senders(state.db_conn.deref(), &login_uid, &param).await?
         }
         "sessions" | "groups" => {
-            // 按会话或群聊分组查询文件
+            // 세션 또는 그룹 채팅별로 그룹화하여 파일 조회
             query_files_by_sessions(state.db_conn.deref(), &login_uid, &param).await?
         }
         _ => {
-            return Err("不支持的导航类型".to_string());
+            return Err("지원되지 않는 내비게이션 유형입니다".to_string());
         }
     };
 
-    // 转换为文件信息
+    // 파일 정보로 변환
     let file_infos: Vec<FileInfo> = messages
         .into_iter()
         .filter_map(|msg| convert_message_to_file_info(msg))
         .collect();
 
-    // 提取用户列表
+    // 사용자 목록 추출
     let user_list = extract_user_list(&file_infos);
 
-    // 按搜索关键词过滤
+    // 검색 키워드로 필터링
     let filtered_files: Vec<FileInfo> = if let Some(keyword) = &param.search_keyword {
         file_infos
             .into_iter()
@@ -139,7 +139,7 @@ pub async fn query_files(
 
     let total_filtered_files = filtered_files.len();
 
-    // 按时间分组
+    // 시간별로 그룹화
     let time_grouped_files = group_files_by_time(filtered_files);
 
     let has_more = total_filtered_files >= param.page_size as usize;
@@ -154,7 +154,7 @@ pub async fn query_files(
     Ok(response)
 }
 
-/// 查询所有文件
+/// 모든 파일 조회
 async fn query_all_files(
     db_conn: &sea_orm::DatabaseConnection,
     login_uid: &str,
@@ -163,8 +163,8 @@ async fn query_all_files(
     im_message_repository::query_file_messages(
         db_conn,
         login_uid,
-        None,          // 查询所有房间
-        Some(&[4, 6]), // 文件、视频类型
+        None,          // 모든 방 조회
+        Some(&[4, 6]), // 파일, 비디오 유형
         param.search_keyword.as_deref(),
         param.page,
         param.page_size,
@@ -173,39 +173,39 @@ async fn query_all_files(
     .map_err(|e| e.to_string())
 }
 
-/// 按发送人查询文件
+/// 발신자별 파일 조회
 async fn query_files_by_senders(
     db_conn: &sea_orm::DatabaseConnection,
     login_uid: &str,
     param: &FileQueryParam,
 ) -> Result<Vec<MessageWithThumbnail>, String> {
-    // 如果指定了联系人，查找与该联系人相关的所有文件
+    // 연락처가 지정된 경우 해당 연락처와 관련된 모든 파일 조회
     if let Some(contact_uid) = &param.selected_user {
-        // 新策略：基于消息交互历史查找共同房间
-        // 1. 查找所有涉及目标联系人的消息，获取不重复的房间ID
+        // 새로운 전략: 메시지 상호작용 기록을 기반으로 공통 방 찾기
+        // 1. 대상 연락처와 관련된 모든 메시지를 찾아 중복되지 않는 방 ID 가져오기
         let contact_messages = im_message::Entity::find()
             .filter(im_message::Column::LoginUid.eq(login_uid))
             .filter(im_message::Column::Uid.eq(contact_uid))
             .all(db_conn)
             .await
-            .map_err(|e| format!("查询联系人消息失败: {}", e))?;
+            .map_err(|e| format!("연락처 메시지 조회 실패: {}", e))?;
 
-        // 提取不重复的房间ID
+        // 중복되지 않는 방 ID 추출
         let mut room_ids: std::collections::HashSet<String> = std::collections::HashSet::new();
         for message in contact_messages {
             room_ids.insert(message.room_id);
         }
 
-        // 2. 从这些房间中查询文件消息
+        // 2. 이 방들에서 파일 메시지 조회
         let mut relevant_messages = Vec::new();
 
         for room_id in room_ids {
-            // 查询该房间的文件消息
+            // 해당 방의 파일 메시지 조회
             let room_files = im_message_repository::query_file_messages(
                 db_conn,
                 login_uid,
-                Some(&room_id), // 指定房间
-                Some(&[4, 6]),  // 文件、视频类型
+                Some(&room_id), // 지정된 방
+                Some(&[4, 6]),  // 파일, 비디오 유형
                 param.search_keyword.as_deref(),
                 param.page,
                 param.page_size,
@@ -218,25 +218,25 @@ async fn query_files_by_senders(
 
         Ok(relevant_messages)
     } else {
-        // 如果没有指定联系人，查询所有文件
+        // 연락처가 지정되지 않은 경우 모든 파일 조회
         query_all_files(db_conn, login_uid, param).await
     }
 }
 
-/// 按会话查询文件
+/// 세션별 파일 조회
 async fn query_files_by_sessions(
     db_conn: &sea_orm::DatabaseConnection,
     login_uid: &str,
     param: &FileQueryParam,
 ) -> Result<Vec<MessageWithThumbnail>, String> {
-    // 如果指定了房间ID，则查询该房间的文件；否则查询所有房间
+    // 방 ID가 지정된 경우 해당 방의 파일을 조회하고, 그렇지 않으면 모든 방을 조회함
     let room_id = param.room_id.as_deref();
 
     im_message_repository::query_file_messages(
         db_conn,
         login_uid,
         room_id,
-        Some(&[4, 6]), //文件、视频类型
+        Some(&[4, 6]), // 파일, 비디오 유형
         param.search_keyword.as_deref(),
         param.page,
         param.page_size,
@@ -245,27 +245,27 @@ async fn query_files_by_sessions(
     .map_err(|e| e.to_string())
 }
 
-/// 将消息转换为文件信息
+/// 메시지를 파일 정보로 변환
 fn convert_message_to_file_info(record: MessageWithThumbnail) -> Option<FileInfo> {
     let MessageWithThumbnail {
         message,
         thumbnail_path,
     } = record;
 
-    // 解析消息体中的文件信息
+    // 메시지 본문에서 파일 정보 파싱
     if let Some(body) = &message.body {
-        // 尝试解析为 JSON
+        // JSON으로 파싱 시도
         match serde_json::from_str::<serde_json::Value>(body) {
             Ok(file_data) => {
-                // 验证消息类型是否为文件类型
+                // 메시지 유형이 파일 유형인지 확인
                 let message_type = message.message_type.unwrap_or(0);
                 if message_type != 4 && message_type != 6 {
                     return None;
                 }
 
-                // 尝试获取文件名，优先使用 fileName，兼容历史数据，视频消息从URL提取
+                // 파일 이름 가져오기 시도, fileName을 우선 사용하며 내역 데이터 호환 유지, 비디오 메시지는 URL에서 추출
                 let file_name = file_data["fileName"].as_str().or_else(|| {
-                    // 对于视频消息，从URL中提取文件名
+                    // 비디오 메시지의 경우 URL에서 파일 이름 추출
                     if message_type == 6 {
                         file_data["url"].as_str().and_then(|url| {
                             url.split('/')
@@ -290,7 +290,7 @@ fn convert_message_to_file_info(record: MessageWithThumbnail) -> Option<FileInfo
 
                 let sender = UserInfo {
                     id: message.uid.clone(),
-                    name: message.nickname.clone().unwrap_or("未知用户".to_string()),
+                    name: message.nickname.clone().unwrap_or("알 수 없는 사용자".to_string()),
                     avatar: "/avatars/default.jpg".to_string(),
                     is_online: None,
                 };
@@ -307,7 +307,7 @@ fn convert_message_to_file_info(record: MessageWithThumbnail) -> Option<FileInfo
                         .or_else(|| file_data["downloadUrl"].as_str())
                         .map(|s| s.to_string()),
                     is_downloaded: Some(false),
-                    status: "completed".to_string(),
+                    status: "완료됨".to_string(),
                     thumbnail_url: thumbnail_path
                         .clone()
                         .or_else(|| file_data["thumbnailUrl"].as_str().map(|s| s.to_string())),
@@ -316,19 +316,19 @@ fn convert_message_to_file_info(record: MessageWithThumbnail) -> Option<FileInfo
                 return Some(file_info);
             }
             Err(e) => {
-                info!("消息体不是有效的 JSON 格式，跳过: {}", e);
+                info!("메시지 본문이 유효한 JSON 형식이 아니어서 건너뜁니다: {}", e);
                 // 不再创建假数据，直接返回 None
             }
         }
     } else {
-        info!("消息体为空");
+        info!("메시지 본문이 비어 있습니다");
     }
 
-    info!("无法转换消息为文件信息");
+    info!("메시지를 파일 정보로 변환할 수 없습니다");
     None
 }
 
-/// 从消息体中解析文件大小字段
+/// 메시지 본문에서 파일 크기 필드 파싱
 fn extract_file_size(file_data: &serde_json::Value) -> Option<i64> {
     const SIZE_KEYS: [&str; 2] = ["fileSize", "size"];
 
@@ -338,7 +338,7 @@ fn extract_file_size(file_data: &serde_json::Value) -> Option<i64> {
         .find_map(parse_size_value)
 }
 
-/// 解析文件大小值
+/// 파일 크기 값 파싱
 fn parse_size_value(value: &serde_json::Value) -> Option<i64> {
     match value {
         serde_json::Value::Number(num) => num
@@ -349,7 +349,7 @@ fn parse_size_value(value: &serde_json::Value) -> Option<i64> {
     }
 }
 
-/// 根据消息类型获取文件类型
+/// 메시지 유형에 따라 파일 유형 가져오기
 fn get_file_type_from_message_type(message_type: u8) -> String {
     match message_type {
         4 => "file".to_string(),
@@ -358,18 +358,18 @@ fn get_file_type_from_message_type(message_type: u8) -> String {
     }
 }
 
-/// 格式化时间戳
+/// 타임스탬프 형식화
 fn format_timestamp(timestamp: i64) -> String {
     use chrono::{Local, TimeZone};
 
     if let Some(dt) = Local.timestamp_opt(timestamp / 1000, 0).single() {
         dt.format("%Y-%m-%d %H:%M:%S").to_string()
     } else {
-        "未知时间".to_string()
+        "알 수 없는 시간".to_string()
     }
 }
 
-/// 提取用户列表
+/// 사용자 목록 추출
 fn extract_user_list(files: &[FileInfo]) -> Vec<UserInfo> {
     let mut user_map = std::collections::HashMap::new();
 
@@ -380,7 +380,7 @@ fn extract_user_list(files: &[FileInfo]) -> Vec<UserInfo> {
     user_map.into_values().collect()
 }
 
-/// 按时间分组文件
+/// 파일을 시간별로 그룹화
 fn group_files_by_time(files: Vec<FileInfo>) -> Vec<TimeGroup> {
     use chrono::NaiveDate;
     use std::collections::BTreeMap;
@@ -413,7 +413,7 @@ fn group_files_by_time(files: Vec<FileInfo>) -> Vec<TimeGroup> {
         unknown_files.sort_by(|a, b| b.upload_time.cmp(&a.upload_time));
         time_groups.push(TimeGroup {
             date: "unknown".to_string(),
-            display_date: "未知时间".to_string(),
+            display_date: "알 수 없는 시간".to_string(),
             files: unknown_files,
         });
     }
@@ -421,12 +421,12 @@ fn group_files_by_time(files: Vec<FileInfo>) -> Vec<TimeGroup> {
     time_groups
 }
 
-/// 解析上传时间字符串为 NaiveDateTime
+/// 업로드 시간 문자열을 NaiveDateTime으로 파싱
 fn parse_upload_time(upload_time: &str) -> Option<chrono::NaiveDateTime> {
     chrono::NaiveDateTime::parse_from_str(upload_time, "%Y-%m-%d %H:%M:%S").ok()
 }
 
-/// 格式化显示日期
+/// 표시 날짜 형식화
 fn format_display_date(date: chrono::NaiveDate) -> String {
     use chrono::{Datelike, Local};
 
@@ -434,41 +434,41 @@ fn format_display_date(date: chrono::NaiveDate) -> String {
     let diff = today.signed_duration_since(date).num_days();
 
     if diff == 0 {
-        "今天".to_string()
+        "오늘".to_string()
     } else if diff == 1 {
-        "昨天".to_string()
+        "어제".to_string()
     } else if today.year() == date.year() {
-        date.format("%m月%d日").to_string()
+        date.format("%m월 %d일").to_string()
     } else {
-        date.format("%Y年%m月%d日").to_string()
+        date.format("%Y년 %m월 %d일").to_string()
     }
 }
 
-/// 获取导航菜单项
+/// 내비게이션 메뉴 항목 가져오기
 #[tauri::command]
 pub async fn get_navigation_items() -> Result<Vec<NavigationItem>, String> {
     let items = vec![
         NavigationItem {
             key: "myFiles".to_string(),
-            label: "我的文件".to_string(),
+            label: "내 파일".to_string(),
             icon: "file".to_string(),
             active: true,
         },
         NavigationItem {
             key: "senders".to_string(),
-            label: "发送人".to_string(),
+            label: "발신자".to_string(),
             icon: "avatar".to_string(),
             active: false,
         },
         NavigationItem {
             key: "sessions".to_string(),
-            label: "会话".to_string(),
+            label: "세션".to_string(),
             icon: "message".to_string(),
             active: false,
         },
         NavigationItem {
             key: "groups".to_string(),
-            label: "群聊".to_string(),
+            label: "그룹 채팅".to_string(),
             icon: "peoples".to_string(),
             active: false,
         },
@@ -477,7 +477,7 @@ pub async fn get_navigation_items() -> Result<Vec<NavigationItem>, String> {
     Ok(items)
 }
 
-/// 调试命令：获取数据库中的消息统计信息
+/// 디버그 명령: 데이터베이스의 메시지 통계 정보 가져오기
 #[tauri::command]
 pub async fn debug_message_stats(state: State<'_, AppData>) -> Result<serde_json::Value, String> {
     let login_uid = {
@@ -490,7 +490,7 @@ pub async fn debug_message_stats(state: State<'_, AppData>) -> Result<serde_json
         .filter(im_message::Column::LoginUid.eq(&login_uid))
         .count(state.db_conn.deref())
         .await
-        .map_err(|e| format!("查询总消息数失败: {}", e))?;
+        .map_err(|e| format!("총 메시지 수 조회 실패: {}", e))?;
 
     // 查询各种类型的消息数
     let mut stats = serde_json::Map::new();
@@ -499,14 +499,14 @@ pub async fn debug_message_stats(state: State<'_, AppData>) -> Result<serde_json
         serde_json::Value::Number(serde_json::Number::from(total_messages)),
     );
 
-    // 统计各种消息类型
+    // 다양한 메시지 유형 통계
     for msg_type in 0..=10u8 {
         let count = im_message::Entity::find()
             .filter(im_message::Column::LoginUid.eq(&login_uid))
             .filter(im_message::Column::MessageType.eq(msg_type))
             .count(state.db_conn.deref())
             .await
-            .map_err(|e| format!("查询类型 {} 消息数失败: {}", msg_type, e))?;
+            .map_err(|e| format!("유형 {} 메시지 수 조회 실패: {}", msg_type, e))?;
 
         if count > 0 {
             stats.insert(
@@ -516,7 +516,7 @@ pub async fn debug_message_stats(state: State<'_, AppData>) -> Result<serde_json
         }
     }
 
-    // 查询最近的几条文件消息样例
+    // 최근 파일 메시지 샘플 조회
     let sample_messages = im_message::Entity::find()
         .filter(im_message::Column::LoginUid.eq(&login_uid))
         .filter(im_message::Column::MessageType.is_in([4, 6]))
@@ -524,7 +524,7 @@ pub async fn debug_message_stats(state: State<'_, AppData>) -> Result<serde_json
         .limit(5)
         .all(state.db_conn.deref())
         .await
-        .map_err(|e| format!("查询样例消息失败: {}", e))?;
+        .map_err(|e| format!("샘플 메시지 조회 실패: {}", e))?;
 
     let samples: Vec<serde_json::Value> = sample_messages
         .into_iter()

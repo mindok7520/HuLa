@@ -1,124 +1,124 @@
-/** pinia的store的命名空间 */
+/** pinia 스토어 네임스페이스 */
 declare namespace STO {
   import { ShowModeEnum, ThemeEnum } from '@/enums'
   import { UserState } from '@/services/types'
   /**
-   * 设置
-   * @param themes 主题设置
-   * @param tips 关闭提示
-   * @param escClose 是否启用ESC关闭窗口
-   * @param lockScreen 是否锁屏
-   * @param login 用户登录设置
-   * @param chat 聊天设置
-   * @param page 界面设置
+   * 설정
+   * @param themes 테마 설정
+   * @param tips 닫기 팁
+   * @param escClose ESC로 창 닫기 활성화 여부
+   * @param lockScreen 잠금 화면 여부
+   * @param login 사용자 로그인 설정
+   * @param chat 채팅 설정
+   * @param page 인터페이스 설정
    */
   type Setting = {
-    /** 主题设置 */
+    /** 테마 설정 */
     themes: {
       content: ThemeEnum
       pattern: string
       versatile: string
     }
-    /** 关闭提示 */
+    /** 닫기 팁 */
     tips: {
       type: string
-      /** 不再显示提示 */
+      /** 더 이상 팁을 표시하지 않음 */
       notTips: boolean
     }
-    /** 是否启用ESC关闭窗口 */
+    /** ESC로 창 닫기 활성화 여부 */
     escClose: boolean
-    /** 菜单显示模式 */
+    /** 메뉴 표시 모드 */
     showMode: ShowModeEnum
-    /** 是否锁屏 */
+    /** 잠금 화면 여부 */
     lockScreen: {
-      /** 是否启用锁屏 */
+      /** 잠금 화면 활성화 여부 */
       enable: boolean
-      /** 锁屏密码 */
+      /** 잠금 화면 비밀번호 */
       password: string
     }
-    /** 登录设置 */
+    /** 로그인 설정 */
     login: {
-      /** 是否启用自动登录 */
+      /** 자동 로그인 활성화 여부 */
       autoLogin: boolean
-      /** 开机启动 */
+      /** 시작 시 자동 실행 */
       autoStartup: boolean
     }
-    /** 聊天设置 */
+    /** 채팅 설정 */
     chat: {
-      /** 发送快捷键 */
+      /** 전송 단축키 */
       sendKey: string
-      /** 是否双击打开独立会话窗口 */
+      /** 더블 클릭으로 독립 세션 창 열기 여부 */
       isDouble: boolean
-      /** 翻译提供商 */
+      /** 번역 제공업체 */
       translate: 'youdao' | 'tencent'
     }
-    /** 快捷键设置 */
+    /** 단축키 설정 */
     shortcuts: {
-      /** 截图快捷键 */
+      /** 스크린샷 단축키 */
       screenshot: string
-      /** 打开主面板快捷键 */
+      /** 메인 패널 열기 단축키 */
       openMainPanel: string
-      /** 全局快捷键开关 */
+      /** 전역 단축키 스위치 */
       globalEnabled: boolean
     }
-    /** 界面设置 */
+    /** 인터페이스 설정 */
     page: {
-      /** 是否开启阴影 */
+      /** 그림자 활성화 여부 */
       shadow: boolean
-      /** 字体 */
+      /** 폰트 */
       fonts: string
-      /** 高斯模糊 */
+      /** 가우시안 블러 */
       blur: boolean
       lang: string
     }
-    /** 更新设置 */
+    /** 업데이트 설정 */
     update: {
-      /** 忽略更新版本 */
+      /** 업데이트 무시 버전 */
       dismiss: string
     }
-    /** 截图设置 */
+    /** 스크린샷 설정 */
     screenshot: {
-      /** 截图时是否隐藏窗口 */
+      /** 스크린샷 시 창 숨김 여부 */
       isConceal: boolean
     }
-    /** 消息通知设置 */
+    /** 메시지 알림 설정 */
     notification: {
-      /** 是否开启消息提示音 */
+      /** 메시지 알림음 활성화 여부 */
       messageSound: boolean
     }
   }
 
   /**
-   * 置顶窗口列表
-   * @param key 窗口名称
+   * 항상 위에 표시되는 창 목록
+   * @param key 창 이름
    */
   type AlwaysOnTop = {
-    /** 是否置顶窗口列表 */
+    /** 항상 위에 표시되는 창 목록 여부 */
     [key: string]: boolean
   }
 
   /**
-   * 历史内容
-   * @param emoji 历史消息的emoji列表
+   * 히스토리 내용
+   * @param emoji 히스토리 메시지의 이모지 목록
    */
   type History = {
-    /** emoji列表 */
+    /** 이모지 목록 */
     emoji: string[]
   }
 
   /**
-   * 用户状态
-   * @param {UserState} 通用在线状态
+   * 사용자 상태
+   * @param {UserState} 공통 온라인 상태
    */
   type UserState = UserState
 
   /**
-   * 插件管理弹窗数据类型
-   * @param state 插件状态
-   * @param version 插件版本
-   * @param isAdd 是否添加侧边栏
-   * @param isAnimate 是否动画效果
-   * @param { OPT.L.Common } 通用默认侧边栏
+   * 플러그인 관리 팝업 데이터 유형
+   * @param state 플러그인 상태
+   * @param version 플러그인 버전
+   * @param isAdd 사이드바 추가 여부
+   * @param isAnimate 애니메이션 효과 여부
+   * @param { OPT.L.Common } 공통 기본 사이드바
    */
   type Plugins<T> = {
     state: T
@@ -130,10 +130,10 @@ declare namespace STO {
   } & OPT.L.Common
 
   /**
-   * 引导状态
+   * 가이드 상태
    */
   type Guide = {
-    /** 引导完成状态 */
+    /** 가이드 완료 상태 */
     isGuideCompleted: boolean
   }
 }

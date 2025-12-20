@@ -2,8 +2,8 @@ use serde_json::Value;
 use std::collections::HashMap;
 use tracing::debug;
 
-/// 消息处理器
-/// 负责处理不同类型的 WebSocket 消息
+/// 메시지 처리기
+/// 다양한 유형의 WebSocket 메시지 처리 담당
 pub struct MessageProcessor {
     message_handlers: HashMap<String, Box<dyn Fn(&Value) + Send + Sync>>,
 }
@@ -15,7 +15,7 @@ impl MessageProcessor {
         }
     }
 
-    /// 注册消息处理器
+    /// 메시지 처리기 등록
     pub fn register_handler<F>(&mut self, message_type: String, handler: F)
     where
         F: Fn(&Value) + Send + Sync + 'static,
@@ -24,13 +24,13 @@ impl MessageProcessor {
             .insert(message_type, Box::new(handler));
     }
 
-    /// 处理接收到的消息
+    /// 받은 메시지 처리
     pub fn process_message(&self, message: &Value) -> ProcessResult {
-        // 尝试解析消息类型
+        // 메시지 유형 파싱 시도
         if let Some(msg_type) = self.extract_message_type(message) {
             debug!("Processing message type: {}", msg_type);
 
-            // 查找对应的处理器
+            // 해당 처리기 찾기
             if let Some(handler) = self.message_handlers.get(&msg_type) {
                 handler(message);
                 return ProcessResult::Handled;
@@ -42,7 +42,7 @@ impl MessageProcessor {
         ProcessResult::Unhandled
     }
 
-    /// 提取消息类型
+    /// 메시지 유형 추출
     fn extract_message_type(&self, message: &Value) -> Option<String> {
         message.get("type").and_then(|t| {
             if let Some(s) = t.as_str() {
@@ -55,14 +55,14 @@ impl MessageProcessor {
         })
     }
 
-    /// 验证消息格式
+    /// 메시지 형식 검증
     pub fn validate_message(&self, message: &Value) -> ValidationResult {
-        // 基本结构验证
+        // 기본 구조 검증
         if !message.is_object() {
             return ValidationResult::Invalid("Message must be an object".to_string());
         }
 
-        // 检查必需字段
+        // 필수 필드 확인
         if message.get("type").is_none() {
             return ValidationResult::Invalid("Message must have a 'type' field".to_string());
         }
@@ -70,9 +70,9 @@ impl MessageProcessor {
         ValidationResult::Valid
     }
 
-    /// 过滤敏感信息
+    /// 민감 정보 필터링
     pub fn sanitize_message(&self, mut message: Value) -> Value {
-        // 移除可能的敏感字段
+        // 잠재적인 민감 필드 제거
         if let Some(obj) = message.as_object_mut() {
             let sensitive_keys = ["password", "token", "secret", "key"];
             for key in sensitive_keys {
@@ -94,14 +94,14 @@ impl Default for MessageProcessor {
 }
 
 impl MessageProcessor {
-    /// 注册默认的消息处理器
+    /// 기본 메시지 처리기 등록
     fn register_default_handlers(&mut self) {
-        // 登录相关消息
+        // 로그인 관련 메시지
         self.register_handler("1".to_string(), |msg| {
             debug!("Processing login-related message: {:?}", msg);
         });
 
-        // 心跳消息
+        // 하트비트 메시지
         self.register_handler("2".to_string(), |_msg| {
             debug!("Received heartbeat message");
         });
@@ -110,17 +110,17 @@ impl MessageProcessor {
             debug!("Received heartbeat response");
         });
 
-        // 普通聊天消息
+        // 일반 채팅 메시지
         self.register_handler("RECEIVE_MESSAGE".to_string(), |msg| {
             debug!("Received chat message: {:?}", msg);
         });
 
-        // 用户状态变化
+        // 사용자 상태 변경
         self.register_handler("USER_STATE_CHANGE".to_string(), |msg| {
             debug!("User status changed: {:?}", msg);
         });
 
-        // 视频通话相关
+        // 비디오 통화 관련
         self.register_handler("VideoCallRequest".to_string(), |msg| {
             debug!("Received video call request: {:?}", msg);
         });
@@ -135,14 +135,14 @@ impl MessageProcessor {
     }
 }
 
-/// 消息处理结果
+/// 메시지 처리 결과
 #[derive(Debug, PartialEq)]
 pub enum ProcessResult {
     Handled,
     Unhandled,
 }
 
-/// 消息验证结果
+/// 메시지 검증 결과
 #[derive(Debug, PartialEq)]
 pub enum ValidationResult {
     Valid,
@@ -158,7 +158,7 @@ mod tests {
     fn test_message_validation() {
         let processor = MessageProcessor::new();
 
-        // 有效消息
+        // 유효한 메시지
         let valid_msg = json!({
             "type": "test",
             "data": "some data"
@@ -168,7 +168,7 @@ mod tests {
             ValidationResult::Valid
         );
 
-        // 无效消息 - 缺少 type
+        // 유효하지 않은 메시지 - type 누락
         let invalid_msg = json!({
             "data": "some data"
         });
@@ -177,7 +177,7 @@ mod tests {
             ValidationResult::Invalid(_)
         ));
 
-        // 无效消息 - 不是对象
+        // 유효하지 않은 메시지 - 객체가 아님
         let invalid_msg2 = json!("not an object");
         assert!(matches!(
             processor.validate_message(&invalid_msg2),

@@ -6,7 +6,7 @@
         class="bg-white"
         style="border-bottom: 1px solid; border-color: #dfdfdf"
         :hidden-right="true"
-        room-name="公告详情" />
+        room-name="공지 상세" />
     </template>
 
     <template #container>
@@ -18,18 +18,18 @@
           </div>
 
           <div v-else-if="announcement" class="bg-white flex flex-col shadow p-10px gap-15px text-14px rounded-15px">
-            <!-- 公告头部信息 -->
+            <!-- 공지 헤더 정보 -->
             <div
               style="border-bottom: 1px solid; border-color: #ebebeb"
               class="grid grid-cols-[2.2rem_1fr_4rem] items-start px-2 py-3 gap-1">
-              <!-- 头像 -->
+              <!-- 프로필 사진 -->
               <div class="self-center h-38px">
                 <n-badge>
                   <n-avatar :size="40" :src="publisherAvatar" :fallback-src="getFallbackAvatar()" round />
                 </n-badge>
               </div>
 
-              <!-- 发布人信息 -->
+              <!-- 게시자 정보 -->
               <div class="truncate pl-4 flex gap-10px flex-col">
                 <div class="text-14px leading-tight font-bold flex-1 truncate text-#333">
                   {{ publisherName }}
@@ -39,18 +39,18 @@
                 </div>
               </div>
 
-              <!-- 阅读统计 -->
+              <!-- 읽음 통계 -->
               <div class="justify-self-end self-center text-12px text-right flex gap-1 items-center">
-                <span class="text-#13987F">{{ announcement.readCount || 0 }}人已读</span>
+                <span class="text-#13987F">{{ announcement.readCount || 0 }}명 읽음</span>
               </div>
             </div>
 
-            <!-- 公告内容 -->
+            <!-- 공지 내용 -->
             <div class="announcement-content whitespace-pre-wrap break-words text-14px leading-6 text-#333">
               {{ announcement.content }}
             </div>
 
-            <!-- 编辑按钮（仅管理员/群主可见） -->
+            <!-- 편집 버튼 (관리자/그룹장만 표시) -->
             <div v-if="canEdit" class="flex justify-center mb-10px">
               <div
                 @click="goToNoticeEdit"
@@ -65,12 +65,14 @@
                   display: inline-block;
                   cursor: pointer;
                 ">
-                编辑公告
+                공지 편집
               </div>
             </div>
           </div>
 
-          <div v-else class="flex justify-center items-center h-200px text-#909090">公告不存在或已被删除</div>
+          <div v-else class="flex justify-center items-center h-200px text-#909090">
+            공지가 존재하지 않거나 삭제되었습니다
+          </div>
         </div>
       </div>
     </template>
@@ -99,11 +101,11 @@ const announcement = ref<any>(null)
 const loading = ref(true)
 const error = ref<string | null>(null)
 
-// 获取发布者信息
+// 게시자 정보 가져오기
 const publisherName = computed(() => {
-  if (!announcement.value) return '未知用户'
+  if (!announcement.value) return '알 수 없는 사용자'
   const userInfo = groupStore.getUserInfo(announcement.value.uid)
-  return userInfo?.name || userInfo?.myName || '未知用户'
+  return userInfo?.name || userInfo?.myName || '알 수 없는 사용자'
 })
 
 const publisherAvatar = computed(() => {
@@ -112,7 +114,7 @@ const publisherAvatar = computed(() => {
   return userInfo?.avatar || ''
 })
 
-// 获取默认头像
+// 기본 아바타 가져오기
 const getFallbackAvatar = () => {
   return '/logo.png'
 }
@@ -120,17 +122,17 @@ const getFallbackAvatar = () => {
 const canEdit = computed(() => {
   if (!announcement.value) return false
 
-  // 当前用户是公告发布者
+  // 현재 사용자가 공지 게시자인지 확인
   const currentUid = userStore.userInfo?.uid
   const isPublisher = announcement.value.uid === currentUid
 
-  // 当前用户是群主或管理员
+  // 현재 사용자가 그룹장 또는 관리자인지 확인
   const isLord = currentUid ? groupStore.isCurrentLord(currentUid) : false
   const isAdmin = currentUid ? groupStore.isAdmin(currentUid) : false
   return isPublisher || isLord || isAdmin
 })
 
-// 获取公告详情
+// 공지 상세 정보 가져오기
 const fetchAnnouncementDetail = async () => {
   try {
     loading.value = true
@@ -141,14 +143,14 @@ const fetchAnnouncementDetail = async () => {
     })
     announcement.value = data
   } catch (err) {
-    console.error('获取公告详情失败:', err)
-    error.value = '获取公告详情失败，请重试'
+    console.error('공지 상세 정보 가져오기 실패:', err)
+    error.value = '공지 상세 정보 가져오기 실패, 다시 시도해주세요'
   } finally {
     loading.value = false
   }
 }
 
-// 跳转到编辑页面
+// 편집 페이지로 이동
 const goToNoticeEdit = () => {
   if (announcement.value) {
     router.push(`/mobile/chatRoom/notice/edit/${announcement.value.id}`)
@@ -163,11 +165,11 @@ onMounted(() => {
 <style scoped>
 .announcement-content {
   line-height: 1.6;
-  max-height: none; /* 移除高度限制，让内容自然滚动 */
+  max-height: none; /* 높이 제한 제거, 콘텐츠 자연 스크롤 허용 */
   overflow-y: auto;
 }
 
-/* 确保长文本和换行显示正常 */
+/* 긴 텍스트 및 줄바꿈이 정상적으로 표시되도록 함 */
 .whitespace-pre-wrap {
   white-space: pre-wrap;
   word-wrap: break-word;

@@ -1,29 +1,48 @@
 #message-input {
-  padding: 4px 24px 4px 4px; /** 输入框内填充 */
-  font-size: 14px; /** 字体大小 */
-  color: inherit; /** 继承颜色 */
-  cursor: text; /** 文本输入光标 */
-  resize: none; /** 不允许调整尺寸 */
-  background: none; /** 无背景 */
-  border: none; /** 边框样式，可根据需求修改 */
-  border-radius: 0; /** 边框圆角 */
-  line-height: 20px; /** 行高 */
-  overflow-y: visible; /** 由 n-scrollbar 组件处理滚动 */
-  overflow-x: hidden; /** 内容过多时不允许横向滚动 */
-  flex: 1; /** 弹性盒自适应填充可用空间 */
-  caret-color: #13987f; /** 光标颜色，可根据需求调整 */
-  white-space: normal; /** 保留空白符号并正常换行 */
-  word-break: break-all; /** 强制在单词内部进行换行 */
+  padding: 4px 24px 4px 4px;
+  /** 입력창 내부 여백 */
+  font-size: 14px;
+  /** 글꼴 크기 */
+  color: inherit;
+  /** 색상 상속 */
+  cursor: text;
+  /** 텍스트 입력 커서 */
+  resize: none;
+  /** 크기 조정 불허 */
+  background: none;
+  /** 배경 없음 */
+  border: none;
+  /** 테두리 스타일, 필요에 따라 수정 가능 */
+  border-radius: 0;
+  /** 테두리 둥글기 */
+  line-height: 20px;
+  /** 줄 높이 */
+  overflow-y: visible;
+  /** n-scrollbar 컴포넌트에서 스크롤 처리 */
+  overflow-x: hidden;
+  /** 내용이 많을 때 가로 스크롤 불허 */
+  flex: 1;
+  /** 가용 공간을 채우는 탄력적 상자 자습 */
+  caret-color: #13987f;
+  /** 커서 색상, 필요에 따라 조정 가능 */
+  white-space: normal;
+  /** 공백 문자를 보존하고 정상적으로 줄바꿈 */
+  word-break: break-all;
+  /** 단어 내부에서 강제 줄바꿈 */
   overflow-wrap: break-all;
-  -webkit-white-space: normal; /** 兼容webkit浏览器 */
+  -webkit-white-space: normal;
+  /** webkit 브라우저 호환성 */
   -webkit-word-break: break-all;
   -webkit-overflow-wrap: break-all;
-  hyphens: auto; /** 行尾自动断开长单词 */
+  hyphens: auto;
+  /** 행 끝에서 긴 단어를 자동으로 끊음 */
   -webkit-hyphens: auto;
 }
+
 .ait-options {
   @apply z-999 w-200px h-fit max-h-190px bg-[--center-bg-color] rounded-8px p-[5px_0_5px_5px] border-(1px solid [--box-shadow-color]);
   box-shadow: 2px 2px 12px 2px var(--box-shadow-color);
+
   .ait-item {
     @apply h-26px text-[--text-color] text-14px p-[5px_0_5px_10px] mr-5px rounded-6px cursor-pointer;
   }
@@ -32,6 +51,7 @@
 .AI-options {
   @apply z-999 w-260px h-fit max-h-190px bg-[--center-bg-color] rounded-8px p-[5px_0_5px_5px] border-(1px solid [--box-shadow-color]);
   box-shadow: 2px 2px 12px 2px var(--box-shadow-color);
+
   .AI-item {
     @apply h-26px text-[--text-color] text-14px p-[5px_0_5px_10px] mr-7px rounded-6px cursor-pointer;
   }

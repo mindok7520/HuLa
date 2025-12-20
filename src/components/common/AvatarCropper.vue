@@ -6,7 +6,7 @@
     class="rounded-8px"
     transform-origin="center">
     <div class="bg-[--bg-edit] w-560px h-480px box-border flex flex-col items-center justify-between">
-      <!-- 标题栏 -->
+      <!-- 타이틀 바 -->
       <n-flex :size="6" vertical class="w-full">
         <div
           v-if="isMac()"
@@ -30,9 +30,9 @@
         <span class="h-1px w-full bg-[--line-color]"></span>
       </n-flex>
 
-      <!-- 主体内容 -->
+      <!-- 본문 내용 -->
       <n-flex align="center">
-        <!-- 裁剪区域 -->
+        <!-- 자르기 영역 -->
         <div class="w-320px h-320px p-10px mr-20px">
           <vue-cropper
             ref="cropperRef"
@@ -48,9 +48,9 @@
             @realTime="handleRealTime" />
         </div>
 
-        <!-- 预览区域 -->
+        <!-- 미리보기 영역 -->
         <n-flex vertical class="px-20px">
-          <!-- 圆形预览 -->
+          <!-- 원형 미리보기 -->
           <div class="mb-20px">
             <div class="text-14px text-[--text-color] mb-8px">
               {{ t('components.avatarCropper.preview.round') }}
@@ -73,7 +73,7 @@
             </div>
           </div>
 
-          <!-- 方形预览 -->
+          <!-- 사각형 미리보기 -->
           <div>
             <div class="text-14px text-[--text-color] mb-8px w-120px">
               {{ t('components.avatarCropper.preview.square') }}
@@ -155,19 +155,19 @@ const handleCrop = () => {
   })
 }
 
-/** 关闭裁剪窗口 */
+/** 자르기 창 닫기 */
 const closeWindow = () => {
   if (!loading.value) {
     emit('update:show', false)
   }
 }
 
-/** 结束加载状态 */
+/** 로딩 상태 종료 */
 const finishLoading = () => {
   loading.value = false
 }
 
-// 定义组件实例类型
+// 컴포넌트 인스턴스 타입 정의
 export interface AvatarCropperInstance {
   finishLoading: () => void
 }
@@ -175,7 +175,7 @@ defineExpose<AvatarCropperInstance>({
   finishLoading
 })
 
-// 确保在组件卸载时清理预览
+// 컴포넌트 언마운트 시 미리보기 정리 보장
 onUnmounted(() => {
   previewUrl.value = {
     url: '',
@@ -191,7 +191,7 @@ onUnmounted(() => {
   display: block;
 }
 
-/* 修改裁剪框样式 */
+/* 자르기 상자 스타일 수정 */
 :deep(.cropper-view-box) {
   border-radius: 50%;
   outline: none;
@@ -207,14 +207,14 @@ onUnmounted(() => {
   display: none;
 }
 
-/* 添加预览图片的过渡效果 */
+/* 미리보기 이미지 트랜지션 효과 추가 */
 img {
   transition: opacity 0.2s ease-in-out;
 }
 
 .preview-wrapper {
   position: relative;
-  width: calc(320px * 0.4); /* 根据原始尺寸和缩放比例计算 */
+  width: calc(320px * 0.4); /* 원본 크기 및 확대/축소 비율에 따라 계산 */
   height: calc(320px * 0.4);
   overflow: hidden;
 }

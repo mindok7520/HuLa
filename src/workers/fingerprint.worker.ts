@@ -1,6 +1,6 @@
 /// <reference lib="webworker" />
 
-// 检测浏览器特征
+// 브라우저 특징 감지
 const detectBrowserFeatures = async (): Promise<Record<string, boolean>> => {
   const features: Record<string, boolean> = {}
 
@@ -48,18 +48,18 @@ const detectBrowserFeatures = async (): Promise<Record<string, boolean>> => {
   return features
 }
 
-// 生成设备指纹
+// 장치 지문 생성
 const generateFingerprint = async (data: { deviceInfo: any; browserFingerprint: string }): Promise<string> => {
   try {
     const totalStart = performance.now()
 
-    // 2. 浏览器特征检测
+    // 2. 브라우저 특징 감지
     const featureStart = performance.now()
     const browserFeatures = await detectBrowserFeatures()
     const featureTime = performance.now() - featureStart
-    console.log(`Worker: 特征检测耗时: ${featureTime.toFixed(2)}ms`)
+    console.log(`Worker: 특징 감지 소요 시간: ${featureTime.toFixed(2)}ms`)
 
-    // 3. 组合所有特征
+    // 3. 모든 특징 조합
     const hashStart = performance.now()
     const combinedFingerprint = JSON.stringify({
       browserFingerprint: data.browserFingerprint,
@@ -68,26 +68,26 @@ const generateFingerprint = async (data: { deviceInfo: any; browserFingerprint: 
       timestamp: Date.now()
     })
 
-    // 4. 使用 SHA-256 生成最终指纹
+    // 4. SHA-256을 사용하여 최종 지문 생성
     const fingerprintBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(combinedFingerprint))
 
     const fingerprint = Array.from(new Uint8Array(fingerprintBuffer))
       .map((b) => b.toString(16).padStart(2, '0'))
       .join('')
     const hashTime = performance.now() - hashStart
-    console.log(`Worker: SHA-256计算耗时: ${hashTime.toFixed(2)}ms`)
+    console.log(`Worker: SHA-256 계산 소요 시간: ${hashTime.toFixed(2)}ms`)
 
     const totalTime = performance.now() - totalStart
-    console.log(`Worker: 指纹生成总耗时: ${totalTime.toFixed(2)}ms`)
+    console.log(`Worker: 지문 생성 총 소요 시간: ${totalTime.toFixed(2)}ms`)
 
     return fingerprint
   } catch (error) {
-    console.error('Worker: ❌ 生成设备指纹失败:', error)
+    console.error('Worker: ❌ 장치 지문 생성 실패:', error)
     return ''
   }
 }
 
-// 监听主线程消息
+// 메인 스레드 메시지 수신
 self.onmessage = async (e) => {
   const { type, deviceInfo, browserFingerprint } = e.data
 

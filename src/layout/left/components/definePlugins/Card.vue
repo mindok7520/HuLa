@@ -4,7 +4,7 @@
       <n-flex :size="26" class="z-10 p-[18px_18px_36px_18px] box-border w-full">
         <template v-for="(plugin, index) in allPlugins" :key="index">
           <Transition name="state-change" mode="out-in">
-            <!-- 未安装和下载中状态 -->
+            <!-- 미설치 및 다운로드 중 상태 -->
             <n-flex
               v-if="plugin.state === PluginEnum.NOT_INSTALLED || plugin.state === PluginEnum.DOWNLOADING"
               vertical
@@ -18,7 +18,7 @@
               </svg>
               <p class="text-(12px #666)">{{ plugin.title }}</p>
 
-              <!-- 在下载中进度条 -->
+              <!-- 다운로드 중 진행률 표시줄 -->
               <n-flex
                 @click="handleState(plugin)"
                 class="relative rounded-22px border-(1px solid #4C77BD)"
@@ -45,7 +45,7 @@
               <div class="flash"></div>
             </n-flex>
 
-            <!-- 可卸载状态或内置插件状态 -->
+            <!-- 제거 가능 상태 또는 내장 플러그인 상태 -->
             <n-flex
               v-else
               vertical
@@ -86,7 +86,7 @@
                 <p class="text-(12px #4C77BD center)">{{ plugin.version }}</p>
               </n-flex>
 
-              <!-- 闪光效果 -->
+              <!-- 플래시 효과 -->
               <div class="flash"></div>
 
               <Transition>
@@ -97,7 +97,7 @@
                 </svg>
               </Transition>
 
-              <!-- 插件操作 -->
+              <!-- 플러그인 작업 -->
               <n-popover
                 v-if="plugin.state === PluginEnum.INSTALLED || index === isCurrently"
                 :show="isCurrently === index"
@@ -163,7 +163,7 @@ const isCurrently = ref(-1)
 const allPlugins = ref([] as STO.Plugins<PluginEnum>[])
 const pluginsLists = ref<STO.Plugins<PluginEnum>[]>(cloneDeep(pluginsList.value))
 
-// 同步插件状态
+// 플러그인 상태 동기화
 const syncPlugins = (list: STO.Plugins<PluginEnum>[]) =>
   list.map((item: STO.Plugins<PluginEnum>) => {
     const matched = plugins.value.find((z: STO.Plugins<PluginEnum>) => z.url === item.url)

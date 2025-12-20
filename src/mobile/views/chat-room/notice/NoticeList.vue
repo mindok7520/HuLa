@@ -6,7 +6,7 @@
         class="bg-white"
         style="border-bottom: 1px solid; border-color: #dfdfdf"
         :hidden-right="true"
-        room-name="群公告" />
+        room-name="그룹 공지" />
     </template>
 
     <template #container>
@@ -15,30 +15,30 @@
         <div class="flex flex-col flex-1 gap-15px py-15px px-20px">
           <RecycleScroller :items="announList" :item-size="15" key-field="id" class="flex flex-col gap-15px">
             <template #default="{ item }">
-              <!-- 公告内容块 -->
+              <!-- 공지 내용 블록 -->
               <div @click="goToNoticeDetail(item.id)" class="shadow flex p-15px bg-white rounded-10px">
                 <div class="flex flex-col w-full gap-10px">
-                  <!-- 时间/阅读人数 -->
+                  <!-- 시간/읽은 사람 수 -->
                   <div class="flex items-center justify-between text-14px">
                     <span class="flex gap-5px">
-                      <span class="text-#717171">发布人:</span>
+                      <span class="text-#717171">게시자:</span>
                       <span class="text-black">{{ groupStore.getUserInfo(item.uid)?.name }}</span>
                     </span>
                     <span
                       v-if="item.isTop"
                       class="text-#13987F rounded-15px px-7px py-5px text-12px"
                       style="border: 1px solid; border-color: #13987f">
-                      置顶
+                      상단 고정
                     </span>
                   </div>
-                  <!-- 公告内容 -->
+                  <!-- 공지 내용 -->
                   <div class="text-14px line-clamp-3 line-height-20px text-#717171 max-h-60px">
                     {{ item.content }}
                   </div>
 
                   <div class="flex items-center justify-between text-12px">
                     <span class="flex gap-5px text-#717171">{{ formatTimestamp(item.createTime) }}</span>
-                    <span class="text-#13987F">128人已读</span>
+                    <span class="text-#13987F">128명 읽음</span>
                   </div>
                 </div>
               </div>
@@ -46,7 +46,7 @@
           </RecycleScroller>
         </div>
 
-        <!-- 右下角悬浮气泡 - 仅群主、管理员或特定徽章用户可见 -->
+        <!-- 우측 하단 플로팅 버튼 - 그룹장, 관리자 또는 특정 뱃지 사용자만 표시 -->
         <van-floating-bubble v-if="canAddAnnouncement" axis="xy" magnetic="x" @click="goToAddNotice">
           <template #default>
             <svg class="w-24px h-24px iconpark-icon text-white"><use href="#plus"></use></svg>
@@ -79,14 +79,14 @@ const userStore = useUserStore()
 const globalStore = useGlobalStore()
 const cacheStore = useCachedStore()
 
-// 判断当前用户是否有权限添加公告
+// 현재 사용자가 공지 추가 권한이 있는지 확인
 const canAddAnnouncement = computed(() => {
   if (!userStore.userInfo?.uid) return false
 
   const isLord = groupStore.isCurrentLord(userStore.userInfo.uid) ?? false
   const isAdmin = groupStore.isAdmin(userStore.userInfo.uid) ?? false
 
-  // 判断当前用户是否拥有id为6的徽章 并且是频道
+  // 현재 사용자가 ID 6 뱃지를 보유하고 채널인지 확인
   const hasBadge6 = () => {
     if (globalStore.currentSessionRoomId !== '1') return false
 
@@ -97,19 +97,19 @@ const canAddAnnouncement = computed(() => {
   return isLord || isAdmin || hasBadge6()
 })
 
-// 加载群公告列表
+// 그룹 공지 목록 로드
 const loadAnnouncementList = async () => {
   try {
     const roomId = globalStore.currentSessionRoomId
     if (!roomId) {
-      console.error('当前会话没有roomId')
+      console.error('현재 세션에 roomId가 없습니다')
       return
     }
 
     const data = await cacheStore.getGroupAnnouncementList(roomId, 1, 10)
     if (data && data.records) {
       announList.value = data.records
-      // 处理置顶公告
+      // 상단 고정 공지 처리
       if (announList.value && announList.value.length > 0) {
         const topAnnouncement = announList.value.find((item: any) => item.top)
         if (topAnnouncement) {
@@ -118,33 +118,33 @@ const loadAnnouncementList = async () => {
       }
     }
   } catch (error) {
-    console.error('加载群公告失败:', error)
+    console.error('그룹 공지 로드 실패:', error)
   }
 }
 
 const goToNoticeDetail = (id: string) => {
-  // 跳转到公告详情页面
-  console.log(`跳转到公告详情页面，公告ID: ${id}`)
+  // 공지 상세 페이지로 이동
+  console.log(`공지 상세 페이지로 이동, 공지 ID: ${id}`)
   router.push(`/mobile/chatRoom/notice/detail/${id}`)
 }
 
 const goToAddNotice = () => {
-  // 跳转到新增公告页面
-  console.log('跳转到新增公告页面')
+  // 공지 추가 페이지로 이동
+  console.log('공지 추가 페이지로 이동')
   router.push('/mobile/chatRoom/notice/add')
 }
 
 onMounted(() => {
-  // 首次加载时从路由参数获取数据
+  // 최초 로드 시 라우트 파라미터에서 데이터 가져오기
   if (route.query.announList) {
     announList.value = JSON.parse(route.query.announList as string)
   } else {
-    // 如果没有路由参数，则从服务器加载
+    // 라우트 파라미터가 없으면 서버에서 로드
     loadAnnouncementList()
   }
 })
 
-// 当页面被激活时（从其他页面返回），重新加载数据
+// 페이지 활성화 시(다른 페이지에서 복귀) 데이터 다시 로드
 onActivated(() => {
   loadAnnouncementList()
 })

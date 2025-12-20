@@ -6,15 +6,15 @@ export const usePluginsStore = defineStore(
   StoresEnum.PLUGINS,
   () => {
     const pluginsList = usePluginsList()
-    /** 插件内容 */
+    /** 플러그인 내용 */
     const plugins = ref(pluginsList.value.filter((p) => p.state === PluginEnum.BUILTIN) as STO.Plugins<PluginEnum>[])
-    /** 插件查看模式 */
+    /** 플러그인 보기 모드 */
     const viewMode = ref<string>('card')
 
     /**
-     * 设置插件
-     * @param newPlugin 插件数据
-     * @param newPlugin 插件数据
+     * 플러그인 설정
+     * @param newPlugin 플러그인 데이터
+     * @param newPlugin 플러그인 데이터
      */
     const addPlugin = (newPlugin: STO.Plugins<PluginEnum>) => {
       const index = plugins.value.findIndex((i) => i.url === newPlugin.url)
@@ -22,9 +22,9 @@ export const usePluginsStore = defineStore(
     }
 
     /**
-     * 删除插件
-     * @param p 插件数据
-     * @param p 插件数据
+     * 플러그인 삭제
+     * @param p 플러그인 데이터
+     * @param p 플러그인 데이터
      */
     const removePlugin = (p: STO.Plugins<PluginEnum>) => {
       const index = plugins.value.findIndex((i: STO.Plugins<PluginEnum>) => i.url === p.url)
@@ -32,8 +32,8 @@ export const usePluginsStore = defineStore(
     }
 
     /**
-     * 更新插件状态
-     * @param p 插件
+     * 플러그인 상태 업데이트
+     * @param p 플러그인
      */
     const updatePlugin = (p: STO.Plugins<PluginEnum>) => {
       const index = plugins.value.findIndex((i) => i.url === p.url)
@@ -45,12 +45,12 @@ export const usePluginsStore = defineStore(
         const updated = latest.find((p) => p.url === plugin.url)
         return updated
           ? {
-              ...plugin,
-              size: updated.size ? { ...plugin.size, ...updated.size } : plugin.size,
-              window: updated.window ? { ...plugin.window, ...updated.window } : plugin.window,
-              title: updated.title,
-              shortTitle: updated.shortTitle
-            }
+            ...plugin,
+            size: updated.size ? { ...plugin.size, ...updated.size } : plugin.size,
+            window: updated.window ? { ...plugin.window, ...updated.window } : plugin.window,
+            title: updated.title,
+            shortTitle: updated.shortTitle
+          }
           : plugin
       })
     }
@@ -58,7 +58,7 @@ export const usePluginsStore = defineStore(
     watch(pluginsList, (latest) => syncPluginsWithLocale(latest), { immediate: true })
 
     onBeforeMount(() => {
-      // 读取本地存储的插件数据
+      // 로컬 스토리지에 저장된 플러그인 데이터 읽기
       if (localStorage.getItem(StoresEnum.PLUGINS)) {
         plugins.value = []
         JSON.parse(localStorage.getItem(StoresEnum.PLUGINS)!)['plugins']?.map((item: STO.Plugins<PluginEnum>) =>

@@ -2,16 +2,16 @@ import { defineStore } from 'pinia'
 import { CloseBxEnum, ShowModeEnum, StoresEnum, ThemeEnum } from '@/enums'
 import { isDesktop, isMac } from '@/utils/PlatformConstants'
 
-// 获取平台对应的默认快捷键
+// 플랫폼별 기본 단축키 가져오기
 const getDefaultShortcuts = () => {
   return {
     screenshot: isMac() ? 'Cmd+Ctrl+H' : 'Ctrl+Alt+H',
     openMainPanel: isMac() ? 'Cmd+Ctrl+P' : 'Ctrl+Alt+P',
-    globalEnabled: false // 默认关闭全局快捷键
+    globalEnabled: false // 전역 단축키 기본적으로 비활성화
   }
 }
 
-// TODO 使用indexDB或sqlite缓存数据，还需要根据每个账号来进行配置 (nyh -> 2024-03-26 01:22:12)
+// TODO indexDB 또는 sqlite를 사용하여 데이터를 캐시하고 계정별로 구성해야 함 (nyh -> 2024-03-26 01:22:12)
 const isDesktopComputed = computed(() => isDesktop())
 export const useSettingStore = defineStore(StoresEnum.SETTING, {
   state: (): STO.Setting => ({
@@ -57,13 +57,13 @@ export const useSettingStore = defineStore(StoresEnum.SETTING, {
     }
   }),
   actions: {
-    /** 初始化主题 */
+    /** 테마 초기화 */
     initTheme(theme: string) {
       this.themes.content = theme
       document.documentElement.dataset.theme = theme
       this.themes.pattern = theme
     },
-    /** 切换主题 */
+    /** 테마 전환 */
     toggleTheme(theme: string) {
       if (theme === ThemeEnum.OS) {
         this.themes.pattern = theme
@@ -76,7 +76,7 @@ export const useSettingStore = defineStore(StoresEnum.SETTING, {
         this.themes.pattern = theme
       }
     },
-    /** 切换登录设置 */
+    /** 로그인 설정 전환 */
     toggleLogin(autoLogin: boolean, autoStartup: boolean) {
       this.login.autoLogin = autoLogin
       this.login.autoStartup = autoStartup
@@ -85,32 +85,32 @@ export const useSettingStore = defineStore(StoresEnum.SETTING, {
     setAutoLogin(autoLogin: boolean) {
       this.login.autoLogin = autoLogin
     },
-    /** 设置菜单显示模式 */
+    /** 메뉴 표시 모드 설정 */
     setShowMode(showMode: ShowModeEnum) {
       this.showMode = showMode
     },
-    /** 设置截图快捷键 */
+    /** 스크린샷 단축키 설정 */
     setScreenshotShortcut(shortcut: string) {
       if (!this.shortcuts) {
         this.shortcuts = getDefaultShortcuts()
       }
       this.shortcuts.screenshot = shortcut
     },
-    /** 设置打开主面板快捷键 */
+    /** 메인 패널 열기 단축키 설정 */
     setOpenMainPanelShortcut(shortcut: string) {
       if (!this.shortcuts) {
         this.shortcuts = getDefaultShortcuts()
       }
       this.shortcuts.openMainPanel = shortcut
     },
-    /** 设置发送消息快捷键 */
+    /** 메시지 전송 단축키 설정 */
     setSendMessageShortcut(shortcut: string) {
       if (!this.chat) {
         this.chat = { sendKey: 'Enter', isDouble: true, translate: 'youdao' }
       }
       this.chat.sendKey = shortcut
     },
-    /** 设置全局快捷键开关状态 */
+    /** 전역 단축키 활성화 상태 설정 */
     setGlobalShortcutEnabled(enabled: boolean) {
       if (!this.shortcuts) {
         this.shortcuts = getDefaultShortcuts()
@@ -120,14 +120,14 @@ export const useSettingStore = defineStore(StoresEnum.SETTING, {
     closeAutoLogin() {
       this.login.autoLogin = false
     },
-    /** 设置截图时是否隐藏窗口 */
+    /** 스크린샷 시 창 숨기기 설정 */
     setScreenshotConceal(isConceal: boolean) {
       if (!this.screenshot) {
         this.screenshot = { isConceal: false }
       }
       this.screenshot.isConceal = isConceal
     },
-    /** 设置消息提示音开关 */
+    /** 메시지 알림음 스위치 설정 */
     setMessageSoundEnabled(enabled: boolean) {
       if (!this.notification) {
         this.notification = { messageSound: true }

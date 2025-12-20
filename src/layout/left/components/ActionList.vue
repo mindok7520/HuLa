@@ -1,6 +1,6 @@
 <template>
   <div ref="actionList" class="flex-1 mt-20px flex-col-x-center justify-between" data-tauri-drag-region>
-    <!-- 上部分操作栏 -->
+    <!-- 상단 작업 표시줄 -->
     <header ref="header" class="flex-col-x-center gap-10px color-[--left-icon-color]">
       <div
         v-for="(item, index) in menuTop"
@@ -13,7 +13,7 @@
         style="text-align: center"
         @click="pageJumps(item.url, item.title, item.size, item.window)"
         :title="item.title">
-        <!-- 已经打开窗口时展示 -->
+        <!-- 창이 이미 열려 있을 때 표시 -->
         <n-popover :show-arrow="false" v-if="openWindowsList.has(item.url)" trigger="hover" placement="right">
           <template #trigger>
             <n-badge :max="99" :value="item.badge">
@@ -25,7 +25,7 @@
           </template>
           <p>{{ item.title }} {{ t('home.action.opened') }}</p>
         </n-popover>
-        <!-- 该选项有提示时展示 -->
+        <!-- 해당 옵션에 팁이 있을 때 표시 -->
         <n-popover style="padding: 12px" v-else-if="item.tip" trigger="manual" v-model:show="tipShow" placement="right">
           <template #trigger>
             <n-badge :max="99" :value="item.badge" dot :show="item.dot">
@@ -42,8 +42,8 @@
             </svg>
           </n-flex>
         </n-popover>
-        <!-- 该选项无提示时展示 -->
-        <!-- 消息提示 -->
+        <!-- 해당 옵션에 팁이 없을 때 표시 -->
+        <!-- 메시지 팁 -->
         <n-badge
           v-if="item.url === 'message'"
           :max="99"
@@ -54,7 +54,7 @@
               :href="`#${activeUrl === item.url || openWindowsList.has(item.url) ? item.iconAction : item.icon}`"></use>
           </svg>
         </n-badge>
-        <!-- 好友提示 -->
+        <!-- 친구 팁 -->
         <n-badge
           v-if="item.url === 'friendsList'"
           :max="99"
@@ -81,7 +81,7 @@
         style="text-align: center"
         @click="pageJumps(item.url, item.title, item.size, item.window)"
         :title="item.title">
-        <!-- 已经打开窗口时展示 -->
+        <!-- 창이 이미 열려 있을 때 표시 -->
         <n-popover :show-arrow="false" v-if="openWindowsList.has(item.url)" trigger="hover" placement="right">
           <template #trigger>
             <n-badge :max="99" :value="item.badge">
@@ -93,7 +93,7 @@
           </template>
           <p>{{ item.title }} {{ t('home.action.opened') }}</p>
         </n-popover>
-        <!-- 该选项有提示时展示 -->
+        <!-- 해당 옵션에 팁이 있을 때 표시 -->
         <n-popover style="padding: 12px" v-else-if="item.tip" trigger="manual" v-model:show="tipShow" placement="right">
           <template #trigger>
             <n-badge :max="99" :value="item.badge" dot :show="item.dot">
@@ -110,7 +110,7 @@
             </svg>
           </n-flex>
         </n-popover>
-        <!-- 该选项无提示时展示 -->
+        <!-- 해당 옵션에 팁이 없을 때 표시 -->
         <n-badge v-else :max="99" :value="item.badge" :show="(item.badge ?? 0) > 0">
           <svg class="size-22px">
             <use
@@ -122,7 +122,7 @@
         </p>
       </div>
 
-      <!-- (独立)菜单选项 -->
+      <!-- (독립)메뉴 옵션 -->
       <div
         :class="showMode === ShowModeEnum.ICON ? 'top-action p-[6px_8px]' : 'top-action w-46px py-4px flex-col-center'">
         <n-popover
@@ -155,7 +155,7 @@
             <svg class="size-16px">
               <use href="#settings"></use>
             </svg>
-            <!-- <span class="select-none">插件管理</span> -->
+            <!-- <span class="select-none">플러그인 관리</span> -->
             {{ t('home.action.plugin_manage') }}
           </n-flex>
         </n-popover>
@@ -163,7 +163,7 @@
       </div>
     </header>
 
-    <!-- 下部分操作栏 -->
+    <!-- 하단 작업 표시줄 -->
     <footer class="flex-col-x-center mt-10px gap-10px color-[--left-icon-color] select-none">
       <div
         v-for="(item, index) in itemsBottom"
@@ -176,7 +176,7 @@
         style="text-align: center"
         @click="pageJumps(item.url, item.title, item.size, item.window)"
         :title="item.title">
-        <!-- 已经打开窗口时展示 -->
+        <!-- 창이 이미 열려 있을 때 표시 -->
         <n-popover :show-arrow="false" v-if="openWindowsList.has(item.url)" trigger="hover" placement="right">
           <template #trigger>
             <n-badge :max="99" :value="item.badge">
@@ -188,7 +188,7 @@
           </template>
           <p>{{ item.title }} {{ t('home.action.opened') }}</p>
         </n-popover>
-        <!-- 该选项有提示时展示 -->
+        <!-- 해당 옵션에 팁이 있을 때 표시 -->
         <n-popover style="padding: 12px" v-else-if="item.tip" trigger="manual" v-model:show="tipShow" placement="right">
           <template #trigger>
             <n-badge :max="99" :value="item.badge">
@@ -205,7 +205,7 @@
             </svg>
           </n-flex>
         </n-popover>
-        <!-- 该选项无提示时展示 -->
+        <!-- 해당 옵션에 팁이 없을 때 표시 -->
         <n-badge v-else :max="99" :value="item.badge">
           <svg class="size-22px">
             <use
@@ -217,7 +217,7 @@
         </p>
       </div>
 
-      <!--  更多选项面板  -->
+      <!--  더보기 옵션 패널  -->
       <div :title="t('home.action.more')" :class="{ 'bottom-action py-4px': showMode === ShowModeEnum.TEXT }">
         <n-popover
           v-model:show="settingShow"
@@ -289,15 +289,15 @@ const unreadReady = computed(() => globalStore.unreadReady)
 //const { } = toRefs(getCurrentInstance) // 所有菜单的外层div
 const menuShow = ref(false)
 const moreList = useMoreList()
-// 显示在菜单的插件
+// 메뉴에 표시되는 플러그인
 const activePlugins = computed(() => {
   return plugins.value.filter((i) => i.isAdd)
 })
-// 显示在菜单外的插件
+// 메뉴 외부에 표시되는 플러그인
 const noMiniShowPlugins = computed(() => {
   return activePlugins.value.filter((i) => !i.miniShow)
 })
-// 显示在菜单内的插件
+// 메뉴 내부에 표시되는 플러그인
 const miniShowPlugins = computed(() => {
   return activePlugins.value.filter((i) => i.miniShow)
 })
@@ -323,7 +323,7 @@ const handleResize = async (e: Event) => {
   const newMenuHeight = menuDivHeight + spaceHeight
   const headerTopHeight = 120
   const bottomPadding = 15
-  const randomHeight = 3 // 插件菜单的高度比其他菜单高2.66666666667
+  const randomHeight = 3 // 플러그인 메뉴의 높이는 다른 메뉴보다 2.66666666667 더 높음
   const staticMenuNum = 2
   const menuNum = Math.floor(
     (windowHeight -
@@ -351,12 +351,12 @@ const handleResize = async (e: Event) => {
   }
 }
 
-/** 调整主界面高度 */
+/** 메인 인터페이스 높이 조정 */
 const setHomeHeight = () => {
   invoke('set_height', { height: showMode.value === ShowModeEnum.TEXT ? 505 : 423 })
 }
 
-// 监听朋友圈未读数量变化，同步到 dynamic 插件的 badge
+// 모멘트 읽지 않은 수 변경 감지, dynamic 플러그인의 뱃지에 동기화
 watch(
   feedUnreadCount,
   (newCount) => {
@@ -369,16 +369,16 @@ watch(
 )
 
 onMounted(async () => {
-  // 初始化窗口高度
+  // 창 높이 초기화
   setHomeHeight()
 
-  // 监听窗口大小变化事件，处理菜单收起
+  // 창 크기 변경 이벤트 감지, 메뉴 접기 처리
   window.addEventListener('resize', handleResize)
 
-  // 触发一次resize事件，调整插件菜单的显示
+  // resize 이벤트 한 번 트리거, 플러그인 메뉴 표시 조정
   startResize()
 
-  // 监听自定义事件，处理设置中菜单显示模式切换和添加插件后，导致高度变化，需重新调整插件菜单显示
+  // 사용자 정의 이벤트 감지, 설정에서 메뉴 표시 모드 전환 및 플러그인 추가 후 높이 변화로 인해 플러그인 메뉴 표시 재조정 필요 처리
   await addListener(
     appWindow.listen('startResize', () => {
       startResize()
@@ -393,7 +393,7 @@ onMounted(async () => {
       }
     })
   }
-  /** 十秒后关闭提示 */
+  /** 10초 후 팁 닫기 */
   setTimeout(() => {
     tipShow.value = false
   }, 5000)

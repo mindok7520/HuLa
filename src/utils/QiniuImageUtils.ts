@@ -21,7 +21,7 @@ const getQiniuHostKeywords = () => {
     // ignore store access errors and fall through to warning
   }
   if (!hasWarnedMissingDomain) {
-    console.warn('未获取到七牛 ossDomain，请检查配置')
+    console.warn('Qiniu ossDomain을 가져오지 못했습니다. 설정을 확인하세요.')
     hasWarnedMissingDomain = true
   }
   return []
@@ -50,7 +50,7 @@ export const buildQiniuThumbnailUrl = (url?: string | null, options: QiniuThumbO
       return url
     }
 
-    // 如果已经带有 imageView/imageMogr 等后处理参数，直接返回原链接
+    // 이미 imageView/imageMogr 등 후처리 매개변수가 포함된 경우 원본 링크를 직접 반환
     const existingQuery = parsedUrl.search.toLowerCase()
     if (
       existingQuery.includes('imageview') ||

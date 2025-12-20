@@ -1,17 +1,17 @@
-/** 选项命名空间 */
+/** 옵션 네임스페이스 */
 declare namespace OPT {
-  /** 主页左侧选项 */
+  /** 홈 화면 왼쪽 옵션 */
   namespace L {
     /**
-     * 顶部的选项
-     * @param url 链接
-     * @param icon 选项图标
-     * @param title 选项名称
-     * @param iconAction 选项右侧的操作图标
-     * @param badge 选项右侧的角标数字
-     * @param tip 选项提示信息
-     * @param size 选项尺寸
-     * @param window 选项窗口属性
+     * 상단 옵션
+     * @param url 링크
+     * @param icon 옵션 아이콘
+     * @param title 옵션 이름
+     * @param iconAction 옵션 오른쪽 작업 아이콘
+     * @param badge 옵션 오른쪽 배지 숫자
+     * @param tip 옵션 팁 정보
+     * @param size 옵션 크기
+     * @param window 옵션 창 속성
      */
     type Common = {
       url: string
@@ -33,10 +33,10 @@ declare namespace OPT {
     }
 
     /**
-     * 更多的选项
-     * @param label 选项名称
-     * @param icon 选项图标
-     * @param click 点击事件
+     * 더 보기 옵션
+     * @param label 옵션 이름
+     * @param icon 옵션 아이콘
+     * @param click 클릭 이벤트
      */
     type MoreList = {
       label: string
@@ -45,11 +45,11 @@ declare namespace OPT {
     }
 
     /**
-     * 设置页面的侧边栏选项
-     * @param url 链接
-     * @param label 选项名称
-     * @param icon 选项图标
-     * @param versionStatus 版本状态
+     * 설정 페이지 사이드바 옵션
+     * @param url 링크
+     * @param label 옵션 이름
+     * @param icon 옵션 아이콘
+     * @param versionStatus 버전 상태
      */
     type SettingSide = {
       url: string
@@ -60,11 +60,11 @@ declare namespace OPT {
   }
 
   /**
-   * 右键菜单选项
-   * @param label 选项名称
-   * @param icon 选项图标
-   * @param click 点击事件
-   * @param visible 显示条件
+   * 우클릭 메뉴 옵션
+   * @param label 옵션 이름
+   * @param icon 옵션 아이콘
+   * @param click 클릭 이벤트
+   * @param visible 표시 조건
    */
   type RightMenu = {
     label: string | ((...args: any[]) => string)
@@ -75,10 +75,10 @@ declare namespace OPT {
   } | null
 
   /**
-   * 详情页选项
-   * @param url 链接
-   * @param title 标题
-   * @param click 点击事件
+   * 상세 페이지 옵션
+   * @param url 링크
+   * @param title 제목
+   * @param click 클릭 이벤트
    */
   type Details = {
     url: string

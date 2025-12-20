@@ -1,42 +1,42 @@
 import FingerprintJS from '@fingerprintjs/fingerprintjs'
 import { getOSType } from '@/utils/PlatformConstants'
 
-const CACHE_DURATION = 24 * 60 * 60 * 1000 // 24小时缓存
+const CACHE_DURATION = 24 * 60 * 60 * 1000 // 24시간 캐시
 
-// 创建 Worker 实例
+// Worker 인스턴스 생성
 const worker = new Worker(new URL('../workers/fingerprint.worker.ts', import.meta.url), {
   type: 'module'
 })
 
-// 添加一个 Promise 来追踪正在进行的指纹生成
+// 진행 중인 지문 생성을 추적하기 위한 Promise 추가
 let fingerprintPromise: Promise<string> | null = null
 
 /**
- * 获取性能优化的跨平台设备指纹
+ * 성능 최적화된 크로스 플랫폼 디바이스 지문 가져오기
  */
 export const getEnhancedFingerprint = async (): Promise<string> => {
-  // 如果已经有正在进行的请求，直接返回该Promise
+  // 이미 진행 중인 요청이 있다면 해당 Promise 반환
   if (fingerprintPromise) {
     return fingerprintPromise
   }
 
-  // 创建新的Promise并保存引用
+  // 새로운 Promise 생성 및 참조 저장
   fingerprintPromise = (async () => {
     const totalStart = performance.now()
 
     try {
-      // 检查缓存是否有效
+      // 캐시 유효성 확인
       const cachedData = localStorage.getItem('deviceFingerprint')
       if (cachedData) {
         const { fingerprint, timestamp } = JSON.parse(cachedData)
         if (Date.now() - timestamp < CACHE_DURATION) {
           const totalTime = performance.now() - totalStart
-          console.log(`使用缓存的设备指纹，总耗时: ${totalTime.toFixed(2)}ms`)
+          console.log(`캐시된 디바이스 지문 사용, 총 소요 시간: ${totalTime.toFixed(2)}ms`)
           return fingerprint
         }
       }
 
-      // 收集设备信息
+      // 디바이스 정보 수집
       const deviceInfoStart = performance.now()
       const deviceInfo = {
         platform: getOSType(),
@@ -49,18 +49,18 @@ export const getEnhancedFingerprint = async (): Promise<string> => {
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
       }
       const deviceInfoTime = performance.now() - deviceInfoStart
-      console.log(`收集设备信息耗时: ${deviceInfoTime.toFixed(2)}ms`)
+      console.log(`디바이스 정보 수집 소요 시간: ${deviceInfoTime.toFixed(2)}ms`)
 
-      // 在主线程中获取基础浏览器指纹
+      // 메인 스레드에서 기본 브라우저 지문 얻기
       const fpStart = performance.now()
       const fp = await FingerprintJS.load()
       const fpResult = await fp.get({
         debug: false
       })
       const fpTime = performance.now() - fpStart
-      console.log(`基础指纹生成耗时: ${fpTime.toFixed(2)}ms`)
+      console.log(`기본 지문 생성 소요 시간: ${fpTime.toFixed(2)}ms`)
 
-      // Worker处理
+      // Worker 처리
       const workerStart = performance.now()
       const fingerprint = await new Promise<string>((resolve) => {
         const handleMessage = (e: MessageEvent) => {
@@ -79,9 +79,9 @@ export const getEnhancedFingerprint = async (): Promise<string> => {
         })
       })
       const workerTime = performance.now() - workerStart
-      console.log(`Worker生成指纹耗时: ${workerTime.toFixed(2)}ms`)
+      console.log(`Worker 지문 생성 소요 시간: ${workerTime.toFixed(2)}ms`)
 
-      // 缓存结果
+      // 결과 캐시
       if (fingerprint) {
         localStorage.setItem(
           'deviceFingerprint',
@@ -93,11 +93,11 @@ export const getEnhancedFingerprint = async (): Promise<string> => {
       }
 
       const totalTime = performance.now() - totalStart
-      console.log(`设备指纹获取总耗时: ${totalTime.toFixed(2)}ms`)
+      console.log(`디바이스 지문 가져오기 총 소요 시간: ${totalTime.toFixed(2)}ms`)
       return fingerprint
     } catch (error) {
       const totalTime = performance.now() - totalStart
-      console.error(`获取设备指纹失败，总耗时: ${totalTime.toFixed(2)}ms`, error)
+      console.error(`디바이스 지문 가져오기 실패, 총 소요 시간: ${totalTime.toFixed(2)}ms`, error)
       return ''
     } finally {
       fingerprintPromise = null

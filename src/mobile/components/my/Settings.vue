@@ -19,7 +19,7 @@
     </div>
 
     <n-drawer v-model:show="active" :width="502" placement="bottom">
-      <n-drawer-content header-class="text-center" title="分享至"></n-drawer-content>
+      <n-drawer-content header-class="text-center" title="공유하기"></n-drawer-content>
     </n-drawer>
   </div>
 </template>
@@ -35,7 +35,7 @@ const unreadApplyCount = computed(() => {
   return globalStore.unReadMark.newFriendUnreadCount + globalStore.unReadMark.newGroupUnreadCount
 })
 
-// 点击按钮打开底部抽屉
+// 버튼 클릭 시 하단 드로어 열기
 const activate = () => {
   // active.value = true
 }

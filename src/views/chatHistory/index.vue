@@ -1,9 +1,9 @@
 <template>
   <div class="chat-history-container">
-    <!--顶部操作栏-->
+    <!-- 상단 조작 바 -->
     <ActionBar :shrink="false" />
 
-    <!-- 搜索栏 -->
+    <!-- 검색 바 -->
     <div class="search-section select-none">
       <n-input
         spellCheck="false"
@@ -21,7 +21,7 @@
       </n-input>
     </div>
 
-    <!-- Tab 选项卡和筛选按钮 -->
+    <!-- 탭 및 필터 버튼 -->
     <div class="tab-section select-none">
       <n-tabs v-model:value="activeTab" @update:value="resetAndReload">
         <n-tab-pane name="all" :tab="t('chatHistory.tabs.all')" />
@@ -42,7 +42,7 @@
         value-format="timestamp" />
     </div>
 
-    <!-- 消息列表 -->
+    <!-- 메시지 목록 -->
     <div class="flex-1 overflow-auto select-none">
       <n-infinite-scroll :distance="10" @load="loadMore">
         <div v-if="messages.length === 0 && !loading" class="flex-center h-200px">
@@ -50,7 +50,7 @@
         </div>
 
         <div v-else class="px-20px py-16px">
-          <!-- 按日期分组的消息 -->
+          <!-- 날짜별 그룹화된 메시지 -->
           <div v-for="(group, date) in groupedMessages" :key="date">
             <n-tag type="warning" class="date-tag-sticky text-12px rounded-8px">
               {{ formatDateGroupLabel(group.timestamp) }}
@@ -58,7 +58,7 @@
 
             <template v-for="item in group.messages" :key="item.message.id">
               <div class="px-4px py-12px mb-16px">
-                <!-- 消息头像和信息 -->
+                <!-- 메시지 아바타 및 정보 -->
                 <div class="flex cursor-default">
                   <n-avatar
                     :size="32"
@@ -131,27 +131,27 @@ const { t } = useI18n()
 const isGroup = computed(() => chatStore.isGroup)
 const userUid = computed(() => userStore.userInfo!.uid)
 
-// 响应式数据
+// 반응형 데이터
 const messages = ref<MessageType[]>([])
 const loading = ref(false)
 const hasMore = ref(true)
 const currentPage = ref(1)
 
-// 搜索和筛选
+// 검색 및 필터
 const searchKeyword = ref('')
 const activeTab = ref<'all' | 'image' | 'file'>('all')
 const dateRange = ref<[number, number] | null>(null)
 
-// 从路由参数获取房间ID
+// 라우트 파라미터에서 방 ID 가져오기
 const roomId = computed(() => route.query.roomId as string)
 
-// 我的群昵称
+// 내 그룹 닉네임
 const getUserDisplayName = computed(() => (uid: string) => {
   const user = groupStore.getUserInfo(uid)
   return user?.myName || user?.name || ''
 })
 
-// 获取当前页面的所有视频URL
+// 현재 페이지의 모든 비디오 URL 가져오기
 const getAllVideoUrls = computed(() => {
   const videoUrls: string[] = []
   messages.value.forEach((message) => {
@@ -162,12 +162,12 @@ const getAllVideoUrls = computed(() => {
   return videoUrls
 })
 
-// 按日期分组消息
+// 날짜별 메시지 그룹화
 const groupedMessages = computed(() => {
   const groups: Record<string, { messages: MessageType[]; timestamp: number }> = {}
 
   messages.value.forEach((i) => {
-    // 排除BOT、SYSTEM以及撤回类消息
+    // BOT, SYSTEM 및 회신된 메시지 제외
     if (
       i.message.sendTime &&
       i.message.type !== MsgEnum.BOT &&
@@ -188,36 +188,36 @@ const groupedMessages = computed(() => {
   return groups
 })
 
-// 防抖搜索
+// 디바운스 검색
 const handleSearch = useDebounceFn(() => {
   resetAndReload()
 }, 300)
 
-// 处理日期筛选变化
+// 날짜 필터 변경 처리
 const handleDateChange = useDebounceFn((value) => {
   if (Array.isArray(value) && value.length === 2 && value[0] && value[1]) {
-    // 修复日期边界问题：如果选择同一天，结束时间应该是当天的23:59:59.999
+    // 날짜 경계 문제 수정: 같은 날을 선택한 경우 종료 시간은 해당 날짜의 23:59:59.999여야 함
     let startTime = value[0]
     let endTime = value[1]
 
     const startDate = new Date(startTime)
     const endDate = new Date(endTime)
 
-    // 检查是否是同一天（日期选择器可能返回同样的时间戳）
+    // 같은 날인지 확인 (날짜 선택기가 동일한 타임스탬프를 반환할 수 있음)
     const isSameDay = startDate.toDateString() === endDate.toDateString()
 
     if (isSameDay) {
-      // 如果是同一天，调整时间范围
+      // 같은 날인 경우 시간 범위 조정
       const adjustedStart = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate(), 0, 0, 0, 0)
       const adjustedEnd = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate(), 23, 59, 59, 999)
 
       startTime = adjustedStart.getTime()
       endTime = adjustedEnd.getTime()
 
-      // 更新 dateRange 的值
+      // dateRange 값 업데이트
       dateRange.value = [startTime, endTime]
     } else {
-      // 如果是不同天，确保结束时间是当天的最后一刻
+      // 다른 날인 경우 종료 시간이 해당 날짜의 마지막 순간인지 확인
       const adjustedEnd = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate(), 23, 59, 59, 999)
       endTime = adjustedEnd.getTime()
 
@@ -230,13 +230,13 @@ const handleDateChange = useDebounceFn((value) => {
   resetAndReload()
 }, 300)
 
-// 获取用户头像
+// 사용자 아바타 가져오기
 const getAvatarSrc = (uid: string) => {
   const avatar = uid === userUid.value ? userStore.userInfo!.avatar : groupStore.getUserInfo(uid)?.avatar
   return AvatarUtils.getAvatarUrl(avatar as string)
 }
 
-// 重置并重新加载
+// 초기화 및 재로드
 const resetAndReload = () => {
   messages.value = []
   currentPage.value = 1
@@ -244,17 +244,17 @@ const resetAndReload = () => {
   loadMessages()
 }
 
-// 格式化时间
+// 시간 포맷팅
 const formatTime = (timestamp?: number) => {
   if (!timestamp) return ''
   const date = new Date(timestamp)
-  return date.toLocaleTimeString('zh-CN', {
+  return date.toLocaleTimeString('ko-KR', {
     hour: '2-digit',
     minute: '2-digit'
   })
 }
 
-// 获取当前页面的所有图片和表情URL
+// 현재 페이지의 모든 이미지 및 이모티콘 URL 가져오기
 const getAllImageUrls = computed(() => {
   const imageUrls: string[] = []
   messages.value.forEach((message) => {
@@ -268,13 +268,13 @@ const getAllImageUrls = computed(() => {
   return imageUrls
 })
 
-// 处理图片和表情点击事件
+// 이미지 및 이모티콘 클릭 이벤트 처리
 const handleImageClick = async (imageUrl: string) => {
   const imageList = getAllImageUrls.value
   await openImageViewer(imageUrl, [MsgEnum.IMAGE, MsgEnum.EMOJI], imageList)
 }
 
-// 处理视频点击事件
+// 비디오 클릭 이벤트 처리
 const handleVideoClick = async (videoUrl: string) => {
   const videoList = getAllVideoUrls.value
   const currentIndex = videoList.indexOf(videoUrl)
@@ -282,12 +282,12 @@ const handleVideoClick = async (videoUrl: string) => {
   if (currentIndex === -1) {
     await openVideoViewer(videoUrl, [MsgEnum.VIDEO], [videoUrl])
   } else {
-    // 使用多视频模式
+    // 멀티 비디오 모드 사용
     await openVideoViewer(videoUrl, [MsgEnum.VIDEO], videoList)
   }
 }
 
-// 加载消息
+// 메시지 로드
 const loadMessages = async () => {
   if (!roomId.value) return
 
@@ -321,13 +321,13 @@ const loadMessages = async () => {
 
     hasMore.value = response.hasMore
   } catch (error) {
-    console.error('加载聊天记录失败:', error)
+    console.error('채팅 기록 로드 실패:', error)
   } finally {
     loading.value = false
   }
 }
 
-// 加载更多
+// 더 보기
 const loadMore = () => {
   if (hasMore.value) {
     currentPage.value++
@@ -335,7 +335,7 @@ const loadMore = () => {
   }
 }
 
-// 监听房间ID变化
+// 방 ID 변화 감지
 watch(
   roomId,
   () => {

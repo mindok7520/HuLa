@@ -1,8 +1,8 @@
 <template>
   <n-flex :size="14" vertical justify="center" class="p-14px text-(12px #909090)">
-    <!-- 搜索结果为空时显示建议和历史记录 -->
+    <!-- 검색 결과가 없을 때 추천 및 히스토리 표시 -->
     <template v-if="searchResults.length === 0 && !searchQuery">
-      <!-- 搜索建议 -->
+      <!-- 검색 추천 -->
       <p class="text-(12px #909090)">{{ t('home.search_suggestions') }}</p>
       <n-flex align="center" class="text-(12px #909090)">
         <p class="p-6px bg-[--search-color] rounded-8px cursor-pointer" @click="applySearchTerm('hula')">hula</p>
@@ -10,7 +10,7 @@
 
       <span :class="{ 'mb-10px': historyList.length > 0 }" class="w-full h-1px bg-[--line-color]"></span>
 
-      <!-- 历史记录 -->
+      <!-- 히스토리 -->
       <n-flex v-if="historyList.length > 0" align="center" justify="space-between">
         <p class="text-(12px #909090)">{{ t('home.search_history') }}</p>
         <p class="cursor-pointer text-(12px #13987f)" @click="clearHistory">{{ t('home.clear_search_history') }}</p>
@@ -39,7 +39,7 @@
       </n-scrollbar>
     </template>
 
-    <!-- 搜索结果 -->
+    <!-- 검색 결과 -->
     <template v-else-if="searchResults.length > 0">
       <p class="text-(12px #909090) mb-6px">{{ t('home.search_result') }}</p>
 
@@ -57,7 +57,7 @@
       </n-scrollbar>
     </template>
 
-    <!-- 没有搜索结果时 -->
+    <!-- 검색 결과가 없을 때 -->
     <template v-else-if="searchQuery && searchResults.length === 0">
       <div style="height: calc(100vh / var(--page-scale, 1) - 212px)" class="flex-col-center gap-12px">
         <img class="size-64px" src="/msgAction/exploding-head.png" />
@@ -98,87 +98,87 @@ const { t } = useI18n()
 const router = useRouter()
 const chatStore = useChatStore()
 const { openMsgSession } = useCommon()
-// 从路由参数或共享状态中获取搜索查询
+// 라우트 파라미터 또는 공유 상태에서 검색 쿼리 가져오기
 const searchQuery = ref('')
-// 搜索结果
+// 검색 결과
 const searchResults = ref<SessionItem[]>([])
-// 历史记录 - 使用localStorage存储
+// 히스토리 - localStorage에 저장
 const HISTORY_STORAGE_KEY = 'HULA_SEARCH_HISTORY'
 const historyList = ref<HistoryItem[]>([])
 
-// 监听搜索框输入变化
+// 검색창 입력 변화 감지
 useMitt.on('search_input_change', (value) => {
   searchQuery.value = value
   handleSearch(value)
 })
 
-// 处理搜索
+// 검색 처리
 const handleSearch = (value: string) => {
   if (!value) {
     searchResults.value = []
     return
   }
-  // 根据名称和最后一条消息内容进行搜索匹配
+  // 이름과 마지막 메시지 내용을 기준으로 검색 일치 확인
   searchResults.value = chatStore.sessionList.filter((session) => {
-    // 在名称中搜索
+    // 이름에서 검색
     const nameMatch = session.name.toLowerCase().includes(value.toLowerCase())
     return nameMatch
   })
-  // 如果有搜索关键词，这里可以保存到关键词历史记录（当前实现还不保存搜索关键词）
+  // 검색 키워드가 있는 경우 키워드 히스토리에 저장 가능 (현재는 저장하지 않음)
   if (value) {
     saveToHistory(value)
   }
 }
 
-// 应用搜索词
+// 검색어 적용
 const applySearchTerm = (term: string) => {
   searchQuery.value = term
   handleSearch(term)
 }
 
-// 加载历史记录
+// 히스토리 로드
 const loadHistory = () => {
   try {
     const history = localStorage.getItem(HISTORY_STORAGE_KEY)
     if (history) {
       historyList.value = JSON.parse(history)
-      // 按时间戳降序排序，最近访问的放在前面
+      // 타임스탬프 내림차순 정렬, 최근 방문 항목을 앞으로
       historyList.value.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
-      // 只保留前10条记录
+      // 상위 10개 기록만 유지
       if (historyList.value.length > 10) {
         historyList.value = historyList.value.slice(0, 10)
-        // 同步到localStorage
+        // localStorage에 동기화
         saveHistoryToStorage()
       }
     }
   } catch (error) {
-    console.error('加载历史记录失败:', error)
-    // 如果加载失败，重置为空数组
+    console.error('히스토리 로드 실패:', error)
+    // 로드 실패 시 빈 배열로 초기화
     historyList.value = []
   }
 }
 
-// 将历史记录保存到localStorage
+// 히스토리를 localStorage에 저장
 const saveHistoryToStorage = () => {
   try {
     localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(historyList.value))
   } catch (error) {
-    console.error('保存历史记录失败:', error)
+    console.error('히스토리 저장 실패:', error)
   }
 }
 
-// 保存搜索关键词到历史记录
+// 검색 키워드를 히스토리에 저장
 const saveToHistory = (term: string) => {
-  console.log(`保存搜索记录: ${term}`)
-  // 可以实现关键词搜索记录的保存
+  console.log(`검색 기록 저장: ${term}`)
+  // 키워드 검색 기록 저장 구현 가능
 }
 
-// 保存会话到历史记录
+// 세션을 히스토리에 저장
 const saveSessionToHistory = (session: SessionItem) => {
-  // 确保会话有足够的数据
+  // 세션 데이터가 충분한지 확인
   if (!session || !session.roomId) return
 
-  // 创建一个历史记录项
+  // 히스토리 항목 생성
   const historyItem: HistoryItem = {
     avatar: session.avatar || '',
     name: session.name || '',
@@ -186,57 +186,57 @@ const saveSessionToHistory = (session: SessionItem) => {
     detailId: session.detailId,
     roomId: session.roomId,
     type: session.type || RoomTypeEnum.SINGLE,
-    timestamp: Date.now() // 添加当前时间戳
+    timestamp: Date.now() // 현재 타임스탬프 추가
   }
 
-  // 检查是否已存在相同的记录
+  // 동일한 기록이 이미 존재하는지 확인
   const existingIndex = historyList.value.findIndex((item) => item.roomId === session.roomId)
 
   if (existingIndex !== -1) {
-    // 如果已存在，删除它（稍后会添加到列表头部）
+    // 이미 존재하면 삭제 (나중에 목록 맨 앞에 추가됨)
     historyList.value.splice(existingIndex, 1)
   }
 
-  // 将新的记录添加到列表头部
+  // 새 기록을 목록 맨 앞에 추가
   historyList.value.unshift(historyItem)
 
-  // 限制历史记录数量为10个
+  // 히스토리 기록 수를 10개로 제한
   if (historyList.value.length > 10) {
     historyList.value = historyList.value.slice(0, 10)
   }
 
-  // 保存到localStorage
+  // localStorage에 저장
   saveHistoryToStorage()
 }
 
-// 清除历史记录
+// 히스토리 삭제
 const clearHistory = () => {
   historyList.value = []
-  // 清除localStorage中的记录
+  // localStorage에서 기록 삭제
   localStorage.removeItem(HISTORY_STORAGE_KEY)
 }
 
-// 打开会话
+// 세션 열기
 const openConversation = async (item: SessionItem | HistoryItem) => {
-  // 保存会话到历史记录
+  // 세션을 히스토리에 저장
   saveSessionToHistory(item)
-  // 保存搜索记录
+  // 검색 기록 저장
   if (searchQuery.value) {
     saveToHistory(searchQuery.value)
   }
-  // 返回上一页（关闭搜索页面）
+  // 이전 페이지로 이동 (검색 페이지 닫기)
   router.go(-1)
-  // 打开对应会话
+  // 해당 세션 열기
   const id = item.type === RoomTypeEnum.GROUP ? item.roomId : item.detailId
   await openMsgSession(id, item.type)
-  // 定位到对应的会话（让聊天列表滚动到选中的会话）
+  // 해당 세션으로 위치 이동 (채팅 목록을 선택된 세션으로 스크롤)
   nextTick(() => {
     useMitt.emit(MittEnum.LOCATE_SESSION, { roomId: item.roomId })
   })
 }
 
 onMounted(() => {
-  // 加载历史记录
+  // 히스토리 로드
   loadHistory()
 })
 </script>

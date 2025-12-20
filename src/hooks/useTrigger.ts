@@ -157,7 +157,7 @@ export const useTrigger = (
     try {
       let hasTriggered = false
 
-      // 检查@提及
+      // @멘션 확인
       if (shouldTrigger(text, cursorPosition, TriggerEnum.MENTION)) {
         const keyword = extractKeyword(text, cursorPosition, TriggerEnum.MENTION)
         if (keyword !== null) {
@@ -165,7 +165,7 @@ export const useTrigger = (
           hasTriggered = ait.value
         }
       }
-      // 检查AI对话
+      // AI 대화 확인
       // 仅在开关开启时解析 / 触发，避免误触发已禁用的逻辑
       else if (enableAITrigger && shouldTrigger(text, cursorPosition, TriggerEnum.AI)) {
         const keyword = extractKeyword(text, cursorPosition, TriggerEnum.AI)

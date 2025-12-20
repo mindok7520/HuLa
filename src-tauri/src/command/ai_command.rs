@@ -5,21 +5,21 @@ use serde::{Deserialize, Serialize};
 use tauri::{State, ipc::Channel};
 use tracing::{error, info};
 
-/// SSE 流式数据事件
+/// SSE 스트리밍 데이터 이벤트
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SseStreamEvent {
-    /// 事件类型: "chunk" | "done" | "error"
+    /// 이벤트 유형: "chunk" | "done" | "error"
     pub event_type: String,
-    /// 数据内容
+    /// 데이터 내용
     pub data: Option<String>,
-    /// 错误信息
+    /// 오류 메시지
     pub error: Option<String>,
-    /// 请求ID，用于区分不同的请求
+    /// 요청 ID, 서로 다른 요청을 구분하는 데 사용됨
     pub request_id: String,
 }
 
-/// AI 消息发送请求参数
+/// AI 메시지 전송 요청 매개변수
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AiMessageRequest {
@@ -29,7 +29,7 @@ pub struct AiMessageRequest {
     pub reasoning_enabled: Option<bool>,
 }
 
-/// 发送 AI 消息并监听 SSE 流式响应
+/// AI 메시지를 전송하고 SSE 스트리밍 응답을 감지함
 #[tauri::command]
 pub async fn ai_message_send_stream(
     state: State<'_, AppData>,
@@ -37,9 +37,9 @@ pub async fn ai_message_send_stream(
     request_id: String,
     on_event: Channel<SseStreamEvent>,
 ) -> Result<(), String> {
-    info!("开始发送 AI 流式消息请求, body: {:?}", body);
+    info!("AI 스트리밍 메시지 요청 전송 시작, body: {:?}", body);
 
-    // 使用 ImRequestClient 发送流式请求
+    // ImRequestClient를 사용하여 스트리밍 요청 전송
     let response = {
         let mut rc = state.rc.lock().await;
         let (method, path) = ImUrl::MessageSendStream.get_url();
@@ -47,7 +47,7 @@ pub async fn ai_message_send_stream(
         rc.request_stream(method, path, Some(body), None::<serde_json::Value>)
             .await
             .map_err(|e| {
-                error!("发送流式请求失败: {}", e);
+                error!("스트리밍 요청 전송 실패: {}", e);
                 let error_event = SseStreamEvent {
                     event_type: "error".to_string(),
                     data: None,
@@ -57,11 +57,11 @@ pub async fn ai_message_send_stream(
                 let _ = on_event.send(error_event);
                 e.to_string()
             })?
-    }; // 锁在这里释放
+    }; // 여기서 잠금 해제
 
-    info!("SSE 连接已建立，开始监听流式数据...");
+    info!("SSE 연결이 설정되었습니다. 스트리밍 데이터 감지 시작...");
 
-    // 在后台任务中处理 SSE 事件流
+    // 백그라운드 작업에서 SSE 이벤트 스트림 처리
     let request_id_clone = request_id.clone();
 
     let join_handle = tokio::spawn(async move {
@@ -72,30 +72,30 @@ pub async fn ai_message_send_stream(
         while let Some(chunk_result) = stream.next().await {
             match chunk_result {
                 Ok(chunk) => {
-                    // 将字节转换为字符串
+                    // 바이트를 문자열로 변환
                     if let Ok(text) = String::from_utf8(chunk.to_vec()) {
-                        info!("收到原始数据块 (长度: {}): {:?}", text.len(), text);
+                        info!("원본 데이터 블록 수신 (길이: {}): {:?}", text.len(), text);
                         buffer.push_str(&text);
 
-                        // 处理 SSE 格式的数据
-                        // SSE 格式: data: <content>\n\n
+                        // SSE 형식 데이터 처리
+                        // SSE 형식: data: <content>\n\n
                         while let Some(pos) = buffer.find("\n\n") {
                             let message = buffer[..pos].to_string();
                             buffer = buffer[pos + 2..].to_string();
 
-                            info!("处理SSE消息: {:?}", message);
+                            info!("SSE 메시지 처리: {:?}", message);
 
-                            // 解析 SSE 消息
+                            // SSE 메시지 파싱
                             for line in message.lines() {
-                                info!("处理行: {:?}", line);
+                                info!("행 처리: {:?}", line);
 
                                 if let Some(data) = line.strip_prefix("data: ") {
-                                    info!("收到 SSE 数据: {}", data);
+                                    info!("SSE 데이터 수신: {}", data);
 
-                                    // 累积内容
+                                    // 내용 누적
                                     full_content.push_str(data);
 
-                                    // 发送数据块事件到前端
+                                    // 프런트엔드로 데이터 블록 이벤트 전송
                                     let chunk_event = SseStreamEvent {
                                         event_type: "chunk".to_string(),
                                         data: Some(data.to_string()),
@@ -104,17 +104,17 @@ pub async fn ai_message_send_stream(
                                     };
 
                                     if let Err(e) = on_event.send(chunk_event) {
-                                        error!("发送 chunk 事件失败: {}", e);
+                                        error!("chunk 이벤트 전송 실패: {}", e);
                                     }
                                 } else if line.starts_with("data:") {
-                                    // 处理没有空格的情况: data:<content>
+                                    // 공백이 없는 경우 처리: data:<content>
                                     let data = &line[5..];
-                                    info!("收到 SSE 数据 (无空格): {}", data);
+                                    info!("SSE 데이터 수신 (공백 없음): {}", data);
 
-                                    // 累积内容
+                                    // 내용 누적
                                     full_content.push_str(data);
 
-                                    // 发送数据块事件到前端
+                                    // 프런트엔드로 데이터 블록 이벤트 전송
                                     let chunk_event = SseStreamEvent {
                                         event_type: "chunk".to_string(),
                                         data: Some(data.to_string()),
@@ -123,17 +123,17 @@ pub async fn ai_message_send_stream(
                                     };
 
                                     if let Err(e) = on_event.send(chunk_event) {
-                                        error!("发送 chunk 事件失败: {}", e);
+                                        error!("chunk 이벤트 전송 실패: {}", e);
                                     }
                                 }
                             }
                         }
                     } else {
-                        error!("无法将字节转换为UTF-8字符串");
+                        error!("바이트를 UTF-8 문자열로 변환할 수 없습니다");
                     }
                 }
                 Err(e) => {
-                    error!("读取流数据失败: {}", e);
+                    error!("스트림 데이터 읽기 실패: {}", e);
                     let error_event = SseStreamEvent {
                         event_type: "error".to_string(),
                         data: None,
@@ -142,15 +142,15 @@ pub async fn ai_message_send_stream(
                     };
 
                     if let Err(e) = on_event.send(error_event) {
-                        error!("发送 error 事件失败: {}", e);
+                        error!("error 이벤트 전송 실패: {}", e);
                     }
                     break;
                 }
             }
         }
 
-        // 流结束，发送完成事件
-        info!("SSE 流正常结束，总内容长度: {}", full_content.len());
+        // 스트림 종료, 완료 이벤트 전송
+        info!("SSE 스트림 정상 종료, 총 내용 길이: {}", full_content.len());
         let done_event = SseStreamEvent {
             event_type: "done".to_string(),
             data: Some(full_content),
@@ -159,10 +159,10 @@ pub async fn ai_message_send_stream(
         };
 
         if let Err(e) = on_event.send(done_event) {
-            error!("发送 done 事件失败: {}", e);
+            error!("done 이벤트 전송 실패: {}", e);
         }
 
-        info!("SSE 流处理完成");
+        info!("SSE 스트림 처리 완료");
     });
 
     {
@@ -173,18 +173,18 @@ pub async fn ai_message_send_stream(
     Ok(())
 }
 
-/// 取消指定请求ID的 AI 流式任务
+/// 지정된 요청 ID의 AI 스트리밍 작업 취소
 #[tauri::command]
 pub async fn ai_message_cancel_stream(
     state: State<'_, AppData>,
     request_id: String,
 ) -> Result<(), String> {
-    info!("尝试取消 AI 流式任务: {}", request_id);
+    info!("AI 스트리밍 작업 취소 시도: {}", request_id);
     let mut tasks = state.stream_tasks.lock().await;
     if let Some(handle) = tasks.remove(&request_id) {
         handle.abort();
-        info!("AI 流式任务已取消: {}", request_id);
+        info!("AI 스트리밍 작업 취소됨: {}", request_id);
         return Ok(());
     }
-    Err(format!("未找到指定请求ID的任务: {}", request_id))
+    Err(format!("지정된 요청 ID의 작업을 찾을 수 없음: {}", request_id))
 }

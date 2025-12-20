@@ -20,11 +20,12 @@
   @include action;
 }
 
-/** 通用的 active 样式  */
+/** 공통 active 스타일 */
 .active {
   background: var(--left-active-bg-color);
   border-radius: 8px;
   color: var(--left-active-icon-color);
+
   img {
     background: var(--icon-hover-color);
   }

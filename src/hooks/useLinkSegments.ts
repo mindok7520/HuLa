@@ -61,7 +61,7 @@ export const openExternalUrl = async (url: string) => {
   try {
     await open(normalizedUrl)
   } catch (error) {
-    console.error('打开链接失败:', error)
+    console.error('링크 열기 실패:', error)
     if (typeof window !== 'undefined') {
       window.open(normalizedUrl, '_blank', 'noreferrer')
     }

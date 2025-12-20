@@ -1,12 +1,12 @@
 #[cfg(target_os = "macos")]
 use tauri::{AppHandle, Manager, RunEvent, Runtime};
 
-/// 当应用在 macOS 系统上重新打开时，如果没有可见窗口，会优先显示已存在的 home 窗口。
+/// macOS 시스템에서 앱이 다시 열릴 때, 가시적인 창이 없으면 기존의 home 창을 우선적으로 표시합니다.
 #[cfg(target_os = "macos")]
 pub fn handle_app_event<R: Runtime>(app_handle: &AppHandle<R>, event: RunEvent) {
     match event {
         RunEvent::Reopen { .. } => {
-            // 直接尝试获取 home 窗口，如果存在则显示并置于最顶部
+            // 즉시 home 창을 가져와서 존재하면 표시하고 가장 앞으로 가져옵니다.
             if let Some(home_window) = app_handle.get_webview_window("home") {
                 let _ = home_window.show();
                 let _ = home_window.unminimize();

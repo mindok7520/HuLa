@@ -6,7 +6,7 @@ use std::time::Duration;
 use tauri::{AppHandle, Manager};
 use tracing::info;
 
-// 应用程序设置结构体
+// 애플리케이션 설정 구조체
 #[derive(serde::Deserialize, serde::Serialize, Clone, Debug)]
 pub struct Settings {
     pub database: DatabaseSettings,
@@ -17,13 +17,13 @@ pub struct Settings {
     pub ice_server: Option<IceServer>,
 }
 
-// 数据库配置设置
+// 데이터베이스 설정
 #[derive(serde::Deserialize, serde::Serialize, Clone, Debug)]
 pub struct DatabaseSettings {
     pub sqlite_file: String,
 }
 
-// 后端服务配置设置
+// 백엔드 서비스 설정
 #[derive(serde::Deserialize, serde::Serialize, Clone, Debug)]
 pub struct BackendSettings {
     pub base_url: String,
@@ -60,7 +60,7 @@ pub struct MinioSettings {
     pub download_domain: String,
 }
 
-// 应用程序运行环境枚举
+// 애플리케이션 실행 환경 열거형
 #[derive(Debug)]
 pub enum Environment {
     Local,
@@ -68,28 +68,28 @@ pub enum Environment {
 }
 
 impl DatabaseSettings {
-    /// 创建数据库连接
-    /// 根据不同的运行环境（桌面开发、移动端、桌面生产）选择合适的数据库路径
-    /// 并配置数据库连接选项，返回数据库连接实例
+    /// 데이터베이스 연결 생성
+    /// 각 실행 환경(데스크톱 개발, 모바일, 데스크톱 운영)에 맞는 데이터베이스 경로 선택
+    /// 데이터베이스 연결 옵션을 설정하고, 데이터베이스 연결 인스턴스를 반환합니다.
     ///
-    /// # 参数
-    /// * `app_handle` - Tauri应用句柄，用于获取应用路径
+    /// # 매개변수
+    /// * `app_handle` - 애플리케이션 경로를 가져오기 위한 Tauri 애플리케이션 핸들
     ///
-    /// # 返回值
-    /// * `Ok(DatabaseConnection)` - 成功时返回数据库连接
-    /// * `Err(CommonError)` - 失败时返回错误信息
+    /// # 반환값
+    /// * `Ok(DatabaseConnection)` - 성공 시 데이터베이스 연결 반환
+    /// * `Err(CommonError)` - 실패 시 오류 정보 반환
     pub async fn connection_string(
         &self,
         app_handle: &AppHandle,
     ) -> Result<DatabaseConnection, CommonError> {
-        // 数据库路径配置：
+        // 데이터베이스 경로 설정:
         let db_path = if cfg!(debug_assertions) && cfg!(desktop) {
-            // 桌面端开发环境：使用项目根目录
+            // 데스크톱 개발 환경: 프로젝트 루트 디렉토리 사용
             let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
             path.push("db.sqlite");
             path
         } else {
-            // SQLite 无法连接 asset://localhost/ 这样的虚拟协议，必须使用真实文件系统路径
+            // SQLite는 asset://localhost/와 같은 가상 프로토콜에 연결할 수 없으므로 실제 파일 시스템 경로를 사용해야 합니다.
             match app_handle.path().app_data_dir() {
                 Ok(app_data_dir) => {
                     if let Err(create_err) = std::fs::create_dir_all(&app_data_dir) {
@@ -108,23 +108,23 @@ impl DatabaseSettings {
         };
         info!("Database path: {:?}", db_path);
 
-        // 设备绑定的 SQLCipher 密钥（存储在系统安全存储/Keychain/Keystore）
+        // 장치에 바인딩된 SQLCipher 키 (시스템 보안 저장소/Keychain/Keystore에 저장)
         let sqlcipher_key = sqlcipher::get_or_create_sqlcipher_key(app_handle).await?;
-        // 兼容旧版本明文库：首次启动时自动迁移为加密库
+        // 이전 버전의 일반 텍스트 라이브러리와 호환: 최초 실행 시 자동으로 암호화된 라이브러리로 마이그레이션
         sqlcipher::ensure_sqlite_encrypted(&db_path, &sqlcipher_key).await?;
 
         let db_url = format!("sqlite:{}?mode=rwc", db_path.display());
 
-        // 配置数据库连接选项
+        // 데이터베이스 연결 옵션 설정
         let mut opt = ConnectOptions::new(db_url);
         opt.sqlcipher_key(sqlcipher_key);
-        opt.max_connections(20) // 降低最大连接数，避免资源浪费
-            .min_connections(2) // 降低最小连接数
-            .connect_timeout(Duration::from_secs(30)) // 增加连接超时时间
-            .acquire_timeout(Duration::from_secs(30)) // 增加获取连接超时时间
-            .idle_timeout(Duration::from_secs(600)) // 10分钟空闲超时
-            .max_lifetime(Duration::from_secs(1800)) // 30分钟连接生命周期，避免频繁重建
-            // 启用 SQL 日志记录，但只在 debug 模式下
+        opt.max_connections(20) // 리소스 낭비를 방지하기 위해 최대 연결 수 감소
+            .min_connections(2) // 최소 연결 수 감소
+            .connect_timeout(Duration::from_secs(30)) // 연결 타임아웃 시간 증가
+            .acquire_timeout(Duration::from_secs(30)) // 연결 획득 타임아웃 시간 증가
+            .idle_timeout(Duration::from_secs(600)) // 10분 유휴 타임아웃
+            .max_lifetime(Duration::from_secs(1800)) // 빈번한 재구축을 피하기 위해 30분 연결 수명 주기 설정
+            // SQL 로그 기록 활성화 (debug 모드에서만)
             .sqlx_logging(cfg!(debug_assertions))
             .sqlx_logging_level(tracing::log::LevelFilter::Info);
 
@@ -136,11 +136,11 @@ impl DatabaseSettings {
 }
 
 impl Environment {
-    /// 将Environment枚举转换为字符串
-    /// 用于文件名和路径构建
+    /// Environment 열거형을 문자열로 변환
+    /// 파일 이름 및 경로 빌드에 사용
     ///
-    /// # 返回值
-    /// * `&'static str` - 对应的环境字符串
+    /// # 반환값
+    /// * `&'static str` - 해당 환경 문자열
     pub fn as_str(&self) -> &'static str {
         match self {
             Environment::Local => "local",
@@ -152,15 +152,15 @@ impl Environment {
 impl TryFrom<String> for Environment {
     type Error = String;
 
-    /// 从字符串解析Environment枚举
-    /// 支持大小写不敏感的解析
+    /// 문자열에서 Environment 열거형 파싱
+    /// 대소문자 구분 없이 파싱 지원
     ///
-    /// # 参数
-    /// * `s` - 要解析的字符串
+    /// # 매개변수
+    /// * `s` - 파싱할 문자열
     ///
-    /// # 返回值
-    /// * `Ok(Environment)` - 解析成功时返回环境枚举
-    /// * `Err(String)` - 解析失败时返回错误信息
+    /// # 반환값
+    /// * `Ok(Environment)` - 파싱 성공 시 환경 열거형 반환
+    /// * `Err(String)` - 파싱 실패 시 오류 정보 반환
     fn try_from(s: String) -> Result<Self, Self::Error> {
         match s.to_lowercase().as_str() {
             "local" => Ok(Self::Local),
@@ -173,18 +173,18 @@ impl TryFrom<String> for Environment {
     }
 }
 
-/// 获取应用程序配置
-/// 根据APP_ENVIRONMENT环境变量确定运行环境，按优先级加载配置：
-/// 1. 桌面开发环境：文件系统配置文件
-/// 2. 其他环境：资源目录配置文件
-/// 3. 回退：编译时嵌入的配置文件
+/// 애플리케이션 설정 가져오기
+/// APP_ENVIRONMENT 환경 변수에 따라 실행 환경을 결정하고 우선순위에 따라 설정을 로드합니다:
+/// 1. 데스크톱 개발 환경: 파일 시스템 설정 파일
+/// 2. 기타 환경: 리소스 디렉토리 설정 파일
+/// 3. 폴백: 컴파일 시 포함된 설정 파일
 ///
-/// # 参数
-/// * `app_handle` - Tauri应用句柄
+/// # 매개변수
+/// * `app_handle` - Tauri 애플리케이션 핸들
 ///
-/// # 返回值
-/// * `Ok(Settings)` - 成功时返回配置设置
-/// * `Err(config::ConfigError)` - 失败时返回配置错误
+/// # 반환값
+/// * `Ok(Settings)` - 성공 시 구성 설정 반환
+/// * `Err(config::ConfigError)` - 실패 시 구성 오류 반환
 pub fn get_configuration(app_handle: &AppHandle) -> Result<Settings, config::ConfigError> {
     #[cfg(not(target_os = "android"))]
     {
@@ -208,11 +208,11 @@ pub fn get_configuration(app_handle: &AppHandle) -> Result<Settings, config::Con
     #[cfg(target_os = "android")]
     {
         let _ = app_handle;
-        // 读取 base.yaml 内容
+        // base.yaml 내용 읽기
         let base_content = std::str::from_utf8(include_bytes!("../configuration/base.yaml"))
             .map_err(|e| config::ConfigError::Message(e.to_string()))?;
 
-        // 构建 base 配置对象
+        // base 구성 객체 빌드
         let base_config = config::Config::builder()
             .add_source(config::File::from_str(
                 base_content,
@@ -220,31 +220,31 @@ pub fn get_configuration(app_handle: &AppHandle) -> Result<Settings, config::Con
             ))
             .build()?;
 
-        // 获取 active_config 字段
+        // active_config 필드 가져오기
         let active_config = base_config.get_string("active_config").map_err(|_| {
             config::ConfigError::Message(
                 "Missing or invalid 'active_config' in base.yaml".to_string(),
             )
         })?;
 
-        // 校验 active_config 合法性
+        // active_config 유효성 검사
         if active_config != "local" && active_config != "production" {
             return Err(config::ConfigError::Message(
                 "Only \"local\" or \"production\" can be specified in active_config".to_string(),
             ));
         }
 
-        // 加载对应的配置文件内容
+        // 해당 설정 파일 내용 로드
         let config_file_bytes: &[u8] = match active_config.as_str() {
             "local" => include_bytes!("../configuration/local.yaml").as_ref(),
             "production" => include_bytes!("../configuration/production.yaml").as_ref(),
-            _ => return Err(config::ConfigError::Message("Invalid active_config".into())), // 这里可以支持更多的环境配置
+            _ => return Err(config::ConfigError::Message("Invalid active_config".into())), // 여기서 더 많은 환경 설정을 지원할 수 있습니다.
         };
 
         let active_content = std::str::from_utf8(config_file_bytes)
             .map_err(|e| config::ConfigError::Message(e.to_string()))?;
 
-        // 构建最终配置对象
+        // 최종 구성 객체 빌드
         config::Config::builder()
             .add_source(config::File::from_str(
                 base_content,

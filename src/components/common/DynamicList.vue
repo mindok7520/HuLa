@@ -1,11 +1,11 @@
 <template>
   <div class="dynamic-list-container">
-    <!-- 加载状态 -->
+    <!-- 로딩 상태 -->
     <div v-if="feedOptions.isLoading && feedList.length === 0" class="flex justify-center items-center py-60px">
       <n-spin size="large" />
     </div>
 
-    <!-- 空状态 -->
+    <!-- 빈 상태 -->
     <div v-else-if="feedList.length === 0" class="flex flex-col justify-center items-center py-80px text-gray-400">
       <svg class="w-80px h-80px mb-16px color-#ddd">
         <use href="#empty"></use>
@@ -13,7 +13,7 @@
       <p class="text-14px">{{ computedEmptyText }}</p>
     </div>
 
-    <!-- 动态列表 -->
+    <!-- 동영상 목록 -->
     <div v-else class="flex flex-col gap-12px">
       <div
         v-for="item in feedList"
@@ -21,7 +21,7 @@
         :class="[itemClass, 'feed-item']"
         class="p-16px"
         @click="handleItemClick($event, item)">
-        <!-- 用户信息 -->
+        <!-- 사용자 정보 -->
         <div class="flex items-center gap-12px mb-12px">
           <n-avatar :size="avatarSize" round :src="getUserAvatar(item)" />
           <div class="flex-1 min-w-0">
@@ -33,14 +33,14 @@
           </div>
         </div>
 
-        <!-- 动态内容 -->
+        <!-- 동영상 내용 -->
         <div class="text-15px text-[--text-color] leading-relaxed mb-12px whitespace-pre-wrap break-words">
           {{ item.content }}
         </div>
 
-        <!-- 图片区域 -->
+        <!-- 이미지 영역 -->
         <div v-if="item.urls && item.urls.length > 0" class="mb-12px">
-          <!-- 单张图片 -->
+          <!-- 단일 이미지 -->
           <div v-if="item.urls.length === 1" class="inline-block max-w-full">
             <n-image
               :src="item.urls[0]"
@@ -51,7 +51,7 @@
               class="rounded-8px object-cover cursor-pointer"
               @click.stop="handlePreviewImage(item.urls, 0)" />
           </div>
-          <!-- 多张图片 - 九宫格布局 -->
+          <!-- 다중 이미지 - 9궁격 레이아웃 -->
           <div
             v-else
             class="grid gap-4px"
@@ -70,7 +70,7 @@
           </div>
         </div>
 
-        <!-- 视频区域 -->
+        <!-- 비디오 영역 -->
         <div v-else-if="item.videoUrl" class="mb-12px relative rounded-8px overflow-hidden">
           <n-image
             :src="item.videoUrl"
@@ -80,7 +80,7 @@
             :class="videoClass"
             class="object-cover cursor-pointer"
             @click.stop="handleVideoPlay(item.videoUrl)" />
-          <!-- 播放图标 -->
+          <!-- 재생 아이콘 -->
           <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div :class="playIconSize" class="rounded-full bg-black/50 flex items-center justify-center">
               <svg :class="playIconInnerSize" class="color-white">
@@ -90,13 +90,13 @@
           </div>
         </div>
 
-        <!-- 底部操作栏 -->
+        <!-- 하단 조작 바 -->
         <div class="mt-12px pt-8px border-t border-#f0f0f0">
-          <!-- 操作按钮 - 固定高度防止闪烁 -->
+          <!-- 조작 버튼 - 깜빡임 방지를 위한 고정 높이 -->
           <div class="flex items-center justify-between gap-8px mb-8px h-28px">
             <span class="text-12px text-#999">{{ formatTimestamp(item.createTime!) }}</span>
             <div class="flex items-center justify-end gap-8px">
-              <!-- 点赞按钮 -->
+              <!-- 좋아요 버튼 -->
               <div
                 class="flex items-center justify-center gap-4px py-6px px-12px rounded-6px cursor-pointer transition-colors"
                 :class="item.hasLiked ? 'text-#d5304f' : ' text-#999'"
@@ -108,7 +108,7 @@
                   {{ item.hasLiked ? t('dynamic.detail.stats.liked') : t('dynamic.detail.stats.like') }}
                 </span>
               </div>
-              <!-- 评论按钮 -->
+              <!-- 댓글 버튼 -->
               <div
                 class="flex items-center justify-center gap-4px py-6px px-12px rounded-6px cursor-pointer text-#999"
                 @click.stop="handleShowCommentInput(item)">
@@ -123,7 +123,7 @@
                   }}
                 </span>
               </div>
-              <!-- 更多操作 -->
+              <!-- 기타 조작 -->
               <n-dropdown :options="getMoreOptions(item)" @select="handleMoreAction(item, $event)">
                 <div
                   class="flex items-center justify-center py-6px px-12px rounded-6px cursor-pointer text-#999"
@@ -135,7 +135,7 @@
               </n-dropdown>
             </div>
           </div>
-          <!-- 点赞人名称显示 - 仅有点赞时渲染 -->
+          <!-- 좋아요한 사용자 이름 표시 - 좋아요가 있을 때만 렌더링 -->
           <div
             v-if="(item.likeList || []).length > 0"
             class="mb-8px flex items-start gap-6px leading-relaxed text-(12px #13987f)">
@@ -143,12 +143,12 @@
             <span>{{ (item.likeList || []).map((like) => like.userName).join('、') }}</span>
           </div>
 
-          <!-- 评论列表显示 - 仅有评论时渲染 -->
+          <!-- 댓글 목록 표시 - 댓글이 있을 때만 렌더링 -->
           <div v-if="item.commentList && item.commentList.length > 0" class="rounded-8px p-12px pb-6px pl-0">
             <div v-for="comment in item.commentList.slice(0, 3)" :key="comment.id" class="mb-12px last:mb-0">
               <div class="text-14px text-#13987f">
                 <span class="font-bold">{{ comment.userName }}</span>
-                <!-- 如果是回复评论，显示被回复人信息 -->
+                <!-- 답글인 경우 피답신자 정보 표시 -->
                 <span v-if="comment.replyUserName" class="text-#13987f">
                   {{ t('dynamic.detail.actions.reply') }}
                   <span class="font-bold">{{ comment.replyUserName }}</span>
@@ -164,20 +164,20 @@
         </div>
       </div>
 
-      <!-- 加载更多 -->
+      <!-- 더 보기 로드 -->
       <div v-if="!feedOptions.isLast" class="flex justify-center py-20px">
         <n-button :loading="feedOptions.isLoading" @click="handleLoadMore" type="primary" text>
           {{ feedOptions.isLoading ? t('dynamic.list.loading') : t('dynamic.list.load_more') }}
         </n-button>
       </div>
 
-      <!-- 已加载全部 -->
+      <!-- 모든 내용 로드 완료 -->
       <div v-else-if="showLoadedAll" class="flex justify-center py-20px text-13px text-gray-400">
         {{ t('dynamic.list.loaded_all') }}
       </div>
     </div>
 
-    <!-- 评论输入框 Modal -->
+    <!-- 댓글 입력창 모달 -->
     <n-modal
       v-model:show="showCommentInput"
       :show-icon="false"
@@ -327,7 +327,7 @@ const handleMoreAction = async (feed: FeedItem, action: string) => {
         await feedStore.deleteFeed(feed.id)
         window.$message.success(t('dynamic.messages.delete_success'))
       } catch (error) {
-        console.error('删除动态失败:', error)
+        console.error('동영상 삭제 실패:', error)
         window.$message.error(t('dynamic.messages.delete_fail'))
       }
       break
@@ -384,10 +384,10 @@ const handleToggleLike = async (feed: FeedItem) => {
         }
       }
     } catch (error) {
-      console.error('获取点赞列表失败:', error)
+      console.error('좋아요 목록 가져오기 실패:', error)
     }
   } catch (error) {
-    console.error('点赞失败:', error)
+    console.error('좋아요 실패:', error)
     feed.hasLiked = !feed.hasLiked
     feed.likeCount = (feed.likeCount || 0) + (feed.hasLiked ? 1 : -1)
     window.$message.error(t('dynamic.messages.like_fail'))
@@ -419,14 +419,14 @@ const handleSubmitComment = async () => {
         feed.commentCount = commentListResult.length
       }
     } catch (error) {
-      console.error('获取评论列表失败:', error)
+      console.error('댓글 목록 가져오기 실패:', error)
     }
 
     commentContent.value = ''
     showCommentInput.value = false
     currentCommentFeed.value = null
   } catch (error) {
-    console.error('发表评论失败:', error)
+    console.error('댓글 작성 실패:', error)
     window.$message.error(t('dynamic.messages.comment_fail'))
   } finally {
     commentLoading.value = false
@@ -437,7 +437,7 @@ const handleSubmitComment = async () => {
 <style scoped lang="scss">
 .dynamic-list-container {
   width: 100%;
-  /* 隐藏滚动条 */
+  /* 스크롤바 숨김 */
   &::-webkit-scrollbar {
     display: none;
   }
@@ -445,7 +445,7 @@ const handleSubmitComment = async () => {
   scrollbar-width: none;
 }
 
-/* 每项底部分隔线，最后一项不显示 */
+/* 각 항목 하단 구분선, 마지막 항목은 표시하지 않음 */
 .feed-item:not(:last-child) {
   border-bottom: 1px solid var(--line-color);
 }

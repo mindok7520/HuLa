@@ -2,21 +2,21 @@
   <div class="flex flex-col h-full">
     <img src="@/assets/mobile/chat-home/background.webp" class="w-100% fixed z-0 top-0" alt="hula" />
 
-    <!-- 设置区 -->
+    <!-- 설정 영역 -->
     <Settings />
 
     <PersonalInfo :is-show="isShow"></PersonalInfo>
 
     <div class="relative top-0 flex-1 flex">
       <div ref="measureRef" class="h-full w-full absolute top-0 z-0"></div>
-      <!-- 动态内容 -->
+      <!-- 게시물 내용 -->
       <div
         ref="scrollContainer"
         :style="{ height: tabHeight + 'px' }"
         class="z-1 overflow-y-auto mt-2 absolute z-3 w-full">
         <div class="custom-rounded bg-white flex px-24px flex-col gap-4 z-1 p-10px mt-4">
           <n-scrollbar ref="scrollbarRef" :style="{ height: tabHeight + 'px' }" @scroll="handleScroll">
-            <!-- 动态内容区域 -->
+            <!-- 게시물 내용 영역 -->
             <div class="py-12px">
               <DynamicList
                 mode="mobile"
@@ -34,9 +34,9 @@
       @click="toPublishCommunity"
       class="w-52px h-52px rounded-full absolute bottom-120px right-20px z-3 flex items-center justify-center bg-[linear-gradient(145deg,#ACD7DA,#13987F)] shadow-[0_4px_12px_rgba(0,0,0,0.25),0_0_12px_rgba(172,215,218,0.8)]">
       <div class="relative w-20px h-20px">
-        <!-- 竖线 -->
+        <!-- 세로선 -->
         <div class="absolute left-1/2 top-0 h-full w-2px bg-white -translate-x-1/2"></div>
-        <!-- 横线 -->
+        <!-- 가로선 -->
         <div class="absolute top-1/2 left-0 w-full h-2px bg-white -translate-y-1/2"></div>
       </div>
     </div>
@@ -67,19 +67,19 @@ const loadMore = async () => {
   await feedStore.loadMore()
 }
 
-// 图片预览
+// 이미지 미리보기
 const previewImage = (images: string[], index: number) => {
-  console.log('预览图片:', images, index)
-  // TODO: 实现图片预览功能
+  console.log('이미지 미리보기:', images, index)
+  // TODO: 이미지 미리보기 기능 구현
 }
 
-// 视频播放
+// 동영상 재생
 const handleVideoPlay = (url: string) => {
-  console.log('播放视频:', url)
-  // TODO: 实现视频播放功能
+  console.log('동영상 재생:', url)
+  // TODO: 동영상 재생 기능 구현
 }
 
-// 处理动态项点击
+// 게시물 항목 클릭 처리
 const handleItemClick = (feedId: string) => {
   router.push({
     name: 'mobileDynamicDetail',
@@ -99,7 +99,7 @@ watch(isShow, (show) => {
   box.style.transition = 'all 0.3s ease'
 
   if (show) {
-    // 显示：从缩小恢复到原始高度
+    // 표시: 축소에서 원래 높이로 복원
     box.style.height = box.scrollHeight + 'px'
     box.style.opacity = '1'
     box.style.transform = 'scale(1) translateY(0)'
@@ -107,16 +107,16 @@ watch(isShow, (show) => {
     box.addEventListener(
       'transitionend',
       () => {
-        box.style.height = 'auto' // 回归自适应高度
+        box.style.height = 'auto' // 적응형 높이로 복귀
         box.style.overflow = ''
       },
       { once: true }
     )
   } else {
-    // 隐藏：缩小并收起高度
-    box.style.height = box.scrollHeight + 'px' // 先设置为当前高度
+    // 숨김: 축소 및 높이 접기
+    box.style.height = box.scrollHeight + 'px' // 먼저 현재 높이로 설정
     requestAnimationFrame(() => {
-      box.style.height = '58px' // 保持略小的高度（你原图是 86px，缩放 0.65 后约为 56px）
+      box.style.height = '58px' // 약간 작은 높이 유지 (원본 86px, 0.65 배율 축소 시 약 56px)
       box.style.transform = 'scale(1) translateY(0)'
     })
   }
@@ -127,13 +127,13 @@ watch(isShow, (show) => {
   const info = infoBox.value
   if (!info) return
 
-  // 添加动画过渡（也可直接写在 class 里）
+  // 애니메이션 전환 추가 (class에 직접 작성 가능)
   info.style.transition = 'transform 0.3s ease'
 
   if (show) {
     info.style.transform = 'translateX(0)'
   } else {
-    info.style.transform = 'translateX(-20px)' // 👈 向左移动一点
+    info.style.transform = 'translateX(-20px)' // 👈 왼쪽으로 약간 이동
   }
 })
 
@@ -147,7 +147,7 @@ onMounted(async () => {
     measureElementObserver.observe(measureRef.value)
   }
 
-  // 初始加载动态列表
+  // 초기 게시물 목록 로드
   await feedStore.getFeedList(true)
 })
 
@@ -163,7 +163,7 @@ const handleScroll = (event: Event) => {
 
   const scrollTop = target.scrollTop
 
-  // 向上滑动
+  // 위로 스와이프
   if (scrollTop - lastScrollTop.value > 0) {
     if (scrollTop > 700 && isShow.value && !hasTriggeredHide.value) {
       requestAnimationFrame(() => {
@@ -175,7 +175,7 @@ const handleScroll = (event: Event) => {
     }
   }
 
-  // 向下滑回顶部区域
+  // 아래로 스와이프하여 상단 영역으로 복귀
   if (scrollTop < 580) {
     requestAnimationFrame(() => {
       isShow.value = true

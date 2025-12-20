@@ -1,6 +1,6 @@
 <template>
   <div class="agreement-container">
-    <!-- 顶部操作栏 -->
+    <!-- 상단 조작 바 -->
     <ActionBar
       :isDrag="false"
       :max-w="false"
@@ -8,7 +8,7 @@
       :shrink="false"
       :current-label="WebviewWindow.getCurrent().label" />
 
-    <!-- 协议内容 -->
+    <!-- 약관 내용 -->
     <div class="agreement-content">
       <div class="agreement-header">
         <h1>{{ serverHeader.title }}</h1>

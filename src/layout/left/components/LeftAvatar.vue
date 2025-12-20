@@ -6,7 +6,7 @@
     style="padding: 0; background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(10px)"
     trigger="click">
     <template #trigger>
-      <!-- 头像 -->
+      <!-- 프로필 사진 -->
       <div class="relative size-34px rounded-50% cursor-pointer">
         <n-avatar
           :size="34"
@@ -22,13 +22,13 @@
         </div>
       </div>
     </template>
-    <!-- 用户个人信息框 -->
+    <!-- 사용자 개인 정보 상자 -->
     <n-flex
       :size="26"
       :style="`background: linear-gradient(to bottom, ${statusBgColor} 0%, ${themeColor} 100%)`"
       class="size-full p-15px box-border rounded-8px"
       vertical>
-      <!-- 头像以及信息区域 -->
+      <!-- 프로필 사진 및 정보 영역 -->
       <n-flex :size="25" align="center" justify="space-between" class="select-none cursor-default">
         <n-flex>
           <n-avatar
@@ -59,12 +59,12 @@
           <span class="text-12px">9999+</span>
         </n-flex>
       </n-flex>
-      <!-- 地址 -->
+      <!-- 주소 -->
       <n-flex :size="26" class="select-none">
         <span class="text-[--info-text-color]">{{ t('home.profile_card.labels.location') }}</span>
         <span>{{ currentUserLocation || t('home.profile_card.location_unknown') }}</span>
       </n-flex>
-      <!-- 动态 -->
+      <!-- 활동 -->
       <n-flex :size="40" class="select-none">
         <span class="text-[--info-text-color]">{{ t('home.profile_card.labels.activities') }}</span>
         <n-image-group>

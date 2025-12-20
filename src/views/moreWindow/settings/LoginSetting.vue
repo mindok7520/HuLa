@@ -1,5 +1,5 @@
 <template>
-  <!-- 登录设置 -->
+  <!-- 로그인 설정 -->
   <n-flex vertical :size="20" data-tauri-drag-region>
     <n-flex :size="12" vertical class="item-box">
       <n-flex align="center" justify="space-between">
@@ -17,10 +17,10 @@
 
     <!--    <n-flex align="center" justify="space-between" class="item-box">-->
     <!--      <n-flex vertical>-->
-    <!--        <span>清空密码</span>-->
-    <!--        <span class="text-12px text-#909090">清空后，下次需要使用扫码或者账密进行登录</span>-->
+    <!--        <span>비밀번호 지우기</span>-->
+    <!--        <span class="text-12px text-#909090">지운 후에는 다음에 QR 코드 또는 계정 비밀번호로 로그인해야 합니다</span>-->
     <!--      </n-flex>-->
-    <!--      <n-button secondary type="primary" @click="clearInfo"> 清空密码 </n-button>-->
+    <!--      <n-button secondary type="primary" @click="clearInfo"> 비밀번호 지우기 </n-button>-->
     <!--    </n-flex>-->
   </n-flex>
 </template>
@@ -41,13 +41,13 @@ watchEffect(() => {
   settingStore.toggleLogin(autoLogin.value, autoStartup.value)
 })
 
-// 监听开机启动状态变化
+// 부팅 시 자동 실행 상태 변화 감지
 watch(autoStartup, async (val: boolean) => {
   await (val ? enable() : disable())
 })
 
 onMounted(async () => {
-  // 检查是否开启了开机启动
+  // 부팅 시 자동 실행이 활성화되어 있는지 확인
   autoStartup.value = await isEnabled()
 })
 </script>

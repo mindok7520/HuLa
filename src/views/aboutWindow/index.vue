@@ -50,11 +50,11 @@ const _pkg = reactive({
 const osType = ref()
 const osArch = ref()
 const osVersion = ref()
-// 使用day.js获取当前年份
+// day.js를 사용하여 현재 연도 가져오기
 const currentYear = dayjs().year()
 
 const element = ref<HTMLElement | null>(null)
-/** 鼠标移动时，对元素进行旋转的指数 */
+/** 마우스 이동 시 요소 회전 지수 */
 const multiple = 20
 
 const transformElement = (x: number, y: number) => {

@@ -1,13 +1,13 @@
 <template>
   <div class="flex flex-col gap-4 pb-4 border-b border-gray-100">
-    <!-- 头像数据 -->
+    <!-- 프로필 사진 데이터 -->
     <div class="grid grid-cols-[38px_1fr] items-start gap-1">
-      <!-- 头像：单独居中 -->
+      <!-- 프로필 사진: 단독 중앙 정렬 -->
       <div class="self-center h-38px">
         <n-avatar :size="40" :src="avatarUrl" fallback-src="/logo.png" round />
       </div>
 
-      <!-- 中间：两行内容 -->
+      <!-- 중간: 두 줄 내용 -->
       <div class="truncate pl-4 flex gap-10px flex-col">
         <div class="text-14px leading-tight font-bold flex-1 truncate text-#333 flex items-center gap-2">
           <span>{{ userName }}</span>
@@ -16,34 +16,34 @@
       </div>
     </div>
 
-    <!-- 动态内容 -->
+    <!-- 동적 내용 -->
     <div class="grid grid-cols-[38px_1fr] items-start gap-1">
-      <!-- 留空 -->
+      <!-- 공백 -->
       <div></div>
       <div class="flex flex-col gap-2 text-14px">
-        <!-- 文本内容 -->
+        <!-- 텍스트 내용 -->
         <div class="text-#333 leading-relaxed whitespace-pre-wrap break-words">
           {{ feedItem.content }}
         </div>
 
-        <!-- 图片网格 - 根据图片数量动态调整 -->
+        <!-- 이미지 그리드 - 이미지 수에 따라 동적 조정 -->
         <div v-if="feedItem.urls && feedItem.urls.length > 0" :class="getImageGridClass(feedItem.urls.length)">
           <div
             v-for="(image, index) in feedItem.urls"
             :key="index"
             class="relative w-full aspect-square rounded-10px mask-rounded overflow-hidden"
             @click="handleImageClick(index)">
-            <img :src="image" class="absolute inset-0 rounded-10px w-full h-full object-cover" alt="动态图片" />
+            <img :src="image" class="absolute inset-0 rounded-10px w-full h-full object-cover" alt="동적 이미지" />
           </div>
         </div>
 
-        <!-- 视频 -->
+        <!-- 비디오 -->
         <div
           v-if="feedItem.videoUrl"
           class="relative w-full aspect-video rounded-10px overflow-hidden"
           @click="handleVideoClick">
           <video :src="feedItem.videoUrl" class="w-full h-full object-cover" />
-          <!-- 播放按钮 -->
+          <!-- 재생 버튼 -->
           <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-20">
             <svg class="w-48px h-48px color-white opacity-80">
               <use href="#play"></use>
@@ -51,14 +51,14 @@
           </div>
         </div>
 
-        <!-- 底部操作栏 -->
+        <!-- 하단 작업 표시줄 -->
         <div class="w-full flex justify-end mt-5px gap-5 items-center text-12px text-#666">
-          <!-- 分享 -->
+          <!-- 공유 -->
           <div class="flex items-center gap-1 cursor-pointer active:opacity-60" @click="handleShare">
             <svg class="iconpark-icon w-20px h-20px"><use href="#fenxiang"></use></svg>
           </div>
 
-          <!-- 评论 -->
+          <!-- 댓글 -->
           <div class="flex items-center gap-1 cursor-pointer active:opacity-60" @click="handleComment">
             <svg class="iconpark-icon w-20px h-20px"><use href="#huifu"></use></svg>
             <span v-if="feedItem.commentCount && feedItem.commentCount > 0">
@@ -66,7 +66,7 @@
             </span>
           </div>
 
-          <!-- 点赞 -->
+          <!-- 좋아요 -->
           <div class="flex items-center gap-1 cursor-pointer active:opacity-60" @click="handleLike">
             <svg class="iconpark-icon w-20px h-20px">
               <use :href="isLiked ? '#dianzan' : '#weidianzan'"></use>
@@ -94,7 +94,7 @@ const groupStore = useGroupStore()
 const isLiked = ref(false)
 const likeCount = ref(0)
 
-// 计算头像URL - 使用 uid 从 groupStore 获取用户信息
+// 프로필 사진 URL 계산 - groupStore에서 uid를 사용하여 사용자 정보 가져오기
 const avatarUrl = computed(() => {
   if (props.feedItem.uid) {
     const userInfo = groupStore.getUserInfo(props.feedItem.uid)
@@ -105,7 +105,7 @@ const avatarUrl = computed(() => {
   return AvatarUtils.getAvatarUrl('')
 })
 
-// 计算用户名称
+// 사용자 이름 계산
 const userName = computed(() => {
   if (props.feedItem.uid) {
     const userInfo = groupStore.getUserInfo(props.feedItem.uid)
@@ -113,10 +113,10 @@ const userName = computed(() => {
       return userInfo.name || userInfo.myName
     }
   }
-  return '未知用户'
+  return '알 수 없는 사용자'
 })
 
-// 格式化时间
+// 시간 형식화
 const formatTime = (timestamp?: number) => {
   if (!timestamp) return ''
 
@@ -129,27 +129,27 @@ const formatTime = (timestamp?: number) => {
   const month = 30 * day
 
   if (diff < minute) {
-    return '刚刚'
+    return '방금'
   } else if (diff < hour) {
-    return `${Math.floor(diff / minute)}分钟前`
+    return `${Math.floor(diff / minute)}분 전`
   } else if (diff < day) {
-    return `${Math.floor(diff / hour)}小时前`
+    return `${Math.floor(diff / hour)}시간 전`
   } else if (diff < month) {
-    return `${Math.floor(diff / day)}天前`
+    return `${Math.floor(diff / day)}일 전`
   } else {
     const date = new Date(timestamp)
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
   }
 }
 
-// 格式化数字
+// 숫자 형식화
 const formatCount = (count: number) => {
   if (count < 1000) return count.toString()
   if (count < 10000) return `${(count / 1000).toFixed(1)}K`
   return `${(count / 10000).toFixed(1)}W`
 }
 
-// 根据图片数量获取网格类名
+// 이미지 수에 따라 그리드 클래스 이름 가져오기
 const getImageGridClass = (count: number) => {
   if (count === 1) return 'grid grid-cols-1 gap-2'
   if (count === 2) return 'grid grid-cols-2 gap-2'
@@ -157,36 +157,36 @@ const getImageGridClass = (count: number) => {
   return 'grid grid-cols-3 gap-2'
 }
 
-// 处理图片点击
+// 이미지 클릭 처리
 const handleImageClick = (index: number) => {
-  console.log('点击图片', index)
-  // TODO: 实现图片预览功能
+  console.log('이미지 클릭', index)
+  // TODO: 이미지 미리보기 기능 구현
 }
 
-// 处理视频点击
+// 비디오 클릭 처리
 const handleVideoClick = () => {
-  console.log('点击视频')
-  // TODO: 实现视频播放功能
+  console.log('비디오 클릭')
+  // TODO: 비디오 재생 기능 구현
 }
 
-// 处理分享
+// 공유 처리
 const handleShare = () => {
-  console.log('分享动态', props.feedItem.id)
-  // TODO: 实现分享功能
+  console.log('게시물 공유', props.feedItem.id)
+  // TODO: 공유 기능 구현
 }
 
-// 处理评论
+// 댓글 처리
 const handleComment = () => {
-  console.log('评论动态', props.feedItem.id)
-  // TODO: 实现评论功能
+  console.log('게시물 댓글', props.feedItem.id)
+  // TODO: 댓글 기능 구현
 }
 
-// 处理点赞
+// 좋아요 처리
 const handleLike = () => {
   isLiked.value = !isLiked.value
   likeCount.value += isLiked.value ? 1 : -1
-  console.log('点赞动态', props.feedItem.id, isLiked.value)
-  // TODO: 实现点赞功能
+  console.log('게시물 좋아요', props.feedItem.id, isLiked.value)
+  // TODO: 좋아요 기능 구현
 }
 </script>
 

@@ -1,11 +1,11 @@
 use sea_orm::{DatabaseBackend, Statement};
 use tracing::info;
 
-/// SQL调试工具函数
+/// SQL 디버깅 도구 함수
 pub struct SqlDebug;
 
 impl SqlDebug {
-    /// 打印SQL语句和参数
+    /// SQL 문 및 매개변수 출력
     pub fn log_query<T>(query: &T, backend: DatabaseBackend, label: &str)
     where
         T: sea_orm::QueryTrait,
@@ -16,7 +16,7 @@ impl SqlDebug {
         if let Some(ref values) = statement.values {
             info!("[{}] Parameters: {:?}", label, values);
 
-            // 打印格式化的完整SQL（参数已替换）
+            // 형식화된 전체 SQL 출력 (매개변수 치환됨)
             let formatted_sql = Self::format_sql_with_values(&statement.sql, values);
             info!("[{}] Complete SQL: {}", label, formatted_sql);
         } else {
@@ -24,7 +24,7 @@ impl SqlDebug {
         }
     }
 
-    /// 打印Statement
+    /// Statement 출력
     pub fn log_statement(statement: &Statement, label: &str) {
         info!("[{}] SQL: {}", label, statement.sql);
         if let Some(ref values) = statement.values {
@@ -37,7 +37,7 @@ impl SqlDebug {
         }
     }
 
-    /// 将SQL参数替换到SQL语句中
+    /// SQL 매개변수를 SQL 문에 치환
     fn format_sql_with_values(sql: &str, values: &sea_orm::Values) -> String {
         let mut formatted_sql = sql.to_string();
 
@@ -75,7 +75,7 @@ impl SqlDebug {
         formatted_sql
     }
 
-    /// 简化的SQL日志记录
+    /// 간략화된 SQL 로그 기록
     pub fn log_simple(sql: &str, values: Option<&sea_orm::Values>, label: &str) {
         info!("[{}] {}", label, sql);
         if let Some(values) = values {
@@ -86,7 +86,7 @@ impl SqlDebug {
     }
 }
 
-/// 便捷宏，用于快速打印SQL
+/// 빠른 SQL 출력을 위한 편리한 매크로
 #[macro_export]
 macro_rules! log_sql {
     ($query:expr, $label:expr) => {

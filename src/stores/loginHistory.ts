@@ -14,10 +14,10 @@ export const useLoginHistoriesStore = defineStore(
     const addLoginHistory = (loginHistory: UserInfoType) => {
       const index = getLoginHistoryIndex(loginHistory)
       if (index !== -1) {
-        // 如果已存在，先删除旧的
+        // 이미 존재하는 경우 기존 항목 삭제
         loginHistories.value.splice(index, 1)
       }
-      // 添加到数组开头
+      // 배열의 맨 앞에 추가
       loginHistories.value.unshift(loginHistory)
     }
 

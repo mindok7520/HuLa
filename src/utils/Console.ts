@@ -1,6 +1,6 @@
 import pkg from '../../package.json'
 
-/** 控制台打印版本信息 */
+/** 콘솔에 버전 정보 출력 */
 export const consolePrint = () => {
   console.log(
     `%c 🍀 ${pkg.name} ${pkg.version}`,

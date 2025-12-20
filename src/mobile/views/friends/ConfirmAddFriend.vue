@@ -8,12 +8,12 @@
           :hidden-right="true"
           :enable-default-background="false"
           :enable-shadow="false"
-          room-name="添加好友" />
+          room-name="친구 추가" />
       </template>
 
       <template #container>
         <div class="flex flex-col gap-1 overflow-auto h-full">
-          <!-- 内容区域 -->
+          <!-- 내용 영역 -->
           <div class="w-full h-full box-border flex flex-col">
             <n-flex vertical justify="center" :size="20" class="p-[55px_20px] m-20px rounded-15px bg-white">
               <n-flex align="center" justify="center" :size="20">
@@ -21,7 +21,7 @@
 
                 <n-flex vertical :size="10">
                   <p class="text-[--text-color]">{{ userInfo.name }}</p>
-                  <p class="text-(12px [--text-color])">账号: {{ userInfo.account }}</p>
+                  <p class="text-(12px [--text-color])">계정: {{ userInfo.account }}</p>
                 </n-flex>
               </n-flex>
 
@@ -37,9 +37,9 @@
                 autoCorrect="off"
                 autoCapitalize="off"
                 type="textarea"
-                placeholder="输入几句话，对TA说些什么吧" />
+                placeholder="몇 마디 말을 입력해 보세요" />
 
-              <n-button class="mt-30px" color="#13987f" @click="addFriend">添加好友</n-button>
+              <n-button class="mt-30px" color="#13987f" @click="addFriend">친구 추가</n-button>
             </n-flex>
           </div>
         </div>
@@ -78,7 +78,7 @@ const addFriend = async () => {
     msg: requestMsg.value,
     targetUid: globalStore.addFriendModalInfo.uid as string
   })
-  window.$message.success('已发送好友申请')
+  window.$message.success('친구 신청을 보냈습니다')
   setTimeout(() => {
     router.push('/mobile/message')
   }, 2000)
@@ -86,7 +86,7 @@ const addFriend = async () => {
 
 onMounted(async () => {
   console.log(userInfo.value)
-  requestMsg.value = `我是${userStore.userInfo!.name}`
+  requestMsg.value = `저는 ${userStore.userInfo!.name}입니다`
 })
 </script>
 

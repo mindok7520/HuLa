@@ -1,6 +1,6 @@
 use std::fs;
 
-/// 针对 Linux (WebKitGTK/Wry) 的运行时防护
+/// Linux (WebKitGTK/Wry)용 런타임 가드
 pub fn apply_runtime_guards() {
     sanitize_sensitive_env();
     enforce_debugger_policy();
@@ -28,11 +28,11 @@ fn enforce_debugger_policy() {
     #[cfg(not(debug_assertions))]
     {
         if set_dumpable(false).is_err() {
-            eprintln!("[HuLa] 无法设置 Linux dumpable 保护。");
+            eprintln!("[HuLa] Linux dumpable 보호를 설정할 수 없습니다.");
         }
 
         if debugger_attached() {
-            eprintln!("[HuLa] 检测到调试器 (Linux)，已终止启动。");
+            eprintln!("[HuLa] 디버거가 감지되었습니다 (Linux). 시작을 중단합니다.");
             std::process::exit(0);
         }
     }
@@ -40,7 +40,7 @@ fn enforce_debugger_policy() {
     #[cfg(debug_assertions)]
     {
         if debugger_attached() {
-            eprintln!("[HuLa] 调试模式：检测到调试器附加 (Linux)。");
+            eprintln!("[HuLa] 디버그 모드: 디버거 연결이 감지되었습니다 (Linux).");
         }
     }
 }

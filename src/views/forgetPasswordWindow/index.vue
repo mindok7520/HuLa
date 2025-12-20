@@ -2,26 +2,26 @@
   <n-config-provider
     :theme="naiveTheme"
     class="size-full bg-#fff dark:bg-#202020 rounded-8px select-none cursor-default">
-    <!--顶部操作栏-->
+    <!-- 상단 조작 바 -->
     <ActionBar :max-w="false" :shrink="false" />
 
     <n-flex vertical class="w-full size-full">
-      <!-- 标题 -->
+      <!-- 제목 -->
       <n-flex justify="center" class="w-full">
         <p class="text-(18px [--text-color]) select-none">{{ t('auth.forget.title') }}</p>
       </n-flex>
 
-      <!-- 步骤条 -->
+      <!-- 단계 바 -->
       <n-steps size="small" class="w-full px-40px mt-20px" :current="currentStep" :status="stepStatus">
         <n-step :title="t('auth.forget.steps.verify.title')" :description="t('auth.forget.steps.verify.desc')" />
         <n-step :title="t('auth.forget.steps.reset.title')" :description="t('auth.forget.steps.reset.desc')" />
         <n-step :title="t('auth.forget.steps.done.title')" :description="t('auth.forget.steps.done.desc')" />
       </n-steps>
 
-      <!-- 第一步：验证邮箱 -->
+      <!-- 1단계: 이메일 인증 -->
       <div v-if="currentStep === 1" class="w-full max-w-300px mx-auto mt-30px">
         <n-form ref="formRef" :model="formData" :rules="emailRules">
-          <!-- 邮箱输入 -->
+          <!-- 이메일 입력 -->
           <n-form-item path="email" :label="t('auth.forget.form.email_label')">
             <n-input
               :allow-input="noSideSpace"
@@ -35,7 +35,7 @@
               clearable />
           </n-form-item>
 
-          <!-- 邮箱验证码 -->
+          <!-- 이메일 인증코드 -->
           <n-form-item path="emailCode" :label="t('auth.forget.form.code_label')">
             <n-flex :size="8">
               <n-input
@@ -72,10 +72,10 @@
         </n-form>
       </div>
 
-      <!-- 第二步：设置新密码 -->
+      <!-- 2단계: 새 비밀번호 설정 -->
       <div v-if="currentStep === 2" class="w-full max-w-300px mx-auto mt-30px">
         <n-form ref="passwordFormRef" :model="passwordForm" :rules="passwordRules">
-          <!-- 新密码 -->
+          <!-- 새 비밀번호 -->
           <n-form-item path="password" :label="t('auth.forget.form.password_label')">
             <n-flex vertical :size="8" class="w-full">
               <n-input
@@ -108,7 +108,7 @@
             </n-flex>
           </n-form-item>
 
-          <!-- 确认密码 -->
+          <!-- 비밀번호 확인 -->
           <n-form-item path="confirmPassword" :label="t('auth.forget.form.confirm_label')">
             <n-flex vertical :size="8" class="w-full">
               <n-input
@@ -147,7 +147,7 @@
         </n-form>
       </div>
 
-      <!-- 第三步：完成 -->
+      <!-- 3단계: 완료 -->
       <div v-if="currentStep === 3" class="w-full max-w-300px mx-auto mt-100px text-center">
         <!-- <n-icon size="64" class="text-#13987f">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
@@ -178,43 +178,43 @@ const { themes } = storeToRefs(settingStore)
 const naiveTheme = computed(() => (themes.value.content === 'dark' ? darkTheme : lightTheme))
 const { t } = useI18n()
 
-// 导入Web Worker
+// Web Worker 가져오기
 const timerWorker = new Worker(new URL('../../workers/timer.worker.ts', import.meta.url))
 
-// 步骤状态
+// 단계 상태
 const currentStep = ref(1)
 const stepStatus = ref<'error' | 'finish' | 'process' | 'wait' | undefined>('process')
 
-// 第一步表单数据
+// 1단계 양식 데이터
 const formRef = ref(null)
 const formData = ref({
   email: '',
   emailCode: '',
-  uuid: '' // 图片验证码uuid
+  uuid: '' // 이미지 인증코드 uuid
 })
 
-// 图片验证码相关
+// 이미지 인증코드 관련
 const captchaImage = ref('')
 const sendBtnDisabled = ref(false)
 const emailCodeBtnText = ref(t('auth.forget.actions.send_code'))
 const countDown = ref(60)
 const verifyLoading = ref(false)
-// 发送验证码loading状态
+// 인증코드 발송 loading 상태
 const sendingEmailCode = ref(false)
-// 上次获取图片验证码的时间
+// 마지막 이미지 인증코드 획득 시간
 const lastCaptchaTime = ref(0)
-// 图片验证码获取间隔时间(毫秒)
+// 이미지 인증코드 획득 간격 시간 (밀리초)
 const captchaInterval = 10000
-// 图片验证码是否在冷却中
+// 이미지 인증코드 쿨다운 중 여부
 const captchaInCooldown = ref(false)
-// 图片验证码冷却剩余时间
+// 이미지 인증코드 쿨다운 남은 시간
 const captchaCooldownRemaining = ref(0)
-// 验证码计时器的唯一ID
+// 인증코드 타이머 고유 ID
 const EMAIL_TIMER_ID = 'email_verification_timer'
-// 图片验证码限制计时器ID
+// 이미지 인증코드 제한 타이머 ID
 const CAPTCHA_TIMER_ID = 'captcha_cooldown_timer'
 
-// 邮箱校验规则
+// 이메일 검증 규칙
 const emailRules = {
   email: [
     { required: true, message: t('auth.forget.rules.email_required'), trigger: 'blur' },
@@ -230,7 +230,7 @@ const emailRules = {
   ]
 }
 
-// 第二步密码表单
+// 2단계 비밀번호 양식
 const passwordFormRef = ref(null)
 const passwordForm = ref({
   password: '',
@@ -238,7 +238,7 @@ const passwordForm = ref({
 })
 const submitLoading = ref(false)
 
-// 密码校验规则
+// 비밀번호 검증 규칙
 const passwordRules = {
   password: [
     { required: true, message: t('auth.forget.rules.password_required'), trigger: 'blur' },
@@ -256,28 +256,28 @@ const passwordRules = {
   ]
 }
 
-// 下一步按钮禁用状态
+// 다음 버튼 비활성화 상태
 const nextDisabled = computed(() => {
   return !(formData.value.email && formData.value.emailCode)
 })
 
-/** 不允许输入空格 */
+/** 공백 입력 불가 */
 const noSideSpace = (value: string) => !value.startsWith(' ') && !value.endsWith(' ')
 
-/** 密码验证函数 */
+/** 비밀번호 검증 함수 */
 const validateMinLength = (value: string) => value.length >= 6
 
-// 获取图片验证码
+// 이미지 인증코드 가져오기
 const getCaptchaImage = async () => {
-  // 检查是否可以获取新的验证码
+  // 새로운 인증코드를 가져올 수 있는지 확인
   if (captchaInCooldown.value) {
-    // 显示剩余冷却时间
+    // 남은 쿨다운 시간 표시
     window.$message.warning(t('auth.forget.messages.captcha_cooldown', { seconds: captchaCooldownRemaining.value }))
     return
   }
 
   try {
-    // 更新上次获取时间并设置冷却状态
+    // 마지막 획득 시간 업데이트 및 쿨다운 상태 설정
     lastCaptchaTime.value = Date.now()
     captchaInCooldown.value = true
 
@@ -285,22 +285,22 @@ const getCaptchaImage = async () => {
     captchaImage.value = result.img
     formData.value.uuid = result.uuid
 
-    // 获取成功后，启动冷却计时器
+    // 획득 성공 후 쿨다운 타이머 시작
     timerWorker.postMessage({
       type: 'startTimer',
       msgId: CAPTCHA_TIMER_ID,
-      duration: captchaInterval // 使用设定的冷却时间
+      duration: captchaInterval // 설정된 쿨다운 시간 사용
     })
   } catch (error) {
-    console.error('获取验证码失败', error)
-    // 获取失败时解除冷却状态，允许重试
+    console.error('인증코드를 가져오지 못했습니다', error)
+    // 획득 실패 시 쿨다운 상태 해제, 재시도 허용
     captchaInCooldown.value = false
   }
 }
 
-// 发送邮箱验证码
+// 이메일 인증코드 발송
 const sendEmailCode = async () => {
-  // 邮箱校验
+  // 이메일 검증
   if (!formData.value.email) {
     window.$message.warning(t('auth.forget.messages.enter_email'))
     return
@@ -311,7 +311,7 @@ const sendEmailCode = async () => {
     return
   }
 
-  // 设置loading状态
+  // loading 상태 설정
   sendingEmailCode.value = true
 
   try {
@@ -324,28 +324,28 @@ const sendEmailCode = async () => {
 
     window.$message.success(t('auth.forget.messages.code_sent'))
 
-    // 接口成功返回后才开始倒计时 - 使用 Web Worker
+    // API 호출 성공 후 카운트다운 시작 - Web Worker 사용
     sendBtnDisabled.value = true
     countDown.value = 60
     emailCodeBtnText.value = t('auth.forget.actions.retry_in', { seconds: countDown.value })
 
-    // 发送消息给 Worker 开始计时
+    // Worker에 메시지를 보내 타이머 시작
     timerWorker.postMessage({
       type: 'startTimer',
       msgId: EMAIL_TIMER_ID,
-      duration: 60 * 1000 // 60秒，单位毫秒
+      duration: 60 * 1000 // 60초, 단위 밀리초
     })
   } catch (error) {
-    console.error('发送验证码失败', error)
-    // 验证码可能错误，刷新图片验证码
+    console.error('인증코드 발송에 실패했습니다', error)
+    // 인증코드가 틀렸을 수 있으므로 이미지 인증코드 새로고침
     getCaptchaImage()
   } finally {
-    // 无论成功或失败，都需要关闭loading状态
+    // 성공 또는 실패 여부와 관계없이 loading 상태 종료
     sendingEmailCode.value = false
   }
 }
 
-// 验证邮箱
+// 이메일 인증
 const verifyEmail = async () => {
   if (!formRef.value) return
 
@@ -353,22 +353,22 @@ const verifyEmail = async () => {
     await (formRef.value as any).validate()
     verifyLoading.value = true
 
-    // 这里只是验证表单，实际上不需要调用后端接口，直接进入下一步
+    // 양식만 검증하고 실제로 백엔드 API를 호출하지 않고 다음 단계로 직접 이동
     setTimeout(() => {
       currentStep.value = 2
       verifyLoading.value = false
     }, 500)
   } catch (error) {
-    console.error('表单验证失败', error)
+    console.error('폼 검증에 실패했습니다', error)
   }
 }
 
-// 返回上一步
+// 이전 단계로 돌아가기
 const goBack = () => {
   currentStep.value = 1
 }
 
-// 提交新密码
+// 새 비밀번호 제출
 const submitNewPassword = async () => {
   if (!passwordFormRef.value) return
 
@@ -376,7 +376,7 @@ const submitNewPassword = async () => {
     await (passwordFormRef.value as any).validate()
     submitLoading.value = true
 
-    // 调用忘记密码接口
+    // 비밀번호 찾기 API 호출
     await forgetPassword({
       email: formData.value.email,
       code: formData.value.emailCode,
@@ -390,69 +390,69 @@ const submitNewPassword = async () => {
     stepStatus.value = 'finish'
     submitLoading.value = false
   } catch (error) {
-    console.error('重置密码失败', error)
+    console.error('비밀번호 재설정에 실패했습니다', error)
     submitLoading.value = false
   }
 }
 
-// 监听 Worker 消息
+// Worker 메시지 수신
 timerWorker.onmessage = (e) => {
   const { type, msgId, remainingTime } = e.data
 
   if (msgId === EMAIL_TIMER_ID) {
-    // 邮箱验证码计时器消息处理
+    // 이메일 인증코드 타이머 메시지 처리
     if (type === 'debug') {
-      // 更新倒计时显示
+      // 카운트다운 표시 업데이트
       const secondsRemaining = Math.ceil(remainingTime / 1000)
       countDown.value = secondsRemaining
       emailCodeBtnText.value = t('auth.forget.actions.retry_in', { seconds: secondsRemaining })
     } else if (type === 'timeout') {
-      // 计时结束
+      // 타이머 종료
       sendBtnDisabled.value = false
       emailCodeBtnText.value = t('auth.forget.actions.resend')
     }
   } else if (msgId === CAPTCHA_TIMER_ID) {
-    // 图片验证码冷却计时器消息处理
+    // 이미지 인증코드 쿨다운 타이머 메시지 처리
     if (type === 'debug') {
-      // 更新剩余冷却时间，供用户点击时显示
+      // 남은 쿨다운 시간 업데이트 (사용자 클릭 시 표시용)
       captchaCooldownRemaining.value = Math.ceil(remainingTime / 1000)
     } else if (type === 'timeout') {
-      // 冷却结束
+      // 쿨다운 종료
       captchaInCooldown.value = false
       captchaCooldownRemaining.value = 0
     }
   }
 }
 
-// Worker 错误处理
+// Worker 오류 처리
 timerWorker.onerror = (error) => {
   console.error('[Timer Worker Error]', error)
-  // 发生错误时恢复按钮状态
+  // 오류 발생 시 버튼 상태 복구
   sendBtnDisabled.value = false
   emailCodeBtnText.value = t('auth.forget.actions.resend')
 }
 
-// 页面加载时获取验证码
+// 페이지 로드 시 인증코드 가져오기
 onMounted(async () => {
   await getCurrentWebviewWindow().show()
   getCaptchaImage()
 })
 
-// 组件销毁时清除定时器
+// 컴포넌트 소멸 시 타이머 해제
 onBeforeUnmount(() => {
-  // 清除Web Worker计时器
+  // Web Worker 타이머 해제
   timerWorker.postMessage({
     type: 'clearTimer',
     msgId: EMAIL_TIMER_ID
   })
 
-  // 清除图片验证码冷却计时器
+  // 이미지 인증코드 쿨다운 타이머 해제
   timerWorker.postMessage({
     type: 'clearTimer',
     msgId: CAPTCHA_TIMER_ID
   })
 
-  // 可选：终止Worker (如果不需要在其他地方使用)
+  // 선택 사항: Worker 종료 (다른 곳에서 필요하지 않은 경우)
   timerWorker.terminate()
 })
 </script>

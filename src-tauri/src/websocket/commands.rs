@@ -7,10 +7,10 @@ use tauri::{AppHandle, State};
 use tokio::sync::RwLock;
 use tracing::{error, info};
 
-// 全局 WebSocket 客户端实例
+// 전역 WebSocket 클라이언트 인스턴스
 static GLOBAL_WS_CLIENT: OnceLock<Arc<RwLock<Option<WebSocketClient>>>> = OnceLock::new();
 
-/// 获取全局 WebSocket 客户端容器
+/// 전역 WebSocket 클라이언트 컨테이너 가져오기
 pub fn get_websocket_client_container() -> &'static Arc<RwLock<Option<WebSocketClient>>> {
     GLOBAL_WS_CLIENT.get_or_init(|| {
         info!("Creating global WebSocket client container");
@@ -18,20 +18,20 @@ pub fn get_websocket_client_container() -> &'static Arc<RwLock<Option<WebSocketC
     })
 }
 
-/// WebSocket 初始化参数
+/// WebSocket 초기화 파라미터
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct InitWsParams {
     pub client_id: String,
 }
 
-/// WebSocket 消息发送参数
+/// WebSocket 메시지 전송 파라미터
 #[derive(Debug, Deserialize)]
 pub struct SendMessageParams {
     pub data: serde_json::Value,
 }
 
-/// WebSocket 配置更新参数
+/// WebSocket 설정 업데이트 파라미터
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateConfigParams {
@@ -41,7 +41,7 @@ pub struct UpdateConfigParams {
     pub reconnect_delay_ms: Option<u64>,
 }
 
-/// 成功响应结构
+/// 성공 응답 구조
 #[derive(Debug, Serialize)]
 pub struct SuccessResponse {
     pub success: bool,
@@ -57,7 +57,7 @@ impl SuccessResponse {
     }
 }
 
-/// 初始化 WebSocket 连接
+/// WebSocket 연결 초기화
 #[tauri::command]
 pub async fn ws_init_connection(
     app_handle: AppHandle,
@@ -76,23 +76,23 @@ pub async fn ws_init_connection(
         ..Default::default()
     };
 
-    // 获取或创建客户端实例
+    // 클라이언트 인스턴스 가져오기 또는 생성
     let client = {
         let mut client_guard = client_container.write().await;
 
-        // 检查是否已有客户端实例
+        // 기존 클라이언트 인스턴스 존재 여부 확인
         if let Some(existing_client) = client_guard.as_ref() {
-            // 如果已有客户端且已连接，直接返回成功
+            // 기존 클라이언트가 있고 연결된 경우 즉시 성공 반환
             if existing_client.is_connected() {
                 info!("WebSocket already connected, skipping duplicate connection");
                 return Ok(SuccessResponse::new());
             }
 
-            // 如果已有客户端但未连接，使用现有客户端
+            // 기존 클라이언트가 있지만 연결되지 않은 경우 기존 클라이언트 사용
             info!("Reconnecting using existing WebSocket client instance");
             existing_client.clone()
         } else {
-            // 如果没有客户端，创建新实例
+            // 클라이언트가 없는 경우 새 인스턴스 생성
             info!("Creating new WebSocket client instance");
             let new_client = WebSocketClient::new(app_handle);
             *client_guard = Some(new_client.clone());
@@ -114,7 +114,7 @@ pub async fn ws_init_connection(
     Ok(SuccessResponse::new())
 }
 
-/// 断开 WebSocket 连接
+/// WebSocket 연결 끊기
 #[tauri::command]
 pub async fn ws_disconnect(_app_handle: AppHandle) -> Result<SuccessResponse, String> {
     info!("Received WebSocket disconnect request");
@@ -130,7 +130,7 @@ pub async fn ws_disconnect(_app_handle: AppHandle) -> Result<SuccessResponse, St
     Ok(SuccessResponse::new())
 }
 
-/// 发送 WebSocket 消息
+/// WebSocket 메시지 전송
 #[tauri::command]
 pub async fn ws_send_message(
     _app_handle: AppHandle,
@@ -144,16 +144,16 @@ pub async fn ws_send_message(
             Ok(_) => Ok(SuccessResponse::new()),
             Err(e) => {
                 error!(" Failed to send message: {}", e);
-                Err(format!("发送失败: {}", e))
+                Err(format!("전송 실패: {}", e))
             }
         }
     } else {
         error!(" WebSocket not initialized");
-        Err("WebSocket 未初始化".to_string())
+        Err("WebSocket이 초기화되지 않았습니다".to_string())
     }
 }
 
-/// 获取连接状态
+/// 연결 상태 가져오기
 #[tauri::command]
 pub async fn ws_get_state(_app_handle: AppHandle) -> Result<ConnectionState, String> {
     let client_container = get_websocket_client_container();
@@ -166,7 +166,7 @@ pub async fn ws_get_state(_app_handle: AppHandle) -> Result<ConnectionState, Str
     }
 }
 
-/// 获取连接健康状态
+/// 연결 헬스 상태 가져오기
 #[tauri::command]
 pub async fn ws_get_health(_app_handle: AppHandle) -> Result<ConnectionHealth, String> {
     let client_container = get_websocket_client_container();
@@ -175,11 +175,11 @@ pub async fn ws_get_health(_app_handle: AppHandle) -> Result<ConnectionHealth, S
     if let Some(client) = client_guard.as_ref() {
         Ok(client.get_health_status().await)
     } else {
-        Err("WebSocket 未初始化".to_string())
+        Err("WebSocket이 초기화되지 않았습니다".to_string())
     }
 }
 
-/// 强制重连
+/// 강제 재연결
 #[tauri::command]
 pub async fn ws_force_reconnect(_app_handle: AppHandle) -> Result<SuccessResponse, String> {
     info!("Received force reconnect request");
@@ -195,16 +195,16 @@ pub async fn ws_force_reconnect(_app_handle: AppHandle) -> Result<SuccessRespons
             }
             Err(e) => {
                 error!(" WebSocket reconnection failed: {}", e);
-                Err(format!("重连失败: {}", e))
+                Err(format!("재연결 실패: {}", e))
             }
         }
     } else {
         error!(" WebSocket not initialized, cannot reconnect");
-        Err("WebSocket 未初始化".to_string())
+        Err("WebSocket이 초기화되지 않았습니다".to_string())
     }
 }
 
-/// 更新 WebSocket 配置
+/// WebSocket 설정 업데이트
 #[tauri::command]
 pub async fn ws_update_config(
     _app_handle: AppHandle,
@@ -216,10 +216,10 @@ pub async fn ws_update_config(
     let client_guard = client_container.read().await;
 
     if let Some(client) = client_guard.as_ref() {
-        // 获取当前配置（这里需要添加获取当前配置的方法）
+        // 현재 설정 가져오기 (여기에 현재 설정을 가져오는 메서드 추가 필요)
         let mut config = WebSocketConfig::default();
 
-        // 更新配置
+        // 업데이트 설정
         if let Some(interval) = params.heartbeat_interval {
             config.heartbeat_interval = interval;
         }
@@ -238,11 +238,11 @@ pub async fn ws_update_config(
         Ok(SuccessResponse::new())
     } else {
         error!(" WebSocket not initialized, cannot update configuration");
-        Err("WebSocket 未初始化".to_string())
+        Err("WebSocket이 초기화되지 않았습니다".to_string())
     }
 }
 
-/// 检查连接状态
+/// 연결 상태 확인
 #[tauri::command]
 pub async fn ws_is_connected(_app_handle: AppHandle) -> Result<bool, String> {
     let client_container = get_websocket_client_container();
@@ -255,15 +255,15 @@ pub async fn ws_is_connected(_app_handle: AppHandle) -> Result<bool, String> {
     }
 }
 
-/// 设置应用后台状态
+/// 애플리케이션 백그라운드 상태 설정
 #[tauri::command]
 pub async fn ws_set_app_background_state(
     _app_handle: AppHandle,
     is_background: bool,
 ) -> Result<SuccessResponse, String> {
     info!(
-        "收到应用状态变更请求: {}",
-        if is_background { "后台" } else { "前台" }
+        "애플리케이션 상태 변경 요청 수신: {}",
+        if is_background { "백그라운드" } else { "포그라운드" }
     );
 
     let client_container = get_websocket_client_container();
@@ -276,7 +276,7 @@ pub async fn ws_set_app_background_state(
     Ok(SuccessResponse::new())
 }
 
-/// 获取应用后台状态
+/// 애플리케이션 백그라운드 상태 가져오기
 #[tauri::command]
 pub async fn ws_get_app_background_state(_app_handle: AppHandle) -> Result<bool, String> {
     let client_container = get_websocket_client_container();

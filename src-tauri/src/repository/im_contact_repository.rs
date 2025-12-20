@@ -19,7 +19,7 @@ pub async fn list_contact(
     Ok(list)
 }
 
-/// 批量保存会话数据到本地数据库
+/// 대화 데이터를 로컬 데이터베이스에 일괄 저장
 pub async fn save_contact_batch(
     db: &DatabaseConnection,
     contacts: Vec<im_contact::Model>,
@@ -29,17 +29,17 @@ pub async fn save_contact_batch(
         return Ok(());
     }
 
-    // 使用事务确保操作的原子性
+    // 트랜잭션을 사용하여 작업의 원자성 보장
     let txn = db.begin().await?;
 
-    // 先删除当前用户的现有会话数据
+    // 현재 사용자의 기존 대화 데이터를 먼저 삭제
     im_contact::Entity::delete_many()
         .filter(im_contact::Column::LoginUid.eq(login_uid))
         .exec(&txn)
         .await
         .map_err(|e| anyhow::anyhow!("Failed to delete existing contact data: {}", e))?;
 
-    // 批量插入新的会话数据
+    // 새로운 대화 데이터 일괄 삽입
     let active_models: Vec<im_contact::ActiveModel> = contacts
         .into_iter()
         .map(|mut contact| {
@@ -56,12 +56,12 @@ pub async fn save_contact_batch(
             .map_err(|e| anyhow::anyhow!("Failed to batch insert contact data: {}", e))?;
     }
 
-    // 提交事务
+    // 트랜잭션 커밋
     txn.commit().await?;
     Ok(())
 }
 
-/// 更新联系人隐藏状态
+/// 연락처 숨김 상태 업데이트
 pub async fn update_contact_hide(
     db: &DatabaseConnection,
     room_id: &str,
@@ -73,7 +73,7 @@ pub async fn update_contact_hide(
         room_id, hide, login_uid
     );
 
-    // 查找对应的联系人记录
+    // 해당 연락처 레코드 찾기
     let contact = im_contact::Entity::find()
         .filter(im_contact::Column::RoomId.eq(room_id))
         .filter(im_contact::Column::LoginUid.eq(login_uid))

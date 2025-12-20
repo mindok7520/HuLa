@@ -4,7 +4,7 @@
       <div v-if="!isLock" class="h-full">
         <router-view />
       </div>
-      <!-- 锁屏页面 -->
+      <!-- 잠금 화면 페이지 -->
       <LockScreen v-else />
     </NaiveProvider>
   </div>
@@ -68,23 +68,23 @@ const { createRtcCallWindow, sendWindowPayload } = useWindow()
 const globalStore = useGlobalStore()
 const router = useRouter()
 const { addListener } = useTauriListener()
-// 只在桌面端初始化窗口管理功能
+// 데스크톱에서만 창 관리 기능 초기화
 const { createWebviewWindow } = isDesktop() ? useWindow() : { createWebviewWindow: () => {} }
 const settingStore = useSettingStore()
 const { themes, lockScreen, page, login } = storeToRefs(settingStore)
-// 全局快捷键管理
+// 전역 단축키 관리
 const { initializeGlobalShortcut, cleanupGlobalShortcut } = useGlobalShortcut()
 
-/** 不需要锁屏的页面 */
+/** 잠금 화면이 필요 없는 페이지 */
 const LockExclusion = new Set(['/login', '/tray', '/qrCode', '/about', '/onlineStatus', '/capture'])
 const isLock = computed(() => {
   return !LockExclusion.has(router.currentRoute.value.path) && lockScreen.value.enable
 })
 
-/** 禁止图片以及输入框的拖拽 */
+/** 이미지 및 입력창 드래그 금지 */
 const preventDrag = (e: MouseEvent) => {
   const event = e.target as HTMLElement
-  // 检查目标元素是否是<img>元素
+  // 대상 요소가 <img> 요소인지 확인
   if (event.nodeName.toLowerCase() === 'img' || event.nodeName.toLowerCase() === 'input') {
     e.preventDefault()
   }
@@ -92,7 +92,7 @@ const preventDrag = (e: MouseEvent) => {
 const preventGlobalContextMenu = (event: MouseEvent) => event.preventDefault()
 
 useMitt.on(WsResponseMessageType.VideoCallRequest, (event) => {
-  info(`收到通话请求：${JSON.stringify(event)}`)
+  info(`통화 요청 수신: ${JSON.stringify(event)}`)
   const remoteUid = event.callerUid
   const callType = event.isVideo ? CallTypeEnum.VIDEO : CallTypeEnum.AUDIO
 
@@ -109,7 +109,7 @@ useMitt.on(WsResponseMessageType.VideoCallRequest, (event) => {
 
 useMitt.on(WsResponseMessageType.LOGIN_SUCCESS, async (data: LoginSuccessResType) => {
   const { ...rest } = data
-  // 自己更新自己上线
+  // 자신을 온라인으로 업데이트
   groupStore.updateOnlineNum({
     uid: rest.uid,
     isAdd: true
@@ -122,7 +122,7 @@ useMitt.on(WsResponseMessageType.LOGIN_SUCCESS, async (data: LoginSuccessResType
     name: rest.name,
     uid: rest.uid
   })
-  // 刚登录成功时同步当前/首个群聊的成员信息，避免消息显示“未知用户”
+  // 로그인 성공 시 현재/첫 번째 그룹 채팅의 멤버 정보를 동기화하여 메시지에 "알 수 없는 사용자"가 표시되지 않도록 함
   await refreshActiveGroupMembers()
 })
 
@@ -131,21 +131,21 @@ useMitt.on(WsResponseMessageType.MSG_RECALL, (data: RevokedMsgType) => {
 })
 
 useMitt.on(WsResponseMessageType.MY_ROOM_INFO_CHANGE, (data: { myName: string; roomId: string; uid: string }) => {
-  // 更新用户在群聊中的昵称
+  // 그룹 채팅에서 사용자의 닉네임 업데이트
   groupStore.updateUserItem(data.uid, { myName: data.myName }, data.roomId)
 })
 
 useMitt.on(
   WsResponseMessageType.REQUEST_NEW_FRIEND,
   async (data: { uid: number; unReadCount4Friend: number; unReadCount4Group: number }) => {
-    console.log('收到好友申请')
-    // 更新未读数
+    console.log('친구 신청 수신')
+    // 읽지 않은 수 업데이트
     globalStore.unReadMark.newFriendUnreadCount = data.unReadCount4Friend || 0
     globalStore.unReadMark.newGroupUnreadCount = data.unReadCount4Group || 0
 
     unreadCountManager.refreshBadge(globalStore.unReadMark, feedStore.unreadCount)
 
-    // 刷新好友申请列表
+    // 친구 신청 목록 새로고침
     await contactStore.getApplyPage('friend', true)
   }
 )
@@ -155,27 +155,27 @@ useMitt.on(WsResponseMessageType.NOTIFY_EVENT, async () => {
   await Promise.all([contactStore.getApplyPage('friend', true), contactStore.getApplyPage('group', true)])
 })
 
-// 处理自己被移除
+// 자신이 제거된 경우 처리
 const handleSelfRemove = async (roomId: string) => {
-  info('本人退出群聊，移除会话数据')
+  info('그룹 채팅 퇴장, 세션 데이터 삭제')
 
-  // 移除会话和群成员数据
+  // 세션 및 그룹 멤버 데이터 삭제
   chatStore.removeSession(roomId)
   groupStore.removeAllUsers(roomId)
 
-  // 如果当前会话就是被移除的群聊，切换到其他会话
+  // 현재 세션이 제거된 그룹 채팅인 경우 다른 세션으로 전환
   if (globalStore.currentSessionRoomId === roomId) {
     globalStore.updateCurrentSessionRoomId(chatStore.sessionList[0].roomId)
   }
 }
 
-// 处理其他成员被移除
+// 다른 멤버가 제거된 경우 처리
 const handleOtherMemberRemove = async (uid: string, roomId: string) => {
-  info('群成员退出群聊，移除群内的成员数据')
+  info('그룹 멤버 그룹 채팅 퇴장, 그룹 내 멤버 데이터 삭제')
   groupStore.removeUserItem(uid, roomId)
 }
 
-// 处理群成员移除
+// 그룹 멤버 제거 처리
 const handleMemberRemove = async (userList: UserItem[], roomId: string) => {
   for (const user of userList) {
     if (isSelfUser(user.uid)) {
@@ -186,29 +186,29 @@ const handleMemberRemove = async (userList: UserItem[], roomId: string) => {
   }
 }
 
-// 处理其他成员加入群聊
+// 다른 멤버의 그룹 채팅 참여 처리
 const handleOtherMemberAdd = async (user: UserItem, roomId: string) => {
-  info('群成员加入群聊，添加群成员数据')
+  info('그룹 멤버 그룹 채팅 참여, 그룹 멤버 데이터 추가')
   groupStore.addUserItem(user, roomId)
 }
 
-// 检查是否为当前用户
+// 현재 사용자인지 확인
 const isSelfUser = (uid: string): boolean => {
   return uid === userStore.userInfo!.uid
 }
 
-// 处理自己加入群聊
+// 자신의 그룹 채팅 참여 처리
 const handleSelfAdd = async (roomId: string) => {
-  info('本人加入群聊，加载该群聊的会话数据')
+  info('그룹 채팅 참여, 해당 그룹 채팅의 세션 데이터 로드')
   await chatStore.addSession(roomId)
   try {
     await groupStore.getGroupUserList(roomId, true)
   } catch (error) {
-    console.error('初始化群成员失败:', error)
+    console.error('그룹 멤버 초기화 실패:', error)
   }
 }
 
-// 处理群成员添加
+// 그룹 멤버 추가 처리
 const handleMemberAdd = async (userList: UserItem[], roomId: string) => {
   for (const user of userList) {
     if (isSelfUser(user.uid)) {
@@ -228,7 +228,7 @@ useMitt.on(
     totalNum: number
     onlineNum: number
   }) => {
-    info('监听到群成员变更消息')
+    info('그룹 멤버 변경 메시지 감지')
     const isRemoveAction = param.changeType === ChangeTypeEnum.REMOVE || param.changeType === ChangeTypeEnum.EXIT_GROUP
     if (isRemoveAction) {
       await handleMemberRemove(param.userList, param.roomId)
@@ -237,35 +237,35 @@ useMitt.on(
     }
 
     groupStore.addGroupDetail(param.roomId)
-    // 更新群内的总人数
+    // 그룹 내 총 인원수 업데이트
     groupStore.updateGroupNumber(param.roomId, param.totalNum, param.onlineNum)
   }
 )
 
 useMitt.on(WsResponseMessageType.MSG_MARK_ITEM, async (data: { markList: MarkItemType[] }) => {
-  console.log('收到消息标记更新:', data)
+  console.log('메시지 마크 업데이트 수신:', data)
 
-  // 确保data.markList是一个数组再传递给updateMarkCount
+  // data.markList가 배열인지 확인 후 updateMarkCount에 전달
   if (data && data.markList && Array.isArray(data.markList)) {
     await chatStore.updateMarkCount(data.markList)
   } else if (data && !Array.isArray(data)) {
-    // 兼容处理：如果直接收到了单个MarkItemType对象
+    // 호환성 처리: 단일 MarkItemType 객체를 직접 받은 경우
     await chatStore.updateMarkCount([data as unknown as MarkItemType])
   }
 })
 
 useMitt.on(WsResponseMessageType.REQUEST_APPROVAL_FRIEND, async () => {
-  // 刷新好友列表以获取最新状态
+  // 최신 상태를 가져오기 위해 친구 목록 새로고침
   await contactStore.getContactList(true)
   await contactStore.getApplyUnReadCount()
   unreadCountManager.refreshBadge(globalStore.unReadMark, feedStore.unreadCount)
 })
 
 useMitt.on(WsResponseMessageType.ROOM_INFO_CHANGE, async (data: { roomId: string; name: string; avatar: string }) => {
-  // 根据roomId修改对应房间中的群名称和群头像
+  // roomId에 따라 해당 방의 그룹 이름과 그룹 아바타 수정
   const { roomId, name, avatar } = data
 
-  // 更新chatStore中的会话信息
+  // chatStore의 세션 정보 업데이트
   chatStore.updateSession(roomId, {
     name,
     avatar
@@ -278,39 +278,39 @@ useMitt.on(WsResponseMessageType.TOKEN_EXPIRED, async (wsTokenExpire: WsTokenExp
     const { resetLoginState, logout } = useLogin()
     if (isMobile()) {
       try {
-        // 1. 先重置登录状态（不请求接口，只清理本地）
+        // 1. 먼저 로그인 상태 초기화 (인터페이스 요청 없이 로컬만 정리)
         await resetLoginState()
-        // 2. 调用登出方法
+        // 2. 로그아웃 메서드 호출
         await logout()
 
         settingStore.toggleLogin(false, false)
-        info('账号在其他设备登录')
+        info('계정이 다른 기기에서 로그인됨')
 
-        // 3. 立即跳转到登录页，使用 replace 替换当前路由
+        // 3. 즉시 로그인 페이지로 이동, replace를 사용하여 현재 라우트 교체
         const router = await import('@/router')
         await router.default.replace('/mobile/login')
 
-        // 4. 跳转后再显示弹窗提示
+        // 4. 이동 후 팝업 알림 표시
         const { showDialog } = await import('vant')
         await import('vant/es/dialog/style')
 
         showDialog({
-          title: '登录失效',
-          message: '您的账号已在其他设备登录，请重新登录',
-          confirmButtonText: '我知道了',
+          title: '로그인 만료',
+          message: '계정이 다른 기기에서 로그인되었습니다. 다시 로그인해 주세요.',
+          confirmButtonText: '확인',
           showCancelButton: false,
           closeOnClickOverlay: false,
           closeOnPopstate: false,
           allowHtml: false
         })
       } catch (error) {
-        console.error('处理token过期失败：', error)
+        console.error('토큰 만료 처리 실패:', error)
       }
     } else {
-      // 桌面端处理：聚焦主窗口并显示远程登录弹窗
+      // 데스크톱 처리: 메인 창 포커스 및 원격 로그인 팝업 표시
       const home = await WebviewWindow.getByLabel('home')
       await home?.setFocus()
-      const remoteIp = wsTokenExpire.ip || '未知IP'
+      const remoteIp = wsTokenExpire.ip || '알 수 없는 IP'
       await sendWindowPayload('login', {
         remoteLogin: {
           ip: remoteIp,
@@ -325,17 +325,17 @@ useMitt.on(WsResponseMessageType.TOKEN_EXPIRED, async (wsTokenExpire: WsTokenExp
 })
 
 useMitt.on(WsResponseMessageType.INVALID_USER, (param: { uid: string }) => {
-  console.log('无效用户')
+  console.log('유효하지 않은 사용자')
   const data = param
-  // 消息列表删掉拉黑的发言
+  // 메시지 목록에서 차단된 발언 삭제
   // chatStore.filterUser(data.uid)
-  // 群成员列表删掉拉黑的用户
+  // 그룹 멤버 목록에서 차단된 사용자 삭제
   groupStore.removeUserItem(data.uid)
 })
 
 useMitt.on(WsResponseMessageType.ONLINE, async (onStatusChangeType: OnStatusChangeType) => {
-  console.log('收到用户上线通知')
-  // 群聊
+  console.log('사용자 온라인 알림 수신')
+  // 그룹 채팅
   if (onStatusChangeType.type === 1) {
     groupStore.updateOnlineNum({
       roomId: onStatusChangeType.roomId,
@@ -354,19 +354,19 @@ useMitt.on(WsResponseMessageType.ONLINE, async (onStatusChangeType: OnStatusChan
 })
 
 useMitt.on(WsResponseMessageType.ROOM_DISSOLUTION, async (roomId: string) => {
-  console.log('收到群解散通知', roomId)
-  // 移除群聊的会话
+  console.log('그룹 해산 알림 수신', roomId)
+  // 그룹 채팅 세션 삭제
   chatStore.removeSession(roomId)
-  // 移除群聊的详情
+  // 그룹 채팅 상세 정보 삭제
   groupStore.removeGroupDetail(roomId)
-  // 如果当前会话为解散的群聊，切换到第一个会话
+  // 현재 세션이 해산된 그룹 채팅인 경우 첫 번째 세션으로 전환
   if (globalStore.currentSessionRoomId === roomId) {
     globalStore.currentSessionRoomId = chatStore.sessionList[0].roomId
   }
 })
 
 useMitt.on(WsResponseMessageType.USER_STATE_CHANGE, async (data: { uid: string; userStateId: string }) => {
-  console.log('收到用户状态改变', data)
+  console.log('사용자 상태 변경 수신', data)
   groupStore.updateUserItem(data.uid, {
     userStateId: data.userStateId
   })
@@ -378,22 +378,22 @@ useMitt.on(WsResponseMessageType.FEED_SEND_MSG, (data: { uid: string }) => {
     // 同步更新角标（包含朋友圈未读数）
     unreadCountManager.refreshBadge(globalStore.unReadMark, feedStore.unreadCount)
   } else {
-    console.log('[App.vue] 是自己发布的，不增加未读数')
+    console.log('[App.vue] 자신이 게시한 것이므로 읽지 않은 수를 늘리지 않음')
   }
 })
 
-// 朋友圈通知监听（全局）- 处理点赞和评论通知
+// 모멘트 알림 리스너 (전역) - 좋아요 및 댓글 알림 처리
 useMitt.on(WsResponseMessageType.FEED_NOTIFY, async (data: any) => {
   try {
-    console.log('收到朋友圈通知:', JSON.stringify(data, null, 2))
-    console.log('通知类型判断 - isUnlike:', data.isUnlike, 'hasComment:', !!data.comment)
+    console.log('모멘트 알림 수신:', JSON.stringify(data, null, 2))
+    console.log('알림 유형 판단 - isUnlike:', data.isUnlike, 'hasComment:', !!data.comment)
 
-    // 获取朋友圈内容用于通知显示
+    // 알림 표시를 위한 모멘트 내용 가져오기
     const feed = feedStore.feedList.find((f) => f.id === data.feedId)
-    const feedContent = feed?.content || data.feedContent || '朋友圈'
+    const feedContent = feed?.content || data.feedContent || '모멘트'
 
     if (data.isUnlike) {
-      // 取消点赞时减少未读数
+      // 좋아요 취소 시 읽지 않은 수 감소
       feedStore.decreaseUnreadCount(1)
       const likeListResult = await feedStore.getLikeList(data.feedId)
       if (likeListResult) {
@@ -404,9 +404,9 @@ useMitt.on(WsResponseMessageType.FEED_NOTIFY, async (data: any) => {
         }
       }
     }
-    // 如果是点赞通知
+    // 좋아요 알림인 경우
     else if (!data.comment) {
-      console.log('处理点赞通知')
+      console.log('좋아요 알림 처리')
       feedStore.increaseUnreadCount(1)
       const likeListResult = await feedStore.getLikeList(data.feedId)
       if (likeListResult) {
@@ -416,14 +416,14 @@ useMitt.on(WsResponseMessageType.FEED_NOTIFY, async (data: any) => {
           feed.likeCount = likeListResult.length
         }
       }
-      // 添加点赞通知到本地存储
+      // 로컬 저장소에 좋아요 알림 추가
       const likeNotification = {
         id: `${data.feedId}_${data.operatorUid}_like_${Date.now()}`,
         type: 'like' as const,
         feedId: String(data.feedId),
         feedContent: feedContent,
         operatorUid: String(data.operatorUid),
-        operatorName: data.operatorName || '未知用户',
+        operatorName: data.operatorName || '알 수 없는 사용자',
         operatorAvatar: data.operatorAvatar || '',
         createTime: Date.now(),
         isRead: false
@@ -441,16 +441,16 @@ useMitt.on(WsResponseMessageType.FEED_NOTIFY, async (data: any) => {
           }
         }
       } catch (error) {
-        console.error('获取评论列表失败:', error)
+        console.error('댓글 목록 가져오기 실패:', error)
       }
-      // 添加评论通知到本地存储
+      // 로컬 저장소에 댓글 알림 추가
       const commentNotification = {
         id: `${data.feedId}_${data.operatorUid}_comment_${Date.now()}`,
         type: 'comment' as const,
         feedId: String(data.feedId),
         feedContent: feedContent,
         operatorUid: String(data.operatorUid),
-        operatorName: data.operatorName || '未知用户',
+        operatorName: data.operatorName || '알 수 없는 사용자',
         operatorAvatar: data.operatorAvatar || '',
         commentContent: data.comment?.content || '',
         createTime: Date.now(),
@@ -458,21 +458,21 @@ useMitt.on(WsResponseMessageType.FEED_NOTIFY, async (data: any) => {
       }
       feedNotificationStore.addNotification(commentNotification)
     }
-    // 朋友圈未读数变化后，同步更新程序坞图标（包含朋友圈未读数）
+    // 모멘트 읽지 않은 수 변경 후, 독 아이콘 동기화 업데이트 (모멘트 읽지 않은 수 포함)
     unreadCountManager.refreshBadge(globalStore.unReadMark, feedStore.unreadCount)
   } catch (error) {
-    console.error('处理朋友圈通知失败:', error)
+    console.error('모멘트 알림 처리 실패:', error)
   }
 })
 
 useMitt.on(WsResponseMessageType.GROUP_SET_ADMIN_SUCCESS, (event) => {
-  console.log('设置群管理员---> ', event)
+  console.log('그룹 관리자 설정---> ', event)
   groupStore.updateAdminStatus(event.roomId, event.uids, event.status)
 })
 
 useMitt.on(WsResponseMessageType.OFFLINE, async (onStatusChangeType: OnStatusChangeType) => {
-  console.log('收到用户下线通知', onStatusChangeType)
-  // 群聊
+  console.log('사용자 오프라인 알림 수신', onStatusChangeType)
+  // 그룹 채팅
   if (onStatusChangeType.type === 1) {
     groupStore.updateOnlineNum({
       roomId: onStatusChangeType.roomId,
@@ -491,11 +491,11 @@ useMitt.on(WsResponseMessageType.OFFLINE, async (onStatusChangeType: OnStatusCha
 })
 
 const handleVideoCall = async (remotedUid: string, callType: CallTypeEnum) => {
-  info(`监听到视频通话调用，remotedUid: ${remotedUid}, callType: ${callType}`)
+  info(`비디오 통화 호출 감지, remotedUid: ${remotedUid}, callType: ${callType}`)
   const currentSession = globalStore.currentSession
   const targetUid = remotedUid || currentSession?.detailId
   if (!targetUid) {
-    console.warn('[App] 当前会话尚未就绪或无法解析对端用户，忽略通话事件')
+    console.warn('[App] 현재 세션이 준비되지 않았거나 상대 사용자를 확인할 수 없어 통화 이벤트를 무시합니다.')
     return
   }
   if (isMobile()) {
@@ -505,7 +505,7 @@ const handleVideoCall = async (remotedUid: string, callType: CallTypeEnum) => {
         remoteUserId: targetUid,
         roomId: globalStore.currentSessionRoomId,
         callType: callType,
-        // 接受方
+        // 수신자
         isIncoming: 'true'
       }
     })
@@ -521,7 +521,7 @@ const listenMobileReLogin = async () => {
     const { resetLoginState, logout } = useLogin()
     addListener(
       listen('relogin', async () => {
-        info('收到重新登录事件')
+        info('재로그인 이벤트 수신')
         await resetLoginState()
         await logout()
       }),
@@ -530,7 +530,7 @@ const listenMobileReLogin = async () => {
   }
 }
 
-// 登录/重连后兜底刷新：仅刷新当前（或首个）群聊成员，避免消息渲染成“未知用户”
+// 로그인/재연결 후 리프레시: 현재 (또는 첫 번째) 그룹 채팅 멤버만 새로고침하여 메시지가 "알 수 없는 사용자"로 렌더링되지 않도록 함
 const refreshActiveGroupMembers = async () => {
   const tasks: Promise<unknown>[] = []
   try {
@@ -544,7 +544,7 @@ const refreshActiveGroupMembers = async () => {
     }
     await Promise.allSettled(tasks)
   } catch (error) {
-    console.error('[Network] 刷新群成员失败:', error)
+    console.error('[Network] 그룹 멤버 새로고침 실패:', error)
   }
 }
 
@@ -574,11 +574,11 @@ const handleWebsocketEvent = async (event: any) => {
   lastWsConnectionState = nextState || previousState
 
   if (!shouldHandleReconnect) return
-  // 防止并行重连/同步导致 syncLoading 卡死
+  // 병렬 재연결/동기화로 인해 syncLoading이 멈추는 것을 방지
   if (isReconnectInFlight || chatStore.syncLoading) return
   isReconnectInFlight = true
 
-  // 开始同步，显示加载状态
+  // 동기화 시작, 로딩 상태 표시
   chatStore.syncLoading = true
   try {
     if (userStore.userInfo?.uid) {
@@ -586,34 +586,34 @@ const handleWebsocketEvent = async (event: any) => {
     }
     await chatStore.getSessionList(true)
     await chatStore.setAllSessionMsgList(20)
-    // 重连后同步频道和当前/首个群聊成员信息，避免展示断网前的旧数据
+    // 재연결 후 채널 및 현재/첫 번째 그룹 채팅 멤버 정보를 동기화하여 연결 끊기 전의 이전 데이터가 표시되지 않도록 함
     await refreshActiveGroupMembers()
     if (globalStore.currentSessionRoomId) {
       await chatStore.resetAndRefreshCurrentRoomMessages()
       await chatStore.fetchCurrentRoomRemoteOnce(20)
       const currentRoomId = globalStore.currentSessionRoomId
       const currentSession = chatStore.getSession(currentRoomId)
-      // 重连后如果当前会话仍有未读，补一次已读上报和本地清零，避免气泡卡住
+      // 재연결 후 현재 세션에 여전히 읽지 않은 메시지가 있는 경우, 읽음 보고 및 로컬 초기화를 수행하여 말풍선이 멈추지 않도록 함
       if (currentSession?.unreadCount) {
         try {
           await ImRequestUtils.markMsgRead(currentRoomId)
         } catch (error) {
-          console.error('[Network] 重连后上报已读失败:', error)
+          console.error('[Network] 재연결 후 읽음 보고 실패:', error)
         }
         chatStore.markSessionRead(currentRoomId)
       }
     }
     unreadCountManager.refreshBadge(globalStore.unReadMark, feedStore.unreadCount)
   } finally {
-    // 同步完成，隐藏加载状态
+    // 동기화 완료, 로딩 상태 숨김
     chatStore.syncLoading = false
     isReconnectInFlight = false
   }
 }
 
 /**
- * iOS网络权限预请求
- * 在应用启动时发起一个轻量级网络请求，触发iOS的网络权限弹窗
+ * iOS 네트워크 권한 사전 요청
+ * 앱 시작 시 가벼운 네트워크 요청을 실행하여 iOS 네트워크 권한 팝업 호출
  */
 const requestNetworkPermissionForIOS = async () => {
   await fetch('https://www.apple.com/favicon.ico', {
@@ -623,22 +623,22 @@ const requestNetworkPermissionForIOS = async () => {
 }
 
 onMounted(() => {
-  // iOS应用启动时预请求网络权限（必须在最开始执行）
+  // iOS 앱 시작 시 네트워크 권한 사전 요청 (반드시 처음에 실행)
   if (isIOS()) {
     requestNetworkPermissionForIOS()
   }
 
   if (isWindows10()) {
     void appWindow.setShadow(false).catch((error) => {
-      console.warn('禁用窗口阴影失败:', error)
+      console.warn('창 그림자 비활성화 실패:', error)
     })
   }
-  // 判断是否是桌面端，桌面端需要调整样式
+  // 데스크톱 여부 판단, 데스크톱은 스타일 조정 필요
   isDesktop() && import('@/styles/scss/global/desktop.scss')
-  // 判断是否是移动端，移动端需要加载安全区域适配样式
+  // 모바일 여부 판단, 모바일은 안전 영역 적응 스타일 로드 필요
   isMobile() && import('@/styles/scss/global/mobile.scss')
   import(`@/styles/scss/theme/${themes.value.versatile}.scss`)
-  // 判断localStorage中是否有设置主题
+  // localStorage에 테마 설정이 있는지 확인
   if (!localStorage.getItem(StoresEnum.SETTING)) {
     settingStore.initTheme(ThemeEnum.OS)
   }
@@ -647,29 +647,29 @@ onMounted(() => {
 
   addListener(listen('websocket-event', handleWebsocketEvent), 'websocket-event')
 
-  // 只在桌面端的主窗口中初始化全局快捷键
+  // 데스크톱 메인 창에서만 전역 단축키 초기화
   if (isDesktop() && appWindow.label === 'home') {
     initializeGlobalShortcut()
   }
-  /** 开发环境不禁止 */
+  /** 개발 환경에서는 금지하지 않음 */
   if (process.env.NODE_ENV !== 'development') {
-    /** 禁用浏览器默认的快捷键 */
+    /** 브라우저 기본 단축키 비활성화 */
     window.addEventListener('keydown', (e) => {
       if (e.ctrlKey && (e.key === 'f' || e.key === 'r' || e.key === 'g' || e.key === 'j')) {
         e.preventDefault()
       }
     })
-    /** 禁止右键菜单 */
+    /** 우클릭 메뉴 금지 */
     window.addEventListener('contextmenu', preventGlobalContextMenu, false)
   }
-  // 只在桌面端处理窗口相关事件
+  // 데스크톱에서만 창 관련 이벤트 처리
   if (isDesktop()) {
     useMitt.on(MittEnum.CHECK_UPDATE, async () => {
       const checkUpdateWindow = await WebviewWindow.getByLabel('checkupdate')
       await checkUpdateWindow?.show()
     })
     useMitt.on(MittEnum.DO_UPDATE, async (event) => {
-      await createWebviewWindow('更新', 'update', 490, 335, '', false, 490, 335, false, true)
+      await createWebviewWindow('업데이트', 'update', 490, 335, '', false, 490, 335, false, true)
       const closeWindow = await WebviewWindow.getByLabel(event.close)
       closeWindow?.close()
     })
@@ -687,17 +687,17 @@ onUnmounted(async () => {
   window.removeEventListener('contextmenu', preventGlobalContextMenu, false)
   window.removeEventListener('dragstart', preventDrag)
 
-  // 只在桌面端的主窗口中清理全局快捷键
+  // 데스크톱 메인 창에서만 전역 단축키 정리
   if (isDesktop() && appWindow.label === 'home') {
     await cleanupGlobalShortcut()
   }
 })
 
-/** 控制阴影 */
+/** 그림자 제어 */
 watch(
   () => page.value.shadow,
   (val) => {
-    // 移动端始终禁用阴影
+    // 모바일은 항상 그림자 비활성화
     if (isMobile()) {
       document.documentElement.style.setProperty('--shadow-enabled', '1')
     } else {
@@ -707,7 +707,7 @@ watch(
   { immediate: true }
 )
 
-/** 控制高斯模糊 */
+/** 가우시안 블러 제어 */
 watch(
   () => page.value.blur,
   (val) => {
@@ -716,7 +716,7 @@ watch(
   { immediate: true }
 )
 
-/** 控制字体样式 */
+/** 폰트 스타일 제어 */
 watch(
   () => page.value.fonts,
   (val) => {
@@ -726,7 +726,7 @@ watch(
 )
 
 /**
- * 语言发生变化
+ * 언어 변경
  */
 watch(
   () => page.value.lang,
@@ -736,12 +736,12 @@ watch(
   }
 )
 
-/** 控制变化主题 */
+/** 테마 변경 제어 */
 watch(
   () => themes.value.versatile,
   async (val, oldVal) => {
     await import(`@/styles/scss/theme/${val}.scss`)
-    // 然后给最顶层的div设置val的类样式
+    // 그리고 최상위 div에 val 클래스 스타일 설정
     const app = document.querySelector('#app')?.classList as DOMTokenList
     app.remove(oldVal as string)
     await nextTick(() => {
@@ -751,10 +751,10 @@ watch(
   { immediate: true }
 )
 
-/** 监听会话变化 */
+/** 세션 변경 감지 */
 useMitt.on(MittEnum.MSG_INIT, async () => {
   watchEffect(async () => {
-    // 在同步阶段明确提取需要监听的属性
+    // 동기화 단계에서 모니터링이 필요한 속성을 명시적으로 추출
     const sessionRoomId = globalStore.currentSessionRoomId
     const sessionType = globalStore.currentSession?.type
     const currentSession = globalStore.currentSession
@@ -769,13 +769,13 @@ useMitt.on(MittEnum.MSG_INIT, async () => {
         await announcementStore.loadGroupAnnouncements()
       }
     } catch (error) {
-      console.error('会话切换处理失败:', error)
+      console.error('세션 전환 처리 실패:', error)
     }
   })
 })
 </script>
 <style lang="scss">
-/* 修改naive-ui select 组件的样式 */
+/* naive-ui select 컴포넌트 스타일 수정 */
 .n-base-selection,
 .n-base-select-menu,
 .n-base-select-menu .n-base-select-option .n-base-select-option__content,

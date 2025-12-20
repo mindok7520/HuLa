@@ -18,7 +18,7 @@ import { getStaticMap } from '@/services/mapApi'
 
 type LocationData = { latitude: number; longitude: number }
 
-// 这里缩放很大的时候有问题，会出现图片显示不了；谁来修复一下
+// 줌 값이 너무 크면 이미지가 표시되지 않는 문제가 있습니다. 수정이 필요합니다.
 const props = withDefaults(
   defineProps<{ location: LocationData; zoom?: number; height?: number; draggable?: boolean; controls?: boolean }>(),
   { zoom: 18, height: 300, draggable: true, controls: true }

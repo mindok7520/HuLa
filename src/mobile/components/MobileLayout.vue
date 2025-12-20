@@ -6,15 +6,15 @@
       'bg-cover bg-center bg-no-repeat': props.backgroundImage
     }"
     :style="mergedStyle">
-    <!-- 顶部安全区域 -->
+    <!-- 상단 안전 구역 -->
     <div :class="[{ 'safe-area-top': safeAreaTop }, props.topSafeAreaClass]" />
 
-    <!-- 内容区域 -->
+    <!-- 콘텐츠 영역 -->
     <div class="flex-1 min-h-0">
       <slot></slot>
     </div>
 
-    <!-- 底部安全区域 -->
+    <!-- 하단 안전 구역 -->
     <div :class="[{ 'safe-area-bottom': safeAreaBottom }, props.bottomSafeAreaClass]" />
   </n-config-provider>
 </template>
@@ -37,15 +37,15 @@ import { invokeSilently } from '@/utils/TauriInvokeHandler'
 import { useRoute } from 'vue-router'
 import { lightTheme } from 'naive-ui'
 interface MobileLayoutProps {
-  /** 是否应用顶部安全区域 */
+  /** 상단 안전 구역 적용 여부 */
   safeAreaTop?: boolean
-  /** 是否应用底部安全区域 */
+  /** 하단 안전 구역 적용 여부 */
   safeAreaBottom?: boolean
-  /** 背景图片URL */
+  /** 배경 이미지 URL */
   backgroundImage?: string
-  /** 顶部安全区域的自定义 CSS class */
+  /** 상단 안전 구역 사용자 정의 CSS 클래스 */
   topSafeAreaClass?: string
-  /** 底部安全区域的自定义 CSS class */
+  /** 하단 안전 구역 사용자 정의 CSS 클래스 */
   bottomSafeAreaClass?: string
 }
 
@@ -57,7 +57,7 @@ const globalStore = useGlobalStore()
 const settingStore = useSettingStore()
 const userUid = computed(() => userStore.userInfo!.uid)
 const playMessageSound = async () => {
-  // 检查是否开启了消息提示音
+  // 메시지 알림음이 켜져 있는지 확인
   if (!settingStore.notification?.messageSound) {
     return
   }
@@ -66,7 +66,7 @@ const playMessageSound = async () => {
     const audio = new Audio('/sound/message.mp3')
     await audioManager.play(audio, 'message-notification')
   } catch (error) {
-    console.warn('播放消息音效失败:', error)
+    console.warn('메시지 효과음 재생 실패:', error)
   }
 }
 
@@ -78,13 +78,13 @@ const props = withDefaults(defineProps<MobileLayoutProps>(), {
   bottomSafeAreaClass: ''
 })
 
-// 计算背景图样式
+// 배경 이미지 스타일 계산
 const backgroundImageStyle = computed(() => {
   const styles: Record<string, string> = {}
 
-  // 设置背景图片
+  // 배경 이미지 설정
   if (props.backgroundImage) {
-    // 处理路径别名 @/ 转换为 /src/
+    // 경로 별칭 @/를 /src/로 변환 처리
     let imagePath = props.backgroundImage
     if (imagePath.startsWith('@/')) {
       imagePath = imagePath.replace('@/', '/src/')
@@ -100,42 +100,42 @@ const mergedStyle = computed(() => ({
 }))
 
 /**
- * 从消息中提取文件信息并添加到 file store
+ * 메시지에서 파일 정보를 추출하여 file store에 추가
  */
 const addFileToStore = (data: MessageType) => {
   const { message } = data
   const { type, body, roomId, id } = message
 
-  // 只处理图片和视频类型
+  // 이미지 및 동영상 유형만 처리
   if (type !== MsgEnum.IMAGE && type !== MsgEnum.VIDEO) {
     return
   }
 
-  // 提取文件信息
+  // 파일 정보 추출
   const fileUrl = body.url
   if (!fileUrl) {
     return
   }
 
-  // 从 URL 中提取文件名
+  // URL에서 파일명 추출
   let fileName = ''
   try {
     const urlObj = new URL(fileUrl)
     const pathname = urlObj.pathname
     fileName = pathname.substring(pathname.lastIndexOf('/') + 1)
   } catch (e) {
-    // 如果不是有效的 URL，直接使用消息 ID 作为文件名
+    // 유효한 URL이 아닌 경우 메시지 ID를 파일명으로 직접 사용
     fileName = `${id}.${type === MsgEnum.IMAGE ? 'jpg' : 'mp4'}`
   }
 
-  // 从文件名中提取后缀
+  // 파일명에서 확장자 추출
   const suffix = fileName.includes('.')
     ? fileName.substring(fileName.lastIndexOf('.') + 1)
     : type === MsgEnum.IMAGE
       ? 'jpg'
       : 'mp4'
 
-  // 确定 MIME 类型
+  // MIME 타입 결정
   let mimeType = ''
   if (type === MsgEnum.IMAGE) {
     mimeType = `image/${suffix === 'jpg' ? 'jpeg' : suffix}`
@@ -143,7 +143,7 @@ const addFileToStore = (data: MessageType) => {
     mimeType = `video/${suffix}`
   }
 
-  // 添加到 file store
+  // file store에 추가
   fileStore.addFile({
     id,
     roomId,
@@ -155,13 +155,13 @@ const addFileToStore = (data: MessageType) => {
   })
 }
 
-/** 处理收到的消息 */
+/** 수신된 메시지 처리 */
 useMitt.on(WsResponseMessageType.RECEIVE_MESSAGE, async (data: MessageType) => {
   if (chatStore.checkMsgExist(data.message.roomId, data.message.id)) {
     return
   }
-  console.log('[mobile/layout] 收到的消息：', data)
-  // 只有在聊天室页面且当前选中的会话就是消息来源的会话时，才不增加未读数
+  console.log('[mobile/layout] 수신된 메시지:', data)
+  // 채팅방 페이지에 있고 현재 선택된 세션이 메시지 출처 세션일 때만 읽지 않은 메시지 수를 늘리지 않음
   chatStore.pushMsg(data, {
     isActiveChatView:
       route.path.startsWith('/mobile/chatRoom') && globalStore.currentSessionRoomId === data.message.roomId,
@@ -172,13 +172,13 @@ useMitt.on(WsResponseMessageType.RECEIVE_MESSAGE, async (data: MessageType) => {
     data
   })
 
-  // 如果是图片或视频消息，添加到 file store
+  // 이미지 또는 동영상 메시지인 경우 file store에 추가
   addFileToStore(data)
   if (data.fromUser.uid !== userUid.value) {
-    // 获取该消息的会话信息
+    // 해당 메시지의 세션 정보 가져오기
     const session = chatStore.sessionList.find((s) => s.roomId === data.message.roomId)
 
-    // 只有非免打扰的会话才发送通知和触发图标闪烁
+    // 방해 금지 모드가 아닌 세션만 알림 전송 및 아이콘 깜박임 트리거
     if (session && session.muteNotification !== NotificationTypeEnum.NOT_DISTURB) {
       let shouldPlaySound = isMobile()
 
@@ -191,28 +191,28 @@ useMitt.on(WsResponseMessageType.RECEIVE_MESSAGE, async (data: MessageType) => {
             const isMinimized = await home.isMinimized()
             const isFocused = await home.isFocused()
 
-            // 如果窗口不可见、被最小化或未聚焦，则播放音效
+            // 창이 보이지 않거나 최소화되었거나 포커스되지 않은 경우 효과음 재생
             shouldPlaySound = !isVisible || isMinimized || !isFocused
           } else {
-            // 如果找不到home 窗口，播放音效
+            // home 창을 찾을 수 없는 경우 효과음 재생
             shouldPlaySound = true
           }
         } catch (error) {
-          console.warn('检查窗口状态失败:', error)
-          // 如果检查失败，默认播放音效
+          console.warn('창 상태 확인 실패:', error)
+          // 확인 실패 시 기본적으로 효과음 재생
           shouldPlaySound = true
         }
       }
 
-      // 播放消息音效
+      // 메시지 효과음 재생
       if (shouldPlaySound) {
         await playMessageSound()
       }
 
-      // 设置图标闪烁
+      // 아이콘 깜박임 설정
       // useMitt.emit(MittEnum.MESSAGE_ANIMATION, data)
       // session.unreadCount++
-      // 在windows系统下才发送通知
+      // Windows 시스템에서만 알림 전송
       if (!isMobile() && isWindows()) {
         globalStore.setTipVisible(true)
       }

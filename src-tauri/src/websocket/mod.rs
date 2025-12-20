@@ -1,5 +1,5 @@
-/// WebSocket 模块
-/// 提供 WebSocket 连接管理、心跳机制、消息处理等功能
+/// WebSocket 모듈
+/// WebSocket 연결 관리, 하트비트 메커니즘, 메시지 처리 등의 기능 제공
 pub mod client;
 pub mod commands;
 pub mod message;

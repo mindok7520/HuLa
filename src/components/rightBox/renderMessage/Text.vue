@@ -32,7 +32,7 @@
                 <use href="#copy"></use>
               </svg>
             </template>
-            <span>复制网址</span>
+            <span>URL 복사</span>
           </n-tooltip>
           <div style="flex: 1; word-wrap: break-word; overflow-wrap: anywhere">
             <n-highlight
@@ -86,7 +86,7 @@ import { useGroupStore } from '@/stores/group'
 import type { TextBody } from '@/services/types'
 import { isMobile } from '@/utils/PlatformConstants'
 
-// 标记结构用于描述需特殊渲染的片段区间
+// 마커 구조는 특별한 렌더링이 필요한 세그먼트 구간을 설명하는 데 사용됩니다.
 type ContentMarker = {
   start: number
   end: number
@@ -99,15 +99,15 @@ const props = defineProps<{
   searchKeyword?: string
   historyMode?: boolean
 }>()
-// 获取所有匹配的字符串
+// 일치하는 모든 문자열 가져오기
 const urlMap = props.body.urlContentMap || {}
 const keys = Object.keys(urlMap)
-// 正则表达式常量用于匹配URL
+// URL 일치를 위한 정규식 상수
 const URL_REGEX = /https?:\/\/[^\s<]+[^<.,:;"')\]\s]/g
 
 const groupStore = useGroupStore()
 
-// 仅依赖后端透出的 atUidList，避免用户手动输入的「@文本」被误判
+// 백엔드에서 제공하는 atUidList에만 의존하여, 사용자가 수동으로 입력한 '@텍스트'가 오판되는 것을 방지합니다.
 const mentionTokens = computed(() => {
   if (!Array.isArray(props.body.atUidList) || props.body.atUidList.length === 0) {
     return []
@@ -122,10 +122,10 @@ const mentionTokens = computed(() => {
   })
   return Array.from(tokens)
 })
-// 使用 Set 快速判断片段是否属于真正的 @ 提及
+// Set을 사용하여 해당 세그먼트가 실제 @ 멘션인지 빠르게 판단합니다.
 const mentionTokenSet = computed(() => new Set(mentionTokens.value))
 
-// 创建 mention token 到 uid 的映射
+// 멘션 토큰에서 UID로의 매핑 생성
 const mentionTokenToUid = computed(() => {
   const map = new Map<string, string>()
   if (!Array.isArray(props.body.atUidList) || props.body.atUidList.length === 0) {
@@ -141,20 +141,20 @@ const mentionTokenToUid = computed(() => {
   return map
 })
 
-// 处理长链接
+// 긴 URL 처리
 const processLongUrls = computed(() => {
   let content = props.body.content || ''
   content = content.replace(/&nbsp;/g, '\u00A0')
 
   return content.replace(URL_REGEX, (match, url) => {
-    // 如果urlMap中已有该链接的信息，添加到urlMap中
+    // urlMap에 해당 링크 정보가 이미 있으면 urlMap에 추가
     if (!urlMap[match] && url) {
       urlMap[match] = {
         title: url,
-        description: '链接',
+        description: '링크',
         image: ''
       }
-      // 动态添加到keys中
+      // keys에 동적으로 추가
       if (!keys.includes(match)) {
         keys.push(match)
       }
@@ -163,14 +163,14 @@ const processLongUrls = computed(() => {
   })
 })
 
-// 使用匹配字符串创建动态正则表达式，并将文本拆分为片段数组
+// 일치하는 문자열을 사용하여 동적 정규식을 생성하고, 텍스트를 세그먼트 배열로 나눕니다.
 const fragments = computed(() => {
   const content = processLongUrls.value
 
-  // 创建一个数组来存储所有的特殊标记位置
+  // 모든 특별 마커 위치를 저장할 배열 생성
   const markers: ContentMarker[] = []
 
-  // 添加@提及的标记，仅基于已匹配的mention列表
+  // 매칭된 멘션 목록을 기반으로 @ 멘션 마커 추가
   mentionTokens.value.forEach((token) => {
     if (!token) return
     let searchIndex = 0
@@ -187,7 +187,7 @@ const fragments = computed(() => {
     }
   })
 
-  // 添加URL的标记
+  // URL 마커 추가
   keys.forEach((key) => {
     let index = 0
     while ((index = content.indexOf(key, index)) !== -1) {
@@ -201,54 +201,54 @@ const fragments = computed(() => {
     }
   })
 
-  // 按照开始位置排序标记
+  // 시작 위치에 따라 마커 정렬
   markers.sort((a, b) => a.start - b.start)
 
-  // 合并重叠的标记
+  // 겹치는 마커 병합
   for (let i = 0; i < markers.length - 1; i++) {
     if (markers[i + 1].start < markers[i].end) {
-      // 如果下一个标记的开始位置在当前标记的结束位置之前，说明有重叠
-      // 选择保留较长的标记
+      // 다음 마커의 시작 위치가 현재 마커의 종료 위치보다 이전인 경우 겹침이 발생함
+      // 더 긴 마커를 유지함
       if (markers[i + 1].end - markers[i + 1].start > markers[i].end - markers[i].start) {
-        markers.splice(i, 1) // 删除当前标记
+        markers.splice(i, 1) // 현재 마커 삭제
       } else {
-        markers.splice(i + 1, 1) // 删除下一个标记
+        markers.splice(i + 1, 1) // 다음 마커 삭제
       }
-      i-- // 重新检查当前位置
+      i-- // 현재 위치 재확인
     }
   }
 
-  // 构建最终的片段数组
+  // 최종 세그먼트 배열 구축
   const result: string[] = []
   let lastEnd = 0
 
   for (const marker of markers) {
-    // 添加标记前的普通文本
+    // 마커 전의 일반 텍스트 추가
     if (marker.start > lastEnd) {
       result.push(content.substring(lastEnd, marker.start))
     }
-    // 添加标记的文本
+    // 마커 텍스트 추가
     result.push(marker.text)
     lastEnd = marker.end
   }
 
-  // 添加最后一段普通文本
+  // 마지막 일반 텍스트 추가
   if (lastEnd < content.length) {
     result.push(content.substring(lastEnd))
   }
 
-  // 如果没有任何标记，直接返回整个内容
+  // 마커가 없으면 전체 내용 직접 반환
   return result.length > 0 ? result : [content]
 })
 
-// 打开链接
+// 링크 열기
 const openUrl = (url: string) => openExternalUrl(url)
 
-// 处理复制
+// 복사 처리
 const handleCopy = (item: string) => {
   if (item) {
     navigator.clipboard.writeText(item)
-    window.$message.success('复制成功')
+    window.$message.success('복사 성공')
   }
 }
 

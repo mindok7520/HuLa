@@ -7,41 +7,41 @@ import { isMobile } from '@/utils/PlatformConstants'
 import { useUserStore } from './user'
 
 /**
- * 文件信息接口
+ * 파일 정보 인터페이스
  */
 export interface FileInfo {
-  /** 文件ID（消息ID） */
+  /** 파일 ID (메시지 ID) */
   id: string
-  /** 房间ID */
+  /** 방 ID */
   roomId: string
-  /** 文件名 */
+  /** 파일명 */
   fileName: string
-  /** 文件类型 */
+  /** 파일 유형 */
   type: 'file' | 'image' | 'video' | 'voice'
-  /** 文件URL */
+  /** 파일 URL */
   url: string
-  /** 文件后缀 */
+  /** 파일 확장자 */
   suffix?: string
-  /** MIME类型 */
+  /** MIME 유형 */
   mimeType?: string
 }
 
 export const useFileStore = defineStore(
   StoresEnum.FILE,
   () => {
-    // ==================== 状态定义 ====================
+    // ==================== 상태 정의 ====================
 
-    /** 所有房间的文件数据 Map<roomId, Map<fileId, FileInfo>> */
+    /** 모든 방의 파일 데이터 Map<roomId, Map<fileId, FileInfo>> */
     const roomFilesMap = reactive<Record<string, Record<string, FileInfo>>>({})
 
-    // ==================== 计算属性 ====================
+    // ==================== 계산된 속성 ====================
 
-    /** 获取指定房间的所有文件 */
+    /** 지정된 방의 모든 파일 가져오기 */
     const getRoomFiles = computed(() => (roomId: string) => {
       return roomFilesMap[roomId] ? Object.values(roomFilesMap[roomId]) : []
     })
 
-    /** 获取指定房间的所有文件，转换为 img 标签可用的格式 */
+    /** 지정된 방의 모든 파일을 가져와 img 태그에서 사용할 수 있는 형식으로 변환 */
     const getRoomFilesForDisplay = async (roomId: string) => {
       const files = roomFilesMap[roomId] ? Object.values(roomFilesMap[roomId]) : []
 
@@ -54,11 +54,11 @@ export const useFileStore = defineStore(
           let displayUrl: string
 
           if (file.url.startsWith('http')) {
-            // HTTP URL 直接使用
+            // HTTP URL 직접 사용
             displayUrl = file.url
           } else {
-            // 相对路径需要拼接基础目录的绝对路径
-            // 移动端使用 AppData，PC 端使用 Resource
+            // 상대 경로는 기본 디렉토리의 절대 경로와 연결해야 함
+            // 모바일은 AppData 사용, PC는 Resource 사용
             const baseDirPath = isMobile() ? await appDataDir() : await resourceDir()
             const absolutePath = await join(baseDirPath, file.url)
             displayUrl = convertFileSrc(absolutePath)
@@ -66,9 +66,9 @@ export const useFileStore = defineStore(
 
           return {
             ...file,
-            // 将 URL 转换为可用于前端显示的格式
+            // 프론트엔드 표시를 위해 URL을 사용 가능한 형식으로 변환
             displayUrl,
-            // 保留原始 URL
+            // 원본 URL 유지
             originalUrl: file.url
           }
         })
@@ -77,15 +77,15 @@ export const useFileStore = defineStore(
       return processedFiles
     }
 
-    /** 获取指定房间的文件总数 */
+    /** 지정된 방의 총 파일 수 가져오기 */
     const getRoomFileCount = computed(() => (roomId: string) => {
       return roomFilesMap[roomId] ? Object.keys(roomFilesMap[roomId]).length : 0
     })
 
-    // ==================== 操作方法 ====================
+    // ==================== 작업 메서드 ====================
 
     /**
-     * 添加文件到指定房间
+     * 지정된 방에 파일 추가
      */
     const addFile = (fileInfo: FileInfo) => {
       const { roomId, id } = fileInfo
@@ -98,7 +98,7 @@ export const useFileStore = defineStore(
     }
 
     /**
-     * 移除指定房间的文件
+     * 지정된 방의 파일 제거
      */
     const removeFile = (roomId: string, fileId: string) => {
       if (roomFilesMap[roomId] && roomFilesMap[roomId][fileId]) {
@@ -107,7 +107,7 @@ export const useFileStore = defineStore(
     }
 
     /**
-     * 清空指定房间的所有文件
+     * 지정된 방의 모든 파일 지우기
      */
     const clearRoomFiles = (roomId: string) => {
       if (roomFilesMap[roomId]) {
@@ -116,38 +116,38 @@ export const useFileStore = defineStore(
     }
 
     /**
-     * 获取指定文件信息
+     * 지정된 파일 정보 가져오기
      */
     const getFile = (roomId: string, fileId: string): FileInfo | undefined => {
       return roomFilesMap[roomId]?.[fileId]
     }
 
     /**
-     * 扫描本地目录并填充 file store
-     * 用于初始化时加载已存在的文件
-     * 注意：此功能仅在移动端可用
+     * 로컬 디렉토리 스캔 및 file store 채우기
+     * 초기화 시 기존 파일을 로드하는 데 사용
+     * 주의: 이 기능은 모바일에서만 사용 가능
      */
     const scanLocalFiles = async (roomId: string) => {
-      // 仅移动端支持扫描本地文件
+      // 모바일에서만 로컬 파일 스캔 지원
       if (!isMobile()) {
-        console.warn('scanLocalFiles 仅在移动端可用')
+        console.warn('scanLocalFiles는 모바일에서만 사용할 수 있습니다')
         return 0
       }
 
       try {
         const userStore = useUserStore()
 
-        // 获取用户数据目录
+        // 사용자 데이터 디렉토리 가져오기
         const userRoomDir = await userStore.getUserRoomDir()
 
-        // 获取绝对路径（移动端使用 AppData）
+        // 절대 경로 가져오기 (모바일은 AppData 사용)
         const baseDirPath = await appDataDir()
         const absolutePath = await join(baseDirPath, userRoomDir)
 
-        // 读取目录内容
+        // 디렉토리 내용 읽기
         const entries = await readDir(absolutePath)
 
-        // 图片和视频扩展名
+        // 이미지 및 비디오 확장자
         const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp']
         const videoExtensions = ['.mp4', '.mov', '.avi', '.mkv', '.webm']
 
@@ -171,10 +171,10 @@ export const useFileStore = defineStore(
           }
 
           if (fileType) {
-            // 使用文件名作为 ID（因为我们不知道原始消息 ID）
+            // 파일명을 ID로 사용 (원본 메시지 ID를 모르기 때문)
             const fileId = fileName.substring(0, fileName.lastIndexOf('.'))
 
-            // 构建文件 URL（使用相对路径，与 getUserRoomDir 返回的格式一致）
+            // 파일 URL 구성 (상대 경로 사용, getUserRoomDir 반환 형식과 일치)
             const fileUrl = await join(userRoomDir, fileName)
 
             addFile({
@@ -193,20 +193,20 @@ export const useFileStore = defineStore(
 
         return addedCount
       } catch (error) {
-        console.error('扫描本地文件失败:', error)
+        console.error('로컬 파일 스캔 실패:', error)
         return 0
       }
     }
 
     return {
-      // 状态
+      // 상태
       roomFilesMap: readonly(roomFilesMap),
 
-      // 计算属性
+      // 계산된 속성
       getRoomFiles,
       getRoomFileCount,
 
-      // 方法
+      // 메서드
       addFile,
       removeFile,
       clearRoomFiles,

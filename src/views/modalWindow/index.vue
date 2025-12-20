@@ -1,6 +1,6 @@
 <template>
   <div class="h-full w-full bg-[--center-bg-color] select-none cursor-default">
-    <!-- 窗口头部 -->
+    <!-- 창 헤더 -->
     <ActionBar
       class="absolute right-0 w-full z-999"
       :shrink="false"
@@ -9,14 +9,14 @@
       :isDrag="false"
       :current-label="WebviewWindow.getCurrent().label" />
 
-    <!-- 标题 -->
+    <!-- 제목 -->
     <p
       class="absolute-x-center h-fit pt-6px text-(12px [--text-color]) select-none cursor-default"
       data-tauri-drag-region>
       {{ windowTitle }}
     </p>
 
-    <!-- 内容区域 -->
+    <!-- 내용 영역 -->
     <div class="bg-[--bg-edit] pt-24px size-full box-border flex flex-col">
       <n-transfer
         class="h-full text-[--text-color]"
@@ -49,15 +49,15 @@ const { getWindowPayload } = useWindow()
 const groupStore = useGroupStore()
 const windowTitle = ref('')
 const selectedValue = ref([])
-// 从父窗口传递过来的 roomId
+// 부모 창에서 전달된 roomId
 const roomId = ref<string>('')
-// 使用model.tsx中的getDisabledOptions
+// model.tsx의 getDisabledOptions 사용
 const disabledOptions = computed(() => getDisabledOptions())
 
-// 使用model.tsx中的getFilteredOptions
+// model.tsx의 getFilteredOptions 사용
 const filteredOptions = computed(() => getFilteredOptions())
 
-// 初始化群成员数据
+// 그룹 멤버 데이터 초기화
 const initGroupMembers = async () => {
   if (roomId.value) {
     await groupStore.getGroupUserList(roomId.value)
@@ -68,19 +68,19 @@ const handleInvite = async () => {
   if (selectedValue.value.length < 1) return
 
   try {
-    // 调用邀请群成员API
+    // 그룹 멤버 초대 API 호출
     await inviteGroupMember({
       roomId: roomId.value,
       uidList: selectedValue.value
     })
 
-    window.$message.success('邀请成功')
+    window.$message.success('초대가 완료되었습니다')
     setTimeout(() => {
       handleClose()
     }, 1000)
   } catch (error) {
-    console.error('邀请失败:', error)
-    window.$message.error('邀请失败，请重试')
+    console.error('초대 실패:', error)
+    window.$message.error('초대에 실패했습니다. 다시 시도해주세요.')
   }
 }
 
@@ -91,16 +91,16 @@ const handleClose = () => {
 onMounted(async () => {
   await getCurrentWebviewWindow().show()
 
-  // 获取窗口标题
+  // 창 제목 가져오기
   windowTitle.value = await getCurrentWebviewWindow().title()
 
-  // 获取父窗口传递的 payload
+  // 부모 창에서 전달된 페이로드 가져오기
   const payload = await getWindowPayload<{ roomId: string; type: number }>('modal-invite')
   if (payload?.roomId) {
     roomId.value = payload.roomId
   }
 
-  // 初始化群成员数据
+  // 그룹 멤버 데이터 초기화
   await initGroupMembers()
 })
 </script>

@@ -46,12 +46,12 @@ pub async fn update_my_room_info(
     state: State<'_, AppData>,
 ) -> Result<(), String> {
     let result: Result<(), CommonError> = async {
-        // 获取当前用户信息
+        // 현재 사용자 정보 가져오기
         let user_info = state.user_info.lock().await;
         let uid = user_info.uid.clone();
         drop(user_info);
 
-        // 调用后端接口更新房间信息
+        // 백엔드 인터페이스를 호출하여 방 정보 업데이트
         let _resp: Option<bool> = state
             .rc
             .lock()
@@ -63,7 +63,7 @@ pub async fn update_my_room_info(
             )
             .await?;
 
-        // 更新本地数据库
+        // 로컬 데이터베이스 업데이트
         update_my_room_info_db(
             state.db_conn.deref(),
             &my_room_info.my_name,
@@ -93,7 +93,7 @@ pub async fn update_my_room_info(
     }
 }
 
-/// 获取room_id的房间的所有成员列表
+/// room_id에 해당하는 방의 모든 멤버 목록 가져오기
 #[tauri::command]
 pub async fn get_room_members(
     room_id: String,
@@ -137,13 +137,13 @@ pub struct CursorPageRoomMemberParam {
     cursor_page_param: CursorPageParam,
 }
 
-// 游标分页查询数据
+// 커서 페이징 데이터 조회
 #[tauri::command]
 pub async fn cursor_page_room_members(
     param: CursorPageRoomMemberParam,
     state: State<'_, AppData>,
 ) -> Result<CursorPageResp<Vec<im_room_member::Model>>, String> {
-    // 获取当前登录用户的 uid
+    // 현재 로그인한 사용자의 uid 가져오기
     let login_uid = {
         let user_info = state.user_info.lock().await;
         user_info.uid.clone()
@@ -160,14 +160,14 @@ pub async fn cursor_page_room_members(
     Ok(data)
 }
 
-// 从本地数据库分页查询群房间数据，如果为空则从后端获取
+// 로컬 데이터베이스에서 그룹 방 데이터를 페이징 조회하고, 비어 있으면 백엔드에서 가져옴
 #[tauri::command]
 pub async fn page_room(
     page_param: PageParam,
     state: State<'_, AppData>,
 ) -> Result<Page<im_room::Model>, String> {
     let result: Result<Page<im_room::Model>, CommonError> = async {
-        // 直接调用后端接口获取数据，不保存到数据库
+        // 데이터베이스에 저장하지 않고 백엔드 인터페이스에서 직접 데이터를 가져옴
         let data = fetch_rooms_from_backend(page_param, state.rc.clone()).await?;
 
         Ok(data)
@@ -183,7 +183,7 @@ pub async fn page_room(
     }
 }
 
-/// 从后端获取房间数据（不保存到数据库）
+/// 백엔드에서 방 데이터 가져오기 (데이터베이스에 저장하지 않음)
 async fn fetch_rooms_from_backend(
     page_param: PageParam,
     request_client: Arc<Mutex<ImRequestClient>>,
@@ -207,7 +207,7 @@ async fn fetch_rooms_from_backend(
     }
 }
 
-/// 对房间成员列表进行排序：按角色优先，再按在线状态，最后按名称字母序
+/// 방 멤버 목록 정렬: 역할 우선, 다음으로 온라인 상태, 마지막으로 이름 알파벳순
 fn sort_room_members(members: &mut Vec<RoomMemberResponse>) {
     members.sort_by(|a, b| {
         let role_cmp = match (a.group_role, b.group_role) {
@@ -230,7 +230,7 @@ fn sort_room_members(members: &mut Vec<RoomMemberResponse>) {
     });
 }
 
-/// 异步更新房间成员数据
+/// 방 멤버 데이터 비동기 업데이트
 async fn fetch_and_update_room_members(
     room_id: String,
     _db_conn: Arc<DatabaseConnection>,

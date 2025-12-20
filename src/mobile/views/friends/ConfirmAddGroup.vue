@@ -8,12 +8,12 @@
           :hidden-right="true"
           :enable-default-background="false"
           :enable-shadow="false"
-          room-name="加入群聊" />
+          room-name="그룹 가입" />
       </template>
 
       <template #container>
         <div class="flex flex-col gap-1 overflow-auto h-full">
-          <!-- 内容区域 -->
+          <!-- 내용 영역 -->
           <div class="w-full h-full box-border flex flex-col">
             <n-flex vertical justify="center" :size="20" class="p-[55px_20px] bg-white m-20px rounded-15px">
               <n-flex align="center" justify="center" :size="20">
@@ -21,7 +21,7 @@
 
                 <n-flex vertical :size="10">
                   <p class="text-[--text-color]">{{ userInfo.name }}</p>
-                  <p class="text-(12px [--text-color])">群号: {{ userInfo.account }}</p>
+                  <p class="text-(12px [--text-color])">그룹 ID: {{ userInfo.account }}</p>
                 </n-flex>
               </n-flex>
 
@@ -37,9 +37,9 @@
                 autoCorrect="off"
                 autoCapitalize="off"
                 type="textarea"
-                placeholder="输入验证消息" />
+                placeholder="인증 메시지 입력" />
 
-              <n-button class="mt-120px" color="#13987f" @click="addFriend">申请加入</n-button>
+              <n-button class="mt-120px" color="#13987f" @click="addFriend">가입 신청</n-button>
             </n-flex>
           </div>
         </div>
@@ -75,7 +75,7 @@ const addFriend = async () => {
     account: String(globalStore.addGroupModalInfo.account),
     type: 2
   })
-  window.$message.success('已发送群聊申请')
+  window.$message.success('그룹 가입 신청을 보냈습니다')
   setTimeout(() => {
     router.push('/mobile/message')
   }, 2000)
@@ -83,7 +83,7 @@ const addFriend = async () => {
 
 onMounted(async () => {
   console.log(userInfo.value)
-  requestMsg.value = `我是${userStore.userInfo!.name}`
+  requestMsg.value = `저는 ${userStore.userInfo!.name}입니다`
 })
 </script>
 

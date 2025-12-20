@@ -9,11 +9,11 @@ pub trait DesktopCustomInit {
 }
 
 impl<R: Runtime> CustomInit for tauri::Builder<R> {
-    // 初始化插件
+    // 플러그인 초기화
     fn init_plugin(self) -> Self {
         let builder = init_common_plugins(self);
 
-        // 桌面端特有的插件
+        // 데스크톱 전용 플러그인
         #[cfg(desktop)]
         let builder = builder
             .plugin(tauri_plugin_autostart::init(
@@ -22,7 +22,7 @@ impl<R: Runtime> CustomInit for tauri::Builder<R> {
             ))
             .plugin(tauri_plugin_single_instance::init(|app, _args, _cmd| {
                 let windows = app.webview_windows();
-                // 优先显示已存在的home窗口
+                // 기존의 home 창을 우선적으로 표시
                 for (name, window) in windows {
                     if name == "home" {
                         if let Err(e) = window.show() {
@@ -49,18 +49,18 @@ impl<R: Runtime> CustomInit for tauri::Builder<R> {
 }
 
 impl<R: Runtime> DesktopCustomInit for tauri::Builder<R> {
-    // 初始化web窗口事件
+    // 웹 창 이벤트 초기화
     fn init_webwindow_event(self) -> Self {
         self.on_webview_event(|_, event| match event {
             _ => (),
         })
     }
 
-    // 初始化系统窗口事件
+    // 시스템 창 이벤트 초기화
     fn init_window_event(self) -> Self {
         self.on_window_event(|window, event: &WindowEvent| match event {
             WindowEvent::Focused(flag) => {
-                // 自定义系统托盘-实现托盘菜单失去焦点时隐藏
+                // 사용자 정의 시스템 트레이 - 트레이 메뉴가 포커스를 잃었을 때 숨기기 구현
                 #[cfg(not(target_os = "macos"))]
                 if !window.label().eq("tray") && *flag {
                     if let Some(tray_window) = window.app_handle().get_webview_window("tray") {
@@ -90,7 +90,7 @@ impl<R: Runtime> DesktopCustomInit for tauri::Builder<R> {
                 let windows = app_handle.webview_windows();
                 let win_label = window.label();
 
-                // 检查窗口是否是无效窗口(不重要的可退出的)
+                // 유효하지 않은 창(중요하지 않거나 종료 가능한 창)인지 확인
                 let is_ignored_window =
                     |name: &str| matches!(name, "checkupdate" | "capture" | "update" | "tray");
 
@@ -107,24 +107,24 @@ impl<R: Runtime> DesktopCustomInit for tauri::Builder<R> {
                         let user_info = user_info.lock().await;
                         let not_logg_in = user_info.uid.trim().is_empty();
 
-                        //  update 窗口关闭 + 未登录 + 没有其他有效窗口 => 退出程序
+                        //  update 창 닫힘 + 로그인 안 됨 + 다른 유효한 창 없음 => 프로그램 종료
                         if not_logg_in && !has_other_active_windows {
                             app_handle.exit(0);
                         }
                     });
                 }
-                // 如果是login窗口被用户关闭，直接退出程序
+                // login 창이 사용자에 의해 닫히면 프로그램을 즉시 종료
                 else if win_label.eq("login") {
-                    // 检查是否有其他窗口存在，如果有home窗口，说明是登录成功后的正常关闭
+                    // 다른 창이 존재하는지 확인, home 창이 있으면 로그인 성공 후의 정상적인 닫힘임
                     let has_home_or_update = windows
                         .iter()
                         .any(|(name, _)| matches!(name.as_str(), "home" | "update"));
 
                     if !has_home_or_update {
-                        // 没有home窗口，说明是用户直接关闭login窗口，退出程序
+                        // home 창이 없으면 사용자가 login 창을 직접 닫은 것이므로 프로그램 종료
                         window.app_handle().exit(0);
                     }
-                    // 如果有home窗口，说明是登录成功后的正常关闭，允许关闭
+                    // home 창이 있으면 로그인 성공 후의 정상적인 닫힘이므로 닫기 허용
                 }
             }
             WindowEvent::Resized(_ps) => {}

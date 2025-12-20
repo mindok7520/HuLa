@@ -6,7 +6,7 @@
         class="bg-white"
         style="border-bottom: 1px solid; border-color: #dfdfdf"
         :hidden-right="true"
-        room-name="编辑简介" />
+        room-name="자기소개 편집" />
     </template>
 
     <template #container>
@@ -18,7 +18,7 @@
               <n-input
                 v-model:value="localBio"
                 type="textarea"
-                placeholder="介绍一下你自己~"
+                placeholder="자신을 소개해 주세요~"
                 class="w-full"
                 :autosize="bioAutosize"
                 :maxlength="300"
@@ -40,7 +40,7 @@
                 display: inline-block;
               "
               @click="handleSave">
-              保存
+              저장
             </div>
           </div>
         </div>
@@ -59,7 +59,7 @@ const bioAutosize = { minRows: 5, maxRows: 20 }
 const router = useRouter()
 const localBio = ref(userStore.userInfo?.resume || '')
 
-// 保存个人简介
+// 자기소개 저장
 const handleSave = () => {
   userStore.userInfo!.resume = localBio.value
 

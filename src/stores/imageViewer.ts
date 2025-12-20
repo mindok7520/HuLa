@@ -7,14 +7,14 @@ export const useImageViewer = defineStore(
     const imageList = ref<string[]>([])
     const currentIndex = ref(0)
     const originalImageList = ref<string[]>([])
-    // 单图模式相关变量
+    // 단일 이미지 모드 관련 변수
     const singleImage = ref('')
     const isSingleMode = ref(false)
 
-    // 添加一个重置方法,用于设置新的图片列表
+    // 새로운 이미지 목록을 설정하기 위한 초기화 메서드 추가
     const resetImageList = (list: string[], originalIndex: number, originalList?: string[]) => {
       isSingleMode.value = false
-      // 创建一个去重后的新数组，同时保持原有顺序
+      // 중복 제거된 새 배열 생성 및 원래 순서 유지
       const uniqueList: string[] = []
       const seenUrls = new Set<string>()
 
@@ -25,7 +25,7 @@ export const useImageViewer = defineStore(
         }
       }
 
-      // 找到原始图片在去重后的新列表中的索引
+      // 중복 제거된 새 목록에서 원본 이미지의 인덱스 찾기
       const newIndex = uniqueList.indexOf(list[originalIndex])
 
       imageList.value = uniqueList
@@ -33,7 +33,7 @@ export const useImageViewer = defineStore(
       originalImageList.value = (originalList && originalList.length > 0 ? originalList : uniqueList).slice()
     }
 
-    // 设置单图的方法
+    // 단일 이미지 설정 메서드
     const setSingleImage = (url: string) => {
       singleImage.value = url
       isSingleMode.value = true

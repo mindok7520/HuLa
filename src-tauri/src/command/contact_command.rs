@@ -18,7 +18,7 @@ pub async fn list_contacts_command(
 ) -> Result<Vec<im_contact::Model>, String> {
     info!("Querying all conversation list:");
     let result: Result<Vec<im_contact::Model>, CommonError> = async {
-        // 获取当前登录用户的 uid
+        // 현재 로그인한 사용자의 uid 가져오기
         let login_uid = {
             let user_info = state.user_info.lock().await;
             user_info.uid.clone()
@@ -40,7 +40,7 @@ pub async fn list_contacts_command(
     }
 }
 
-/// 获取并更新联系人数据
+/// 연락처 데이터 가져오기 및 업데이트
 async fn fetch_and_update_contacts(
     db_conn: Arc<DatabaseConnection>,
     request_client: Arc<Mutex<ImRequestClient>>,
@@ -57,7 +57,7 @@ async fn fetch_and_update_contacts(
         .await?;
 
     if let Some(data) = resp {
-        // 保存到本地数据库
+        // 로컬 데이터베이스에 저장
         save_contact_batch(db_conn.deref(), data.clone(), &login_uid)
             .await
             .map_err(|e| {
@@ -91,7 +91,7 @@ pub async fn hide_contact_command(
 ) -> Result<(), String> {
     info!("Hide contact: room_id={}, hide={}", data.room_id, data.hide);
     let result: Result<(), CommonError> = async {
-        // 获取当前登录用户的 uid
+        // 현재 로그인한 사용자의 uid 가져오기
         let login_uid = {
             let user_info = state.user_info.lock().await;
             user_info.uid.clone()
@@ -109,7 +109,7 @@ pub async fn hide_contact_command(
             .await?;
 
         if let Some(_) = resp {
-            // 更新本地数据库
+            // 로컬 데이터베이스 업데이트
             update_contact_hide(
                 state.db_conn.deref(),
                 &data.room_id.clone(),

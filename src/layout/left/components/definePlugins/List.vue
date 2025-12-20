@@ -55,7 +55,7 @@
             </n-flex>
           </n-flex>
 
-          <!-- 未安装和下载中状态 -->
+          <!-- 미설치 및 다운로드 중 상태 -->
           <n-flex
             v-if="plugin.state === PluginEnum.NOT_INSTALLED || plugin.state === PluginEnum.DOWNLOADING"
             vertical
@@ -63,7 +63,7 @@
             align="center"
             :size="8"
             class="box bg-[--button-bg-color]">
-            <!-- 在下载中进度条 -->
+            <!-- 다운로드 중 진행률 표시줄 -->
             <n-flex
               @click="handleState(plugin)"
               align="center"
@@ -88,10 +88,10 @@
             </n-flex>
           </n-flex>
 
-          <!-- 卸载中 -->
+          <!-- 제거 중 -->
           <n-spin v-if="plugin.state === PluginEnum.UNINSTALLING" :stroke="'#c14053'" :size="22" />
 
-          <!-- 插件操作 -->
+          <!-- 플러그인 작업 -->
           <n-popover
             v-if="plugin.state === PluginEnum.INSTALLED || index === isCurrently"
             :show="isCurrently === index"
@@ -148,7 +148,7 @@ const isCurrently = ref(-1)
 const allPlugins = ref([] as STO.Plugins<PluginEnum>[])
 const pluginsLists = ref<STO.Plugins<PluginEnum>[]>(cloneDeep(pluginsList.value))
 
-// 同步插件状态
+// 플러그인 상태 동기화
 const syncPlugins = (list: STO.Plugins<PluginEnum>[]) =>
   list.map((item: STO.Plugins<PluginEnum>) => {
     const matched = plugins.value.find((z: STO.Plugins<PluginEnum>) => z.url === item.url)

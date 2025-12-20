@@ -26,7 +26,7 @@ const saveAttachmentAs = async ({
   errorMessage
 }: SaveAttachmentOptions) => {
   if (!url) {
-    window.$message.error('未找到下载链接')
+    window.$message.error('다운로드 링크를 찾을 수 없습니다.')
     return
   }
 
@@ -47,7 +47,7 @@ const saveAttachmentAs = async ({
       window.$message.success(successMessage)
     }
   } catch (error) {
-    console.error(errorMessage || '保存文件失败:', error)
+    console.error(errorMessage || '파일 저장 실패:', error)
     if (errorMessage) {
       window.$message.error(errorMessage)
     }
@@ -62,16 +62,16 @@ export const saveVideoAttachmentAs = async (options: SaveAttachmentOptions) => {
         extensions: [...VIDEO_FILE_EXTENSIONS]
       }
     ],
-    successMessage: options.successMessage || '视频保存成功',
-    errorMessage: options.errorMessage || '保存视频失败',
+    successMessage: options.successMessage || '비디오 저장 성공',
+    errorMessage: options.errorMessage || '비디오 저장 실패',
     ...options
   })
 }
 
 export const saveFileAttachmentAs = async (options: SaveAttachmentOptions) => {
   await saveAttachmentAs({
-    successMessage: options.successMessage || '文件下载成功',
-    errorMessage: options.errorMessage || '保存文件失败',
+    successMessage: options.successMessage || '파일 다운로드 성공',
+    errorMessage: options.errorMessage || '파일 저장 실패',
     ...options
   })
 }

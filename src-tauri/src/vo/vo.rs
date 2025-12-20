@@ -3,9 +3,9 @@ use serde::{Deserialize, Serialize};
 #[serde(rename_all = "camelCase")]
 pub struct MyRoomInfoReq {
     pub id: String,
-    // 我的群昵称
+    // 내 그룹 닉네임
     pub my_name: String,
-    // 群备注
+    // 그룹 메모
     pub remark: String,
 }
 
@@ -33,7 +33,7 @@ pub struct LoginReq {
     #[serde(default)]
     pub is_auto_login: bool,
     pub async_data: bool,
-    pub uid: Option<String>, // 用于自动登录时传递用户ID
+    pub uid: Option<String>, // 자동 로그인 시 사용자 ID 전달용
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]

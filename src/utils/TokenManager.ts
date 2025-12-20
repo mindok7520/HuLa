@@ -2,14 +2,14 @@ import { TauriCommand } from '@/enums'
 import { invokeWithErrorHandler } from '@/utils/TauriInvokeHandler'
 
 /**
- * Token 管理工具类
- * 用于更新应用中的 token 信息
+ * Token 관리 유틸리티 클래스
+ * 애플리케이션 내의 토큰 정보 업데이트에 사용됨
  */
 export class TokenManager {
   /**
-   * 更新 token
-   * @param token 新的访问令牌
-   * @param refreshToken 新的刷新令牌
+   * 토큰 업데이트
+   * @param token 새로운 액세스 토큰
+   * @param refreshToken 새로운 리프레시 토큰
    * @returns Promise<void>
    */
   static async updateToken(token: string, refreshToken: string): Promise<void> {
@@ -21,22 +21,22 @@ export class TokenManager {
           refresh_token: refreshToken
         },
         {
-          customErrorMessage: '更新 token 失败',
+          customErrorMessage: '토큰 업데이트 실패',
           showError: true
         }
       )
-      console.log('Token 更新成功')
+      console.log('토큰 업데이트 성공')
     } catch (error) {
-      console.error('Token 更新失败:', error)
+      console.error('토큰 업데이트 실패:', error)
       throw error
     }
   }
 
   /**
-   * 静默更新 token（不显示错误提示）
-   * @param token 新的访问令牌
-   * @param refreshToken 新的刷新令牌
-   * @returns Promise<boolean> 成功返回 true，失败返回 false
+   * 토큰 자동 업데이트(오류 메시지 미표시)
+   * @param token 새로운 액세스 토큰
+   * @param refreshToken 새로운 리프레시 토큰
+   * @returns Promise<boolean> 성공 시 true, 실패 시 false 반환
    */
   static async updateTokenSilently(token: string, refreshToken: string): Promise<boolean> {
     try {
@@ -54,22 +54,22 @@ export class TokenManager {
       )
       return true
     } catch (error) {
-      console.error('静默更新 token 失败:', error)
+      console.error('토큰 자동 업데이트 실패:', error)
       return false
     }
   }
 }
 
 /**
- * 更新 token 的便捷函数
- * @param token 新的访问令牌
- * @param refreshToken 新的刷新令牌
+ * 토큰 업데이트를 위한 편의 함수
+ * @param token 새로운 액세스 토큰
+ * @param refreshToken 새로운 리프레시 토큰
  */
 export const updateToken = TokenManager.updateToken
 
 /**
- * 静默更新 token 的便捷函数
- * @param token 新的访问令牌
- * @param refreshToken 新的刷新令牌
+ * 토큰 자동 업데이트를 위한 편의 함수
+ * @param token 새로운 액세스 토큰
+ * @param refreshToken 새로운 리프레시 토큰
  */
 export const updateTokenSilently = TokenManager.updateTokenSilently

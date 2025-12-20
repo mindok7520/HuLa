@@ -5,8 +5,8 @@
       class="w-full py-5px grid grid-cols-[40px_1fr_40px] gap-10px items-center">
       <div><n-avatar :size="40" src="#" fallback-src="/logo.png" round /></div>
       <div class="flex flex-col gap-10px">
-        <div class="text-14px text-#333 font-bold">苏小研</div>
-        <div class="text-12px text-#999">消息内容：{{ props.message.content }}</div>
+        <div class="text-14px text-#333 font-bold">사용자</div>
+        <div class="text-12px text-#999">메시지 내용: {{ props.message.content }}</div>
       </div>
       <div class="relative w-full aspect-square rounded-10px mask-rounded">
         <img
@@ -18,7 +18,7 @@
       class="mt-5px flex justify-end pb-10px"
       :class="props.message.type === 'reply' || props.message.type === 'comment' ? ['custom-border-b-1'] : ['']"
       v-if="props.message.type === 'reply' || props.message.type === 'comment'">
-      <div class="bg-#EFF5F4 text-14px rounded-25px w-82px line-height-32px text-center">回复</div>
+      <div class="bg-#EFF5F4 text-14px rounded-25px w-82px line-height-32px text-center">답변</div>
     </div>
   </div>
 </template>

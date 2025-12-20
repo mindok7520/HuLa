@@ -16,11 +16,11 @@ pub async fn login_command(
     state: State<'_, AppData>,
 ) -> Result<Option<LoginResp>, String> {
     if data.is_auto_login {
-        // 自动登录逻辑
+        // 자동 로그인 로직
         if let Some(uid) = &data.uid {
             info!("Attempting auto login, user ID: {}", uid);
 
-            // 从数据库获取用户的 refresh_token
+            // 데이터베이스에서 사용자의 refresh_token 가져오기
             match im_user_repository::get_user_tokens(state.db_conn.deref(), uid).await {
                 Ok(Some((_, refresh_token))) => {
                     info!(
@@ -28,7 +28,7 @@ pub async fn login_command(
                         uid
                     );
 
-                    // 使用 refresh_token 刷新登录
+                    // refresh_token을 사용하여 로그인 갱신
                     let refresh_req = RefreshTokenReq {
                         refresh_token: refresh_token.clone(),
                     };
@@ -42,7 +42,7 @@ pub async fn login_command(
                         Ok(Some(refresh_resp)) => {
                             info!("Auto login successful, user ID: {}", uid);
 
-                            // 保存新的 token 信息到数据库
+                            // 새로운 토큰 정보를 데이터베이스에 저장
                             if let Err(e) = im_user_repository::save_user_tokens(
                                 state.db_conn.deref(),
                                 uid,
@@ -54,10 +54,10 @@ pub async fn login_command(
                                 error!("Failed to save new token info: {}", e);
                             }
 
-                            // 转换为 LoginResp 格式返回
+                            // LoginResp 형식으로 변환하여 반환
                             let login_resp = LoginResp {
                                 token: refresh_resp.token,
-                                client: "".to_string(), // refresh_token 响应通常不包含 client
+                                client: "".to_string(), // refresh_token 응답에는 일반적으로 client가 포함되지 않음
                                 refresh_token: refresh_resp.refresh_token,
                                 expire: refresh_resp.expire,
                                 uid: refresh_resp.uid,
@@ -82,22 +82,22 @@ pub async fn login_command(
                     error!("Failed to get token info for user {}: {}", uid, e);
                 }
             };
-            // 自动登录失败，返回错误让前端切换到手动登录
-            return Err("自动登录失败，请手动登录".to_string());
+            // 자동 로그인 실패, 프런트엔드에서 수동 로그인으로 전환하도록 오류 반환
+            return Err("자동 로그인에 실패했습니다. 수동으로 로그인해 주세요.".to_string());
         } else {
-            return Err("自动登录缺少用户ID".to_string());
+            return Err("자동 로그인에 사용자 ID가 누락되었습니다.".to_string());
         }
     } else {
-        // 手动登录逻辑
+        // 수동 로그인 로직
         info!("Performing manual login");
 
         let async_data = data.async_data;
         let res = {
             let mut rc = state.rc.lock().await;
             rc.login(data).await.map_err(|e| e.to_string())?
-        }; // 锁在这里被释放
+        }; // 여기서 잠금이 해제됨
 
-        // 登录成功后处理用户信息和token保存
+        // 로그인 성공 후 사용자 정보 처리 및 토큰 저장
         if let Some(login_resp) = &res {
             handle_login_success(login_resp, &state, async_data).await?;
         }
@@ -113,16 +113,16 @@ async fn handle_login_success(
     async_data: bool,
 ) -> Result<(), String> {
     info!("handle_login_success, login_resp: {:?}", login_resp);
-    // 从登录响应中获取用户标识，这里使用 uid 作为 uid
+    // 로그인 응답에서 사용자 식별자 가져오기, 여기서는 uid를 uid로 사용
     let uid = &login_resp.uid;
 
-    // 设置用户信息
+    // 사용자 정보 설정
     let mut user_info = state.user_info.lock().await;
     user_info.uid = login_resp.uid.clone();
     user_info.token = login_resp.token.clone();
     user_info.refresh_token = login_resp.refresh_token.clone();
     info!("handle_login_success, user_info: {:?}", user_info);
-    // 保存 token 信息到数据库
+    // 토큰 정보를 데이터베이스에 저장
     im_user_repository::save_user_tokens(
         state.db_conn.deref(),
         uid,
@@ -161,7 +161,7 @@ pub async fn im_request_command(
             }
             Err(e) => {
                 tracing::error!("Request error: {}", e);
-                if e.to_string().contains("请重新登录") {
+                if e.to_string().contains("다시 로그인해 주세요.") {
                     app_handle.emit_to("home", "relogin", ()).unwrap();
                 }
                 return Err(e.to_string());

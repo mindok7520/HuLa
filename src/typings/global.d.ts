@@ -6,19 +6,19 @@ interface Document {
   startViewTransition?: (callback: () => Promise<void> | void) => ViewTransition
 }
 
-/** 通用类型 */
+/** 공통 유형 */
 declare namespace Common {
   /**
-   * 策略模式
-   * [状态, 为true时执行的回调函数]
+   * 전략 패턴
+   * [상태, true일 때 실행되는 콜백 함수]
    */
   type StrategyAction = [boolean, () => void]
 
-  /** 选项数据 */
+  /** 옵션 데이터 */
   type OptionWithKey<K> = { value: K; label: string }
 }
 
-/** 构建时间 */
+/** 빌드 시간 */
 declare const PROJECT_BUILD_TIME: string
 
 export type ProxySettings = {

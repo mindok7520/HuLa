@@ -1,5 +1,5 @@
 <template>
-  <!--! 这里最好不要使用n-flex,滚动高度会有问题  -->
+  <!--! 여기서는 n-flex를 사용하지 않는 것이 좋습니다. 스크롤 높이에 문제가 발생할 수 있습니다. -->
   <main
     style="height: 100%"
     class="flex-shrink-0"
@@ -11,7 +11,7 @@
         : 'w-0 pr-1px',
       'item-box'
     ]">
-    <!-- 收缩按钮 -->
+    <!-- 접기 버튼 -->
     <div
       v-show="isGroup"
       @click.stop="isCollapsed = !isCollapsed"
@@ -25,7 +25,7 @@
     </div>
 
     <div v-if="isGroup && !isCollapsed">
-      <!-- 群公告 -->
+      <!-- 그룹 공지 -->
       <n-flex vertical :size="14" class="px-4px py-10px">
         <n-flex align="center" justify="space-between" :size="8" class="cursor-pointer">
           <p
@@ -41,7 +41,7 @@
           </svg>
         </n-flex>
 
-        <!-- 公告加载失败提示 -->
+        <!-- 공지 로드 실패 알림 -->
         <n-flex v-if="announError" class="h-74px" align="center" justify="center">
           <div class="text-center">
             <p class="text-(12px #909090) mb-8px">{{ t('home.chat_sidebar.announcement.load_failed') }}</p>
@@ -51,7 +51,7 @@
           </div>
         </n-flex>
 
-        <!-- 公告内容 -->
+        <!-- 공지 내용 -->
         <n-scrollbar v-else class="h-74px">
           <p class="text-(12px #909090) leading-6 line-clamp-4 max-w-99%" v-if="announNum === 0">
             {{ t('home.chat_sidebar.announcement.default') }}
@@ -82,7 +82,7 @@
           <use href="#search"></use>
         </svg>
       </n-flex>
-      <!-- 搜索框 -->
+      <!-- 검색창 -->
       <n-flex v-else align="center" class="pr-8px h-42px">
         <n-input
           :on-input="handleSearch"
@@ -106,7 +106,7 @@
         </n-input>
       </n-flex>
 
-      <!-- 成员列表 -->
+      <!-- 멤버 목록 -->
       <n-virtual-list
         id="image-chat-sidebar"
         style="max-height: calc(100vh / var(--page-scale, 1) - 250px)"
@@ -180,7 +180,7 @@
                 </n-flex>
               </ContextMenu>
             </template>
-            <!-- 用户个人信息框 -->
+            <!-- 사용자 프로필 정보창 -->
             <InfoPopover v-if="selectKey === item.uid" :uid="item.uid" :activeStatus="item.activeStatus" />
           </n-popover>
         </template>
@@ -220,8 +220,8 @@ const settingStore = useSettingStore()
 const announcementStore = useAnnouncementStore()
 const { clearAnnouncements } = announcementStore
 const { themes } = storeToRefs(settingStore)
-// 当前加载的群聊ID
-// 如果成员列表未完全加载，使用当前列表的在线人数，避免与头像显示不一致
+// 현재 로드된 그룹 채팅 ID
+// 멤버 목록이 완전히 로드되지 않은 경우, 현재 목록의 온라인 인원수를 사용하여 아바타 표시와 일치하지 않는 문제 방지
 const onlineCountDisplay = computed(() => {
   const totalOnline = groupStore.countInfo?.onlineNum ?? 0
   const loadedOnline =
@@ -230,15 +230,15 @@ const onlineCountDisplay = computed(() => {
   return groupStore.userListOptions.isLast ? totalOnline : loadedOnline
 })
 const isGroup = computed(() => globalStore.currentSession?.type === RoomTypeEnum.GROUP)
-// 公告相关计算属性
+// 공지 관련 계산 속성
 const { announcementContent, announNum, announError, isAddAnnoun } = storeToRefs(announcementStore)
 const { segments: announcementSegments, openLink: openAnnouncementLink } = useLinkSegments(announcementContent)
 
-/** 是否是搜索模式 */
+/** 검색 모드 여부 */
 const isSearch = ref(false)
 const searchRef = ref('')
 const searchRequestId = ref(0)
-/** List中的Popover组件实例 */
+/** 목록의 Popover 컴포넌트 인스턴스 */
 const infoPopoverRefs = ref<Record<string, any>>([])
 const inputInstRef = ref<InputInst | null>(null)
 const isCollapsed = ref(false)
@@ -246,9 +246,9 @@ const { optionsList, report, selectKey } = useChatMain()
 const { handlePopoverUpdate, enableScroll } = usePopover(selectKey, 'image-chat-sidebar')
 provide('popoverControls', { enableScroll })
 
-// 用于稳定展示的用户列表
+// 안정적인 표시를 위한 사용자 목록
 const displayedUserList = ref<UserItem[]>([])
-/** 用户信息加载状态 */
+/** 사용자 정보 로드 상태 */
 const userLoadedMap = ref<Record<string, boolean>>({})
 
 watch(
@@ -267,17 +267,17 @@ watch(
     try {
       await announcementStore.loadGroupAnnouncements(roomId)
     } catch (error) {
-      console.error('刷新群公告失败:', error)
+      console.error('그룹 공지 새로고침 실패:', error)
     }
   },
   { immediate: true }
 )
 
 const onClickMember = async (item: UserItem) => {
-  console.log('点击用户', item)
+  console.log('사용자 클릭', item)
   selectKey.value = item.uid
 
-  // 获取用户的最新数据，并更新 pinia
+  // 사용자의 최신 데이터를 가져와 pinia 업데이트
   getUserByIds([item.uid]).then((users) => {
     if (users && users.length > 0) {
       groupStore.updateUserItem(item.uid, users[0])
@@ -285,7 +285,7 @@ const onClickMember = async (item: UserItem) => {
   })
 }
 
-// 监听成员源列表变化
+// 멤버 소스 목록 변경 감지
 watch(
   () => groupStore.userList,
   (newList) => {
@@ -299,20 +299,20 @@ watch(
 )
 
 /**
- * 监听搜索输入过滤用户
- * @param value 输入值
+ * 검색 입력을 감지하여 사용자 필터링
+ * @param value 입력값
  */
 const handleSearch = useDebounceFn((value: string) => {
   searchRef.value = value
   const keyword = value.trim().toLowerCase()
 
-  // 如果没有搜索关键字,显示全部成员
+  // 검색 키워드가 없으면 모든 멤버 표시
   if (!keyword) {
     displayedUserList.value = Array.isArray(groupStore.userList) ? [...groupStore.userList] : []
     return
   }
 
-  // 前端本地过滤成员列表
+  // 프런트엔드 로컬 멤버 목록 필터링
   const filteredList = groupStore.userList.filter((member) => {
     const matchName = member.name?.toLowerCase().includes(keyword)
     const matchMyName = member.myName?.toLowerCase().includes(keyword)
@@ -330,8 +330,8 @@ const handleBlur = () => {
 }
 
 /**
- * 处理滚动事件
- * @param event 滚动事件
+ * 스크롤 이벤트 처리
+ * @param event 스크롤 이벤트
  */
 const handleScroll = (event: Event) => {
   if (searchRef.value.trim()) {
@@ -347,7 +347,7 @@ const handleScroll = (event: Event) => {
 }
 
 /**
- * 切换搜索模式并自动聚焦输入框
+ * 검색 모드 전환 및 입력 필드 자동 포커스
  */
 const handleSelect = () => {
   isSearch.value = !isSearch.value
@@ -364,7 +364,7 @@ const handleSelect = () => {
 }
 
 /**
- * 打开群公告
+ * 그룹 공지 열기
  */
 const handleOpenAnnoun = (isAdd: boolean) => {
   nextTick(async () => {
@@ -396,7 +396,7 @@ appWindow.listen('announcementUpdated', async (event: any) => {
   if (event.payload) {
     const { hasAnnouncements } = event.payload
     if (hasAnnouncements) {
-      // 初始化群公告
+      // 그룹 공지 초기화
       await announcementStore.loadGroupAnnouncements()
       await nextTick()
     }
@@ -404,7 +404,7 @@ appWindow.listen('announcementUpdated', async (event: any) => {
 })
 
 onMounted(async () => {
-  // 通知父级：Sidebar 已挂载，可移除占位
+  // 부모 컴포넌트에 알림: 사이드바 마운트됨, 자리 표시자 제거 가능
   emit('ready')
 
   useMitt.on(`${MittEnum.INFO_POPOVER}-Sidebar`, (event: any) => {
@@ -417,9 +417,9 @@ onMounted(async () => {
     clearAnnouncements()
   })
 
-  // 初始化时获取当前群组用户的信息
+  // 초기화 시 현재 그룹 사용자의 정보 가져오기
   if (groupStore.userList.length > 0) {
-    // 初始展示当前列表
+    // 현재 목록 초기 표시
     displayedUserList.value = [...groupStore.userList]
     const currentRoom = globalStore.currentSessionRoomId
     if (currentRoom) {
@@ -432,7 +432,7 @@ onMounted(async () => {
         }
       }
     }
-    // 监听群公告消息
+    // 그룹 공지 메시지 감지
     useMitt.on(WsResponseMessageType.ROOM_GROUP_NOTICE_MSG, handleAnnounInitOnEvent(true))
     useMitt.on(WsResponseMessageType.ROOM_EDIT_GROUP_NOTICE_MSG, handleAnnounInitOnEvent(true))
   }

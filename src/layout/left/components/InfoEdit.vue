@@ -24,7 +24,7 @@
         <span class="h-1px w-full bg-[--line-color]"></span>
       </n-flex>
       <n-flex :size="20" class="p-22px select-none" vertical>
-        <!-- 头像 -->
+        <!-- 프로필 사진 -->
         <n-flex justify="center">
           <n-popover trigger="hover" :delay="300" :duration="300" placement="bottom">
             <template #trigger>
@@ -40,7 +40,7 @@
             </p>
           </n-popover>
         </n-flex>
-        <!-- 当前佩戴的徽章 -->
+        <!-- 현재 착용 중인 뱃지 -->
         <n-flex v-if="currentBadge" align="center" justify="center">
           <span class="text-(14px #707070)">{{ t('home.profile_edit.badge.current') }}</span>
           <n-popover trigger="hover">
@@ -51,7 +51,7 @@
           </n-popover>
         </n-flex>
 
-        <!-- 昵称编辑输入框 -->
+        <!-- 닉네임 편집 입력창 -->
         <n-popover placement="top-start" trigger="click">
           <template #trigger>
             <n-input
@@ -81,7 +81,7 @@
           </span>
         </n-popover>
 
-        <!-- 徽章列表  -->
+        <!-- 뱃지 목록  -->
         <n-flex :size="[56, 20]" align="center">
           <template v-for="item in editInfo.badgeList" :key="item.id">
             <div class="badge-item">
@@ -128,7 +128,7 @@
       </n-flex>
     </div>
   </n-modal>
-  <!-- 添加裁剪组件 -->
+  <!-- 크롭 컴포넌트 추가 -->
   <input
     ref="fileInput"
     type="file"
@@ -162,7 +162,7 @@ const { addListener } = useTauriListener()
 const loginHistoriesStore = useLoginHistoriesStore()
 const { editInfo, currentBadge, updateCurrentUserCache, saveEditInfo, toggleWarningBadge } = leftHook()
 const { countGraphemes } = useCommon()
-// 使用自定义hook处理头像上传
+// 사용자 정의 훅을 사용하여 프로필 사진 업로드 처리
 const {
   fileInput,
   localImageUrl,
@@ -173,35 +173,35 @@ const {
   handleCrop: onCrop
 } = useAvatarUpload({
   onSuccess: async (downloadUrl) => {
-    // 调用更新头像的API TODO 这里准备删除
+    // 프로필 사진 업데이트 API 호출 TODO 여기는 삭제 준비
     await uploadAvatar({ avatar: downloadUrl })
-    // 更新编辑信息
+    // 편집 정보 업데이트
     editInfo.value.content.avatar = downloadUrl
-    // 更新用户信息
+    // 사용자 정보 업데이트
     userStore.userInfo!.avatar = downloadUrl
-    // 更新头像更新时间
+    // 프로필 사진 업데이트 시간 업데이트
     userStore.userInfo!.avatarUpdateTime = Date.now()
-    // 更新登录历史记录
+    // 로그인 기록 업데이트
     loginHistoriesStore.loginHistories.filter((item) => item.uid === userStore.userInfo!.uid)[0].avatar = downloadUrl
-    // 更新缓存里面的用户信息
+    // 캐시 내 사용자 정보 업데이트
     updateCurrentUserCache('avatar', downloadUrl)
     window.$message.success(t('home.profile_edit.toast.avatar_update_success'))
   }
 })
 
-// 处理裁剪，调用hook中的方法
+// 크롭 처리, 훅 내 메서드 호출
 const handleCrop = async (cropBlob: Blob) => {
   await onCrop(cropBlob)
 }
 
-/** 不允许输入空格 */
+/** 공백 입력 불가 */
 const noSideSpace = (value: string) => !value.startsWith(' ') && !value.endsWith(' ')
 
 const openEditInfo = () => {
   editInfo.value.show = true
   editInfo.value.content = userStore.userInfo!
   localUserInfo.value = { ...userStore.userInfo! }
-  /** 获取徽章列表 */
+  /** 뱃지 목록 가져오기 */
   getBadgeList().then((res: any) => {
     editInfo.value.badgeList = res
   })

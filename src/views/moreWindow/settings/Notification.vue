@@ -1,11 +1,11 @@
 <template>
   <n-flex vertical :size="40">
-    <!-- 消息通知设置 -->
+    <!-- 메시지 알림 설정 -->
     <n-flex vertical class="text-(14px [--text-color])" :size="16">
       <span class="pl-10px">{{ t('setting.notice.sound') }}</span>
 
       <n-flex class="item p-12px" :size="12" vertical>
-        <!-- 消息提示音 -->
+        <!-- 메시지 알림음 -->
         <n-flex align="center" justify="space-between">
           <n-flex vertical :size="8">
             <span>{{ t('setting.notice.message_sound') }}</span>
@@ -17,7 +17,7 @@
       </n-flex>
     </n-flex>
 
-    <!-- 群消息设置 -->
+    <!-- 그룹 메시지 설정 -->
     <n-flex vertical class="text-(14px [--text-color])" :size="16">
       <n-flex align="center" justify="space-between" class="pl-10px pr-10px">
         <span>{{ t('setting.notice.group_setting') }}</span>
@@ -35,10 +35,10 @@
 
       <n-flex class="item" :size="0" vertical>
         <div v-if="filteredGroupSessions.length === 0" class="text-(12px #909090) text-center py-20px">
-          {{ searchKeyword ? '未找到匹配的群聊' : '暂无群聊' }}
+          {{ searchKeyword ? '일치하는 그룹 대화방을 찾을 수 없습니다' : '그룹 대화방이 없습니다' }}
         </div>
 
-        <!-- 批量操作栏 -->
+        <!-- 일괄 작업 바 -->
         <n-flex v-if="filteredGroupSessions.length > 0" align="center" justify="space-between" class="p-12px h-28px">
           <n-flex align="center" :size="12">
             <n-checkbox
@@ -73,10 +73,10 @@
           </n-flex>
         </n-flex>
 
-        <!-- 进度条显示 -->
+        <!-- 진행률 표시줄 표시 -->
         <n-flex v-if="isProcessing" vertical :size="12" class="p-12px">
           <n-flex align="center" justify="space-between">
-            <span class="text-(12px #909090)">正在处理：{{ processedCount }}/{{ totalCount }}</span>
+            <span class="text-(12px #909090)">처리 중: {{ processedCount }}/{{ totalCount }}</span>
             <span class="text-(12px #909090)">{{ progress }}%</span>
           </n-flex>
           <n-progress
@@ -143,20 +143,20 @@ const { t } = useI18n()
 const settingStore = useSettingStore()
 const chatStore = useChatStore()
 
-// 搜索关键词
+// 검색 키워드
 const searchKeyword = ref('')
 
-// 选中的会话列表
+// 선택된 세션 목록
 const selectedSessions = ref<string[]>([])
 
-// 批量操作进度状态
+// 일괄 작업 진행 상태
 const isProcessing = ref(false)
 const progress = ref(0)
 const processedCount = ref(0)
 const totalCount = ref(0)
 const processingResults = ref<{ roomId: string; name: string; success: boolean; error?: string }[]>([])
 
-// 下拉菜单显示状态
+// 드롭다운 메뉴 표시 상태
 const isDropdownShow = ref(false)
 
 const messageSound = computed({
@@ -166,12 +166,12 @@ const messageSound = computed({
   }
 })
 
-// 获取所有群聊会话（包含官方频道）
+// 모든 그룹 대화방 가져오기 (공식 채널 포함)
 const groupSessions = computed(() => {
   return chatStore.sessionList.filter((session) => session.type === RoomTypeEnum.GROUP)
 })
 
-// 过滤后的群聊列表（搜索功能）
+// 필터링된 그룹 대화방 목록 (검색 기능)
 const filteredGroupSessions = computed(() => {
   if (!searchKeyword.value) {
     return groupSessions.value
@@ -179,7 +179,7 @@ const filteredGroupSessions = computed(() => {
   return groupSessions.value.filter((session) => session.name.toLowerCase().includes(searchKeyword.value.toLowerCase()))
 })
 
-// 全选状态
+// 전체 선택 상태
 const selectAll = computed({
   get: () =>
     selectedSessions.value.length === filteredGroupSessions.value.length && filteredGroupSessions.value.length > 0,
@@ -197,7 +197,7 @@ const applySessionUpdate = (session: SessionItem, data: Partial<SessionItem>) =>
   assign(session, data)
 }
 
-// 获取通知状态文本
+// 알림 상태 텍스트 가져오기
 const getNotificationStatusText = (session: SessionItem) => {
   if (session.shield) {
     return t('setting.notice.group_notic_type.block')
@@ -213,7 +213,7 @@ const getNotificationStatusText = (session: SessionItem) => {
   }
 }
 
-// 获取下拉菜单选项
+// 드롭다운 메뉴 옵션 가져오기
 const getNotificationOptions = (session: SessionItem) => {
   return [
     {
@@ -242,12 +242,12 @@ const getNotificationOptions = (session: SessionItem) => {
   ]
 }
 
-// 处理全选
+// 전체 선택 처리
 const handleSelectAll = (checked: boolean) => {
   selectAll.value = checked
 }
 
-// 处理单个会话选择
+// 개별 세션 선택 처리
 const handleSessionSelect = (roomId: string, checked: boolean) => {
   if (checked) {
     if (!selectedSessions.value.includes(roomId)) {
@@ -261,7 +261,7 @@ const handleSessionSelect = (roomId: string, checked: boolean) => {
   }
 }
 
-// 批量设置通知
+// 알림 일괄 설정
 const batchSetNotification = async (type: NotificationChangeKey) => {
   if (selectedSessions.value.length === 0) {
     window.$message?.warning(t('setting.notice.message_select_group_first'))
@@ -310,7 +310,7 @@ const batchSetNotification = async (type: NotificationChangeKey) => {
       progress.value = Math.round(((i + 1) / selectedSessions.value.length) * 100)
     }
 
-    // 显示结果统计
+    // 결과 통계 표시
     const successCount = processingResults.value.filter((r) => r.success).length
     const failCount = processingResults.value.length - successCount
 
@@ -331,20 +331,20 @@ const batchSetNotification = async (type: NotificationChangeKey) => {
       )
     }
 
-    // 清空选择
+    // 선택 해제
     selectedSessions.value = []
   } catch (error) {
-    console.error('批量设置失败:', error)
+    console.error('일괄 설정 실패:', error)
     window.$message?.error(t('setting.notice.setup_fail'))
   } finally {
-    // 延迟隐藏进度条，让用户看到完成状态
+    // 사용자가 완료 상태를 볼 수 있도록 진행률 표시줄 지연 숨김
     setTimeout(() => {
       isProcessing.value = false
     }, 1500)
   }
 }
 
-// 处理通知设置变更
+// 알림 설정 변경 처리
 const handleNotificationChange = async (
   session: SessionItem,
   key: NotificationChangeKey,
@@ -355,7 +355,7 @@ const handleNotificationChange = async (
   try {
     switch (key) {
       case 'allow':
-        // 如果当前是屏蔽状态，需要先取消屏蔽
+        // 현재 차단 상태인 경우 먼저 차단 해제 필요
         if (session.shield) {
           await shield({
             roomId: session.roomId,
@@ -379,7 +379,7 @@ const handleNotificationChange = async (
         break
 
       case 'mute':
-        // 如果当前是屏蔽状态，需要先取消屏蔽
+        // 현재 차단 상태인 경우 먼저 차단 해제 필요
         if (session.shield) {
           await shield({
             roomId: session.roomId,
@@ -397,7 +397,7 @@ const handleNotificationChange = async (
           muteNotification: NotificationTypeEnum.NOT_DISTURB
         })
 
-        // 设置免打扰时更新全局未读数
+        // 방해 금지 설정 시 글로벌 읽지 않음 수 업데이트
         chatStore.updateTotalUnreadCount()
         if (!silent) {
           window.$message?.success(t('setting.notice.message_reminder_silent'))
@@ -420,16 +420,16 @@ const handleNotificationChange = async (
         break
     }
   } catch (error) {
-    console.error('设置群消息通知失败:', error)
+    console.error('그룹 메시지 알림 설정 실패:', error)
     if (!silent) {
-      window.$message?.error('设置失败，请重试')
+      window.$message?.error('설정에 실패했습니다. 다시 시도해주세요.')
       return
     }
     throw error
   }
 }
 
-// 监听搜索关键词变化，清空选择
+// 검색 키워드 변경 감지, 선택 해제
 watch(searchKeyword, () => {
   selectedSessions.value = []
 })

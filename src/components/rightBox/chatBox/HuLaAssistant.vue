@@ -11,7 +11,7 @@
         class="assistant-view__progress"
         type="line" />
       <span class="assistant-view__placeholder-text">
-        {{ loadingProgress === 0 ? '开始加载模型...' : `模型加载中 ${loadingProgress}%` }}
+        {{ loadingProgress === 0 ? '모델 로딩 시작...' : `모델 로딩 중 ${loadingProgress}%` }}
       </span>
     </div>
   </div>
@@ -100,7 +100,7 @@ const resolveDracoDecoderPath = async () => {
       dracoDecoderBasePath = assetUrl.endsWith('/') ? assetUrl : `${assetUrl}/`
       return dracoDecoderBasePath
     } catch (error) {
-      console.warn('获取 Draco 解码器资源路径失败, 回退 CDN', error)
+      console.warn('Draco 디코더 리소스 경로를 가져오지 못했습니다. CDN으로 대체합니다.', error)
     }
   }
   dracoDecoderBasePath = DRACO_DECODER_BASE_URL
@@ -117,7 +117,7 @@ const ensureDracoLoader = async () => {
       await dracoLoader.preload()
     } catch (error) {
       if (decoderPath !== DRACO_DECODER_BASE_URL) {
-        console.warn('预加载本地 Draco 解码器失败, 回退 CDN', error)
+        console.warn('로컬 Draco 디코더 프리로드에 실패했습니다. CDN으로 대체합니다.', error)
         dracoDecoderBasePath = DRACO_DECODER_BASE_URL
         decoderPath = DRACO_DECODER_BASE_URL
         dracoLoader.setDecoderPath(decoderPath)
@@ -153,7 +153,7 @@ const resolveModelSource = async () => {
           lastResolvedModelSource = localUrl
           return localUrl
         } catch (error) {
-          console.warn('缓存远程模型失败, 回退为在线加载', error)
+          console.warn('원격 모델 캐싱에 실패했습니다. 온라인 로딩으로 대체합니다.', error)
         }
       }
     }
@@ -290,7 +290,7 @@ const adjustFraming = (scaledSize: Vector3, centerY: number) => {
 
 const loadModel = async () => {
   if (!scene) {
-    throw new Error('场景尚未初始化')
+    throw new Error('시나리오가 아직 초기화되지 않았습니다.')
   }
   loadingProgress.value = 0
   isReady.value = false
@@ -327,7 +327,7 @@ const loadModel = async () => {
         },
         (error) => {
           loadingProgress.value = 0
-          console.error('[Assistant] 模型加载失败', modelSource, error)
+          console.error('[Assistant] 모델 로드 실패', modelSource, error)
           reject(error)
         }
       )
@@ -339,7 +339,7 @@ const loadModel = async () => {
     currentCustomSource &&
     extensions.some((ext) => ['KHR_texture_basisu', 'EXT_meshopt_compression'].includes(ext))
   ) {
-    window.$message?.warning('暂不支持压缩后的 glb 模型，请选择原始模型文件')
+    window.$message?.warning('압축된 glb 모델은 현재 지원되지 않습니다. 원본 모델 파일을 선택해주세요.')
     throw new Error('UNSUPPORTED_COMPRESSED_MODEL')
   }
 
@@ -355,7 +355,7 @@ const loadModel = async () => {
   const center = box.getCenter(new Vector3())
   const hasInvalidBounds = isInvalidBounds(size, center)
   if (hasInvalidBounds) {
-    window.$message?.warning('模型没有几何数据或存在损坏，请检查后重新导入')
+    window.$message?.warning('모델에 기하학적 데이터가 없거나 손상되었습니다. 확인 후 다시 가져오기 해주세요.')
     throw new Error('EMPTY_MODEL_GEOMETRY')
   }
   const maxAxis = Math.max(size.x, size.y, size.z) || 1
@@ -397,7 +397,7 @@ const loadModel = async () => {
     activeAction = mixer.clipAction(preferred)
     activeAction.reset().play()
   } else {
-    console.debug('[Assistant] 模型没有动画片段')
+    console.debug('[Assistant] 모델에 애니메이션 클립이 없습니다.')
   }
   adjustFraming(scaledSize, centerY)
   loadingProgress.value = 100
@@ -408,7 +408,7 @@ const loadModel = async () => {
 const ensureScene = async () => {
   const el = container.value
   if (!el) {
-    throw new Error('未找到 HuLa 小管家容器')
+    throw new Error('HuLa 어시스턴트 컨테이너를 찾을 수 없습니다.')
   }
 
   if (!renderer) {

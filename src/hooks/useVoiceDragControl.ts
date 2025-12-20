@@ -3,35 +3,35 @@ import type { Ref } from 'vue'
 import { isMobile } from '@/utils/PlatformConstants'
 
 /**
- * 拖拽控制器返回接口
+ * 드래그 컨트롤러 반환 인터페이스
  */
 export type VoiceDragControlReturn = {
-  // 状态
+  // 상태
   isDragging: Ref<boolean>
   previewTime: Ref<number>
   showTimePreview: Ref<boolean>
 
-  // 内部状态（用于调试和监控）
+  // 내부 상태 (디버깅 및 모니터링용)
   dragStartX: Ref<number>
   wasPlayingBeforeDrag: Ref<boolean>
 
-  // 方法
+  // 메서드
   handleDragStart: (event: MouseEvent | TouchEvent) => void
   calculateTimeFromPosition: (clientX: number) => number
   cleanup: () => void
 
-  // 事件绑定
+  // 이벤트 바인딩
   bindDragEvents: (canvasElement: HTMLCanvasElement) => void
 }
 
 /**
- * 语音拖拽交互处理Hook
- * @param canvasElement Canvas元素引用
- * @param duration 音频时长
- * @param isPlaying 播放状态
- * @param onDragSeek 拖拽跳转回调
- * @param onPlayToggle 播放切换回调
- * @returns 拖拽控制接口
+ * 음성 드래그 상호작용 처리 Hook
+ * @param canvasElement Canvas 요소 참조
+ * @param duration 오디오 길이
+ * @param isPlaying 재생 상태
+ * @param onDragSeek 드래그 점프 콜백
+ * @param onPlayToggle 재생 전환 콜백
+ * @returns 드래그 제어 인터페이스
  */
 export const useVoiceDragControl = (
   canvasElement: Ref<HTMLCanvasElement | null>,
@@ -46,11 +46,11 @@ export const useVoiceDragControl = (
   const dragStartX = ref(0)
   const wasPlayingBeforeDrag = ref(false)
 
-  const dragThreshold = 5 // 拖拽触发的最小移动距离（像素）
+  const dragThreshold = 5 // 드래그 트리거 최소 이동 거리 (픽셀)
   const isMobileDevice = isMobile()
 
   /**
-   * 增强的边界处理
+   * 향상된 경계 처리
    */
   const enhancedClampTime = (time: number) => {
     if (!Number.isFinite(time) || isNaN(time)) {
@@ -62,7 +62,7 @@ export const useVoiceDragControl = (
   }
 
   /**
-   * 恢复移动端页面状态
+   * 모바일 페이지 상태 복원
    */
   const restoreMobilePageState = () => {
     if (isMobileDevice) {
@@ -73,18 +73,18 @@ export const useVoiceDragControl = (
       document.body.style.top = ''
       document.body.style.width = ''
 
-      // 恢复滚动位置
+      // 스크롤 위치 복원
       window.scrollTo(0, scrollY)
 
-      // 清理数据属性
+      // 데이터 속성 정리
       delete document.body.dataset.scrollY
     }
   }
 
   /**
-   * 位置计算算法
-   * @param clientX 鼠标/触摸点的X坐标
-   * @returns 对应的时间（秒）
+   * 위치 계산 알고리즘
+   * @param clientX 마우스/터치 포인트의 X 좌표
+   * @returns 해당 시간 (초)
    */
   const calculateTimeFromPosition = (clientX: number): number => {
     if (!canvasElement.value) return 0
@@ -96,8 +96,8 @@ export const useVoiceDragControl = (
   }
 
   /**
-   * 处理拖拽开始
-   * @param event 鼠标或触摸事件
+   * 드래그 시작 처리
+   * @param event 마우스 또는 터치 이벤트
    */
   const handleDragStart = (event: MouseEvent | TouchEvent) => {
     if (!canvasElement.value) return
@@ -106,7 +106,7 @@ export const useVoiceDragControl = (
       event.preventDefault()
       event.stopPropagation()
 
-      // 移动端防止页面滚动
+      // 모바일에서 페이지 스크롤 방지
       if (isMobileDevice) {
         const currentScrollY = window.scrollY
 
@@ -115,11 +115,11 @@ export const useVoiceDragControl = (
         document.body.style.top = `-${currentScrollY}px`
         document.body.style.width = '100%'
 
-        // 保存滚动位置以便恢复
+        // 복원을 위해 스크롤 위치 저장
         document.body.dataset.scrollY = currentScrollY.toString()
       }
 
-      // 获取开始位置
+      // 시작 위치 가져오기
       const clientX = 'touches' in event ? event.touches[0]?.clientX : event.clientX
       if (clientX === undefined) {
         return
@@ -127,10 +127,10 @@ export const useVoiceDragControl = (
 
       dragStartX.value = clientX
 
-      // 保存拖拽前的播放状态
+      // 드래그 전 재생 상태 저장
       wasPlayingBeforeDrag.value = isPlaying.value
 
-      // 绑定移动和结束事件
+      // 이동 및 종료 이벤트 바인딩
       if (isMobileDevice || 'ontouchstart' in window) {
         document.addEventListener('touchmove', handleDragMove, { passive: false })
         document.addEventListener('touchend', handleDragEnd, { passive: false })
@@ -141,38 +141,38 @@ export const useVoiceDragControl = (
         document.addEventListener('mouseleave', handleDragEnd)
       }
     } catch (error) {
-      console.error('拖拽开始处理错误:', error)
-      // 错误时恢复页面状态
+      console.error('드래그 시작 처리 오류:', error)
+      // 오류 시 페이지 상태 복원
       restoreMobilePageState()
     }
   }
 
   /**
-   * 处理拖拽移动（节流处理）
+   * 드래그 이동 처리 (스로틀 처리)
    */
   const handleDragMove = useThrottleFn((event: MouseEvent | TouchEvent) => {
     try {
       if (!isDragging.value) {
-        // 检查是否超过拖拽阈值
+        // 드래그 임계값 초과 여부 확인
         const clientX = 'touches' in event ? event.touches[0]?.clientX : event.clientX
         if (clientX === undefined) {
-          console.warn('无法获取移动位置')
+          console.warn('이동 위치를 가져올 수 없음')
           return
         }
 
         const moveDistance = Math.abs(clientX - dragStartX.value)
 
         if (moveDistance >= dragThreshold) {
-          // 开始拖拽
+          // 드래그 시작
           isDragging.value = true
           showTimePreview.value = true
 
-          // 暂停播放（如果正在播放）
+          // 재생 중지 (재생 중인 경우)
           if (isPlaying.value) {
             try {
               onPlayToggle(false)
             } catch (pauseError) {
-              console.warn('暂停播放失败:', pauseError)
+              console.warn('재생 일시 중지 실패:', pauseError)
             }
           }
         } else {
@@ -180,33 +180,33 @@ export const useVoiceDragControl = (
         }
       }
 
-      // 防止页面滚动（移动端）
+      // 페이지 스크롤 방지 (모바일)
       event.preventDefault()
 
-      // 计算当前位置
+      // 현재 위치 계산
       const clientX = 'touches' in event ? event.touches[0]?.clientX : event.clientX
       if (clientX === undefined) {
-        console.warn('无法获取拖拽位置')
+        console.warn('드래그 위치를 가져올 수 없음')
         return
       }
 
       const targetTime = calculateTimeFromPosition(clientX)
       previewTime.value = enhancedClampTime(targetTime)
     } catch (error) {
-      console.error('拖拽移动处理错误:', error)
-      // 错误时结束拖拽
+      console.error('드래그 이동 처리 오류:', error)
+      // 오류 시 드래그 종료
       handleDragEnd()
     }
   }, 16)
 
   /**
-   * 处理拖拽结束
+   * 드래그 종료 처리
    */
   const handleDragEnd = () => {
     try {
       restoreMobilePageState()
 
-      // 清理全局事件监听器
+      // 전역 이벤트 리스너 정리
       document.removeEventListener('mousemove', handleDragMove)
       document.removeEventListener('mouseup', handleDragEnd)
       document.removeEventListener('mouseleave', handleDragEnd)
@@ -218,25 +218,25 @@ export const useVoiceDragControl = (
         try {
           const clampedTime = enhancedClampTime(previewTime.value)
 
-          // 通知外部进行跳转
+          // 외부로 이동 알림
           onDragSeek(clampedTime)
 
-          // 如果拖拽前在播放，则恢复播放
+          // 드래그 전 재생 중이었으면 재생 재개
           if (wasPlayingBeforeDrag.value) {
             onPlayToggle(true).catch((playError) => {
-              console.error('恢复播放失败:', playError)
+              console.error('재생 재개 실패:', playError)
             })
           }
         } catch (seekError) {
-          console.error('设置播放位置失败:', seekError)
+          console.error('재생 위치 설정 실패:', seekError)
         }
       }
     } catch (error) {
-      console.error('拖拽结束处理错误:', error)
-      // 确保在错误情况下也能恢复页面状态
+      console.error('드래그 종료 처리 오류:', error)
+      // 오류 상황에서도 페이지 상태 복원 보장
       restoreMobilePageState()
     } finally {
-      // 始终重置拖拽状态
+      // 항상 드래그 상태 초기화
       isDragging.value = false
       showTimePreview.value = false
       wasPlayingBeforeDrag.value = false
@@ -246,8 +246,8 @@ export const useVoiceDragControl = (
   }
 
   /**
-   * 绑定Canvas元素的拖拽事件
-   * @param canvas Canvas元素
+   * Canvas 요소의 드래그 이벤트 바인딩
+   * @param canvas Canvas 요소
    */
   const bindDragEvents = (canvas: HTMLCanvasElement) => {
     canvas.addEventListener('mousedown', handleDragStart)
@@ -255,10 +255,10 @@ export const useVoiceDragControl = (
   }
 
   /**
-   * 清理资源和事件监听器
+   * 리소스 및 이벤트 리스너 정리
    */
   const cleanup = () => {
-    // 清理全局事件监听器
+    // 전역 이벤트 리스너 정리
     document.removeEventListener('mousemove', handleDragMove)
     document.removeEventListener('mouseup', handleDragEnd)
     document.removeEventListener('mouseleave', handleDragEnd)
@@ -266,7 +266,7 @@ export const useVoiceDragControl = (
     document.removeEventListener('touchend', handleDragEnd)
     document.removeEventListener('touchcancel', handleDragEnd)
 
-    // 恢复页面状态
+    // 페이지 상태 복원
     restoreMobilePageState()
 
     // 重置状态

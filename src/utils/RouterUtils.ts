@@ -2,8 +2,8 @@ import router from '../router'
 import { useGlobalStore } from '../stores/global'
 
 /**
- * 跳转到移动端用户详情页
- * @param uid 用户uid
+ * 모바일용 사용자 정보 페이지로 이동
+ * @param uid 사용자 uid
  */
 export const toFriendInfoPage = (uid: string): void => {
   const globalStore = useGlobalStore()

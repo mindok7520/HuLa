@@ -6,7 +6,7 @@
         class="bg-white"
         style="border-bottom: 1px solid; border-color: #dfdfdf"
         :hidden-right="true"
-        room-name="设置" />
+        room-name="설정" />
     </template>
 
     <template #container>
@@ -14,29 +14,29 @@
 
       <div class="flex flex-col z-1">
         <div class="flex flex-col p-20px gap-20px">
-          <!-- 设置项 -->
+          <!-- 설정 항목 -->
           <div
             v-for="item in settings"
             :key="item.key"
             class="flex justify-between items-center bg-white p-12px rounded-lg shadow-sm">
             <div class="text-base">{{ item.label }}</div>
             <div>
-              <!-- 根据 type 渲染对应组件 -->
+              <!-- type에 따른 해당 컴포넌트 렌더링 -->
               <n-switch v-if="item.type === 'switch'" v-model:value="item.value" />
-              <n-input v-else-if="item.type === 'input'" v-model="item.value" placeholder="请输入" class="w-40" />
+              <n-input v-else-if="item.type === 'input'" v-model="item.value" placeholder="입력" class="w-40" />
               <n-select
                 v-else-if="item.type === 'select'"
                 v-model="item.value"
                 :options="item.options"
-                placeholder="请选择"
+                placeholder="선택"
                 class="w-40" />
             </div>
           </div>
 
-          <!-- 退出登录按钮 -->
+          <!-- 로그아웃 버튼 -->
           <div class="mt-auto flex justify-center mb-20px">
             <n-button type="error" @click="handleLogout" :disabled="isLoggingOut" :loading="isLoggingOut">
-              退出登录
+              로그아웃
             </n-button>
           </div>
         </div>
@@ -61,22 +61,22 @@ const { isTrayMenuShow } = storeToRefs(globalStore)
 const settingStore = useSettingStore()
 const userStore = useUserStore()
 
-// 定义设置项
+// 설정 항목 정의
 const settings = reactive([
   {
     key: 'notifications',
-    label: '消息通知',
+    label: '알림',
     type: 'switch',
     value: computed({
       get: () => true,
       set: () => {
-        /* 更新通知设置 */
+        /* 알림 설정 업데이트 */
       }
     })
   },
   {
     key: 'username',
-    label: '昵称',
+    label: '닉네임',
     type: 'input',
     value: computed({
       get: () => userStore.userInfo?.name || '',
@@ -85,27 +85,27 @@ const settings = reactive([
   },
   {
     key: 'theme',
-    label: '界面主题',
+    label: '테마',
     type: 'select',
     value: computed({
       get: () => settingStore.themes.content,
       set: (val) => settingStore.toggleTheme(val)
     }),
     options: [
-      { label: '浅色', value: ThemeEnum.LIGHT },
-      { label: '深色', value: ThemeEnum.DARK }
+      { label: '라이트', value: ThemeEnum.LIGHT },
+      { label: '다크', value: ThemeEnum.DARK }
     ]
   },
   {
     key: 'language',
-    label: '应用语言',
+    label: '언어',
     type: 'select',
     value: computed({
       get: () => 'zh',
       set: () => {}
     }),
     options: [
-      { label: '中文', value: 'zh' },
+      { label: '중국어', value: 'zh' },
       { label: 'English', value: 'en' },
       { label: '日本語', value: 'ja' }
     ]
@@ -114,64 +114,64 @@ const settings = reactive([
 
 const { logout, resetLoginState } = useLogin()
 
-// 登出处理状态标志
+// 로그아웃 처리 상태 플래그
 const isLoggingOut = ref(false)
 
-// 退出登录逻辑
+// 로그아웃 로직
 async function handleLogout() {
-  // 防止重复点击
+  // 중복 클릭 방지
   if (isLoggingOut.value) return
   isLoggingOut.value = true
 
   let logoutSuccess = false
 
   showDialog({
-    title: '退出登录',
-    message: '确定要退出登录吗？',
+    title: '로그아웃',
+    message: '정말 로그아웃 하시겠습니까?',
     showCancelButton: true,
-    confirmButtonText: '确定',
-    cancelButtonText: '取消'
+    confirmButtonText: '확인',
+    cancelButtonText: '취소'
   })
     .then(async () => {
       try {
         await ImRequestUtils.logout({ autoLogin: true })
         logoutSuccess = true
       } catch (error) {
-        console.error('服务器登出失败：', error)
-        // 即使服务器登出失败，也继续执行本地清理，但给出警告
-        window.$message.warning('服务器登出失败，但本地登录状态已清除')
+        console.error('서버 로그아웃 실패:', error)
+        // 서버 로그아웃 실패 시에도 로컬 정리는 계속하되, 경고 표시
+        window.$message.warning('서버 로그아웃 실패, 로컬 로그인 상태는 초기화됨')
       }
 
-      // 无论服务器登出是否成功，都执行本地状态清理
+      // 서버 로그아웃 성공 여부와 관계없이 로컬 상태 정리 실행
       try {
-        // 2. 重置登录状态
+        // 2. 로그인 상태 초기화
         await resetLoginState()
-        // 3. 最后调用登出方法(这会创建登录窗口或发送登出事件)
+        // 3. 마지막으로 로그아웃 메서드 호출(로그인 창 생성 또는 로그아웃 이벤트 전송)
         await logout()
 
         settingStore.toggleLogin(false, false)
-        info('登出账号')
+        info('계정 로그아웃')
         isTrayMenuShow.value = false
 
         if (logoutSuccess) {
-          window.$message.success('登出成功')
+          window.$message.success('로그아웃 성공')
         }
         await router.push('/mobile/login')
       } catch (localError) {
-        console.error('本地登出清理失败：', localError)
-        window.$message.error('本地登出清理失败，请重启应用')
+        console.error('로컬 로그아웃 정리 실패:', localError)
+        window.$message.error('로컬 로그아웃 정리 실패, 앱을 재시작해주세요')
       }
     })
     .catch(() => {
-      info('用户点击取消')
+      info('사용자 취소 클릭')
     })
     .finally(() => {
-      // 无论成功还是失败，都重置标志
+      // 성공 여부와 관계없이 플래그 초기화
       isLoggingOut.value = false
     })
 }
 
-// 你可以根据需要导出或操作 settings 数据
+// 필요에 따라 settings 데이터 내보내기 또는 조작 가능
 </script>
 
 <style lang="scss" scoped></style>

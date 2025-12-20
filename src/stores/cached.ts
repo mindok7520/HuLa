@@ -4,7 +4,7 @@ import type { CacheBadgeItem, CacheUserItem } from '@/services/types'
 import { getAnnouncementList, getBadgesBatch } from '@/utils/ImRequestUtils'
 import { invokeSilently } from '@/utils/TauriInvokeHandler.ts'
 
-// 定义基础用户信息类型，只包含uid、头像和名称
+// 기본 사용자 정보 유형 정의, uid, 아바타, 이름만 포함
 export type BaseUserItem = Pick<CacheUserItem, 'uid' | 'avatar' | 'name' | 'account'>
 
 export const useCachedStore = defineStore(StoresEnum.CACHED, () => {
@@ -20,18 +20,18 @@ export const useCachedStore = defineStore(StoresEnum.CACHED, () => {
         badgeList.value = data
       })
       .catch((e) => {
-        console.error('获取徽章列表失败', e)
-        window.$message.error('获取徽章列表失败')
+        console.error('배지 목록 가져오기 실패', e)
+        window.$message.error('배지 목록 가져오기 실패')
       })
   }
 
   const userAvatarUpdated = ref(false)
 
   /**
-   * 获取群组公告
-   * @roomId 群组ID
-   * @reload 是否强制重新加载
-   * @returns 群组公告列表
+   * 그룹 공지사항 가져오기
+   * @roomId 그룹 ID
+   * @reload 강제 새로고침 여부
+   * @returns 그룹 공지사항 목록
    */
   const getGroupAnnouncementList = async (roomId: string, page: number, size: number) => {
     return await getAnnouncementList(roomId, page, size)

@@ -4,7 +4,7 @@ use entity::prelude::ImUserEntity;
 use sea_orm::{ActiveValue::Set, ColumnTrait, ConnectionTrait, EntityTrait, QueryFilter};
 use tracing::{error, info};
 
-/// 更新用户的 is_init 状态
+/// 사용자의 is_init 상태 업데이트
 pub async fn update_user_init_status<C>(
     db: &C,
     login_uid: &str,
@@ -31,7 +31,7 @@ where
     }
 }
 
-/// 保存或更新用户的 token 信息
+/// 사용자의 토큰 정보 저장 또는 업데이트
 pub async fn save_user_tokens<C>(
     db: &C,
     login_uid: &str,
@@ -41,7 +41,7 @@ pub async fn save_user_tokens<C>(
 where
     C: ConnectionTrait,
 {
-    // 检查用户是否已存在
+    // 사용자가 이미 존재하는지 확인
     let existing_user = ImUserEntity::find()
         .filter(im_user::Column::Id.eq(login_uid))
         .one(db)
@@ -52,7 +52,7 @@ where
         })?;
 
     let user_update = if existing_user.is_some() {
-        // 用户存在，更新 token 信息
+        // 사용자가 존재하면 토큰 정보 업데이트
         im_user::ActiveModel {
             id: Set(login_uid.to_string()),
             token: Set(Some(token.to_string())),
@@ -60,18 +60,18 @@ where
             ..Default::default()
         }
     } else {
-        // 用户不存在，创建新用户并设置 token 信息
+        // 사용자가 존재하지 않으면 새 사용자 생성 및 토큰 정보 설정
         im_user::ActiveModel {
             id: Set(login_uid.to_string()),
             token: Set(Some(token.to_string())),
             refresh_token: Set(Some(refresh_token.to_string())),
-            is_init: Set(true), // 新用户默认未初始化
+            is_init: Set(true), // 새 사용자는 기본적으로 초기화되지 않음
             ..Default::default()
         }
     };
 
     if existing_user.is_some() {
-        // 更新现有用户
+        // 기존 사용자 업데이트
         match ImUserEntity::update(user_update).exec(db).await {
             Ok(_) => {
                 info!("User {} token info updated successfully", login_uid);
@@ -83,7 +83,7 @@ where
             }
         }
     } else {
-        // 插入新用户
+        // 새 사용자 삽입
         match ImUserEntity::insert(user_update).exec(db).await {
             Ok(_) => {
                 info!("New user {} created with token info", login_uid);
@@ -97,7 +97,7 @@ where
     }
 }
 
-/// 获取用户的 token 信息
+/// 사용자의 토큰 정보 가져오기
 pub async fn get_user_tokens<C>(
     db: &C,
     login_uid: &str,

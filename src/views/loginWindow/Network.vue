@@ -1,6 +1,6 @@
 <template>
   <n-config-provider :theme="naiveTheme" data-tauri-drag-region class="login-box size-full rounded-8px select-none">
-    <!--顶部操作栏-->
+    <!-- 상단 조작 바 -->
     <ActionBar :max-w="false" :shrink="false" proxy data-tauri-drag-region />
 
     <n-flex vertical :size="12" align="center" class="pt-10px">
@@ -162,7 +162,7 @@ const savedProxy = reactive({
   wsSuffix: ''
 })
 
-// 从本地存储加载设置
+// 로컬 스토리지에서 설정 로드
 onMounted(() => {
   const proxySettings = localStorage.getItem('proxySettings')
   if (proxySettings) {
@@ -186,7 +186,7 @@ const handleTab = async (tab: string) => {
   }
 }
 
-// 保存设置
+// 설정 저장
 const handleSave = async () => {
   try {
     if (
@@ -198,7 +198,7 @@ const handleSave = async () => {
     }
     let proxySettings
     if (proxy.value === 'api') {
-      // 保存到本地存储
+      // 로컬 스토리지에 저장
       proxySettings = {
         ...savedProxy,
         apiType: savedProxy.apiType,
@@ -207,7 +207,7 @@ const handleSave = async () => {
         apiSuffix: savedProxy.apiSuffix ? '/' + savedProxy.apiSuffix : ''
       }
     } else {
-      // 保存到本地存储
+      // 로컬 스토리지에 저장
       proxySettings = {
         ...savedProxy,
         wsType: savedProxy.wsType,

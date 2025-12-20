@@ -5,7 +5,7 @@
     @touchstart="handleTouchStart"
     @touchmove="handleTouchMove"
     @touchend="handleTouchEnd">
-    <!-- 下拉指示器 -->
+    <!-- 아래로 당김 표시기 -->
     <div
       class="refresh-indicator absolute left-0 right-0 z-30 w-full flex-center transform bg-transparent backdrop-blur-sm"
       :class="[
@@ -21,7 +21,7 @@
       }">
       <template v-if="isRefreshing">
         <img class="size-18px" src="@/assets/img/loading.svg" alt="" />
-        <span class="ml-2 text-sm color-#333">正在刷新...</span>
+        <span class="ml-2 text-sm color-#333">새로 고침 중...</span>
       </template>
       <template v-else>
         <div class="flex-center flex-col">
@@ -34,13 +34,13 @@
           </svg>
 
           <span class="text-xs mt-1">
-            {{ distance >= threshold ? '释放立即刷新' : '下拉可以刷新' }}
+            {{ distance >= threshold ? '놓으면 새로 고침' : '당겨서 새로 고침' }}
           </span>
         </div>
       </template>
     </div>
 
-    <!-- 内容区域 -->
+    <!-- 콘텐츠 영역 -->
     <div
       ref="contentRef"
       :class="['transform', { 'transition-transform duration-300': !isDragging }]"
@@ -58,9 +58,9 @@
 import { useEventListener } from '@vueuse/core'
 
 type Props = {
-  threshold?: number // 触发刷新的阈值
-  indicatorHeight?: number // 指示器高度
-  disabled?: boolean // 是否禁用下拉刷新
+  threshold?: number // 새로 고침 트리거 임계값
+  indicatorHeight?: number // 표시기 높이
+  disabled?: boolean // 아래로 당겨 새로 고침 비활성화 여부
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -78,11 +78,11 @@ const startY = ref(0)
 const isRefreshing = ref(false)
 const isDragging = ref(false)
 
-// rAF 降频更新，避免高频触发造成抖动
+// rAF 빈도 감소 업데이트, 고빈도 트리거로 인한 떨림 방지
 let rafId: number | null = null
 let pendingDistance: number | null = null
 
-// 刷新距离
+// 새로 고침 거리
 const flushDistance = () => {
   if (pendingDistance === null) return
   distance.value = pendingDistance
@@ -90,7 +90,7 @@ const flushDistance = () => {
   rafId = null
 }
 
-// 节流更新距离
+// 거리 업데이트 스로틀링
 const scheduleDistanceUpdate = (val: number) => {
   pendingDistance = val
   if (rafId == null) {
@@ -98,19 +98,19 @@ const scheduleDistanceUpdate = (val: number) => {
   }
 }
 
-// 处理触摸开始
+// 터치 시작 처리
 const handleTouchStart = (e: TouchEvent) => {
   if (props.disabled || isRefreshing.value) return
 
   const scrollTop = containerRef.value?.scrollTop ?? 0
-  // 只有在顶部才能下拉
+  // 상단에 있을 때만 당기기 가능
   if (scrollTop <= 0) {
     startY.value = e.touches[0].clientY
     isDragging.value = true
   }
 }
 
-// 处理触摸移动
+// 터치 이동 처리
 const handleTouchMove = (e: TouchEvent) => {
   if (props.disabled || !startY.value || isRefreshing.value) return
 
@@ -122,13 +122,13 @@ const handleTouchMove = (e: TouchEvent) => {
 
   if (diff > 0 && e.cancelable) {
     e.preventDefault()
-    // 使用阻尼系数让下拉变得越来越困难
+    // 감쇠 계수를 사용하여 당길수록 어렵게 만듦
     const next = Math.round(Math.min(diff * 0.4, props.threshold * 1.5))
     scheduleDistanceUpdate(next)
   }
 }
 
-// 处理触摸结束
+// 터치 종료 처리
 const handleTouchEnd = () => {
   if (props.disabled || !startY.value) return
 
@@ -137,12 +137,12 @@ const handleTouchEnd = () => {
     distance.value = props.indicatorHeight
     emit('refresh')
   } else {
-    // 回弹到初始位置
+    // 초기 위치로 반동
     distance.value = 0
   }
   startY.value = 0
   isDragging.value = false
-  // 取消未完成的 rAF
+  // 완료되지 않은 rAF 취소
   if (rafId != null) {
     cancelAnimationFrame(rafId)
     rafId = null
@@ -150,18 +150,18 @@ const handleTouchEnd = () => {
   }
 }
 
-// 完成刷新
+// 새로 고침 완료
 const finishRefresh = () => {
   isRefreshing.value = false
   distance.value = 0
 }
 
-// 暴露方法给父组件
+// 부모 컴포넌트에 메서드 노출
 defineExpose({
   finishRefresh
 })
 
-// 防止iOS橡皮筋效果
+// iOS 고무줄 효과 방지
 onMounted(() => {
   useEventListener(
     containerRef.value,

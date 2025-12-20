@@ -3,7 +3,7 @@ import { AppException } from '@/common/exception.ts'
 import { getSettings } from '@/services/tauriCommand'
 import type { TranslateProvider } from './types.ts'
 
-// 入参、翻译平台
+// 입력 매개변수, 번역 플랫폼
 interface TranslateResult {
   text: string
   provider: string
@@ -20,15 +20,15 @@ interface BackendTranslateSegmentsResponse {
 }
 
 /**
- * 普通翻译（一次性返回）
- * @param text 待翻译文本
- * @param provider 翻译提供商（默认读取后端配置，未传时为 tencent）
+ * 일반 번역 (일회성 반환)
+ * @param text 번역할 텍스트
+ * @param provider 번역 제공자 (백엔드 설정 기본값 읽기, 전달되지 않은 경우 tencent)
  */
 export const translateText = async (
   text: string,
   provider: TranslateProvider = 'tencent'
 ): Promise<TranslateResult> => {
-  if (!text?.trim()) throw new AppException('翻译文本不能为空')
+  if (!text?.trim()) throw new AppException('번역할 텍스트는 비워둘 수 없습니다')
   const settings = await getSettings()
   const resp = await fetch(`${settings.backend.base_url}/system/anyTenant/translate/text`, {
     method: 'POST',
@@ -36,21 +36,21 @@ export const translateText = async (
     body: JSON.stringify({ text, provider })
   })
   const json = (await resp.json()) as { code?: number; data?: BackendTranslateResponse; msg?: string }
-  if (!json || json.code !== 200 || !json.data) throw new AppException(json?.msg || '翻译失败')
+  if (!json || json.code !== 200 || !json.data) throw new AppException(json?.msg || '번역 실패')
   return { text: json.data.text, provider: json.data.provider }
 }
 
 /**
- * 流式翻译
- * 最终合并所有段返回完整译文
- * @param onSegment 分段到达时的回调（用于实时渲染）
+ * 스트리밍 번역
+ * 최종적으로 모든 세그먼트를 병합하여 전체 번역문 반환
+ * @param onSegment 세그먼트 도착 시 콜백 (실시간 렌더링용)
  */
 export const translateTextStream = async (
   text: string,
   provider: TranslateProvider = 'tencent',
   onSegment?: (seg: string) => void
 ): Promise<TranslateResult> => {
-  if (!text?.trim()) throw new AppException('翻译文本不能为空')
+  if (!text?.trim()) throw new AppException('번역할 텍스트는 비워둘 수 없습니다')
   const settings = await getSettings()
   const url = `${settings.backend.base_url}/system/anyTenant/translate/stream?text=${encodeURIComponent(text)}&provider=${encodeURIComponent(provider)}`
   return new Promise<TranslateResult>((resolve, reject) => {
@@ -67,21 +67,21 @@ export const translateTextStream = async (
     })
     es.addEventListener('error', () => {
       es.close()
-      reject(new AppException('流式翻译失败'))
+      reject(new AppException('스트리밍 번역 실패'))
     })
   })
 }
 
 /**
- * 段式数组翻译（写好暂时不调用）
- * @param text 待翻译文本
- * @param provider 翻译提供商（默认 tencent）
+ * 세그먼트 배열 번역 (작성해두었으나 당분간 호출하지 않음)
+ * @param text 번역할 텍스트
+ * @param provider 번역 제공자 (기본값 tencent)
  */
 export const translateTextSegments = async (
   text: string,
   provider: TranslateProvider = 'tencent'
 ): Promise<{ segments: string[]; provider: string }> => {
-  if (!text?.trim()) throw new AppException('翻译文本不能为空')
+  if (!text?.trim()) throw new AppException('번역할 텍스트는 비워둘 수 없습니다')
   const settings = await getSettings()
   const resp = await fetch(`${settings.backend.base_url}/system/anyTenant/translate/segment`, {
     method: 'POST',
@@ -89,6 +89,6 @@ export const translateTextSegments = async (
     body: JSON.stringify({ text, provider })
   })
   const json = (await resp.json()) as { code?: number; data?: BackendTranslateSegmentsResponse; msg?: string }
-  if (!json || json.code !== 200 || !json.data) throw new AppException(json?.msg || '翻译失败')
+  if (!json || json.code !== 200 || !json.data) throw new AppException(json?.msg || '번역 실패')
   return { segments: json.data.segments, provider: json.data.provider }
 }

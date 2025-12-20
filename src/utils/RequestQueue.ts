@@ -1,7 +1,7 @@
-// 高效的请求队列类
+// 효율적인 요청 큐 클래스
 export class RequestQueue {
-  private readonly maxSize: number = 100 // 队列最大容量
-  private readonly maxConcurrent: number = 5 // 最大并发数
+  private readonly maxSize: number = 100 // 큐 최대 용량
+  private readonly maxConcurrent: number = 5 // 최대 동시 실행 수
   private queue: Array<{
     resolve: (token: string) => void
     timestamp: number
@@ -11,11 +11,11 @@ export class RequestQueue {
 
   enqueue(resolve: (token: string) => void, priority: number = 0): void {
     if (this.queue.length >= this.maxSize) {
-      console.warn('请求队列已满，丢弃新请求')
+      console.warn('요청 큐가 가득 찼습니다. 새로운 요청을 무시합니다.')
       return
     }
 
-    // 按优先级和时间戳排序插入
+    // 우선순위와 타임스탬프 순서대로 삽입 정렬
     const request = {
       resolve,
       timestamp: Date.now(),
@@ -32,7 +32,7 @@ export class RequestQueue {
   }
 
   async processQueue(token: string): Promise<void> {
-    console.log(`开始处理队列中的 ${this.queue.length} 个请求`)
+    console.log(`큐에 있는 ${this.queue.length}개의 요청 처리를 시작합니다.`)
 
     while (this.queue.length > 0 && this.processing < this.maxConcurrent) {
       this.processing++
@@ -40,16 +40,16 @@ export class RequestQueue {
       const request = this.queue.shift()
       if (request) {
         try {
-          console.log(`处理请求 - 剩余 ${this.queue.length} 个`)
+          console.log(`요청 처리 중 - 남은 요청 ${this.queue.length}개`)
           await request.resolve(token)
         } catch (error) {
-          console.error('请求处理失败:', error)
+          console.error('요청 처리 실패:', error)
         } finally {
           this.processing--
         }
       }
 
-      // 控制请求间隔
+      // 요청 간격 제어
       await new Promise((resolve) => setTimeout(resolve, 50))
     }
   }

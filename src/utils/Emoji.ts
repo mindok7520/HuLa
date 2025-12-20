@@ -2,9 +2,8 @@ import { animalEmojis, expressionEmojis, gestureEmojis } from '@/components/righ
 import { useI18nGlobal } from '@/services/i18n'
 
 /**
- *
- * @param inputs 参数一个或多个字符串
- * @returns 返回二维数组
+ * @param inputs 하나 이상의 문자열 매개변수
+ * @returns 2차원 배열 반환
  */
 const splitEmoji = (...inputs: string[]) => {
   const emojiRegex: RegExp = /\p{Emoji}/u
@@ -24,7 +23,7 @@ const splitEmoji = (...inputs: string[]) => {
 }
 
 /**
- * 获取所有表情类型及其对应的表情数组
+ * 모든 이모지 유형 및 그에 해당하는 이모지 배열 가져오기
  */
 const getAllTypeEmojis = () => {
   const emojiArr = splitEmoji(expressionEmojis, animalEmojis, gestureEmojis)

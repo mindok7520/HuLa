@@ -11,7 +11,7 @@ export const useAnnouncementStore = defineStore(StoresEnum.ANNOUNCEMENT, () => {
   const userStore = useUserStore()
   const cachedStore = useCachedStore()
 
-  // 公告相关状态
+  // 공지사항 관련 상태
   const announList = ref<any[]>([])
   const announNum = ref(0)
   const announError = ref(false)
@@ -19,14 +19,14 @@ export const useAnnouncementStore = defineStore(StoresEnum.ANNOUNCEMENT, () => {
 
   const announcementContent = computed(() => (announList.value.length > 0 ? (announList.value[0]?.content ?? '') : ''))
 
-  // 判断当前用户是否有权限添加公告
+  // 현재 사용자가 공지사항을 추가할 권한이 있는지 확인
   const canAddAnnouncement = computed(() => {
     if (!userStore.userInfo?.uid) return false
 
     const isLord = groupStore.isCurrentLord(userStore.userInfo.uid) ?? false
     const isAdmin = groupStore.isAdmin(userStore.userInfo.uid) ?? false
 
-    // 判断当前用户是否拥有id为6的徽章 并且是频道
+    // 현재 사용자가 ID가 6인 배지를 가지고 있고 채널인지 확인
     const hasBadge6 = () => {
       if (globalStore.currentSessionRoomId !== '1') return false
 
@@ -38,7 +38,7 @@ export const useAnnouncementStore = defineStore(StoresEnum.ANNOUNCEMENT, () => {
   })
 
   /**
-   * 清空公告
+   * 공지사항 삭제
    */
   const clearAnnouncements = () => {
     announList.value = []
@@ -56,18 +56,18 @@ export const useAnnouncementStore = defineStore(StoresEnum.ANNOUNCEMENT, () => {
   const loadGroupAnnouncements = async (roomId?: string) => {
     const targetRoomId = roomId ?? globalStore.currentSessionRoomId
     if (!targetRoomId) {
-      console.error('当前会话没有roomId')
+      console.error('현재 세션에 roomId가 없습니다')
       return
     }
 
     try {
-      // 判断是否可以添加公告
+      // 공지사항 추가 가능 여부 판단
       isAddAnnoun.value = canAddAnnouncement.value
 
-      // 获取群公告列表
+      // 그룹 공지사항 목록 가져오기
       const data = await cachedStore.getGroupAnnouncementList(targetRoomId, 1, 10)
 
-      // 会话已切换，避免覆盖其他房间的数据
+      // 세션이 변경됨, 다른 방의 데이터를 덮어쓰지 않도록 방지
       if (targetRoomId !== globalStore.currentSessionRoomId) {
         return
       }
@@ -82,7 +82,7 @@ export const useAnnouncementStore = defineStore(StoresEnum.ANNOUNCEMENT, () => {
         announError.value = false
       }
     } catch (error) {
-      console.error('加载群公告失败:', error)
+      console.error('그룹 공지사항 로드 실패:', error)
       if (targetRoomId === globalStore.currentSessionRoomId) {
         announError.value = true
       }

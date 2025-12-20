@@ -51,7 +51,7 @@ export const lock = ref({
       lockScreen.value.password = formValue.value.lockPassword
       lockScreen.value.enable = true
       setTimeout(async () => {
-        /** 发送锁屏事件，当打开的窗口接受到后会自动锁屏 */
+        /** 잠금 화면 이벤트 전송, 열린 창이 수신하면 자동으로 잠금 */
         await emit(EventEnum.LOCK_SCREEN)
         lock.value.loading = false
         modalShow.value = false
@@ -62,8 +62,8 @@ export const lock = ref({
   }
 })
 
-/*============================================ model =====================================================*/
-/**  锁屏弹窗 */
+/*============================================ 모델 =====================================================*/
+/** 잠금 화면 팝업 */
 export const LockScreen = defineComponent(() => {
   const userStore = useUserStore()
   const { t } = useI18n()
@@ -119,11 +119,11 @@ export const LockScreen = defineComponent(() => {
 })
 
 /**
- * 检查更新弹窗
+ * 업데이트 확인 팝업
  */
 export const CheckUpdate = defineComponent(() => {
   const { t } = useI18n()
-  /** 项目提交日志记录 */
+  /** 프로젝트 커밋 로그 기록 */
   const commitLog = ref<{ message: string; icon: string }[]>([])
   const newCommitLog = ref<{ message: string; icon: string }[]>([])
   type ButtonState = 'check_now' | 'update_now' | 'downloading' | 'update_success'
@@ -133,7 +133,7 @@ export const CheckUpdate = defineComponent(() => {
   const loading = ref(false)
   const checkLoading = ref(false)
   const updating = ref(false)
-  /** 版本更新日期 */
+  /** 버전 업데이트 날짜 */
   const versionTime = ref('')
   const newVersionTime = ref('')
   const percentage = ref(0)
@@ -162,7 +162,7 @@ export const CheckUpdate = defineComponent(() => {
     }
   }
 
-  /* 记录检测更新的版本 */
+  /* 업데이트 확인 버전 기록 */
   //let lastVersion: string | null = null
 
   const getCommitLog = async (url: string, isNew = false) => {
@@ -175,7 +175,7 @@ export const CheckUpdate = defineComponent(() => {
       res.json().then(async (data) => {
         isNew ? (newVersionTime.value = data.created_at) : (versionTime.value = data.created_at)
         await nextTick(() => {
-          // 使用正则表达式提取 * 号后面的内容
+          // 정규식을 사용하여 * 뒤의 내용 추출
           const regex = /\* (.+)/g
           let match
           const logs = []
@@ -183,9 +183,9 @@ export const CheckUpdate = defineComponent(() => {
             logs.push(match[1])
           }
           const processedLogs = logs.map((commit) => {
-            // 获取最后一个 : 号的位置
+            // 마지막 : 위치 가져오기
             const lastColonIndex = commit.lastIndexOf(':')
-            // 截取最后一个 : 号后的内容
+            // 마지막 : 뒤의 내용 잘라내기
             const message = lastColonIndex !== -1 ? commit.substring(lastColonIndex + 1).trim() : commit
             return {
               message: message,
@@ -254,7 +254,7 @@ export const CheckUpdate = defineComponent(() => {
           return
         }
         newVersion.value = e.version
-        // 检查版本之间不同的提交信息和提交日期
+        // 버전 간의 다른 커밋 메시지 및 커밋 날짜 확인
         const url = `https://gitee.com/api/v5/repos/HuLaSpark/HuLa/releases/tags/v${newVersion.value}?access_token=${import.meta.env.VITE_GITEE_TOKEN}`
         getCommitLog(url, true)
         buttonState.value = 'update_now'

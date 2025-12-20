@@ -48,16 +48,16 @@ impl ImRequestClient {
         self.base_url = base_url;
     }
 
-    /// 构建请求的公共方法（不发送请求）
+    /// 요청을 구축하는 공통 메서드 (요청을 보내지 않음)
     ///
-    /// 提取了 URL 构建、token 添加、body/params 处理等公共逻辑
+    /// URL 구축, 토큰 추가, body/params 처리 등 공통 로직을 추출했습니다.
     ///
-    /// # 参数
-    /// - `method`: HTTP 方法
-    /// - `path`: API 路径
-    /// - `body`: 请求体（可选）
-    /// - `params`: 查询参数（可选）
-    /// - `extra_headers`: 额外的请求头（可选）
+    /// # 매개변수
+    /// - `method`: HTTP 메서드
+    /// - `path`: API 경로
+    /// - `body`: 요청 본문 (선택 사항)
+    /// - `params`: 쿼리 매개변수 (선택 사항)
+    /// - `extra_headers`: 추가 요청 헤더 (선택 사항)
     fn build_request<B: serde::Serialize, C: serde::Serialize>(
         &self,
         method: http::Method,
@@ -71,26 +71,26 @@ impl ImRequestClient {
 
         let mut request_builder = self.client.request(method, &url);
 
-        // 设置 token 请求头
+        // 토큰 요청 헤더 설정
         if let Some(token) = &self.token {
             request_builder = request_builder.header("token", token);
         }
 
-        // 添加额外的请求头
+        // 추가 요청 헤더 추가
         if let Some(headers) = extra_headers {
             for (key, value) in headers {
                 request_builder = request_builder.header(key, value);
             }
         }
 
-        // 设置请求体
+        // 요청 본문 설정
         if let Some(body) = body {
             request_builder = request_builder.json(body);
         } else {
             request_builder = request_builder.json(&serde_json::json!({}));
         }
 
-        // 设置查询参数
+        // 쿼리 매개변수 설정
         if let Some(params) = params {
             request_builder = request_builder.query(params);
         }
@@ -113,10 +113,10 @@ impl ImRequestClient {
         const MAX_RETRY_COUNT: u8 = 2;
 
         loop {
-            // 使用 build_request 构建请求
+            // build_request를 사용하여 요청 구축
             let request_builder = self.build_request(method.clone(), path, &body, &params, None);
 
-            // 发送请求
+            // 요청 보내기
             let response = request_builder.send().await?;
             let result: ApiResult<T> = response.json().await?;
 
@@ -125,7 +125,7 @@ impl ImRequestClient {
             match result.code {
                 Some(406) => {
                     if retry_count >= MAX_RETRY_COUNT {
-                        return Err(anyhow::anyhow!("token过期，刷新token失败"));
+                        return Err(anyhow::anyhow!("토큰 만료, 토큰 새로고침 실패"));
                     }
 
                     error!("Token expired, starting token refresh");
@@ -135,12 +135,12 @@ impl ImRequestClient {
                 }
                 Some(401) => {
                     error!(
-                        "{}; 方法: {}; 失败信息: {}",
+                        "{}; 메서드: {}; 실패 정보: {}",
                         &url,
                         method,
                         result.msg.clone().unwrap_or_default()
                     );
-                    return Err(anyhow::anyhow!("请重新登录"));
+                    return Err(anyhow::anyhow!("다시 로그인해 주세요"));
                 }
                 Some(200) => {
                     info!("Request successful: {}, Method: {}", &url, method.clone());
@@ -148,7 +148,7 @@ impl ImRequestClient {
                 }
                 _ => {
                     error!(
-                        "{}; 方法: {}; 失败信息: {}",
+                        "{}; 메서드: {}; 실패 정보: {}",
                         &url,
                         method,
                         result.msg.clone().unwrap_or_default()
@@ -162,22 +162,22 @@ impl ImRequestClient {
         }
     }
 
-    /// 流式请求方法（用于 SSE 等流式响应）
+    /// 스트리밍 요청 메서드 (SSE와 같은 스트리밍 응답용)
     ///
-    /// 与 `request` 方法的区别：
-    /// 1. 添加 `Accept: text/event-stream` 请求头
-    /// 2. 返回 `reqwest::Response` 而不是解析 JSON
-    /// 3. 不支持自动 token 刷新重试（因为流式响应无法中断重试）
+    /// `request` 메서드와의 차이점:
+    /// 1. `Accept: text/event-stream` 요청 헤더 추가
+    /// 2. JSON 파싱 대신 `reqwest::Response` 반환
+    /// 3. 자동 토큰 새로고침 및 재시도 미지원 (스트리밍 응답은 중단 후 재시도가 불가능하기 때문)
     ///
-    /// # 参数
-    /// - `method`: HTTP 方法
-    /// - `path`: API 路径
-    /// - `body`: 请求体（可选）
-    /// - `params`: 查询参数（可选）
+    /// # 매개변수
+    /// - `method`: HTTP 메서드
+    /// - `path`: API 경로
+    /// - `body`: 요청 본문 (선택 사항)
+    /// - `params`: 쿼리 매개변수 (선택 사항)
     ///
-    /// # 返回
-    /// - `Ok(Response)`: 成功返回响应对象，可用于读取流式数据
-    /// - `Err`: 请求失败或状态码非 2xx
+    /// # 반환
+    /// - `Ok(Response)`: 성공 시 스트리밍 데이터를 읽을 수 있는 응답 객체 반환
+    /// - `Err`: 요청 실패 또는 2xx 이외의 상태 코드 반환
     pub async fn request_stream<B: serde::Serialize, C: serde::Serialize>(
         &mut self,
         method: http::Method,
@@ -185,39 +185,39 @@ impl ImRequestClient {
         body: Option<B>,
         params: Option<C>,
     ) -> Result<reqwest::Response, anyhow::Error> {
-        // 添加流式请求头
+        // 스트리밍 요청 헤더 추가
         let extra_headers = Some(vec![("Accept", "text/event-stream")]);
 
-        // 使用 build_request 构建请求
+        // build_request를 사용하여 요청 구축
         let request_builder =
             self.build_request(method.clone(), path, &body, &params, extra_headers);
 
-        // 发送请求
+        // 요청 보내기
         let response = request_builder.send().await?;
 
-        // 检查响应状态（但不解析 JSON）
+        // 응답 상태 확인 (JSON은 파싱하지 않음)
         let status = response.status();
         if !status.is_success() {
             let url = format!("{}/{}", self.base_url, path);
-            error!("流式请求失败，URL: {}, 状态码: {}", url, status);
+            error!("스트리밍 요청 실패, URL: {}, 상태 코드: {}", url, status);
 
-            // 根据状态码返回不同的错误信息
+            // 상태 코드에 따라 다른 오류 메시지 반환
             match status.as_u16() {
                 406 => {
                     error!("Token expired in stream request");
-                    return Err(anyhow::anyhow!("token过期，请刷新后重试"));
+                    return Err(anyhow::anyhow!("토큰 만료, 새로고침 후 다시 시도해 주세요"));
                 }
                 401 => {
                     error!("Unauthorized in stream request");
-                    return Err(anyhow::anyhow!("请重新登录"));
+                    return Err(anyhow::anyhow!("다시 로그인해 주세요"));
                 }
                 _ => {
-                    return Err(anyhow::anyhow!("请求失败，状态码: {}", status));
+                    return Err(anyhow::anyhow!("요청 실패, 상태 코드: {}", status));
                 }
             }
         }
 
-        info!("流式请求成功，开始接收流式数据");
+        info!("스트리밍 요청 성공, 스트리밍 데이터 수신 시작");
         Ok(response)
     }
 
@@ -234,9 +234,9 @@ impl ImRequestClient {
         let result: ApiResult<serde_json::Value> = response.json().await?;
 
         if !result.success {
-            error!("刷新token失败: {}", result.msg.clone().unwrap_or_default());
+            error!("토큰 새로고침 실패: {}", result.msg.clone().unwrap_or_default());
             return Err(anyhow::anyhow!(
-                "刷新token失败: {}",
+                "토큰 새로고침 실패: {}",
                 result.msg.clone().unwrap_or_default()
             ));
         }
@@ -387,12 +387,12 @@ pub enum ImUrl {
     DelFeed,
     EditFeed,
     GetFeedPermission,
-    // 朋友圈点赞相关
+    // 타임라인 좋아요 관련
     FeedLikeToggle,
     FeedLikeList,
     FeedLikeCount,
     FeedLikeHasLiked,
-    // 朋友圈评论相关
+    // 타임라인 댓글 관련
     FeedCommentAdd,
     FeedCommentDelete,
     FeedCommentList,
@@ -542,7 +542,7 @@ pub enum ImUrl {
 impl ImUrl {
     pub fn get_url(&self) -> (http::Method, &str) {
         match self {
-            // Token 相关
+            // 토큰 관련
             ImUrl::Login => (http::Method::POST, "oauth/anyTenant/login"),
             ImUrl::RefreshToken => (http::Method::POST, "oauth/anyTenant/refresh"),
             ImUrl::ForgetPassword => (http::Method::PUT, "oauth/anyTenant/password"),
@@ -550,7 +550,7 @@ impl ImUrl {
             ImUrl::Logout => (http::Method::POST, "oauth/anyUser/logout"),
             ImUrl::Register => (http::Method::POST, "oauth/anyTenant/registerByEmail"),
 
-            // 系统相关
+            // 시스템 관련
             ImUrl::GetQiniuToken => (http::Method::GET, "system/anyTenant/ossToken"),
             ImUrl::InitConfig => (http::Method::GET, "system/anyTenant/config/init"),
             ImUrl::StorageProvider => (http::Method::GET, "system/anyTenant/storage/provider"),
@@ -561,21 +561,21 @@ impl ImUrl {
             ImUrl::MapStatic => (http::Method::GET, "system/anyTenant/map/static"),
             ImUrl::GetAssistantModelList => (http::Method::GET, "system/model/list"),
 
-            // 验证码相关
+            // 인증번호(OTP) 관련
             ImUrl::SendCaptcha => (http::Method::POST, "oauth/anyTenant/sendEmailCode"),
             ImUrl::GetCaptcha => (http::Method::GET, "oauth/anyTenant/captcha"),
 
-            // 群公告相关
+            // 그룹 공지 관련
             ImUrl::Announcement => (http::Method::GET, "im/room/announcement"),
             ImUrl::EditAnnouncement => (http::Method::POST, "im/room/announcement/edit"),
             ImUrl::DeleteAnnouncement => (http::Method::POST, "im/room/announcement/delete"),
             ImUrl::PushAnnouncement => (http::Method::POST, "im/room/announcement/push"),
             ImUrl::GetAnnouncementList => (http::Method::GET, "im/room/announcement/list"),
 
-            // 群聊申请相关
+            // 그룹 채팅 신청 관련
             ImUrl::ApplyGroup => (http::Method::POST, "im/room/apply/group"),
 
-            // 群聊搜索和管理
+            // 그룹 채팅 검색 및 관리
             ImUrl::SearchGroup => (http::Method::GET, "im/room/search"),
             ImUrl::UpdateMyRoomInfo => (http::Method::POST, "im/room/updateMyRoomInfo"),
             ImUrl::UpdateRoomInfo => (http::Method::POST, "im/room/updateRoomInfo"),
@@ -584,11 +584,11 @@ impl ImUrl {
             ImUrl::GroupDetail => (http::Method::GET, "im/room/group/detail"),
             ImUrl::GroupInfo => (http::Method::GET, "im/room/group/info"),
 
-            // 群聊管理员
+            // 그룹 채팅 관리자
             ImUrl::RevokeAdmin => (http::Method::DELETE, "im/room/group/admin"),
             ImUrl::AddAdmin => (http::Method::PUT, "im/room/group/admin"),
 
-            // 群聊成员管理
+            // 그룹 채팅 멤버 관리
             ImUrl::ExitGroup => (http::Method::DELETE, "im/room/group/member/exit"),
             ImUrl::AcceptInvite => (http::Method::POST, "im/room/group/invite/accept"),
             ImUrl::InviteList => (http::Method::GET, "im/room/group/invite/list"),
@@ -596,7 +596,7 @@ impl ImUrl {
             ImUrl::RemoveGroupMember => (http::Method::DELETE, "im/room/group/member"),
             ImUrl::CreateGroup => (http::Method::POST, "im/room/group"),
 
-            // 聊天会话相关
+            // 채팅 세션 관련
             ImUrl::Shield => (http::Method::POST, "im/chat/setShield"),
             ImUrl::Notification => (http::Method::POST, "im/chat/notification"),
             ImUrl::DeleteSession => (http::Method::DELETE, "im/chat/delete"),
@@ -605,13 +605,13 @@ impl ImUrl {
             ImUrl::SessionDetail => (http::Method::GET, "im/chat/contact/detail"),
             ImUrl::SetHide => (http::Method::POST, "im/chat/setHide"),
 
-            // 消息已读未读
+            // 메시지 읽음/읽지 않음
             ImUrl::GetMsgReadCount => (http::Method::GET, "im/chat/msg/read"),
             ImUrl::MarkMsgRead => (http::Method::PUT, "im/chat/msg/read"),
             ImUrl::SendMsg => (http::Method::POST, "im/chat/msg"),
             ImUrl::GetMsgReadList => (http::Method::GET, "im/chat/msg/read/page"),
 
-            // 好友相关
+            // 친구 관련
             ImUrl::ModifyFriendRemark => (http::Method::POST, "im/user/friend/updateRemark"),
             ImUrl::DeleteFriend => (http::Method::DELETE, "im/user/friend"),
             ImUrl::SendAddFriendRequest => (http::Method::POST, "im/room/apply/apply"),
@@ -622,11 +622,11 @@ impl ImUrl {
             ImUrl::GetContactList => (http::Method::GET, "im/chat/contact/list"),
             ImUrl::SearchFriend => (http::Method::GET, "im/user/friend/search"),
 
-            // 用户状态相关
+            // 사용자 상태 관련
             ImUrl::ChangeUserState => (http::Method::POST, "im/user/state/changeState"),
             ImUrl::GetAllUserState => (http::Method::GET, "im/user/state/list"),
 
-            // 用户信息相关
+            // 사용자 정보 관련
             ImUrl::UploadAvatar => (http::Method::POST, "im/user/avatar"),
             ImUrl::GetEmoji => (http::Method::GET, "im/user/emoji/list"),
             ImUrl::DeleteEmoji => (http::Method::DELETE, "im/user/emoji"),
@@ -638,39 +638,39 @@ impl ImUrl {
             ImUrl::GetBadgeList => (http::Method::GET, "im/user/badges"),
             ImUrl::BlockUser => (http::Method::PUT, "im/user/black"),
 
-            // 扫码登录相关
+            // QR 코드 로그인 관련
             ImUrl::GenerateQRCode => (http::Method::GET, "oauth/anyTenant/qr/generate"),
             ImUrl::CheckQRStatus => (http::Method::GET, "oauth/anyTenant/qr/status/query"),
             ImUrl::ScanQRCode => (http::Method::POST, "oauth/qrcode/scan"),
             ImUrl::ConfirmQRCode => (http::Method::POST, "oauth/qrcode/confirm"),
 
-            // 消息相关
+            // 메시지 관련
             ImUrl::RecallMsg => (http::Method::PUT, "im/chat/msg/recall"),
             ImUrl::MarkMsg => (http::Method::PUT, "im/chat/msg/mark"),
             ImUrl::GetMsgPage => (http::Method::GET, "im/chat/msg/page"),
             ImUrl::GetMsgList => (http::Method::POST, "im/chat/msg/list"),
             ImUrl::GetMemberStatistic => (http::Method::GET, "im/chat/member/statistic"),
 
-            // 朋友圈相关
+            // 타임라인(SNS) 관련
             ImUrl::FeedList => (http::Method::POST, "im/feed/list"),
             ImUrl::PushFeed => (http::Method::POST, "im/feed/pushFeed"),
             ImUrl::GetFeedPermission => (http::Method::GET, "im/feed/getFeedPermission"),
             ImUrl::EditFeed => (http::Method::POST, "im/feed/edit"),
             ImUrl::DelFeed => (http::Method::POST, "im/feed/del"),
             ImUrl::FeedDetail => (http::Method::GET, "im/feed/detail"),
-            // 朋友圈点赞相关
+            // 타임라인 좋아요 관련
             ImUrl::FeedLikeToggle => (http::Method::POST, "im/feed/like/toggle"),
             ImUrl::FeedLikeList => (http::Method::GET, "im/feed/like/list"),
             ImUrl::FeedLikeCount => (http::Method::GET, "im/feed/like/count"),
             ImUrl::FeedLikeHasLiked => (http::Method::GET, "im/feed/like/hasLiked"),
-            // 朋友圈评论相关
+            // 타임라인 댓글 관련
             ImUrl::FeedCommentAdd => (http::Method::POST, "im/feed/comment/add"),
             ImUrl::FeedCommentDelete => (http::Method::POST, "im/feed/comment/delete"),
             ImUrl::FeedCommentList => (http::Method::POST, "im/feed/comment/list"),
             ImUrl::FeedCommentAll => (http::Method::GET, "im/feed/comment/all"),
             ImUrl::FeedCommentCount => (http::Method::GET, "im/feed/comment/count"),
 
-            // ai相关 - 聊天消息
+            // AI 관련 - 채팅 메시지
             ImUrl::MessageSend => (http::Method::POST, "ai/chat/message/send"),
             ImUrl::MessageSendStream => (http::Method::POST, "ai/chat/message/send-stream"),
             ImUrl::MessageListByConversationId => {
@@ -689,7 +689,7 @@ impl ImUrl {
                 (http::Method::POST, "ai/chat/message/save-generated-content")
             }
 
-            // AI 聊天对话
+            // AI 채팅 대화
             ImUrl::ConversationCreateMy => (http::Method::POST, "ai/chat/conversation/create-my"),
             ImUrl::ConversationUpdateMy => (http::Method::PUT, "ai/chat/conversation/update-my"),
             ImUrl::ConversationMyList => (http::Method::GET, "ai/chat/conversation/my-list"),
@@ -704,7 +704,7 @@ impl ImUrl {
                 (http::Method::DELETE, "ai/chat/conversation/delete-by-admin")
             }
 
-            // AI 模型相关接口
+            // AI 모델 관련 인터페이스
             ImUrl::ModelCreate => (http::Method::POST, "ai/model/create"),
             ImUrl::ModelUpdate => (http::Method::PUT, "ai/model/update"),
             ImUrl::ModelDelete => (http::Method::DELETE, "ai/model/delete"),
@@ -712,7 +712,7 @@ impl ImUrl {
             ImUrl::ModelPage => (http::Method::GET, "ai/model/page"),
             ImUrl::ModelSimpleList => (http::Method::GET, "ai/model/simple-list"),
 
-            // 聊天角色相关接口
+            // 채팅 역할 관련 인터페이스
             ImUrl::ChatRoleMyPage => (http::Method::GET, "ai/chat-role/my-page"),
             ImUrl::ChatRoleGetMy => (http::Method::GET, "ai/chat-role/get-my"),
             ImUrl::ChatRoleCreateMy => (http::Method::POST, "ai/chat-role/create-my"),
@@ -725,7 +725,7 @@ impl ImUrl {
             ImUrl::ChatRoleGet => (http::Method::GET, "ai/chat-role/get"),
             ImUrl::ChatRolePage => (http::Method::GET, "ai/chat-role/page"),
 
-            // API 密钥相关接口
+            // API 키 관련 인터페이스
             ImUrl::ApiKeyCreate => (http::Method::POST, "ai/api-key/create"),
             ImUrl::ApiKeyUpdate => (http::Method::PUT, "ai/api-key/update"),
             ImUrl::ApiKeyDelete => (http::Method::DELETE, "ai/api-key/delete"),
@@ -734,11 +734,11 @@ impl ImUrl {
             ImUrl::ApiKeySimpleList => (http::Method::GET, "ai/api-key/simple-list"),
             ImUrl::ApiKeyBalance => (http::Method::GET, "ai/api-key/balance"),
 
-            // 平台相关接口
+            // 플랫폼 관련 인터페이스
             ImUrl::PlatformList => (http::Method::GET, "ai/platform/list"),
             ImUrl::PlatformAddModel => (http::Method::POST, "ai/platform/add-model"),
 
-            // AI 工具相关接口
+            // AI 도구 관련 인터페이스
             ImUrl::ToolCreate => (http::Method::POST, "ai/tool/create"),
             ImUrl::ToolUpdate => (http::Method::PUT, "ai/tool/update"),
             ImUrl::ToolDelete => (http::Method::DELETE, "ai/tool/delete"),
@@ -746,7 +746,7 @@ impl ImUrl {
             ImUrl::ToolPage => (http::Method::GET, "ai/tool/page"),
             ImUrl::ToolSimpleList => (http::Method::GET, "ai/tool/simple-list"),
 
-            // AI 绘画
+            // AI 이미지 생성(그리기)
             ImUrl::ImageMyPage => (http::Method::GET, "ai/image/my-page"),
             ImUrl::ImagePublicPage => (http::Method::GET, "ai/image/public-page"),
             ImUrl::ImageGetMy => (http::Method::GET, "ai/image/get-my"),
@@ -760,14 +760,14 @@ impl ImUrl {
             ImUrl::ImageUpdate => (http::Method::PUT, "ai/image/update"),
             ImUrl::ImageDelete => (http::Method::DELETE, "ai/image/delete"),
 
-            // AI 视频生成
+            // AI 비디오 생성
             ImUrl::VideoMyPage => (http::Method::GET, "ai/video/my-page"),
             ImUrl::VideoGet => (http::Method::GET, "ai/video/get"),
             ImUrl::VideoMyListByIds => (http::Method::GET, "ai/video/my-list-by-ids"),
             ImUrl::VideoGenerate => (http::Method::POST, "ai/video/generate"),
             ImUrl::VideoDeleteMy => (http::Method::DELETE, "ai/video/delete-my"),
 
-            // AI 音频生成
+            // AI 오디오 생성
             ImUrl::AudioMyPage => (http::Method::GET, "ai/audio/my-page"),
             ImUrl::AudioGetMy => (http::Method::GET, "ai/audio/get-my"),
             ImUrl::AudioMyListByIds => (http::Method::GET, "ai/audio/my-list-by-ids"),
@@ -775,7 +775,7 @@ impl ImUrl {
             ImUrl::AudioDeleteMy => (http::Method::DELETE, "ai/audio/delete-my"),
             ImUrl::AudioVoices => (http::Method::GET, "ai/audio/voices"),
 
-            // 知识库相关接口
+            // 지식베이스 관련 인터페이스
             ImUrl::KnowledgePage => (http::Method::GET, "ai/knowledge/page"),
             ImUrl::KnowledgeGet => (http::Method::GET, "ai/knowledge/get"),
             ImUrl::KnowledgeCreate => (http::Method::POST, "ai/knowledge/create"),
@@ -783,7 +783,7 @@ impl ImUrl {
             ImUrl::KnowledgeDelete => (http::Method::DELETE, "ai/knowledge/delete"),
             ImUrl::KnowledgeSimpleList => (http::Method::GET, "ai/knowledge/simple-list"),
 
-            // 知识库文档相关接口
+            // 지식베이스 문서 관련 인터페이스
             ImUrl::KnowledgeDocumentPage => (http::Method::GET, "ai/knowledge/document/page"),
             ImUrl::KnowledgeDocumentGet => (http::Method::GET, "ai/knowledge/document/get"),
             ImUrl::KnowledgeDocumentCreate => (http::Method::POST, "ai/knowledge/document/create"),
@@ -798,7 +798,7 @@ impl ImUrl {
                 (http::Method::DELETE, "ai/knowledge/document/delete")
             }
 
-            // 知识库文档片段相关接口
+            // 지식베이스 문서 단락 관련 인터페이스
             ImUrl::KnowledgeSegmentGet => (http::Method::GET, "ai/knowledge/segment/get"),
             ImUrl::KnowledgeSegmentPage => (http::Method::GET, "ai/knowledge/segment/page"),
             ImUrl::KnowledgeSegmentCreate => (http::Method::POST, "ai/knowledge/segment/create"),
@@ -812,12 +812,12 @@ impl ImUrl {
             }
             ImUrl::KnowledgeSegmentSearch => (http::Method::GET, "ai/knowledge/segment/search"),
 
-            // AI 思维导图相关接口
+            // AI 마인드맵 관련 인터페이스
             ImUrl::MindMapGenerateStream => (http::Method::POST, "ai/mind-map/generate-stream"),
             ImUrl::MindMapDelete => (http::Method::DELETE, "ai/mind-map/delete"),
             ImUrl::MindMapPage => (http::Method::GET, "ai/mind-map/page"),
 
-            // 音乐
+            // 음악
             ImUrl::MusicMyPage => (http::Method::GET, "ai/music/my-page"),
             ImUrl::MusicGenerate => (http::Method::POST, "ai/music/generate"),
             ImUrl::MusicDeleteMy => (http::Method::DELETE, "ai/music/delete-my"),
@@ -827,7 +827,7 @@ impl ImUrl {
             ImUrl::MusicDelete => (http::Method::DELETE, "ai/music/delete"),
             ImUrl::MusicUpdate => (http::Method::PUT, "ai/music/update"),
 
-            // 工作流
+            // 워크플로
             ImUrl::WorkflowCreate => (http::Method::POST, "ai/workflow/create"),
             ImUrl::WorkflowUpdate => (http::Method::PUT, "ai/workflow/update"),
             ImUrl::WorkflowDelete => (http::Method::DELETE, "ai/workflow/delete"),
@@ -835,12 +835,12 @@ impl ImUrl {
             ImUrl::WorkflowPage => (http::Method::GET, "ai/workflow/page"),
             ImUrl::WorkflowTest => (http::Method::POST, "ai/workflow/test"),
 
-            // 写作
+            // 글쓰기
             ImUrl::WriteGenerateStream => (http::Method::POST, "ai/write/generate-stream"),
             ImUrl::WriteDelete => (http::Method::DELETE, "ai/write/delete"),
             ImUrl::WritePage => (http::Method::GET, "ai/write/page"),
 
-            // 群成员信息
+            // 그룹 멤버 정보
             ImUrl::GetAllUserBaseInfo => (http::Method::GET, "im/room/group/member/list"),
             ImUrl::CheckEmail => (http::Method::GET, "oauth/anyTenant/checkEmail"),
 
@@ -851,7 +851,7 @@ impl ImUrl {
 
     fn from_str(s: &str) -> Result<Self, anyhow::Error> {
         match s {
-            // Token 相关
+            // 토큰 관련
             "login" => Ok(ImUrl::Login),
             "refreshToken" => Ok(ImUrl::RefreshToken),
             "forgetPassword" => Ok(ImUrl::ForgetPassword),
@@ -859,7 +859,7 @@ impl ImUrl {
             "logout" => Ok(ImUrl::Logout),
             "register" => Ok(ImUrl::Register),
 
-            // 系统相关
+            // 시스템 관련
             "getQiniuToken" => Ok(ImUrl::GetQiniuToken),
             "initConfig" => Ok(ImUrl::InitConfig),
             "storageProvider" => Ok(ImUrl::StorageProvider),
@@ -868,21 +868,21 @@ impl ImUrl {
             "mapStatic" => Ok(ImUrl::MapStatic),
             "getAssistantModelList" => Ok(ImUrl::GetAssistantModelList),
 
-            // 验证码相关
+            // 인증번호(OTP) 관련
             "sendCaptcha" => Ok(ImUrl::SendCaptcha),
             "getCaptcha" => Ok(ImUrl::GetCaptcha),
 
-            // 群公告相关
+            // 그룹 공지 관련
             "announcement" => Ok(ImUrl::Announcement),
             "editAnnouncement" => Ok(ImUrl::EditAnnouncement),
             "deleteAnnouncement" => Ok(ImUrl::DeleteAnnouncement),
             "pushAnnouncement" => Ok(ImUrl::PushAnnouncement),
             "getAnnouncementList" => Ok(ImUrl::GetAnnouncementList),
 
-            // 群聊申请相关
+            // 그룹 채팅 신청 관련
             "applyGroup" => Ok(ImUrl::ApplyGroup),
 
-            // 群聊搜索和管理
+            // 그룹 채팅 검색 및 관리
             "searchGroup" => Ok(ImUrl::SearchGroup),
             "updateMyRoomInfo" => Ok(ImUrl::UpdateMyRoomInfo),
             "updateRoomInfo" => Ok(ImUrl::UpdateRoomInfo),
@@ -890,11 +890,11 @@ impl ImUrl {
             "groupDetail" => Ok(ImUrl::GroupDetail),
             "groupInfo" => Ok(ImUrl::GroupInfo),
 
-            // 群聊管理员
+            // 그룹 채팅 관리자
             "revokeAdmin" => Ok(ImUrl::RevokeAdmin),
             "addAdmin" => Ok(ImUrl::AddAdmin),
 
-            // 群聊成员管理
+            // 그룹 채팅 멤버 관리
             "exitGroup" => Ok(ImUrl::ExitGroup),
             "acceptInvite" => Ok(ImUrl::AcceptInvite),
             "inviteList" => Ok(ImUrl::InviteList),
@@ -902,7 +902,7 @@ impl ImUrl {
             "removeGroupMember" => Ok(ImUrl::RemoveGroupMember),
             "createGroup" => Ok(ImUrl::CreateGroup),
 
-            // 聊天会话相关
+            // 채팅 세션 관련
             "shield" => Ok(ImUrl::Shield),
             "notification" => Ok(ImUrl::Notification),
             "deleteSession" => Ok(ImUrl::DeleteSession),
@@ -910,11 +910,11 @@ impl ImUrl {
             "sessionDetailWithFriends" => Ok(ImUrl::SessionDetailWithFriends),
             "sessionDetail" => Ok(ImUrl::SessionDetail),
 
-            // 消息已读未读
+            // 메시지 읽음/읽지 않음
             "getMsgReadCount" => Ok(ImUrl::GetMsgReadCount),
             "getMsgReadList" => Ok(ImUrl::GetMsgReadList),
 
-            // 好友相关
+            // 친구 관련
             "modifyFriendRemark" => Ok(ImUrl::ModifyFriendRemark),
             "deleteFriend" => Ok(ImUrl::DeleteFriend),
             "sendAddFriendRequest" => Ok(ImUrl::SendAddFriendRequest),
@@ -924,11 +924,11 @@ impl ImUrl {
             "getContactList" => Ok(ImUrl::GetContactList),
             "searchFriend" => Ok(ImUrl::SearchFriend),
 
-            // 用户状态相关
+            // 사용자 상태 관련
             "changeUserState" => Ok(ImUrl::ChangeUserState),
             "getAllUserState" => Ok(ImUrl::GetAllUserState),
 
-            // 用户信息相关
+            // 사용자 정보 관련
             "uploadAvatar" => Ok(ImUrl::UploadAvatar),
             "getEmoji" => Ok(ImUrl::GetEmoji),
             "deleteEmoji" => Ok(ImUrl::DeleteEmoji),
@@ -940,33 +940,33 @@ impl ImUrl {
             "getBadgeList" => Ok(ImUrl::GetBadgeList),
             "blockUser" => Ok(ImUrl::BlockUser),
 
-            // 消息相关
+            // 메시지 관련
             "recallMsg" => Ok(ImUrl::RecallMsg),
             "markMsg" => Ok(ImUrl::MarkMsg),
             "getMsgList" => Ok(ImUrl::GetMsgList),
             "getMsgPage" => Ok(ImUrl::GetMsgPage),
             "getMemberStatistic" => Ok(ImUrl::GetMemberStatistic),
 
-            // 朋友圈相关
+            // 타임라인(SNS) 관련
             "feedDetail" => Ok(ImUrl::FeedDetail),
             "feedList" => Ok(ImUrl::FeedList),
             "pushFeed" => Ok(ImUrl::PushFeed),
             "delFeed" => Ok(ImUrl::DelFeed),
             "editFeed" => Ok(ImUrl::EditFeed),
             "getFeedPermission" => Ok(ImUrl::GetFeedPermission),
-            // 朋友圈点赞相关
+            // 타임라인 좋아요 관련
             "feedLikeToggle" => Ok(ImUrl::FeedLikeToggle),
             "feedLikeList" => Ok(ImUrl::FeedLikeList),
             "feedLikeCount" => Ok(ImUrl::FeedLikeCount),
             "feedLikeHasLiked" => Ok(ImUrl::FeedLikeHasLiked),
-            // 朋友圈评论相关
+            // 타임라인 댓글 관련
             "feedCommentAdd" => Ok(ImUrl::FeedCommentAdd),
             "feedCommentDelete" => Ok(ImUrl::FeedCommentDelete),
             "feedCommentList" => Ok(ImUrl::FeedCommentList),
             "feedCommentAll" => Ok(ImUrl::FeedCommentAll),
             "feedCommentCount" => Ok(ImUrl::FeedCommentCount),
 
-            // 群成员信息
+            // 그룹 멤버 정보
             "getAllUserBaseInfo" => Ok(ImUrl::GetAllUserBaseInfo),
             "sendMsg" => Ok(ImUrl::SendMsg),
             "setHide" => Ok(ImUrl::SetHide),
@@ -981,7 +981,7 @@ impl ImUrl {
             "scanQRCode" => Ok(ImUrl::ScanQRCode),
             "confirmQRCode" => Ok(ImUrl::ConfirmQRCode),
 
-            // ================ AI 聊天消息 ================
+            // ================ AI 채팅 메시지 ================
             "messageSend" => Ok(ImUrl::MessageSend),
             "messageSendStream" => Ok(ImUrl::MessageSendStream),
             "messageListByConversationId" => Ok(ImUrl::MessageListByConversationId),
@@ -991,7 +991,7 @@ impl ImUrl {
             "messageDeleteByAdmin" => Ok(ImUrl::MessageDeleteByAdmin),
             "messageSaveGeneratedContent" => Ok(ImUrl::MessageSaveGeneratedContent),
 
-            // ================ AI 聊天对话 ================
+            // ================ AI 채팅 대화 ================
             "conversationCreateMy" => Ok(ImUrl::ConversationCreateMy),
             "conversationUpdateMy" => Ok(ImUrl::ConversationUpdateMy),
             "conversationMyList" => Ok(ImUrl::ConversationMyList),
@@ -1001,7 +1001,7 @@ impl ImUrl {
             "conversationPage" => Ok(ImUrl::ConversationPage),
             "conversationDeleteByAdmin" => Ok(ImUrl::ConversationDeleteByAdmin),
 
-            // ================ AI 模型 ================
+            // ================ AI 모델 ================
             "modelCreate" => Ok(ImUrl::ModelCreate),
             "modelUpdate" => Ok(ImUrl::ModelUpdate),
             "modelDelete" => Ok(ImUrl::ModelDelete),
@@ -1009,7 +1009,7 @@ impl ImUrl {
             "modelPage" => Ok(ImUrl::ModelPage),
             "modelSimpleList" => Ok(ImUrl::ModelSimpleList),
 
-            // ================ AI 聊天角色 ================
+            // ================ AI 채팅 역할 ================
             "chatRoleMyPage" => Ok(ImUrl::ChatRoleMyPage),
             "chatRoleGetMy" => Ok(ImUrl::ChatRoleGetMy),
             "chatRoleCreateMy" => Ok(ImUrl::ChatRoleCreateMy),
@@ -1022,7 +1022,7 @@ impl ImUrl {
             "chatRoleGet" => Ok(ImUrl::ChatRoleGet),
             "chatRolePage" => Ok(ImUrl::ChatRolePage),
 
-            // ================ API 密钥 ================
+            // ================ API 키 ================
             "apiKeyCreate" => Ok(ImUrl::ApiKeyCreate),
             "apiKeyUpdate" => Ok(ImUrl::ApiKeyUpdate),
             "apiKeyDelete" => Ok(ImUrl::ApiKeyDelete),
@@ -1031,11 +1031,11 @@ impl ImUrl {
             "apiKeySimpleList" => Ok(ImUrl::ApiKeySimpleList),
             "apiKeyBalance" => Ok(ImUrl::ApiKeyBalance),
 
-            // ================ 平台配置 ================
+            // ================ 플랫폼 설정 ================
             "platformList" => Ok(ImUrl::PlatformList),
             "platformAddModel" => Ok(ImUrl::PlatformAddModel),
 
-            // ================ AI 工具 ================
+            // ================ AI 도구 ================
             "toolCreate" => Ok(ImUrl::ToolCreate),
             "toolUpdate" => Ok(ImUrl::ToolUpdate),
             "toolDelete" => Ok(ImUrl::ToolDelete),
@@ -1043,7 +1043,7 @@ impl ImUrl {
             "toolPage" => Ok(ImUrl::ToolPage),
             "toolSimpleList" => Ok(ImUrl::ToolSimpleList),
 
-            // ================ AI 图像 ================
+            // ================ AI 이미지 ================
             "imageMyPage" => Ok(ImUrl::ImageMyPage),
             "imagePublicPage" => Ok(ImUrl::ImagePublicPage),
             "imageGetMy" => Ok(ImUrl::ImageGetMy),
@@ -1057,14 +1057,14 @@ impl ImUrl {
             "imageUpdate" => Ok(ImUrl::ImageUpdate),
             "imageDelete" => Ok(ImUrl::ImageDelete),
 
-            // ================ AI 视频生成 ================
+            // ================ AI 비디오 생성 ================
             "videoMyPage" => Ok(ImUrl::VideoMyPage),
             "videoGet" => Ok(ImUrl::VideoGet),
             "videoMyListByIds" => Ok(ImUrl::VideoMyListByIds),
             "videoGenerate" => Ok(ImUrl::VideoGenerate),
             "videoDeleteMy" => Ok(ImUrl::VideoDeleteMy),
 
-            // ================ AI 音频生成 ================
+            // ================ AI 오디오 생성 ================
             "audioMyPage" => Ok(ImUrl::AudioMyPage),
             "audioGetMy" => Ok(ImUrl::AudioGetMy),
             "audioMyListByIds" => Ok(ImUrl::AudioMyListByIds),
@@ -1072,7 +1072,7 @@ impl ImUrl {
             "audioDeleteMy" => Ok(ImUrl::AudioDeleteMy),
             "audioVoices" => Ok(ImUrl::AudioVoices),
 
-            // ================ AI 知识库 ================
+            // ================ AI 지식베이스 ================
             "knowledgePage" => Ok(ImUrl::KnowledgePage),
             "knowledgeGet" => Ok(ImUrl::KnowledgeGet),
             "knowledgeCreate" => Ok(ImUrl::KnowledgeCreate),
@@ -1080,7 +1080,7 @@ impl ImUrl {
             "knowledgeDelete" => Ok(ImUrl::KnowledgeDelete),
             "knowledgeSimpleList" => Ok(ImUrl::KnowledgeSimpleList),
 
-            // ================ AI 知识库文档 ================
+            // ================ AI 지식베이스 문서 ================
             "knowledgeDocumentPage" => Ok(ImUrl::KnowledgeDocumentPage),
             "knowledgeDocumentGet" => Ok(ImUrl::KnowledgeDocumentGet),
             "knowledgeDocumentCreate" => Ok(ImUrl::KnowledgeDocumentCreate),
@@ -1089,7 +1089,7 @@ impl ImUrl {
             "knowledgeDocumentUpdateStatus" => Ok(ImUrl::KnowledgeDocumentUpdateStatus),
             "knowledgeDocumentDelete" => Ok(ImUrl::KnowledgeDocumentDelete),
 
-            // ================ AI 知识库段落 ================
+            // ================ AI 지식베이스 단락 ================
             "knowledgeSegmentGet" => Ok(ImUrl::KnowledgeSegmentGet),
             "knowledgeSegmentPage" => Ok(ImUrl::KnowledgeSegmentPage),
             "knowledgeSegmentCreate" => Ok(ImUrl::KnowledgeSegmentCreate),
@@ -1099,12 +1099,12 @@ impl ImUrl {
             "KnowledgeSegmentGetProcessList" => Ok(ImUrl::KnowledgeSegmentGetProcessList),
             "KnowledgeSegmentSearch" => Ok(ImUrl::KnowledgeSegmentSearch),
 
-            // ================ AI 思维导图 ================
+            // ================ AI 마인드맵 ================
             "mindMapGenerateStream" => Ok(ImUrl::MindMapGenerateStream),
             "mindMapDelete" => Ok(ImUrl::MindMapDelete),
             "mindMapPage" => Ok(ImUrl::MindMapPage),
 
-            // ================ AI 音乐 ================
+            // ================ AI 음악 ================
             "musicMyPage" => Ok(ImUrl::MusicMyPage),
             "musicGenerate" => Ok(ImUrl::MusicGenerate),
             "musicDeleteMy" => Ok(ImUrl::MusicDeleteMy),
@@ -1114,7 +1114,7 @@ impl ImUrl {
             "musicDelete" => Ok(ImUrl::MusicDelete),
             "musicUpdate" => Ok(ImUrl::MusicUpdate),
 
-            // ================ AI 工作流 ================
+            // ================ AI 워크플로 ================
             "workflowCreate" => Ok(ImUrl::WorkflowCreate),
             "workflowUpdate" => Ok(ImUrl::WorkflowUpdate),
             "workflowDelete" => Ok(ImUrl::WorkflowDelete),
@@ -1122,13 +1122,13 @@ impl ImUrl {
             "workflowPage" => Ok(ImUrl::WorkflowPage),
             "workflowTest" => Ok(ImUrl::WorkflowTest),
 
-            // ================ AI 写作 ================
+            // ================ AI 글쓰기 ================
             "WriteGenerateStream" => Ok(ImUrl::WriteGenerateStream),
             "WriteDelete" => Ok(ImUrl::WriteDelete),
             "WritePage" => Ok(ImUrl::WritePage),
 
-            // 未匹配的字符串
-            _ => Err(anyhow::anyhow!("未知的URL类型: {}", s)),
+            // 매치되지 않는 문자열
+            _ => Err(anyhow::anyhow!("알 수 없는 URL 유형: {}", s)),
         }
     }
 }
@@ -1148,7 +1148,7 @@ pub trait ImRequest {
     ) -> Result<Option<RefreshTokenResp>, anyhow::Error>;
 }
 
-// 测试
+// 테스트
 #[cfg(test)]
 mod test {
     use serde_json::json;

@@ -31,7 +31,7 @@ export const useGeolocation = () => {
   const error = computed(() => state.value.error)
   const currentPosition = computed(() => state.value.position)
 
-  // 检查权限状态
+  // 권한 상태 확인
   const checkPermission = async (): Promise<PermissionState> => {
     if ('permissions' in navigator) {
       try {
@@ -45,7 +45,7 @@ export const useGeolocation = () => {
     return 'prompt'
   }
 
-  // 获取当前位置
+  // 현재 위치 가져오기
   const getCurrentPosition = async (options?: GeolocationOptions): Promise<GeolocationPosition> => {
     return new Promise((resolve, reject) => {
       if (!navigator.geolocation) {
@@ -57,7 +57,7 @@ export const useGeolocation = () => {
       const defaultOptions: PositionOptions = {
         enableHighAccuracy: state.value.precision === 'high',
         timeout: 10000,
-        maximumAge: 300000, // 5分钟缓存
+        maximumAge: 300000, // 5분 캐시
         ...options
       }
 
@@ -94,25 +94,25 @@ export const useGeolocation = () => {
     })
   }
 
-  // 获取位置并转换坐标
+  // 위치 가져오기 및 좌표 변환
   const getLocationWithTransform = async (options?: GeolocationOptions) => {
     const position = await getCurrentPosition(options)
     const { latitude, longitude } = position.coords
 
-    // 转换坐标
+    // 좌표 변환
     const transformed = await transformCoordinates(latitude, longitude)
 
     return {
       original: { lat: latitude, lng: longitude },
       transformed,
       position,
-      address: '', // 后续可以通过逆地理编码获取
+      address: '', // 추후 역지리코딩을 통해 획득 가능
       precision: state.value.precision,
       timestamp: Date.now()
     }
   }
 
-  // 清除错误状态
+  // 에러 상태 초기화
   const clearError = () => {
     state.value.error = null
   }
