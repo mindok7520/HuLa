@@ -6,7 +6,7 @@
     :class="{ 'rounded-r-8px': shrinkStatus }"
     class="resizable select-none flex flex-col border-r-(1px solid [--right-chat-footer-line-color])"
     :style="centerStyle">
-    <!-- 分隔条 -->
+    <!-- 구분선 -->
     <div v-show="!shrinkStatus" class="resize-handle transition-all duration-600 ease-in-out" @mousedown="initDrag">
       <div :class="{ 'opacity-100': isDragging }" class="transition-all duration-600 ease-in-out opacity-0 drag-icon">
         <div style="border-radius: 8px 0 0 8px" class="bg-#c8c8c833 h-60px w-14px absolute top-40% right-0 drag-icon">
@@ -24,7 +24,7 @@
       :max-w="false"
       :current-label="appWindow.label" />
 
-    <!-- 顶部搜索栏 -->
+    <!-- 상단 검색바 -->
     <header class="mt-30px pb-10px flex-1 flex-col-x-center border-b-(1px solid [--right-chat-footer-line-color])">
       <div class="flex-center gap-5px w-full pr-16px pl-16px box-border">
         <n-input
@@ -48,7 +48,7 @@
           </template>
         </n-input>
 
-        <!-- 添加面板 -->
+        <!-- 추가 패널 -->
         <n-popover
           v-model:show="addPanels.show"
           style="padding: 0; background: transparent; user-select: none"
@@ -76,7 +76,7 @@
       </div>
     </header>
 
-    <!-- 列表 -->
+    <!-- 리스트 -->
     <div id="centerList" class="h-full" :class="{ 'shadow-inner': page.shadow }">
       <router-view v-slot="{ Component }">
         <keep-alive :include="['message', 'friendsList']">
@@ -85,7 +85,7 @@
       </router-view>
     </div>
 
-    <!-- 创建群聊穿梭框 -->
+    <!-- 그룹 채팅 생성 셔틀 박스 -->
     <n-modal v-model:show="createGroupModal" :mask-closable="false" class="rounded-8px" transform-origin="center">
       <div class="bg-[--bg-edit] w-540px h-fit box-border flex flex-col">
         <n-flex :size="6" vertical>
@@ -165,24 +165,24 @@ const appWindow = WebviewWindow.getCurrent()
 const selectedValue = ref<string[]>([])
 const createGroupModal = ref(false)
 const preSelectedFriendId = ref('')
-const isFromChatbox = ref(false) // 标记是否来自聊天框
-/** 设置最小宽度 */
+const isFromChatbox = ref(false) // 채팅창에서 왔는지 여부 표시
+/** 최소 너비 설정 */
 const minWidth = 160
-/** 设置最大宽度 */
+/** 최대 너비 설정 */
 const maxWidth = 300
-/** 初始化宽度 */
+/** 초기 너비 */
 const initWidth = ref(250)
-/**! 使用(vueUse函数获取)视口宽度 */
+/**! 뷰포트 너비 사용(vueUse 함수로 획득) */
 const { width } = useWindowSize()
-/** 是否拖拽 */
+/** 드래그 여부 */
 const isDrag = ref(true)
-/** 搜索框 placeholder 文案 */
+/** 검색창 placeholder 문구 */
 const searchPlaceholder = computed(() => t('home.search_input_placeholder'))
-/** 搜索框文字 */
+/** 검색창 텍스트 */
 const searchText = ref(searchPlaceholder.value)
-/** 是否处于搜索模式 */
+/** 검색 모드 여부 */
 const isSearchMode = ref(false)
-/** 添加面板是否显示 */
+/** 추가 패널 표시 여부 */
 const addPanels = ref({
   show: false,
   list: [
@@ -212,29 +212,29 @@ const resetSearchPlaceholder = () => {
 }
 
 watch(searchPlaceholder, (next, prev) => {
-  // 非搜索模式且当前值为空或等于旧文案时，同步到最新语言
+  // 비검색 모드이고 현재 값이 비어 있거나 이전 문구와 같을 때, 최신 언어로 동기화
   if (!isSearchMode.value && (searchText.value === '' || searchText.value === prev)) {
     searchText.value = next
   }
 })
 
 const LEFT_MIN_WIDTH = 64
-const RIGHT_MIN_WIDTH = 600 // 右侧面板保留的最小宽度
-// 结合自定义缩放方案，获取当前页面的缩放比例，避免不同 DPI 下断点失真
+const RIGHT_MIN_WIDTH = 600 // 우측 패널이 유지할 최소 너비
+// 사용자 정의 스케일링 방식을 결합하여 현재 페이지의 스케일 비율을 획득, 다른 DPI에서 중단점 왜곡 방지
 const resolvePageScale = () => {
   if (typeof window === 'undefined') return 1
   const scale = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--page-scale') || '1')
   return Number.isFinite(scale) && scale > 0 ? scale : 1
 }
 
-// 读取布局容器的实时宽度（在窗口拖拽或系统缩放时会动态变化）
+// 레이아웃 컨테이너의 실시간 너비 읽기(창 드래그 또는 시스템 스케일링 시 동적으로 변경됨)
 const getLayoutWidth = (fallback: number) => {
   if (typeof document === 'undefined') return fallback
   const layout = document.getElementById('layout')
   return layout?.getBoundingClientRect().width ?? fallback
 }
 
-// 左侧导航在不同状态下宽度不固定，这里按需测量
+// 왼쪽 내비게이션은 상태에 따라 너비가 고정되지 않으므로, 여기서 필요에 따라 측정
 const getLeftWidth = () => {
   if (typeof document === 'undefined') return LEFT_MIN_WIDTH
   const left = document.querySelector('#layout .left') as HTMLElement | null
@@ -245,7 +245,7 @@ const startWidth = ref()
 const shrinkStatus = ref(false)
 const isDragging = ref(false)
 const centerEl = shallowRef<HTMLElement | null>(null)
-// 统一测量布局宽度，避免多处重复读取 DOM
+// 레이아웃 너비를 통일해서 측정, 여러 곳에서 DOM을 중복해서 읽는 것을 방지
 const layoutMetrics = computed(() => {
   const windowWidth = width.value / resolvePageScale()
   const layoutWidth = getLayoutWidth(windowWidth)
@@ -261,7 +261,7 @@ const layoutMetrics = computed(() => {
   }
 })
 
-// 拖拽时记录的宽度会在这里和当前可用空间取较小值
+// 드래그 시 기록된 너비는 여기서 현재 사용 가능한 공간과 비교하여 더 작은 값을 취함
 const centerWidth = computed(() => {
   const { available } = layoutMetrics.value
 
@@ -273,7 +273,7 @@ const centerWidth = computed(() => {
   return clamp(Math.min(desired, available), minWidth, maxWidth)
 })
 
-// 根据布局状态产出中心面板最终的 flex 配置
+// 레이아웃 상태에 따라 중단 패널의 최종 flex 설정 생성
 const centerStyle = computed(() => {
   const { lockThreshold, layoutWidth, collapsedWidth } = layoutMetrics.value
 
@@ -296,7 +296,7 @@ const centerStyle = computed(() => {
   }
 })
 
-// 监测窗口宽度，切换缩放模式并控制拖拽开关
+// 창 너비를 모니터링하여 축소 모드 전환 및 드래그 스위치 제어
 watchEffect(() => {
   const { available } = layoutMetrics.value
   const shouldShrink = available <= minWidth
@@ -317,12 +317,12 @@ watchEffect(() => {
   }
 })
 
-// 监听选中值的变化，确保必选项不会被清除
+// 선택된 값의 변화를 감지, 필수 항목이 지워지지 않도록 확인
 watch(selectedValue, (newValue) => {
   if (isFromChatbox.value && preSelectedFriendId.value && newValue) {
-    // 如果是从聊天框触发且有预选中好友，确保该好友始终在选中列表中
+    // 채팅창에서 트리거되었고 미리 선택된 친구가 있다면, 해당 친구가 항상 선택 목록에 있도록 확인
     if (!newValue.includes(preSelectedFriendId.value)) {
-      // 如果预选中好友被移除了，重新加回去
+      // 미리 선택된 친구가 제거되었다면, 다시 추가
       selectedValue.value = [...newValue, preSelectedFriendId.value]
     }
   }
@@ -340,7 +340,7 @@ const handleCreateGroup = async () => {
   try {
     const result: any = await ImRequestUtils.createGroup({ uidList: selectedValue.value })
 
-    // 创建成功后刷新会话列表以显示新群聊
+    // 생성 성공 후 대화 목록을 새로 고쳐 새 그룹 채팅 표시
     await chatStore.getSessionList(true)
 
     const resultRoomId = result?.roomId != null ? String(result.roomId) : undefined
@@ -375,15 +375,15 @@ const handleSearchFocus = () => {
   searchText.value = ''
   isSearchMode.value = true
 
-  // 延迟发送当前搜索框的值到SearchDetails组件
+  // SearchDetails 컴포넌트로 현재 검색창 값 전송 지연
   setTimeout(() => {
     useMitt.emit('search_input_change', searchText.value)
   }, 100)
 }
 
-// 处理搜索输入变化
+// 검색 입력 변경 처리
 const handleSearchInputChange = (value: string) => {
-  // 如果处于搜索详情页面，将输入值发送到SearchDetails组件
+  // 검색 상세 페이지에 있다면, 입력 값을 SearchDetails 컴포넌트로 전송
   if (isSearchMode.value) {
     useMitt.emit('search_input_change', value)
   }
@@ -392,29 +392,29 @@ const handleSearchInputChange = (value: string) => {
 const closeMenu = (event: Event) => {
   const e = event.target as HTMLInputElement
   const route = router.currentRoute.value.path
-  /** 判断如果点击的搜索框，就关闭消息列表 */
+  /** 클릭한 것이 검색창이라면 메시지 목록 닫기 판단 */
   if (!e.matches('#search, #search *, #centerList *, #centerList') && route === '/searchDetails') {
     router.go(-1)
     isSearchMode.value = false
   }
 }
 
-/** 定义一个函数，在鼠标拖动时调用 */
+/** 마우스 드래그 시 호출되는 함수 정의 */
 const doDrag = (e: MouseEvent) => {
-  // 使用 requestAnimationFrame 来处理动画，确保动画在下一帧渲染前执行
+  // requestAnimationFrame을 사용하여 애니메이션 처리, 다음 프레임 렌더링 전에 애니메이션 실행 보장
   requestAnimationFrame(() => {
-    // 计算新的宽度
+    // 새 너비 계산
     const newWidth = startWidth.value + e.clientX - startX.value
-    // 如果新宽度不等于最大宽度，则更新宽度值
+    // 새 너비가 최대 너비와 같지 않다면 너비 값 업데이트
     if (newWidth !== maxWidth) {
-      initWidth.value = clamp(newWidth, minWidth, maxWidth) // 使用 clamp 函数限制宽度值在最小值和最大值之间
+      initWidth.value = clamp(newWidth, minWidth, maxWidth) // clamp 함수를 사용하여 너비 값을 최소값과 최대값 사이로 제한
     }
   })
 }
 
-/** 定义一个函数，用于将数值限制在指定的最小值和最大值之间 */
+/** 수치를 지정된 최소값과 최대값 사이로 제한하는 함수 정의 */
 const clamp = (value: number, min: number, max: number) => {
-  return Math.min(Math.max(value, min), max) // 使用 Math.min 和 Math.max 函数来限制数值范围
+  return Math.min(Math.max(value, min), max) // Math.min 및 Math.max 함수를 사용하여 수치 범위 제한
 }
 
 const initDrag = (e: MouseEvent) => {
@@ -424,19 +424,19 @@ const initDrag = (e: MouseEvent) => {
   isDragging.value = true
   document.addEventListener('mousemove', doDrag, false)
   document.addEventListener('mouseup', stopDrag, false)
-  // 防止拖拽时选中文本
+  // 드래그 시 텍스트 선택 방지
   document.body.style.userSelect = 'none'
   e.preventDefault()
 }
 
 const stopDrag = () => {
-  // 恢复文本选择功能
+  // 텍스트 선택 기능 복원
   document.body.style.userSelect = ''
   document.removeEventListener('mousemove', doDrag, false)
   document.removeEventListener('mouseup', stopDrag, false)
   isDragging.value = false
   setTimeout(() => {
-    // 移除 hover 样式
+    // hover 스타일 제거
     const resizeHandle = document.querySelector('.resize-handle') as HTMLElement
     resizeHandle.classList.remove('hover')
   }, 1000)
@@ -459,7 +459,7 @@ onMounted(async () => {
 
 onUnmounted(() => {
   window.removeEventListener('click', closeMenu, true)
-  // 清理拖拽相关的事件监听器和样式
+  // 드래그 관련 이벤트 리스너 및 스타일 정리
   if (isDragging.value) {
     document.removeEventListener('mousemove', doDrag, false)
     document.removeEventListener('mouseup', stopDrag, false)

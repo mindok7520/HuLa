@@ -8,7 +8,7 @@
         @click="handleClose">
         <div class="relative w-full h-full flex items-center justify-center overflow-hidden">
           <div class="absolute rounded-8 bg-black/75 z-20 shadow-lg" :style="backStyle">
-            <n-button quaternary circle class="bg-white/20" @click.stop="handleClose" aria-label="返回">
+            <n-button quaternary circle class="bg-white/20" @click.stop="handleClose" aria-label="뒤로가기">
               <template #icon>
                 <svg class="size-22px text-white rotate-180">
                   <use href="#right"></use>
@@ -32,7 +32,7 @@
               size="medium"
               class="bg-white/20"
               @click.stop="handleSave"
-              aria-label="保存">
+              aria-label="저장">
               <template #icon>
                 <svg class="size-22px text-white"><use href="#Importing"></use></svg>
               </template>
@@ -44,7 +44,7 @@
               size="medium"
               class="bg-white/20"
               @click.stop="handleMore"
-              aria-label="更多">
+              aria-label="더보기">
               <template #icon>
                 <svg class="size-22px text-white"><use href="#more"></use></svg>
               </template>
@@ -149,15 +149,15 @@ const handleSave = async () => {
         fileStore.addFile(fileInfo)
       }
     }
-    window.$message?.success?.('视频已保存')
+    window.$message?.success?.('동영상이 저장되었습니다')
   } catch (error) {
-    console.error('保存视频失败:', error)
-    window.$message?.error?.('保存失败')
+    console.error('동영상 저장 실패:', error)
+    window.$message?.error?.('저장 실패')
   }
 }
 
 const handleMore = () => {
-  window.$message?.warning?.('更多功能暂未实现')
+  window.$message?.warning?.('더보기 기능은 아직 구현되지 않았습니다')
 }
 
 watch(

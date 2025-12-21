@@ -8,9 +8,9 @@ import { useSettingStore } from '@/stores/setting'
 import * as ImRequestUtils from '@/utils/ImRequestUtils'
 
 /**
- * 这里的顶部的操作栏使用pinia写入了localstorage中
+ * 여기 상단 작업 표시줄은 pinia를 사용하여 localstorage에 기록했습니다.
  */
-/** 下半部分操作栏配置 */
+/** 하단 작업 표시줄 구성 */
 const baseItemsBottom: Array<Omit<OPT.L.Common, 'title' | 'shortTitle'>> = [
   {
     url: 'fileManager',
@@ -54,7 +54,7 @@ const useItemsBottom = () =>
       }
     ])
   })()
-/** 设置列表菜单项 */
+/** 설정 목록 메뉴 항목 */
 const useMoreList = () => {
   const { t } = useI18n()
   const { createWebviewWindow } = useWindow()
@@ -85,14 +85,14 @@ const useMoreList = () => {
       label: t('menu.settings'),
       icon: 'settings',
       click: async () => {
-        await createWebviewWindow('设置', 'settings', 840, 840, '', true, 840, 600)
+        await createWebviewWindow('설정', 'settings', 840, 840, '', true, 840, 600)
       }
     },
     {
       label: t('menu.about'),
       icon: 'info',
       click: async () => {
-        await createWebviewWindow('关于', 'about', 360, 480)
+        await createWebviewWindow('정보', 'about', 360, 480)
       }
     },
     {
@@ -104,15 +104,15 @@ const useMoreList = () => {
           await resetLoginState()
           await logout()
         } catch (error) {
-          console.error('退出登录失败:', error)
-          window.$message.error('退出登录失败，请重试')
+          console.error('로그아웃 실패:', error)
+          window.$message.error('로그아웃 실패, 다시 시도해 주세요')
         }
       }
     }
   ])
 }
 
-/** 插件列表 */
+/** 플러그인 목록 */
 const basePluginsList: Array<Omit<STO.Plugins<PluginEnum>, 'title' | 'shortTitle'>> = [
   {
     url: 'dynamic',
@@ -154,9 +154,9 @@ const basePluginsList: Array<Omit<STO.Plugins<PluginEnum>, 'title' | 'shortTitle
   // {
   //   icon: 'Music',
   //   url: 'music',
-  //   title: 'HuLa云音乐',
-  //   shortTitle: '云音乐',
-  //   tip: 'HuLa云音乐开发中，敬请期待',
+  //   title: 'HuLa 클라우드 뮤직',
+  //   shortTitle: '클라우드 뮤직',
+  //   tip: 'HuLa 클라우드 뮤직 개발 중, 기대해 주세요',
   //   state: PluginEnum.NOT_INSTALLED,
   //   version: 'v1.0.0-Alpha',
   //   isAdd: false,
@@ -175,9 +175,9 @@ const basePluginsList: Array<Omit<STO.Plugins<PluginEnum>, 'title' | 'shortTitle
   // {
   //   icon: 'UimSlack',
   //   url: 'collaboration',
-  //   title: 'HuLa协作',
-  //   shortTitle: '协作',
-  //   tip: 'HuLa协作开发中，敬请期待',
+  //   title: 'HuLa 협업',
+  //   shortTitle: '협업',
+  //   tip: 'HuLa 협업 개발 중, 기대해 주세요',
   //   state: PluginEnum.NOT_INSTALLED,
   //   version: 'v1.0.0-Alpha',
   //   isAdd: false,
@@ -196,9 +196,9 @@ const basePluginsList: Array<Omit<STO.Plugins<PluginEnum>, 'title' | 'shortTitle
   // {
   //   icon: 'vigo',
   //   url: 'collaboration',
-  //   title: 'HuLa短视频',
-  //   shortTitle: '短视频',
-  //   tip: 'HuLa短视频开发中，敬请期待',
+  //   title: 'HuLa 숏폼',
+  //   shortTitle: '숏폼',
+  //   tip: 'HuLa 숏폼 개발 중, 기대해 주세요',
   //   state: PluginEnum.NOT_INSTALLED,
   //   version: 'v1.0.0-Alpha',
   //   isAdd: false,

@@ -1,6 +1,6 @@
 <template>
   <div ref="root">
-    <!-- 隐藏的 contenteditable，用于复用 useMsgInput 的发送逻辑 -->
+    <!-- 숨겨진 contenteditable, useMsgInput의 전송 로직 재사용을 위해 사용 -->
     <div
       ref="messageInputDom"
       contenteditable="true"
@@ -24,7 +24,7 @@ import { isIOS } from '@/utils/PlatformConstants'
 const globalStore = useGlobalStore()
 const emit = defineEmits(['focus', 'blur', 'updateHeight'])
 
-// ==== DOM 和状态 ====
+// ==== DOM 및 상태 ====
 const messageInputDom = ref<HTMLElement | null>(null)
 const root = ref()
 
@@ -52,7 +52,7 @@ onUnmounted(() => {
   }
 })
 
-// ==== 对外暴露 ====
+// ==== 외부 노출 ====
 defineExpose({ root })
 </script>
 
@@ -62,7 +62,7 @@ defineExpose({ root })
 
   svg {
     color: #13987f;
-    /* 主题色 */
+    /* 테마 색상 */
     transition: color 0.3s ease;
   }
 

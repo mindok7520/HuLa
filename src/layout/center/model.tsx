@@ -32,55 +32,55 @@ export const options = computed(() => {
     .filter(Boolean) as any
 })
 
-// 获取已禁用选项的值列表
+// 비활성화된 옵션의 값 목록 가져오기
 export const getDisabledOptions = () => {
-  // 当前选中的房间id
+  // 현재 선택된 방 ID
   const currentRoomId = globalStore.currentSessionRoomId
 
   if (!currentRoomId || !groupStore.userList.length) return []
 
-  // 确保返回群内所有成员的UID
+  // 그룹 내 모든 멤버의 UID를 반환하는지 확인
   const result = groupStore.userList.map((member) => member.uid)
   return result
 }
 
-// 获取过滤后的选项列表
+// 필터링된 옵션 목록 가져오기
 export const getFilteredOptions = () => {
-  // 获取禁用选项列表
+  // 비활성화된 옵션 목록 가져오기
   const disabledOptions = getDisabledOptions()
-  // 当前选中的房间id
+  // 현재 선택된 방 ID
   const currentRoomId = globalStore.currentSessionRoomId
-  // 如果没有房间ID，返回所有好友
+  // 방 ID가 없으면 모든 친구 반환
   if (!currentRoomId) return options.value
 
-  // 标记已在群内的好友
-  return options.value.map((option: { value: string; label: string; avatar?: string; [key: string]: any }) => {
+  // 그룹에 이미 있는 친구 표시
+  return options.value.map((option: { value: string; label: string; avatar?: string;[key: string]: any }) => {
     const isInGroup = disabledOptions.includes(option.value)
 
     if (isInGroup) {
-      // 对于已在群内的好友，添加禁用标记，但保持所有原始属性不变
+      // 그룹에 이미 있는 친구의 경우 비활성화 표시를 추가하지만 모든 원래 속성은 그대로 유지
       return {
         ...option,
         disabled: true
       }
     } else {
-      // 对于未在群内的好友，保持原样
+      // 그룹에 없는 친구는 그대로 유지
       return option
     }
   })
 }
 
-// 统一的源列表渲染函数，通过参数控制是否使用过滤后的选项
+// 통합 소스 목록 렌더링 함수, 매개변수를 통해 필터링된 옵션 사용 여부 제어
 export const renderSourceList = (
   preSelectedFriendId = '',
   enablePreSelection = true,
   placeholder = ''
 ): TransferRenderSourceList => {
   return ({ onCheck, checkedOptions, pattern }) => {
-    // 使用过滤后的选项列表，确保已在群内的好友被正确标记为禁用
+    // 필터링된 옵션 목록을 사용하여 그룹에 이미 있는 친구가 비활성화로 올바르게 표시되는지 확인
     const baseOptions = getFilteredOptions()
 
-    // 根据搜索模式进一步过滤
+    // 검색 모드에 따라 추가 필터링
     const displayOptions = pattern
       ? baseOptions.filter((option: { label: string }) => option.label?.toLowerCase().includes(pattern.toLowerCase()))
       : baseOptions
@@ -89,11 +89,11 @@ export const renderSourceList = (
       <div class="select-none">
         {placeholder && <div class="text-(12px [--chat-text-color]) pb-6px">{placeholder}</div>}
         {displayOptions.map((option: any) => {
-          // 判断是否是预选中的好友（仅在启用预选中时生效）
+          // 미리 선택된 친구인지 판단 (미리 선택 활성화 시에만 유효)
           const isPreSelected = enablePreSelection && option.value === preSelectedFriendId
-          // 判断是否被禁用(已在群内)（仅在启用预选中时生效）
+          // 비활성화(이미 그룹에 있음) 여부 판단 (미리 선택 활성화 시에만 유효)
           const isDisabled = enablePreSelection && option.disabled === true
-          // 如果是预选中的好友或已被选中，则显示为选中状态
+          // 미리 선택된 친구이거나 이미 선택된 경우 선택 상태로 표시
           const checked = isPreSelected || checkedOptions.some((o) => o.value === option.value)
 
           return (
@@ -120,7 +120,7 @@ export const renderSourceList = (
                 if (index === -1) {
                   onCheck([...checkedOptions.map((o) => o.value), option.value])
                 } else {
-                  // 如果是预选中的好友且启用了预选中，不允许取消选中
+                  // 미리 선택된 친구이고 미리 선택이 활성화된 경우 선택 취소 불가
                   if (enablePreSelection && isPreSelected) return
                   const newCheckedOptions = [...checkedOptions]
                   newCheckedOptions.splice(index, 1)
@@ -165,7 +165,7 @@ export const renderLabel: TransferRenderTargetLabel = ({ option }: { option: any
   )
 }
 
-// 创建自定义的目标列表渲染函数
+// 사용자 정의 대상 목록 렌더링 함수 생성
 export const renderTargetList = (
   preSelectedFriendId = '',
   enablePreSelection = true,
@@ -181,11 +181,11 @@ export const renderTargetList = (
     checkedOptions: any[]
     pattern: string
   }) => {
-    // 根据搜索模式过滤选项
+    // 검색 모드에 따라 옵션 필터링
     const displayOptions = pattern
       ? checkedOptions.filter((option: { label: string }) =>
-          option.label?.toLowerCase().includes(pattern.toLowerCase())
-        )
+        option.label?.toLowerCase().includes(pattern.toLowerCase())
+      )
       : checkedOptions
 
     return (

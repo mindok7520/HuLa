@@ -1,8 +1,8 @@
 <template>
-  <!-- 弹出框 -->
+  <!-- 팝업 창 -->
   <n-modal v-model:show="isShow" :mask-closable="false" class="w-390px border-rd-8px">
     <div class="bg-[--bg-popover] min-h-350px h-full box-border flex flex-col">
-      <!-- 顶部图片加上操作栏 -->
+      <!-- 상단 이미지 및 작업 표시줄 -->
       <div class="h-140px relative w-full p-6px box-border">
         <img
           class="absolute blur-6px rounded-t-6px z-1 top-0 left-0 w-full h-140px object-cover"
@@ -74,7 +74,7 @@ import Card from './Card.vue'
 import List from './List.vue'
 import { useI18n } from 'vue-i18n'
 
-/** 是否展示插件管理弹窗 */
+/** 플러그인 관리 팝업 표시 여부 */
 const isShow = defineModel() as unknown as boolean
 const { viewMode } = storeToRefs(usePluginsStore())
 const { t } = useI18n()
