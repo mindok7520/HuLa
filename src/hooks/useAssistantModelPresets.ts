@@ -47,7 +47,7 @@ const fetchAssistantModelPresets = async (force = false) => {
     assistantModelMeta.value = metaMap
     assistantModelPresets.value = sorted
   } catch (error) {
-    console.error('获取 AI 模型列表失败:', error)
+    console.error('AI 모델 목록 가져오기 실패:', error)
     assistantModelError.value = error
     assistantModelPresets.value = []
     assistantModelMeta.value = {}

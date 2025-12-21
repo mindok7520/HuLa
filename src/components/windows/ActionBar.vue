@@ -1,18 +1,18 @@
 <template>
-  <!--  user-select: none让元素不可以选中-->
+  <!--  user-select: none으로 선택 방지 -->
   <div
     :data-tauri-drag-region="isDrag"
     :class="isCompatibility() ? 'flex justify-end select-none' : 'h-24px select-none w-full'">
-    <!-- win 和 linux 的DOM -->
+    <!-- Windows 및 Linux용 DOM -->
     <template v-if="isCompatibility()">
       <div class="w-full flex items-center justify-between" data-tauri-drag-region>
-        <!-- 自定义图标：Windows/Linux 放在左侧 -->
+        <!-- 사용자 정의 아이콘: Windows/Linux는 왼쪽에 배치 -->
         <div class="h-24px flex items-center gap-10px pl-8px">
           <slot></slot>
         </div>
 
         <div class="flex items-center">
-          <!--  登录窗口的代理按钮  -->
+          <!-- 로그인 창 프록시 버튼 -->
           <div
             v-if="proxy"
             @click="router.push('/network')"
@@ -24,7 +24,7 @@
               <use href="#settings"></use>
             </svg>
           </div>
-          <!--  固定在最顶层  -->
+          <!-- 최상단 고정 -->
           <div v-if="topWinLabel !== void 0" @click="handleAlwaysOnTop" class="hover-box">
             <n-popover trigger="hover">
               <template #trigger>
@@ -45,7 +45,7 @@
               <span v-else>{{ t('components.actionBar.always_on_top.disabled') }}</span>
             </n-popover>
           </div>
-          <!-- 收缩页面 -->
+          <!-- 페이지 축소 -->
           <div v-if="shrink" @click="shrinkWindow" class="hover-box">
             <svg
               :class="[iconColor !== '' ? `color-${iconColor}` : 'color-[--action-bar-icon-color]']"
@@ -53,7 +53,7 @@
               <use href="#left-bar"></use>
             </svg>
           </div>
-          <!-- 最小化 -->
+          <!-- 최소화 -->
           <div v-if="minW" @click="appWindow.minimize()" class="hover-box">
             <svg
               :class="[iconColor !== '' ? `color-${iconColor}` : 'color-[--action-bar-icon-color]']"
@@ -61,7 +61,7 @@
               <use href="#maximize"></use>
             </svg>
           </div>
-          <!-- 最大化 -->
+          <!-- 최대화 -->
           <div v-if="maxW" @click="restoreWindow" class="hover-box">
             <svg
               v-show="!windowMaximized"
@@ -76,7 +76,7 @@
               <use href="#internal-reduction"></use>
             </svg>
           </div>
-          <!-- 关闭窗口 -->
+          <!-- 창 닫기 -->
           <div
             v-if="closeW"
             @click="handleCloseWin"
@@ -99,7 +99,7 @@
         </div>
       </div>
     </template>
-    <!-- 是否退到托盘提示框 -->
+    <!-- 트레이 최소화 알림 창 -->
     <n-modal v-if="!tips.notTips" v-model:show="tipsRef.show" class="rounded-8px">
       <div class="bg-[--bg-popover] w-290px h-full p-6px box-border flex flex-col">
         <svg @click="tipsRef.show = false" class="size-12px ml-a cursor-pointer select-none">
@@ -181,19 +181,19 @@ const tipsRef = reactive({
   notTips: tips.value.notTips,
   show: false
 })
-// 窗口是否最大化状态
+// 창 최대화 여부
 const windowMaximized = ref(false)
-// 窗口是否置顶状态
+// 창 최상단 고정 여부
 const alwaysOnTopStatus = computed(() => {
   if (topWinLabel === void 0) return false
   return getWindowTop(topWinLabel)
 })
 
-// macOS 关闭按钮拦截的 unlisten 函数
+// macOS 닫기 버튼 가로채기 unlisten 함수
 let unlistenCloseRequested: (() => void) | null = null
-// resized 事件的 unlisten 函数
+// resized 이벤트 unlisten 함수
 let unlistenResized: (() => void) | null = null
-// 是否是程序内部触发的关闭操作
+// 내부 로직에 의한 종료 여부
 let isProgrammaticClose = false
 const handleEscKeyDown = (event: KeyboardEvent) => {
   if (event.key === 'Escape' && escClose.value) {
@@ -216,7 +216,7 @@ watchEffect((onCleanup) => {
   }
 })
 
-/** 恢复窗口大小 */
+/** 창 크기 복원 */
 const restoreWindow = async () => {
   if (windowMaximized.value) {
     await appWindow.unmaximize()
@@ -225,9 +225,9 @@ const restoreWindow = async () => {
   }
 }
 
-/** 收缩窗口 */
+/** 창 축소 */
 const shrinkWindow = async () => {
-  /**使用mitt给兄弟组件更新*/
+  /** mitt를 사용하여 형제 컴포넌트 업데이트 */
   useMitt.emit(MittEnum.SHRINK_WINDOW, shrinkStatus)
   if (shrinkStatus) {
     await resizeWindow('home', 310, 720)
@@ -236,7 +236,7 @@ const shrinkWindow = async () => {
   }
 }
 
-/** 设置窗口置顶 */
+/** 창 최상단 고정 설정 */
 const handleAlwaysOnTop = async () => {
   if (topWinLabel !== void 0) {
     const isTop = !alwaysOnTopStatus.value
@@ -245,13 +245,13 @@ const handleAlwaysOnTop = async () => {
   }
 }
 
-/** 点击确定时 */
+/** 확인 클릭 시 */
 const handleConfirm = async () => {
   tips.value.type = tipsRef.type
   tips.value.notTips = tipsRef.notTips
   tipsRef.show = false
   if (tips.value.type === CloseBxEnum.CLOSE) {
-    // 设置程序内部关闭标志
+    // 내부 종료 플래그 설정
     isProgrammaticClose = true
     await emit(EventEnum.EXIT)
   } else {
@@ -261,7 +261,7 @@ const handleConfirm = async () => {
   }
 }
 
-// 统一更新窗口放大状态（仅 macOS 视为“最大化或全屏”；其他平台仅“最大化”）
+// 창 확대 상태 통합 업데이트 (macOS는 '최대화 또는 전체 화면', 기타 플랫폼은 '최대화')
 const updateWindowMaximized = async () => {
   const maximized = await appWindow.isMaximized()
   if (isMac()) {
@@ -272,7 +272,7 @@ const updateWindowMaximized = async () => {
   }
 }
 
-/** 处理关闭窗口事件 */
+/** 창 닫기 이벤트 처리 */
 const handleCloseWin = async () => {
   if (appWindow.label === 'home') {
     if (!tips.value.notTips) {
@@ -303,23 +303,23 @@ const handleCloseWin = async () => {
 useMitt.on('handleCloseWin', handleCloseWin)
 
 onMounted(async () => {
-  // 初始化状态
+  // 상태 초기화
   await updateWindowMaximized()
 
   unlistenResized = await appWindow.onResized?.(() => {
     updateWindowMaximized()
   })
 
-  // 监听 home 窗口的关闭事件
+  // home 창 닫기 이벤트 수신
   if (appWindow.label === 'home') {
     appWindow.onCloseRequested((event) => {
-      info('[ActionBar]监听[home]窗口关闭事件')
+      info('[ActionBar] home 창 닫기 이벤트 수신')
       if (isProgrammaticClose) {
-        // 清理监听器
-        info('[ActionBar]清理[home]窗口的监听器')
+        // 리스너 정리
+        info('[ActionBar] home 창 리스너 정리')
         exit(0)
       }
-      info('[ActionBar]阻止[home]窗口关闭事件')
+      info('[ActionBar] home 창 닫기 이벤트 차단')
       event.preventDefault()
       appWindow.hide()
     })
@@ -334,14 +334,14 @@ onUnmounted(() => {
     unlistenResized = null
   }
 
-  // 清理 macOS 关闭按钮事件监听器
+  // macOS 닫기 버튼 이벤트 리스너 정리
   if (unlistenCloseRequested) {
     unlistenCloseRequested()
     unlistenCloseRequested = null
   }
 })
 
-// 暴露 windowMaximized 状态
+// windowMaximized 상태 노출
 defineExpose({
   windowMaximized
 })

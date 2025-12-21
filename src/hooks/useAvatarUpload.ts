@@ -2,17 +2,17 @@ import { UploadSceneEnum } from '@/enums'
 import { UploadProviderEnum, useUpload } from './useUpload'
 
 export interface AvatarUploadOptions {
-  // 上传成功后的回调函数，参数为下载URL
+  // 업로드 성공 후 콜백 함수, 인자는 다운로드 URL
   onSuccess?: (downloadUrl: string) => void
-  // 上传场景，默认为头像
+  // 업로드 시나리오, 기본값은 아바타
   scene?: UploadSceneEnum
-  // 文件大小限制（KB），默认为150KB
+  // 파일 크기 제한 (KB), 기본값은 150KB
   sizeLimit?: number
 }
 
 /**
- * 上传头像的hook
- * @param options 上传配置
+ * 아바타 업로드 Hook
+ * @param options 업로드 설정
  */
 export const useAvatarUpload = (options: AvatarUploadOptions = {}) => {
   const { onSuccess, scene = UploadSceneEnum.AVATAR, sizeLimit = 150 } = options
@@ -22,12 +22,12 @@ export const useAvatarUpload = (options: AvatarUploadOptions = {}) => {
   const showCropper = ref(false)
   const cropperRef = ref()
 
-  // 打开文件选择器
+  // 파일 선택기 열기
   const openFileSelector = () => {
     fileInput.value?.click()
   }
 
-  // 处理文件选择
+  // 파일 선택 처리
   const handleFileChange = (e: Event) => {
     const file = (e.target as HTMLInputElement).files?.[0]
     if (file) {
@@ -40,60 +40,62 @@ export const useAvatarUpload = (options: AvatarUploadOptions = {}) => {
         })
       }
       img.onerror = () => {
-        window.$message.error('图片加载失败')
+        window.$message.error('이미지 로드 실패')
         URL.revokeObjectURL(url)
       }
       img.src = url
     }
   }
 
-  // 校验头像更改条件
+  // 아바타 변경 조건 확인
   const openAvatarCropper = () => {
     fileInput.value?.click()
   }
 
-  // 处理裁剪
+  // 자르기 처리
   const handleCrop = async (cropBlob: Blob) => {
     try {
       const fileName = `avatar_${Date.now()}.webp`
       const file = new File([cropBlob], fileName, { type: 'image/webp' })
 
-      // 检查裁剪后的文件大小
+      // 자른 후 파일 크기 확인
       if (file.size > sizeLimit * 1024) {
-        window.$message.error(`图片大小不能超过${sizeLimit}KB，当前图片裁剪后大小为${Math.round(file.size / 1024)}KB`)
-        // 结束加载状态
+        window.$message.error(
+          `이미지 크기는 ${sizeLimit}KB를 초과할 수 없습니다. 현재 이미지는 약 ${Math.round(file.size / 1024)}KB입니다.`
+        )
+        // 로딩 상태 종료
         cropperRef.value?.finishLoading()
         return
       }
 
-      // 先设置图片URL，等待图片加载完成后再显示裁剪窗口
+      // 이미지 URL을 먼저 설정하고 이미지 로드가 완료된 후 자르기 창을 표시
       const allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
       if (!allowedTypes.includes(file.type)) {
-        window.$message.error('只支持 JPG、PNG、WebP 格式的图片')
-        // 结束加载状态
+        window.$message.error('JPG, PNG, WebP 형식의 이미지만 지원됩니다.')
+        // 로딩 상태 종료
         cropperRef.value?.finishLoading()
         return
       }
 
-      // 使用useUpload中的七牛云上传功能
+      // useUpload의 Qiniu 업로드 기능 사용
       const { uploadFile, fileInfo } = useUpload()
 
-      // 执行上传，使用七牛云上传方式
+      // 업로드 실행, Qiniu 업로드 방식 사용
       await uploadFile(file, {
         provider: UploadProviderEnum.QINIU,
         enableDeduplication: true,
         scene: scene
       })
 
-      // 获取下载URL
+      // 다운로드 URL 가져오기
       const downloadUrl = fileInfo.value?.downloadUrl || ''
 
-      // 调用成功回调
+      // 성공 콜백 호출
       if (onSuccess) {
         onSuccess(downloadUrl)
       }
 
-      // 清理资源
+      // 리소스 정리
       if (localImageUrl.value) {
         URL.revokeObjectURL(localImageUrl.value)
       }
@@ -102,14 +104,14 @@ export const useAvatarUpload = (options: AvatarUploadOptions = {}) => {
         fileInput.value.value = ''
       }
 
-      // 结束加载状态
+      // 로딩 상태 종료
       cropperRef.value?.finishLoading()
-      // 关闭裁剪窗口
+      // 자르기 창 닫기
       showCropper.value = false
     } catch (error) {
-      console.error('上传头像失败:', error)
-      window.$message.error('上传头像失败')
-      // 发生错误时也需要结束加载状态
+      console.error('아바타 업로드 실패:', error)
+      window.$message.error('아바타 업로드 실패')
+      // 오류 발생 시에도 로딩 상태 종료 필요
       cropperRef.value?.finishLoading()
     }
   }

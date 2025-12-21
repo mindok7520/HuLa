@@ -7,7 +7,7 @@ import { isMobile } from '@/utils/PlatformConstants'
 import { UploadSceneEnum } from '../enums'
 import { useUpload } from './useUpload'
 
-// 导入worker计时器
+// worker 타이머 가져오기
 let timerWorker: Worker | null = null
 
 type VoiceRecordRustOptions = {
@@ -17,53 +17,53 @@ type VoiceRecordRustOptions = {
 }
 
 export const useVoiceRecordRust = (options: VoiceRecordRustOptions = {}) => {
-  // 用户store
+  // 사용자 store
   const userStore = useUserStore()
   const isRecording = ref(false)
   const recordingTime = ref(0)
   const audioLevel = ref(0)
   const startTime = ref(0)
   const audioMonitor = ref<NodeJS.Timeout | null>(null)
-  const timerMsgId = 'voiceRecordTimer' // worker计时器的消息ID
+  const timerMsgId = 'voiceRecordTimer' // worker 타이머 메시지 ID
   const { generateHashKey } = useUpload()
 
-  /** 开始录音 */
+  /** 녹음 시작 */
   const startRecordingAudio = async () => {
     try {
-      // 如果有录音正在进行，先停止再开始新录音
+      // 진행 중인 녹음이 있으면 먼저 중지하고 새 녹음 시작
       if (isRecording.value) {
         await stopRecordingAudio()
       }
 
-      // 调用Rust后端开始录音
+      // Rust 백엔드를 호출하여 녹음 시작
       await startRecording()
 
       isRecording.value = true
       startTime.value = Date.now()
       recordingTime.value = 0
 
-      // 初始化worker计时器
+      // worker 타이머 초기화
       if (!timerWorker) {
         timerWorker = new Worker(new URL('../workers/timer.worker.ts', import.meta.url))
 
-        // 监听worker消息
+        // worker 메시지 수신
         timerWorker.onmessage = (e) => {
           const { type, msgId } = e.data
 
           if (type === 'timeout' && msgId === timerMsgId) {
-            // 每秒更新录音时间
+            // 매초 녹음 시간 업데이트
             if (isRecording.value) {
               const currentTime = Math.floor((Date.now() - startTime.value) / 1000)
               recordingTime.value = currentTime
 
-              // 检查是否达到60秒限制
+              // 60초 제한 도달 여부 확인
               if (currentTime === 59) {
-                // 达到60秒，自动停止录音
+                // 60초 도달 시 자동으로 녹음 중지
                 stopRecordingAudio()
                 return
               }
 
-              // 重新启动1秒定时器
+              // 1초 타이머 재시작
               timerWorker?.postMessage({
                 type: 'startTimer',
                 msgId: timerMsgId,
@@ -78,7 +78,7 @@ export const useVoiceRecordRust = (options: VoiceRecordRustOptions = {}) => {
         }
       }
 
-      // 开始worker计时
+      // worker 타이머 시작
       timerWorker.postMessage({
         type: 'startTimer',
         msgId: timerMsgId,
@@ -87,24 +87,24 @@ export const useVoiceRecordRust = (options: VoiceRecordRustOptions = {}) => {
 
       options.onStart?.()
     } catch (error) {
-      console.error('开始录音失败:', error)
-      window.$message?.error('录音失败')
-      options.onError?.('录音失败')
+      console.error('녹음 시작 실패:', error)
+      window.$message?.error('녹음 실패')
+      options.onError?.('녹음 실패')
     }
   }
 
-  /** 停止录音 */
+  /** 녹음 중지 */
   const stopRecordingAudio = async () => {
     try {
       if (!isRecording.value) return
 
-      // 调用Rust后端停止录音
+      // Rust 백엔드를 호출하여 녹음 중지
       const audioPath = await stopRecording()
 
       isRecording.value = false
       const duration = (Date.now() - startTime.value) / 1000
 
-      // 清理worker定时器
+      // worker 타이머 정리
       if (timerWorker) {
         timerWorker.postMessage({
           type: 'clearTimer',
@@ -117,59 +117,59 @@ export const useVoiceRecordRust = (options: VoiceRecordRustOptions = {}) => {
         audioMonitor.value = null
       }
 
-      // 如果有音频文件路径，立即处理并显示录音结果
+      // 오디오 파일 경로가 있으면 즉시 처리하고 결과 표시
       if (audioPath) {
-        // 读取录音文件
+        // 녹음 파일 읽기
         const audioData = await readFile(audioPath)
 
-        // 获取原始音频信息
+        // 원본 오디오 정보 가져오기
         const originalInfo = await getAudioInfo(audioData.buffer as any)
-        console.log('原始音频信息:', {
-          duration: `${originalInfo.duration.toFixed(2)}秒`,
+        console.log('원본 오디오 정보:', {
+          duration: `${originalInfo.duration.toFixed(2)}초`,
           sampleRate: `${originalInfo.sampleRate}Hz`,
           channels: originalInfo.channels,
           size: `${(originalInfo.size / 1024 / 1024).toFixed(2)}MB`
         })
 
-        // 压缩音频为MP3格式
+        // MP3 형식으로 압축
         const compressedBlob = await compressAudioToMp3(audioData.buffer as any, {
-          channels: 1, // 单声道
-          sampleRate: 22050, // 降低采样率
-          bitRate: 64 // 较低比特率
+          channels: 1, // 모노
+          sampleRate: 22050, // 샘플링 레이트 낮춤
+          bitRate: 64 // 낮은 비트레이트
         })
 
-        // 计算压缩比
+        // 압축률 계산
         const compressionRatio = calculateCompressionRatio(originalInfo.size, compressedBlob.size)
-        console.log('音频压缩完成:', {
+        console.log('오디오 압축 완료:', {
           originalSize: `${(originalInfo.size / 1024 / 1024).toFixed(2)}MB`,
           compressedSize: `${(compressedBlob.size / 1024 / 1024).toFixed(2)}MB`,
           compressionRatio: `${compressionRatio}%`
         })
 
-        // 立即回调显示录音结果，传递压缩后的音频
+        // 콜백을 호출하여 녹음 결과 표시, 압축된 오디오 전달
         options.onStop?.(compressedBlob, duration, audioPath)
 
-        // 异步处理缓存，不阻塞UI更新
+        // 비동기로 캐시 처리, UI 업데이트 차단 안 함
         saveAudioToCache(compressedBlob, duration).catch((error) => {
-          console.error('缓存音频文件失败:', error)
-          // 缓存失败不影响主要功能，只记录错误
+          console.error('오디오 파일 캐시 저장 실패:', error)
+          // 캐시 실패는 주요 기능에 영향을 주지 않으므로 오류만 기록
         })
 
-        // 删除原始的wav文件，释放磁盘空间
+        // 원본 wav 파일 삭제, 디스크 공간 확보
         try {
           await remove(audioPath)
-          console.log('已删除原始录音文件:', audioPath)
+          console.log('원본 녹음 파일 삭제됨:', audioPath)
         } catch (deleteError) {
-          console.warn('删除原始录音文件失败:', deleteError)
+          console.warn('원본 녹음 파일 삭제 실패:', deleteError)
         }
       }
     } catch (error) {
-      console.error('停止录音或压缩失败:', error)
+      console.error('녹음 중지 또는 압축 실패:', error)
 
-      // 确保录音状态被正确重置
+      // 녹음 상태가 올바르게 재설정되도록 보장
       isRecording.value = false
 
-      // 清理worker定时器
+      // worker 타이머 정리
       if (timerWorker) {
         timerWorker.postMessage({
           type: 'clearTimer',
@@ -181,22 +181,22 @@ export const useVoiceRecordRust = (options: VoiceRecordRustOptions = {}) => {
         clearInterval(audioMonitor.value)
         audioMonitor.value = null
       }
-      options.onError?.('停止录音失败')
+      options.onError?.('녹음 중지 실패')
     }
   }
 
-  /** 取消录音 */
+  /** 녹음 취소 */
   const cancelRecordingAudio = async () => {
     try {
       if (!isRecording.value) return
 
-      // 调用Rust后端停止录音，但不处理返回的音频文件
+      // Rust 백엔드를 호출하여 녹음 중지하되, 반환된 오디오 파일은 처리하지 않음
       await stopRecording()
-      console.log('取消录音')
+      console.log('녹음 취소')
 
       isRecording.value = false
 
-      // 清理worker定时器
+      // worker 타이머 정리
       if (timerWorker) {
         timerWorker.postMessage({
           type: 'clearTimer',
@@ -209,20 +209,20 @@ export const useVoiceRecordRust = (options: VoiceRecordRustOptions = {}) => {
         audioMonitor.value = null
       }
     } catch (error) {
-      console.error('取消录音失败:', error)
-      // 确保状态被重置
+      console.error('녹음 취소 실패:', error)
+      // 상태가 재설정되도록 보장
       isRecording.value = false
-      options.onError?.('取消录音失败')
+      options.onError?.('녹음 취소 실패')
     }
   }
 
-  /** 保存音频到本地缓存 */
+  /** 로컬 캐시에 오디오 저장 */
   const saveAudioToCache = async (audioBlob: Blob, duration: number) => {
     const getFileHashName = async (tempFileName: string) => {
       const audioFile = new File([audioBlob], tempFileName)
-      // 计算文件真正的资源哈希文件名
+      // 리소스 해시 파일명 계산
       const resourceFileName = await generateHashKey(
-        { scene: UploadSceneEnum.CHAT, enableDeduplication: true }, // 这里的UploadSceneEnum随便选，反正只需要哈希值文件名
+        { scene: UploadSceneEnum.CHAT, enableDeduplication: true }, // UploadSceneEnum은 임의로 선택, 파일명 해시값만 필요함
         audioFile,
         tempFileName
       )
@@ -233,47 +233,47 @@ export const useVoiceRecordRust = (options: VoiceRecordRustOptions = {}) => {
     try {
       const userUid = userStore.userInfo!.uid
       if (!userUid) {
-        throw new Error('用户未登录')
+        throw new Error('사용자가 로그인하지 않았습니다')
       }
 
-      // 生成文件名
+      // 파일명 생성
       const timestamp = Date.now()
       const fileName = `voice_${timestamp}.mp3`
 
-      // 获取缓存路径
+      // 캐시 경로 가져오기
       const audioFolder = 'audio'
       const cachePath = getImageCache(audioFolder, userUid.toString())
 
       const fileHashName = await getFileHashName(fileName)
       const fullPath = cachePath + fileHashName
 
-      // 确保目录存在
+      // 디렉토리가 존재하는지 확인
       const baseDir = isMobile() ? BaseDirectory.AppData : BaseDirectory.AppCache
       const dirExists = await exists(cachePath, { baseDir })
       if (!dirExists) {
         await mkdir(cachePath, { baseDir, recursive: true })
       }
 
-      // 将Blob转换为ArrayBuffer
+      // Blob을 ArrayBuffer로 변환
       const arrayBuffer = await audioBlob.arrayBuffer()
 
-      // 保存到本地文件
+      // 로컬 파일에 저장
       const file = await create(fullPath, { baseDir })
       await file.write(new Uint8Array(arrayBuffer))
       await file.close()
 
-      console.log('音频文件已保存到:', fullPath)
+      console.log('오디오 파일 저장됨:', fullPath)
 
-      // 调用回调，传递本地路径
+      // 콜백 호출, 로컬 경로 전달
       options.onStop?.(audioBlob, duration, fullPath)
     } catch (error) {
-      console.error('保存音频文件失败:', error)
-      window.$message?.error('音频保存失败')
-      options.onError?.('音频保存失败')
+      console.error('오디오 파일 저장 실패:', error)
+      window.$message?.error('오디오 저장 실패')
+      options.onError?.('오디오 저장 실패')
     }
   }
 
-  // 格式化录音时间
+  // 녹음 시간 포맷팅
   const formatTime = (seconds: number) => {
     const roundedSeconds = Math.round(seconds)
     const mins = Math.floor(roundedSeconds / 60)
@@ -281,10 +281,10 @@ export const useVoiceRecordRust = (options: VoiceRecordRustOptions = {}) => {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
   }
 
-  // 清理资源
+  // 리소스 정리
   onUnmounted(() => {
     cancelRecordingAudio()
-    // 清理worker
+    // worker 정리
     if (timerWorker) {
       timerWorker.postMessage({
         type: 'clearTimer',

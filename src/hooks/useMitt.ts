@@ -7,7 +7,7 @@ const mittInstance: Emitter<any> = mitt()
 export const useMitt = {
   on: (event: MittEnum | string, handler: Handler<any>) => {
     mittInstance.on(event, handler)
-    // 仅当在有效的响应式作用域中时才注册清理
+    // 유효한 반응형 범위 내에 있을 때만 정리 등록
     if (getCurrentScope()) {
       onUnmounted(() => {
         mittInstance.off(event, handler)

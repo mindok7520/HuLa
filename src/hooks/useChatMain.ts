@@ -70,31 +70,31 @@ export const useChatMain = (isHistoryMode = false, options: UseChatMainOptions =
   const { downloadFile } = useDownload()
   const enableGroupNicknameModal = options.enableGroupNicknameModal ?? false
   const disableHistoryActions = options.disableHistoryActions ?? false
-  /** 滚动条位置 */
+  /** 스크롤바 위치 */
   const scrollTop = ref(-1)
-  /** 提醒框标题 */
+  /** 알림 상자 제목 */
   const tips = ref()
-  /** 是否显示删除信息的弹窗 */
+  /** 메시지 삭제 팝업 표시 여부 */
   const modalShow = ref(false)
-  /** 需要删除信息的下标 */
+  /** 삭제할 메시지 인덱스 */
   const delIndex = ref('')
   const delRoomId = ref('')
-  /** 选中的气泡消息 */
+  /** 선택된 메시지 말풍선 */
   const activeBubble = ref('')
-  /** 记录历史消息下标 */
+  /** 기록 메시지 인덱스 기록 */
   const historyIndex = ref(0)
-  /** 当前点击的用户的key */
+  /** 현재 클릭된 사용자 키 */
   const selectKey = ref()
 
-  /** 修改群昵称的模态框是否显示 */
+  /** 그룹 닉네임 수정 모달 표시 여부 */
   const groupNicknameModalVisible = ref(false)
-  /** 修改群昵称输入的值 */
+  /** 그룹 닉네임 수정 입력 값 */
   const groupNicknameValue = ref('')
-  /** 修改群昵称错误提示 */
+  /** 그룹 닉네임 수정 오류 메시지 */
   const groupNicknameError = ref('')
-  /** 修改群昵称提交状态 */
+  /** 그룹 닉네임 수정 제출 상태 */
   const groupNicknameSubmitting = ref(false)
-  /** 修改群昵称上下文信息 */
+  /** 그룹 닉네임 수정 컨텍스트 정보 */
   const groupNicknameContext = ref<{ roomId: string; currentUid: string; originalNickname: string } | null>(null)
 
   const handleGroupNicknameConfirm = async () => {
@@ -104,7 +104,7 @@ export const useChatMain = (isHistoryMode = false, options: UseChatMainOptions =
 
     const trimmedName = groupNicknameValue.value.trim()
     if (!trimmedName) {
-      groupNicknameError.value = '群昵称不能为空'
+      groupNicknameError.value = '그룹 닉네임은 비워둘 수 없습니다'
       return
     }
 
@@ -115,7 +115,7 @@ export const useChatMain = (isHistoryMode = false, options: UseChatMainOptions =
 
     const { roomId, currentUid } = groupNicknameContext.value
     if (!roomId) {
-      window.$message?.error('当前群聊信息异常')
+      window.$message?.error('현재 그룹 채팅 정보 이상')
       return
     }
 
@@ -136,7 +136,7 @@ export const useChatMain = (isHistoryMode = false, options: UseChatMainOptions =
       }
       groupNicknameModalVisible.value = false
     } catch (error) {
-      console.error('修改群昵称失败', error)
+      console.error('그룹 닉네임 수정 실패', error)
       groupNicknameSubmitting.value = false
     }
   }
@@ -151,7 +151,7 @@ export const useChatMain = (isHistoryMode = false, options: UseChatMainOptions =
     })
   }
 
-  /** 通用右键菜单 */
+  /** 공통 우클릭 메뉴 */
   const handleForward = async (item: MessageType) => {
     if (!item?.message?.id) return
     const target = chatStore.chatMessageList.find((msg) => msg.message.id === item.message.id)
@@ -168,20 +168,20 @@ export const useChatMain = (isHistoryMode = false, options: UseChatMainOptions =
     })
   }
 
-  // 复制禁用类型
+  // 복사 비활성화 유형
   const copyDisabledTypes: MsgEnum[] = [MsgEnum.NOTICE, MsgEnum.MERGE, MsgEnum.LOCATION, MsgEnum.VOICE]
   const shouldHideCopy = (item: MessageType) => copyDisabledTypes.includes(item.message.type)
   const isNoticeMessage = (item: MessageType) => item.message.type === MsgEnum.NOTICE
   const revealInDirSafely = async (targetPath?: string | null) => {
     if (!targetPath) {
-      window.$message?.error('暂时找不到本地文件，请先下载后再试~')
+      window.$message?.error('로컬 파일을 찾을 수 없습니다. 먼저 다운로드해 주세요~')
       return
     }
     try {
       await revealItemInDir(targetPath)
     } catch (error) {
-      console.error('在文件夹中显示文件失败:', error)
-      window.$message?.error('无法在文件夹中显示该文件')
+      console.error('폴더에서 파일 표시 실패:', error)
+      window.$message?.error('폴더에서 파일을 표시할 수 없습니다')
     }
   }
 
@@ -214,7 +214,7 @@ export const useChatMain = (isHistoryMode = false, options: UseChatMainOptions =
       icon: 'share',
       click: (item: MessageType) => {
         if (isMobile()) {
-          window.$message.warning('功能暂开发')
+          window.$message.warning('기능 개발 중')
           return
         }
         handleForward(item)
@@ -240,7 +240,7 @@ export const useChatMain = (isHistoryMode = false, options: UseChatMainOptions =
       icon: 'corner-down-left',
       click: async (item: MessageType) => {
         const msg = { ...item }
-        // 在调用 API 前先保存原始类型，避免 WebSocket 消息先到达导致 type 被修改
+        // API 호출 전 원래 유형 저장, 웹소켓 메시지가 먼저 도착하여 type이 수정되는 것 방지
         const originalType = item.message.type
         const originalContent = item.message.body.content
         const res = await recallMsg({ roomId: globalStore.currentSessionRoomId, msgId: item.message.id })
@@ -295,7 +295,7 @@ export const useChatMain = (isHistoryMode = false, options: UseChatMainOptions =
       icon: 'copy',
       click: (item: MessageType) => {
         if (isMobile()) {
-          window.$message.warning('功能暂开发')
+          window.$message.warning('기능 개발 중')
           return
         }
         handleCopy(item.message.body.url, true, item.message.id)
@@ -307,7 +307,7 @@ export const useChatMain = (isHistoryMode = false, options: UseChatMainOptions =
       icon: 'Importing',
       click: async (item: MessageType) => {
         if (isMobile()) {
-          window.$message.warning('功能暂开发')
+          window.$message.warning('기능 개발 중')
           return
         }
         await saveVideoAttachmentAs({
@@ -325,7 +325,7 @@ export const useChatMain = (isHistoryMode = false, options: UseChatMainOptions =
         try {
           const localPath = await getLocalVideoPath(item.message.body.url)
 
-          // 检查视频是否已下载
+          // 비디오 다운로드 여부 확인
           const isDownloaded = await checkVideoDownloaded(item.message.body.url)
 
           if (!isDownloaded) {
@@ -462,16 +462,16 @@ export const useChatMain = (isHistoryMode = false, options: UseChatMainOptions =
               label: () => (isMac() ? t('menu.show_in_finder') : t('menu.show_in_folder')),
               icon: 'file2',
               click: async (item: RightMouseMessageItem) => {
-                console.log('打开文件夹的item项：', item)
+                console.log('폴더 열기 item 항목:', item)
 
                 const fileUrl = item.message.body.url
                 const fileName = item.message.body.fileName || extractFileName(fileUrl)
 
-                // 检查文件是否已下载
+                // 파일 다운로드 여부 확인
                 const fileStatus = fileDownloadStore.getFileStatus(fileUrl)
 
-                console.log('找到的文件状态：', fileStatus)
-                const currentChatRoomId = globalStore.currentSessionRoomId // 这个id可能为群id可能为用户uid，所以不能只用用户uid
+                console.log('찾은 파일 상태:', fileStatus)
+                const currentChatRoomId = globalStore.currentSessionRoomId // 이 id는 그룹 id일 수도 있고 사용자 uid일 수도 있으므로 사용자 uid만 사용해서는 안 됨
                 const currentUserUid = userStore.userInfo!.uid as string
 
                 const resourceDirPath = await userStore.getUserRoomAbsoluteDir()
@@ -479,16 +479,18 @@ export const useChatMain = (isHistoryMode = false, options: UseChatMainOptions =
 
                 const [fileMeta] = await getFilesMeta<FilesMeta>([fileStatus?.absolutePath || absolutePath || fileUrl])
 
-                // 最后判断文件不存在本地，那就下载它
+                // 마지막으로 파일이 로컬에 존재하지 않으면 다운로드
                 if (!fileMeta.exists) {
-                  // 文件不存在本地
-                  const downloadMessage = window.$message.info('文件没下载哦~ 请下载文件后再打开🚀...')
+                  // 파일이 로컬에 없음
+                  const downloadMessage = window.$message.info(
+                    '파일이 다운로드되지 않았습니다. 다운로드 후 다시 열어주세요🚀...'
+                  )
                   const _absolutePath = await fileDownloadStore.downloadFile(fileUrl, fileName)
 
                   if (_absolutePath) {
                     absolutePath = _absolutePath
                     downloadMessage.destroy()
-                    window.$message.success('文件下载好啦！请查看~')
+                    window.$message.success('파일 다운로드 완료! 확인해 보세요~')
                     await revealInDirSafely(_absolutePath)
                     await fileDownloadStore.refreshFileDownloadStatus({
                       fileUrl: item.message.body.url,
@@ -500,7 +502,7 @@ export const useChatMain = (isHistoryMode = false, options: UseChatMainOptions =
                     return
                   } else {
                     absolutePath = ''
-                    window.$message.error('文件下载失败，请重试~')
+                    window.$message.error('파일 다운로드 실패, 다시 시도해 주세요~')
                     return
                   }
                 }
@@ -536,26 +538,26 @@ export const useChatMain = (isHistoryMode = false, options: UseChatMainOptions =
       label: () => t('menu.preview'),
       icon: 'preview-open',
       click: (item: RightMouseMessageItem) => {
-        console.log('预览文件的参数：', item)
+        console.log('파일 미리보기 매개변수:', item)
         nextTick(async () => {
           const path = 'previewFile'
           const LABEL = 'previewFile'
 
           const fileStatus: FileDownloadStatus = fileDownloadStore.getFileStatus(item.message.body.url)
 
-          const currentChatRoomId = globalStore.currentSessionRoomId // 这个id可能为群id可能为用户uid，所以不能只用用户uid
+          const currentChatRoomId = globalStore.currentSessionRoomId // 이 id는 그룹 id일 수도 있고 사용자 uid일 수도 있으므로 사용자 uid만 사용해서는 안 됨
           const currentUserUid = userStore.userInfo!.uid as string
 
           /**
-           * 构建窗口所需的 payload 数据，用于传递文件预览相关的信息。
+           * 파일 미리보기에 필요한 정보를 전달하기 위해 윈도우용 payload 데이터 구성.
            *
-           * 包括用户 ID、房间 ID、消息 ID、文件路径、类型、是否存在本地等。
-           * 若本地存在文件，则 url 使用本地路径，否则使用远程 URL。
+           * 사용자 ID, 방 ID, 메시지 ID, 파일 경로, 유형, 로컬 존재 여부 등 포함.
+           * 로컬에 파일이 존재하면 url은 로컬 경로를 사용하고, 그렇지 않으면 원격 URL 사용.
            *
-           * @param item - 右键点击的消息项，包含文件的消息结构和用户信息。
-           * @param type - 文件类型信息（扩展名和 MIME 类型），可为空。
-           * @param localExists - 文件是否存在于本地，用于决定路径选择。
-           * @returns 构建后的 payload 对象。
+           * @param item - 우클릭한 메시지 항목, 파일 메시지 구조와 사용자 정보 포함.
+           * @param type - 파일 유형 정보 (확장자 및 MIME 유형), 비어 있을 수 있음.
+           * @param localExists - 파일이 로컬에 존재하는지 여부, 경로 선택에 사용.
+           * @returns 구성된 payload 객체.
            */
           const buildPayload = (
             item: RightMouseMessageItem,
@@ -579,9 +581,9 @@ export const useChatMain = (isHistoryMode = false, options: UseChatMainOptions =
           }
 
           /**
-           * 当本地文件不存在或获取元数据失败时，执行远程文件类型检测，并构建 fallback payload。
+           * 로컬 파일이 없거나 메타데이터 가져오기 실패 시, 원격 파일 유형 감지를 수행하고 fallback payload 구성.
            *
-           * 构建完成后通过窗口通信接口发送该 payload，供目标窗口使用。
+           * 구성 완료 후 윈도우 통신 인터페이스를 통해 해당 payload를 전송하여 대상 윈도우에서 사용.
            *
            * @returns Promise<void>
            */
@@ -594,22 +596,22 @@ export const useChatMain = (isHistoryMode = false, options: UseChatMainOptions =
             await sendWindowPayload(LABEL, fallbackPayload)
           }
 
-          // 这里不用状态中的absolute，是因为不能完全相信状态的绝对路径是否存在，有时不存在
+          // 상태의 absolute를 사용하지 않는 이유는 상태의 절대 경로가 항상 존재한다고 신뢰할 수 없기 때문 (가끔 존재하지 않음)
           const resourceDirPath = await userStore.getUserRoomAbsoluteDir()
           const absolutePath = await join(resourceDirPath, item.message.body.fileName)
 
-          // 获取文件元信息（判断文件是否已下载/存在）
+          // 파일 메타 정보 가져오기 (파일 다운로드/존재 여부 판단)
           const result = await getFilesMeta<FilesMeta>([
             fileStatus?.absolutePath || absolutePath || item.message.body.url
           ])
           const fileMeta = result[0]
 
           try {
-            // 如果本地不存在该文件，清空旧的下载状态，准备读取远程链接作为兜底
+            // 로컬에 해당 파일이 없으면 기존 다운로드 상태를 비우고 원격 링크를 폴백으로 읽을 준비
             if (!fileMeta.exists) {
               await fallbackToRemotePayload()
             } else {
-              // 本地存在文件，构造 payload 使用本地路径和已知类型
+              // 로컬에 파일 존재, 로컬 경로와 알려진 유형을 사용하여 payload 구성
               const payload = buildPayload(
                 item,
                 {
@@ -622,12 +624,12 @@ export const useChatMain = (isHistoryMode = false, options: UseChatMainOptions =
               await sendWindowPayload(LABEL, payload)
             }
           } catch (error) {
-            // 本地信息获取失败，可能是路径非法或 RPC 异常，兜底走远程解析
+            // 로컬 정보 가져오기 실패, 경로가 잘못되었거나 RPC 예외일 수 있음, 원격 파싱으로 폴백
             await fallbackToRemotePayload()
-            console.error('检查文件出错：', error)
+            console.error('파일 확인 오류:', error)
           }
 
-          console.log('预览时刷新下载状态')
+          console.log('미리보기 시 다운로드 상태 새로고침')
           await fileDownloadStore.refreshFileDownloadStatus({
             fileUrl: item.message.body.url,
             roomId: currentChatRoomId,
@@ -647,7 +649,7 @@ export const useChatMain = (isHistoryMode = false, options: UseChatMainOptions =
       icon: 'Importing',
       click: async (item: RightMouseMessageItem) => {
         if (isMobile()) {
-          window.$message.warning('功能暂开发')
+          window.$message.warning('기능 개발 중')
           return
         }
         await saveFileAttachmentAs({
@@ -662,16 +664,16 @@ export const useChatMain = (isHistoryMode = false, options: UseChatMainOptions =
       label: () => (isMac() ? t('menu.show_in_finder') : t('menu.show_in_folder')),
       icon: 'file2',
       click: async (item: RightMouseMessageItem) => {
-        console.log('打开文件夹的item项：', item)
+        console.log('폴더 열기 item 항목:', item)
 
         const fileUrl = item.message.body.url
         const fileName = item.message.body.fileName || extractFileName(fileUrl)
 
-        // 检查文件是否已下载
+        // 파일 다운로드 여부 확인
         const fileStatus = fileDownloadStore.getFileStatus(fileUrl)
 
-        console.log('找到的文件状态：', fileStatus)
-        const currentChatRoomId = globalStore.currentSessionRoomId // 这个id可能为群id可能为用户uid，所以不能只用用户uid
+        console.log('찾은 파일 상태:', fileStatus)
+        const currentChatRoomId = globalStore.currentSessionRoomId // 이 id는 그룹 id일 수도 있고 사용자 uid일 수도 있으므로 사용자 uid만 사용해서는 안 됨
         const currentUserUid = userStore.userInfo!.uid as string
 
         const resourceDirPath = await userStore.getUserRoomAbsoluteDir()
@@ -679,16 +681,16 @@ export const useChatMain = (isHistoryMode = false, options: UseChatMainOptions =
 
         const [fileMeta] = await getFilesMeta<FilesMeta>([fileStatus?.absolutePath || absolutePath || fileUrl])
 
-        // 最后判断文件不存在本地，那就下载它
+        // 마지막으로 파일이 로컬에 존재하지 않으면 다운로드
         if (!fileMeta.exists) {
-          // 文件不存在本地
-          const downloadMessage = window.$message.info('文件没下载哦, 请下载文件后再打开')
+          // 파일이 로컬에 없음
+          const downloadMessage = window.$message.info('파일이 다운로드되지 않았습니다. 다운로드 후 다시 열어주세요')
           const _absolutePath = await fileDownloadStore.downloadFile(fileUrl, fileName)
 
           if (_absolutePath) {
             absolutePath = _absolutePath
             downloadMessage.destroy()
-            window.$message.success('文件已保存到本地')
+            window.$message.success('파일이 로컬에 저장되었습니다')
             await revealInDirSafely(_absolutePath)
             await fileDownloadStore.refreshFileDownloadStatus({
               fileUrl: item.message.body.url,
@@ -700,7 +702,7 @@ export const useChatMain = (isHistoryMode = false, options: UseChatMainOptions =
             return
           } else {
             absolutePath = ''
-            window.$message.error('文件下载失败，请重试')
+            window.$message.error('파일 다운로드 실패, 다시 시도해 주세요')
             return
           }
         }
@@ -710,12 +712,13 @@ export const useChatMain = (isHistoryMode = false, options: UseChatMainOptions =
     }
   ])
   /** 图片类型右键菜单 */
+  /** 이미지 타입 우클릭 메뉴 */
   const imageMenuList = ref<OPT.RightMenu[]>([
     {
       label: () => t('menu.copy'),
       icon: 'copy',
       click: async (item: MessageType) => {
-        // 对于图片消息，优先使用 url 字段，回退到 content 字段
+        // 이미지 메시지의 경우 url 필드를 우선 사용하고, content 필드로 폴백
         const imageUrl = item.message.body.url || item.message.body.content
         await handleCopy(imageUrl, true, item.message.id)
       }
@@ -726,18 +729,18 @@ export const useChatMain = (isHistoryMode = false, options: UseChatMainOptions =
       icon: 'Importing',
       click: async (item: MessageType) => {
         if (isMobile()) {
-          window.$message.warning('功能暂开发')
+          window.$message.warning('기능 개발 중')
           return
         }
         try {
           const imageUrl = item.message.body.url
           const suggestedName = imageUrl || 'image.png'
 
-          // 这里会自动截取url后的文件名，可以尝试打印一下
+          // 여기서 url 뒤의 파일 이름을 자동으로 추출합니다. 출력해 볼 수 있습니다.
           const savePath = await save({
             filters: [
               {
-                name: '图片',
+                name: '이미지',
                 extensions: ['png', 'jpg', 'jpeg', 'gif', 'webp']
               }
             ],
@@ -748,8 +751,8 @@ export const useChatMain = (isHistoryMode = false, options: UseChatMainOptions =
             await downloadFile(imageUrl, savePath)
           }
         } catch (error) {
-          console.error('保存图片失败:', error)
-          window.$message.error('保存图片失败')
+          console.error('이미지 저장 실패:', error)
+          window.$message.error('이미지 저장 실패')
         }
       }
     },
@@ -760,7 +763,7 @@ export const useChatMain = (isHistoryMode = false, options: UseChatMainOptions =
         const fileUrl = item.message.body.url || item.message.body.content
         const fileName = item.message.body.fileName || extractFileName(fileUrl)
         if (!fileUrl || !fileName) {
-          window.$message.warning('暂时无法定位该图片~')
+          window.$message.warning('현재 이미지를 찾을 수 없습니다~')
           return
         }
 
@@ -774,13 +777,13 @@ export const useChatMain = (isHistoryMode = false, options: UseChatMainOptions =
         const [fileMeta] = await getFilesMeta<FilesMeta>([fileStatus?.absolutePath || absolutePath || fileUrl])
 
         if (!fileMeta.exists) {
-          const downloadMessage = window.$message.info('图片没下载, 正在保存到本地...')
+          const downloadMessage = window.$message.info('이미지가 다운로드되지 않았습니다. 로컬에 저장 중...')
           const _absolutePath = await fileDownloadStore.downloadFile(fileUrl, fileName)
 
           if (_absolutePath) {
             absolutePath = _absolutePath
             downloadMessage.destroy()
-            window.$message.success('图片已保存到本地')
+            window.$message.success('이미지가 로컬에 저장되었습니다')
             await revealInDirSafely(_absolutePath)
             await fileDownloadStore.refreshFileDownloadStatus({
               fileUrl,
@@ -792,7 +795,7 @@ export const useChatMain = (isHistoryMode = false, options: UseChatMainOptions =
             return
           } else {
             absolutePath = ''
-            window.$message.error('图片下载失败，请重试~')
+            window.$message.error('이미지 다운로드 실패, 다시 시도해 주세요~')
             return
           }
         }
@@ -801,7 +804,7 @@ export const useChatMain = (isHistoryMode = false, options: UseChatMainOptions =
       }
     }
   ])
-  /** 右键用户信息菜单(群聊的时候显示) */
+  /** 우클릭 사용자 정보 메뉴(그룹 채팅 시 표시) */
   const optionsList = ref<OPT.RightMenu[]>([
     {
       label: () => t('menu.send_message'),
@@ -823,7 +826,7 @@ export const useChatMain = (isHistoryMode = false, options: UseChatMainOptions =
       label: () => t('menu.get_user_info'),
       icon: 'notes',
       click: (item: any, type: string) => {
-        // 如果是聊天框内的资料就使用的是消息的key，如果是群聊成员的资料就使用的是uid
+        // 채팅창 내의 프로필이면 메시지 키를 사용하고, 그룹 멤버의 프로필이면 uid를 사용
         const uid = item.uid || item.message.id
         useMitt.emit(`${MittEnum.INFO_POPOVER}-${type}`, { uid: uid, type: type })
       }
@@ -856,7 +859,7 @@ export const useChatMain = (isHistoryMode = false, options: UseChatMainOptions =
       label: () => t('menu.add_friend'),
       icon: 'people-plus',
       click: async (item: any) => {
-        await createWebviewWindow('申请加好友', 'addFriendVerify', 380, 300, '', false, 380, 300)
+        await createWebviewWindow('친구 추가 신청', 'addFriendVerify', 380, 300, '', false, 380, 300)
         globalStore.addFriendModalInfo.show = true
         globalStore.addFriendModalInfo.uid = item.uid || item.fromUser.uid
       },
@@ -878,31 +881,31 @@ export const useChatMain = (isHistoryMode = false, options: UseChatMainOptions =
         }
       },
       visible: (item: any) => {
-        // 1. 检查是否在群聊中
+        // 1. 그룹 채팅 여부 확인
         const isInGroup = globalStore.currentSession?.type === RoomTypeEnum.GROUP
         if (!isInGroup) return false
 
-        // 2. 检查房间号是否为1(频道)
+        // 2. 방 번호가 1(채널)인지 확인
         const roomId = globalStore.currentSessionRoomId
         if (!roomId || roomId === '1') return false
 
-        // 3. 获取目标用户ID
+        // 3. 대상 사용자 ID 가져오기
         const targetUid = item.uid || item.fromUser?.uid
         if (!targetUid) return false
 
-        // 4. 检查目标用户角色
+        // 4. 대상 사용자 역할 확인
         let targetRoleId = item.roleId
 
-        // 如果item中没有roleId，则通过uid从群成员列表中查找
+        // item에 roleId가 없으면 uid를 통해 그룹 멤버 목록에서 찾음
         if (targetRoleId === void 0) {
           const targetUser = groupStore.userList.find((user) => user.uid === targetUid)
           targetRoleId = targetUser?.roleId
         }
 
-        // 检查目标用户是否已经是管理员或群主
+        // 대상 사용자가 이미 관리자이거나 방장인지 확인
         if (targetRoleId === RoleEnum.ADMIN || targetRoleId === RoleEnum.LORD) return false
 
-        // 5. 检查当前用户是否是群主
+        // 5. 현재 사용자가 방장인지 확인
         const currentUser = groupStore.userList.find((user) => user.uid === userUid.value)
         return currentUser?.roleId === RoleEnum.LORD
       }
@@ -923,37 +926,37 @@ export const useChatMain = (isHistoryMode = false, options: UseChatMainOptions =
         }
       },
       visible: (item: any) => {
-        // 1. 检查是否在群聊中
+        // 1. 그룹 채팅 여부 확인
         const isInGroup = globalStore.currentSession?.type === RoomTypeEnum.GROUP
         if (!isInGroup) return false
 
-        // 2. 检查房间号是否为1(频道)
+        // 2. 방 번호가 1(채널)인지 확인
         const roomId = globalStore.currentSessionRoomId
         if (!roomId || roomId === '1') return false
 
-        // 3. 获取目标用户ID
+        // 3. 대상 사용자 ID 가져오기
         const targetUid = item.uid || item.fromUser?.uid
         if (!targetUid) return false
 
-        // 4. 检查目标用户角色
+        // 4. 대상 사용자 역할 확인
         let targetRoleId = item.roleId
 
-        // 如果item中没有roleId，则通过uid从群成员列表中查找
+        // item에 roleId가 없으면 uid를 통해 그룹 멤버 목록에서 찾음
         if (targetRoleId === void 0) {
           const targetUser = groupStore.userList.find((user) => user.uid === targetUid)
           targetRoleId = targetUser?.roleId
         }
 
-        // 检查目标用户是否是管理员(只能撤销管理员,不能撤销群主)
+        // 대상 사용자가 관리자인지 확인 (관리자만 해제 가능, 방장은 불가능)
         if (targetRoleId !== RoleEnum.ADMIN) return false
 
-        // 5. 检查当前用户是否是群主
+        // 5. 현재 사용자가 방장인지 확인
         const currentUser = groupStore.userList.find((user) => user.uid === userUid.value)
         return currentUser?.roleId === RoleEnum.LORD
       }
     }
   ])
-  /** 举报选项 */
+  /** 신고 옵션 */
   const report = ref([
     {
       label: () => t('menu.remove_from_group'),
@@ -965,7 +968,7 @@ export const useChatMain = (isHistoryMode = false, options: UseChatMainOptions =
 
         try {
           await removeGroupMember({ roomId, uidList: [targetUid] })
-          // 从群成员列表中移除该用户
+          // 그룹 멤버 목록에서 해당 사용자 제거
           groupStore.removeUserItem(targetUid, roomId)
           window.$message.success(t('menu.remove_from_group_success'))
         } catch (_error) {
@@ -973,36 +976,36 @@ export const useChatMain = (isHistoryMode = false, options: UseChatMainOptions =
         }
       },
       visible: (item: any) => {
-        // 1. 检查是否在群聊中
+        // 1. 그룹 채팅 여부 확인
         const isInGroup = globalStore.currentSession?.type === RoomTypeEnum.GROUP
         if (!isInGroup) return false
 
-        // 2. 检查房间号是否为1(频道)
+        // 2. 방 번호가 1(채널)인지 확인
         const roomId = globalStore.currentSessionRoomId
         if (!roomId || roomId === '1') return false
 
-        // 3. 获取目标用户ID
+        // 3. 대상 사용자 ID 가져오기
         const targetUid = item.uid || item.fromUser?.uid
         if (!targetUid) return false
 
-        // 4. 检查目标用户角色
+        // 4. 대상 사용자 역할 확인
         let targetRoleId = item.roleId
 
-        // 如果item中没有roleId，则通过uid从群成员列表中查找
+        // item에 roleId가 없으면 uid를 통해 그룹 멤버 목록에서 찾음
         if (targetRoleId === void 0) {
           const targetUser = groupStore.userList.find((user) => user.uid === targetUid)
           targetRoleId = targetUser?.roleId
         }
 
-        // 检查目标用户是否是群主(群主不能被移出)
+        // 대상 사용자가 방장인지 확인 (방장은 내보낼 수 없음)
         if (targetRoleId === RoleEnum.LORD) return false
 
-        // 5. 检查当前用户是否有权限(群主或管理员)
+        // 5. 현재 사용자가 권한이 있는지 확인 (방장 또는 관리자)
         const currentUser = groupStore.userList.find((user) => user.uid === userUid.value)
         const isLord = currentUser?.roleId === RoleEnum.LORD
         const isAdmin = currentUser?.roleId === RoleEnum.ADMIN
 
-        // 6. 如果当前用户是管理员,则不能移出其他管理员
+        // 6. 현재 사용자가 관리자일 경우, 다른 관리자는 내보낼 수 없음
         if (isAdmin && targetRoleId === RoleEnum.ADMIN) return false
 
         return isLord || isAdmin
@@ -1014,7 +1017,7 @@ export const useChatMain = (isHistoryMode = false, options: UseChatMainOptions =
       click: () => {}
     }
   ])
-  /** emoji表情菜单 */
+  /** 이모지 메뉴 */
   const emojiList = computed(() => [
     {
       url: '/msgAction/like.png',
@@ -1089,9 +1092,9 @@ export const useChatMain = (isHistoryMode = false, options: UseChatMainOptions =
   ])
 
   /**
-   * 检查用户关系
-   * @param uid 用户ID
-   * @param type 检查类型: 'friend' - 仅好友, 'all' - 好友或自己
+   * 사용자 관계 확인
+   * @param uid 사용자 ID
+   * @param type 확인 유형: 'friend' - 친구만, 'all' - 친구 또는 본인
    */
   const checkFriendRelation = (uid: string, type: 'friend' | 'all' = 'all') => {
     const contactStore = useContactStore()
@@ -1133,7 +1136,7 @@ export const useChatMain = (isHistoryMode = false, options: UseChatMainOptions =
   }
 
   /**
-   * 获取用户选中的文本（仅返回聊天气泡内的选择，并可校验消息ID）
+   * 사용자가 선택한 텍스트 가져오기 (채팅 말풍선 내의 선택만 반환하며, 메시지 ID 확인 가능)
    */
   const getSelectedText = (messageId?: string): string => {
     const selection = window.getSelection()
@@ -1159,14 +1162,14 @@ export const useChatMain = (isHistoryMode = false, options: UseChatMainOptions =
   }
 
   /**
-   * 检查是否有文本被选中
+   * 텍스트가 선택되었는지 확인
    */
   const hasSelectedText = (messageId?: string): boolean => {
     return getSelectedText(messageId).length > 0
   }
 
   /**
-   * 清除文本选择
+   * 텍스트 선택 지우기
    */
   const clearSelection = (): void => {
     const selection = window.getSelection()
@@ -1176,16 +1179,16 @@ export const useChatMain = (isHistoryMode = false, options: UseChatMainOptions =
   }
 
   /**
-   * 处理复制事件
-   * @param content 复制的内容（作为回退）
-   * @param prioritizeSelection 是否优先复制选中的文本
+   * 복사 이벤트 처리
+   * @param content 복사할 내용 (대체값)
+   * @param prioritizeSelection 선택한 텍스트를 우선 복사할지 여부
    */
   const handleCopy = async (content: string | undefined, prioritizeSelection: boolean = true, messageId?: string) => {
     try {
       let textToCopy = content || ''
       let isSelectedText = false
 
-      // 如果启用了优先选择模式，检查是否有选中的文本
+      // 선택 우선 모드가 활성화된 경우, 선택된 텍스트가 있는지 확인
       if (prioritizeSelection) {
         const selectedText = getSelectedText(messageId)
         if (selectedText) {
@@ -1194,45 +1197,48 @@ export const useChatMain = (isHistoryMode = false, options: UseChatMainOptions =
         }
       }
 
-      // 检查内容是否为空
+      // 내용이 비어 있는지 확인
       if (!textToCopy) {
-        window.$message?.warning('没有可复制的内容')
+        window.$message?.warning('복사할 내용이 없습니다')
         return
       }
 
-      // 如果是图片
+      // 이미지인 경우
       if (isImageUrl(textToCopy)) {
         try {
           const imageFormat = detectImageFormat(textToCopy)
 
-          // 提示用户正在处理不同格式的图片
+          // 다른 형식의 이미지를 처리 중임을 사용자에게 알림
           if (imageFormat === 'GIF' || imageFormat === 'WEBP') {
-            window.$message?.info(`正在将 ${imageFormat} 格式图片转换为 PNG 并复制...`)
+            window.$message?.info(`${imageFormat} 형식의 이미지를 PNG로 변환하여 복사 중...`)
           }
 
-          // 使用 Tauri 的 clipboard API 复制图片（自动转换为 PNG 格式）
+          // Tauri의 clipboard API를 사용하여 이미지 복사 (자동으로 PNG 형식으로 변환됨)
           const imageBytes = await imageUrlToUint8Array(textToCopy)
           await writeImage(imageBytes)
 
-          const successMessage = imageFormat === 'PNG' ? '图片已复制到剪贴板' : '图片已转换为 PNG 格式并复制到剪贴板'
+          const successMessage =
+            imageFormat === 'PNG'
+              ? '이미지가 클립보드에 복사되었습니다'
+              : '이미지가 PNG 형식으로 변환되어 클립보드에 복사되었습니다'
           window.$message?.success(successMessage)
         } catch (imageError) {
-          console.error('图片复制失败:', imageError)
+          console.error('이미지 복사 실패:', imageError)
         }
       } else {
-        // 如果是纯文本
+        // 일반 텍스트인 경우
         await writeText(removeTag(textToCopy))
-        const message = isSelectedText ? '选中文本已复制' : '消息内容已复制'
+        const message = isSelectedText ? '선택한 텍스트가 복사되었습니다' : '메시지 내용이 복사되었습니다'
         window.$message?.success(message)
       }
     } catch (error) {
-      console.error('复制失败:', error)
+      console.error('복사 실패:', error)
     }
   }
 
   /**
-   * 根据消息类型获取右键菜单列表
-   * @param type 消息类型
+   * 메시지 유형에 따른 우클릭 메뉴 목록 가져오기
+   * @param type 메시지 유형
    */
   const handleItemType = (type: MsgEnum) => {
     return type === MsgEnum.IMAGE || type === MsgEnum.EMOJI
@@ -1244,12 +1250,12 @@ export const useChatMain = (isHistoryMode = false, options: UseChatMainOptions =
           : menuList.value
   }
 
-  /** 删除信息事件 */
+  /** 메시지 삭제 이벤트 */
   const handleConfirm = async () => {
     if (!delIndex.value) return
     const targetRoomId = delRoomId.value || globalStore.currentSessionRoomId
     if (!targetRoomId) {
-      window.$message?.error('无法确定消息所属的会话')
+      window.$message?.error('메시지가 속한 대화방을 확인할 수 없습니다')
       return
     }
     try {
@@ -1260,7 +1266,7 @@ export const useChatMain = (isHistoryMode = false, options: UseChatMainOptions =
           roomId: targetRoomId
         },
         {
-          customErrorMessage: '删除消息失败',
+          customErrorMessage: '메시지 삭제 실패',
           errorType: ErrorType.Client
         }
       )
@@ -1269,9 +1275,9 @@ export const useChatMain = (isHistoryMode = false, options: UseChatMainOptions =
       delIndex.value = ''
       delRoomId.value = ''
       modalShow.value = false
-      window.$message?.success('消息已删除')
+      window.$message?.success('메시지가 삭제되었습니다')
     } catch (error) {
-      console.error('删除消息失败:', error)
+      console.error('메시지 삭제 실패:', error)
     }
   }
 
@@ -1284,7 +1290,7 @@ export const useChatMain = (isHistoryMode = false, options: UseChatMainOptions =
     }
   }
 
-  /** 点击气泡消息时候监听用户是否按下ctrl+c来复制内容 */
+  /** 말풍선 메시지 클릭 시 사용자가 Ctrl+C를 눌러 내용을 복사하는지 감지 */
   const handleMsgClick = (item: MessageType) => {
     if (item.message.type === MsgEnum.VIDEO_CALL) {
       startRtcCall(CallTypeEnum.VIDEO)
@@ -1294,7 +1300,7 @@ export const useChatMain = (isHistoryMode = false, options: UseChatMainOptions =
       return
     }
 
-    // 移动端不触发 active 效果
+    // 모바일에서는 active 효과 트리거 안 함
     if (!isMobile()) {
       if (chatStore.msgMultiChooseMode === 'forward') {
         activeBubble.value = ''
@@ -1303,22 +1309,22 @@ export const useChatMain = (isHistoryMode = false, options: UseChatMainOptions =
       }
     }
 
-    // 先移除可能残留的监听，避免重复绑定
+    // 중복 바인딩을 방지하기 위해 잔여 리스너 제거
     removeKeyPressListener()
 
-    // 启用键盘监听
+    // 키보드 리스너 활성화
     const handleKeyPress = (e: KeyboardEvent) => {
       if ((e.ctrlKey && e.key === 'c') || (e.metaKey && e.key === 'c')) {
-        // 优先复制用户选中的文本，如果没有选中则复制整个消息内容
-        // 对于图片或其他类型的消息，优先使用 url 字段
+        // 사용자가 선택한 텍스트를 우선 복사하고, 선택된 것이 없으면 전체 메시지 내용을 복사
+        // 이미지 또는 기타 유형의 메시지는 url 필드를 우선 사용
         const contentToCopy = item.message.body.url || item.message.body.content
         handleCopy(contentToCopy, true, item.message.id)
-        // 取消监听键盘事件，以免多次绑定
+        // 여러 번 바인딩되지 않도록 키보드 이벤트 리스너 취소
         removeKeyPressListener()
       }
     }
     activeKeyPressListener = handleKeyPress
-    // 绑定键盘事件到 document
+    // document에 키보드 이벤트 바인딩
     document.addEventListener('keydown', handleKeyPress)
   }
 

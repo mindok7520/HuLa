@@ -5,7 +5,7 @@ import { useGroupStore } from '@/stores/group'
 import { useUserStore } from '@/stores/user'
 import { useUserStatusStore } from '@/stores/userStatus'
 
-// 在线状态管理(仅是在线和离线)
+// 온라인 상태 관리(온라인 및 오프라인만 해당)
 export const useOnlineStatus = (uid?: ComputedRef<string | undefined> | Ref<string | undefined>) => {
   const { t } = useI18n()
   const userStore = useUserStore()
@@ -13,16 +13,16 @@ export const useOnlineStatus = (uid?: ComputedRef<string | undefined> | Ref<stri
   const userStatusStore = useUserStatusStore()
   const { currentState } = storeToRefs(userStatusStore)
 
-  // 如果传入了uid参数，使用传入的uid对应的用户信息；否则使用当前登录用户的信息
+  // uid 파라미터가 전달되면 해당 uid의 사용자 정보를 사용하고, 그렇지 않으면 현재 로그인한 사용자의 정보를 사용
   const currentUser = uid
     ? computed(() => (uid.value ? groupStore.getUserInfo(uid.value) : undefined))
     : computed(() => {
-        // 没有传入uid时，从groupStore获取当前用户信息以获得activeStatus
+        // uid가 전달되지 않은 경우 groupStore에서 현재 사용자 정보를 가져와 activeStatus를 획득
         const currentUid = userStore.userInfo?.uid
         return currentUid ? groupStore.getUserInfo(currentUid) : undefined
       })
 
-  // userStateId优先从userStore获取（保证响应式更新），如果没有则从currentUser获取
+  // userStateId는 userStore에서 먼저 가져오고(반응형 업데이트 보장), 없으면 currentUser에서 가져옴
   const userStateId = uid
     ? computed(() => currentUser.value?.userStateId)
     : computed(() => userStore.userInfo?.userStateId)
@@ -31,11 +31,11 @@ export const useOnlineStatus = (uid?: ComputedRef<string | undefined> | Ref<stri
 
   const hasCustomState = computed(() => {
     const stateId = userStateId.value
-    // 只有 '0' 表示清空状态（无自定义状态），其他都是自定义状态
+    // '0'은 상태 지움(사용자 지정 상태 없음)을 의미하며, 그 외에는 사용자 지정 상태임
     return !!stateId && stateId !== '0'
   })
 
-  // 获取用户的状态信息
+  // 사용자의 상태 정보 가져오기
   const userStatus = computed(() => {
     if (!userStateId.value) return null
     return userStatusStore.stateList.find((state: { id: string }) => state.id === userStateId.value)

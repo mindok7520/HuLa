@@ -10,7 +10,7 @@ type UpdatePayload = {
   remark: string
 }
 
-// 记录已经同步过成员列表的房间ID，避免在同一次会话中重复触发同步
+// 이미 멤버 목록을 동기화한 방 ID 기록, 동일한 세션에서 반복 동기화 트리거 방지
 const syncedRoomMembers = new Set<string>()
 
 export const useMyRoomInfoUpdater = () => {
@@ -26,7 +26,7 @@ export const useMyRoomInfoUpdater = () => {
       remark
     }
 
-    // 第一次编辑某个房间的昵称/备注时，先尝试同步一次成员列表，保证本地存在对应记录
+    // 방의 닉네임/메모를 처음 편집할 때, 멤버 목록을 한 번 동기화 시도하여 로컬에 관련 기록이 있는지 확인
     if (!syncedRoomMembers.has(roomId)) {
       const synced = await cacheStore.syncRoomMembersToLocal(roomId)
       if (synced) {
@@ -36,7 +36,7 @@ export const useMyRoomInfoUpdater = () => {
 
     let updated = await cacheStore.updateMyRoomInfo(payload)
     if (!updated) {
-      // 如果仍然失败，说明本地缓存可能过期，清除标记并再次强制同步后重试
+      // 여전히 실패하면 로컬 캐시가 만료되었을 수 있으므로, 플래그를 지우고 다시 강제 동기화 후 재시도
       syncedRoomMembers.delete(roomId)
       const synced = await cacheStore.syncRoomMembersToLocal(roomId)
       if (synced) {

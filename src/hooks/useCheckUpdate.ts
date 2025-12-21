@@ -6,26 +6,26 @@ import { useMitt } from './useMitt'
 import { isMobile } from '@/utils/PlatformConstants'
 
 /**
- * 检查更新
+ * 업데이트 확인
  */
 export const useCheckUpdate = () => {
   const settingStore = useSettingStore()
-  // 检查更新周期
+  // 업데이트 확인주기
   const CHECK_UPDATE_TIME = 30 * 60 * 1000
-  // 在未登录情况下缩短检查周期
+  // 로그인하지 않은 경우 확인 주기 단축
   const CHECK_UPDATE_LOGIN_TIME = 5 * 60 * 1000
   const isProduction = import.meta.env.PROD && !isMobile()
 
   /**
-   * 检查更新
-   * @param closeWin 需要关闭的窗口
-   * @param initialCheck 是否是初始检查，默认为false。初始检查时只显示强制更新提示，不显示普通更新提示
+   * 업데이트 확인
+   * @param closeWin 닫을 창
+   * @param initialCheck 초기 확인 여부, 기본값은 false. 초기 확인 시 강제 업데이트 알림만 표시하고 일반 업데이트 알림은 표시하지 않음
    */
   const checkUpdate = async (closeWin: string, initialCheck: boolean = false) => {
     await check({
-      timeout: 5000 /* 接口请求时长 5秒 */,
+      timeout: 5000 /* API 요청 시간 5초 */,
       headers: {
-        'X-AccessKey': 'geShj8UB7zd1DyrM_YFNdg' // UpgradeLink的AccessKey
+        'X-AccessKey': 'geShj8UB7zd1DyrM_YFNdg' // UpgradeLink의 AccessKey
       }
     })
       .then(async (e) => {
@@ -52,7 +52,7 @@ export const useCheckUpdate = () => {
         if (requireForceUpdate) {
           useMitt.emit(MittEnum.DO_UPDATE, { close: closeWin })
         } else if (newVersion !== currenVersion && settingStore.update.dismiss !== newVersion && !initialCheck) {
-          // 只在非初始检查时显示普通更新提示
+          // 초기 확인이 아닐 때만 일반 업데이트 알림 표시
           useMitt.emit(MittEnum.CHECK_UPDATE)
         }
       })

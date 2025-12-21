@@ -6,18 +6,18 @@ export function useCanvasTool(drawCanvas: any, drawCtx: any, imgCtx: any, screen
     endY: 0,
     scaleX: 1,
     scaleY: 1,
-    lineWidth: 2, // 线宽
-    color: 'red', // 颜色
-    isDrawing: false, // 正在绘制
-    brushSize: 10, // 马赛克大小
-    actions: [], // 存储绘制动作
+    lineWidth: 2, // 선 너비
+    color: 'red', // 색상
+    isDrawing: false, // 그리기 중
+    brushSize: 10, // 모자이크 크기
+    actions: [], // 그리기 작업 저장
     undoStack: []
   })
 
   const currentTool = ref('')
-  // 标记当前一次绘制过程中是否实际产生了绘制
+  // 현재 그리기 과정에서 실제로 그리기가 발생했는지 표시
   const hasDrawn = ref(false)
-  // 是否可以撤回（当存在已保存的绘制动作时）
+  // 실행 취소 가능 여부 (저장된 그리기 작업이 있는 경우)
   const canUndo = computed(() => drawConfig.value.actions.length > 0)
 
   const draw = (type: string) => {
@@ -37,7 +37,7 @@ export function useCanvasTool(drawCanvas: any, drawCtx: any, imgCtx: any, screen
     drawConfig.value.isDrawing = true
     hasDrawn.value = false
 
-    // 限制起点坐标在框选矩形区域内
+    // 시작 좌표를 선택 영역 내로 제한
     drawConfig.value.startX = Math.min(
       Math.max(offsetX * drawConfig.value.scaleX, screenConfig.value.startX),
       screenConfig.value.endX
@@ -52,7 +52,7 @@ export function useCanvasTool(drawCanvas: any, drawCtx: any, imgCtx: any, screen
     const { offsetX, offsetY } = event
     if (!drawConfig.value.isDrawing || !drawCtx.value) return
 
-    // 限制绘制区域在框选矩形区域内
+    // 그리기 영역을 선택 영역 내로 제한
     let limitedX = Math.min(
       Math.max(offsetX * drawConfig.value.scaleX, screenConfig.value.startX),
       screenConfig.value.endX
@@ -62,7 +62,7 @@ export function useCanvasTool(drawCanvas: any, drawCtx: any, imgCtx: any, screen
       screenConfig.value.endY
     )
 
-    // 对于马赛克工具，需要考虑边框宽度和画笔半径偏移，避免涂抹到选区边框
+    // 모자이크 도구의 경우 테두리 너비와 브러시 반경 오프셋을 고려하여 선택 영역 테두리에 칠해지지 않도록 해야 함
     if (currentTool.value === 'mosaic') {
       const borderWidth = 2
       const halfBrushSize = drawConfig.value.brushSize / 2
@@ -81,7 +81,7 @@ export function useCanvasTool(drawCanvas: any, drawCtx: any, imgCtx: any, screen
     drawConfig.value.endX = limitedX
     drawConfig.value.endY = limitedY
 
-    // 清除非马赛克的情况下重新绘制
+    // 모자이크가 아닌 경우 다시 그리기 위해 지우기
     if (currentTool.value !== 'mosaic') {
       drawCtx.value.clearRect(0, 0, drawCanvas.value.width, drawCanvas.value.height)
       drawConfig.value.actions.forEach((action) => {
@@ -133,7 +133,7 @@ export function useCanvasTool(drawCanvas: any, drawCtx: any, imgCtx: any, screen
     // const { offsetX, offsetY } = event;
     drawConfig.value.isDrawing = false
 
-    // 没有实际绘制时不保存动作，避免误触（例如点击工具栏按钮时）
+    // 실제 그리기가 없을 때 작업을 저장하지 않아 오작동 방지 (예: 도구 모음 버튼 클릭 시)
     if (!hasDrawn.value) {
       return
     }
@@ -150,23 +150,23 @@ export function useCanvasTool(drawCanvas: any, drawCtx: any, imgCtx: any, screen
   }
 
   const drawCircle = (context: any, startX: any, startY: any, endX: any, endY: any) => {
-    // 限制圆形的绘制范围在框选矩形区域内
+    // 원형 그리기 범위를 선택 영역 내로 제한
     const limitedEndX = Math.min(Math.max(endX, screenConfig.value.startX), screenConfig.value.endX)
     const limitedEndY = Math.min(Math.max(endY, screenConfig.value.startY), screenConfig.value.endY)
 
-    // 计算半径，保证半径不会超过限定矩形的边界
+    // 반경 계산, 반경이 제한된 사각형의 경계를 초과하지 않도록 보장
     const deltaX = limitedEndX - startX
     const deltaY = limitedEndY - startY
 
-    // 检查圆形是否会超出矩形区域的边界
+    // 원형이 사각형 영역 경계를 초과하는지 확인
     const maxRadiusX = Math.min(startX - screenConfig.value.startX, screenConfig.value.endX - startX)
     const maxRadiusY = Math.min(startY - screenConfig.value.startY, screenConfig.value.endY - startY)
     const maxRadius = Math.min(maxRadiusX, maxRadiusY)
 
-    // 使用 min 函数确保半径不会超过限定范围
+    // min 함수를 사용하여 반경이 제한 범위를 초과하지 않도록 함
     const radius = Math.min(Math.sqrt(deltaX * deltaX + deltaY * deltaY), maxRadius)
 
-    // 绘制圆形
+    // 원형 그리기
     context.strokeStyle = drawConfig.value.color
     context.lineWidth = drawConfig.value.lineWidth
     context.beginPath()
@@ -175,51 +175,51 @@ export function useCanvasTool(drawCanvas: any, drawCtx: any, imgCtx: any, screen
   }
 
   const drawArrow = (context: any, fromX: any, fromY: any, toX: any, toY: any) => {
-    const headLength = 15 // 箭头的长度
-    const angle = Math.atan2(toY - fromY, toX - fromX) // 算出箭头的角度
+    const headLength = 15 // 화살표 길이
+    const angle = Math.atan2(toY - fromY, toX - fromX) // 화살표 각도 계산
 
     context.strokeStyle = drawConfig.value.color
     context.lineWidth = drawConfig.value.lineWidth
 
-    // 绘制箭头的主线
+    // 화살표 주 선 그리기
     context.beginPath()
     context.moveTo(fromX, fromY)
     context.lineTo(toX, toY)
     context.stroke()
 
-    // 计算箭头三角形的三个角
+    // 화살표 삼각형의 세 모서리 계산
     context.beginPath()
     context.moveTo(toX, toY)
     context.lineTo(toX - headLength * Math.cos(angle - Math.PI / 6), toY - headLength * Math.sin(angle - Math.PI / 6))
     context.lineTo(toX - headLength * Math.cos(angle + Math.PI / 6), toY - headLength * Math.sin(angle + Math.PI / 6))
     context.closePath()
 
-    // 填充箭头三角形
+    // 화살표 삼각형 채우기
     context.fillStyle = drawConfig.value.color
     context.fill()
   }
 
-  // 设置马赛克画笔大小
+  // 모자이크 브러시 크기 설정
   const drawMosaicBrushSize = (size: any) => {
     drawConfig.value.brushSize = size
   }
 
-  // 实时马赛克涂抹
+  // 실시간 모자이크 칠하기
   const drawMosaic = (context: any, x: any, y: any, size: any) => {
-    // 确保马赛克绘制区域不会超出选区边界（考虑边框和画笔半径）
+    // 모자이크 그리기 영역이 선택 영역 경계를 초과하지 않도록 보장 (테두리 및 브러시 반경 고려)
     const borderWidth = 2
     const halfSize = size / 2
 
-    // 考虑画笔半径的安全边距，确保画笔边缘不会涂抹到边框
+    // 브러시 반경 안전 여백 고려, 브러시 가장자리가 테두리에 칠해지지 않도록 함
     const safeMargin = borderWidth + halfSize
 
-    // 计算实际绘制区域，确保完全在选区内容区域内
+    // 실제 그리기 영역 계산, 선택 영역 콘텐츠 영역 내에 완전히 있도록 함
     const drawX = Math.max(x - halfSize, screenConfig.value.startX + safeMargin)
     const drawY = Math.max(y - halfSize, screenConfig.value.startY + safeMargin)
     const maxDrawX = Math.min(x + halfSize, screenConfig.value.endX - safeMargin)
     const maxDrawY = Math.min(y + halfSize, screenConfig.value.endY - safeMargin)
 
-    // 计算实际绘制尺寸
+    // 실제 그리기 크기 계산
     const drawWidth = Math.max(0, maxDrawX - drawX)
     const drawHeight = Math.max(0, maxDrawY - drawY)
 
@@ -235,8 +235,8 @@ export function useCanvasTool(drawCanvas: any, drawCtx: any, imgCtx: any, screen
     const width = imageData.width
     const height = imageData.height
 
-    const radius = size / 2 // 模糊半径
-    const tempData = new Uint8ClampedArray(data) // 用于保存原始图像数据
+    const radius = size / 2 // 블러 반경
+    const tempData = new Uint8ClampedArray(data) // 원본 이미지 데이터 저장
 
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
@@ -277,7 +277,7 @@ export function useCanvasTool(drawCanvas: any, drawCtx: any, imgCtx: any, screen
   const saveAction = () => {
     const imageData = drawCtx.value.getImageData(0, 0, drawCanvas.value.width, drawCanvas.value.height)
     drawConfig.value.actions.push(imageData as never)
-    drawConfig.value.undoStack = [] // 清空撤销堆栈
+    drawConfig.value.undoStack = [] // 실행 취소 스택 비우기
   }
 
   const undo = () => {
@@ -300,7 +300,7 @@ export function useCanvasTool(drawCanvas: any, drawCtx: any, imgCtx: any, screen
     }
   }
 
-  // 一键清空所有绘制内容
+  // 모든 그리기 내용 일괄 지우기
   const clearAll = () => {
     closeListen()
     drawConfig.value.actions = []
@@ -310,36 +310,36 @@ export function useCanvasTool(drawCanvas: any, drawCtx: any, imgCtx: any, screen
     }
   }
 
-  // 重置绘图状态，清除所有绘制历史
+  // 그리기 상태 재설정, 모든 그리기 기록 지우기
   const resetState = () => {
     drawConfig.value.actions = []
     drawConfig.value.undoStack = []
     drawConfig.value.isDrawing = false
     currentTool.value = ''
-    console.log('绘图状态已重置，历史记录已清除')
+    console.log('그리기 상태 재설정됨, 기록 지워짐')
   }
 
-  // 停止当前绘图操作
+  // 현재 그리기 작업 중지
   const stopDrawing = () => {
     drawConfig.value.isDrawing = false
     currentTool.value = ''
     closeListen()
-    console.log('绘图操作已停止')
+    console.log('그리기 작업 중지됨')
   }
 
-  // 清除事件监听
+  // 이벤트 리스너 지우기
   const clearEvents = () => {
     closeListen()
-    console.log('绘图事件监听已清除')
+    console.log('그리기 이벤트 리스너 지워짐')
   }
 
   const startListen = () => {
     const el = drawCanvas.value
     if (!el) return
-    // 仅在绘图画布上监听按下与移动，避免点击工具栏也触发绘图流程
+    // 그리기 캔버스에서만 누르기 및 이동 듣기, 도구 모음 클릭 시 그리기 프로세스 트리거 방지
     el.addEventListener('mousedown', handleMouseDown)
     el.addEventListener('mousemove', handleMouseMove)
-    // mouseup 放在 document 上，确保拖出画布后仍能结束一次绘制
+    // mouseup은 document에 두어 캔버스 밖으로 드래그해도 그리기 종료 가능하게 함
     document.addEventListener('mouseup', handleMouseUp)
   }
 

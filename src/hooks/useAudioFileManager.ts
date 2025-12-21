@@ -6,7 +6,7 @@ import { getFilesMeta, getImageCache } from '@/utils/PathUtil'
 import { isMac, isMobile } from '@/utils/PlatformConstants'
 
 /**
- * 单个文件元数据接口
+ * 개별 파일 메타데이터 인터페이스
  */
 export type FileMetaItem = {
   name: string
@@ -17,7 +17,7 @@ export type FileMetaItem = {
 }
 
 /**
- * 本地音频文件信息接口
+ * 로컬 오디오 파일 정보 인터페이스
  */
 export type LocalAudioFile = {
   fileBuffer: ArrayBuffer
@@ -27,7 +27,7 @@ export type LocalAudioFile = {
 }
 
 /**
- * 音频存在性检查结果接口
+ * 오디오 존재 여부 확인 결과 인터페이스
  */
 export type AudioExistsResult = {
   exists: boolean
@@ -36,28 +36,28 @@ export type AudioExistsResult = {
 }
 
 /**
- * 音频文件管理器返回接口
+ * 오디오 파일 관리자 반환 인터페이스
  */
 export type AudioFileManagerReturn = {
-  // 状态
+  // 상태
   isFileReady: Ref<boolean>
   audioBuffer: Ref<ArrayBuffer | null>
 
-  // 方法
+  // 메서드
   getAudioUrl: (originalUrl: string) => Promise<string>
   checkAudioSupport: (mimeType: string) => boolean
   downloadAndCache: (url: string, fileName: string) => Promise<ArrayBuffer>
   loadAudioWaveform: (url: string) => Promise<ArrayBuffer | Uint8Array | SharedArrayBuffer>
   existsAudioFile: (url: string) => Promise<AudioExistsResult>
 
-  // 清理
+  // 정리
   cleanup: () => void
 }
 
 /**
- * 音频文件管理Hook
- * @param userId 用户ID，用于构建缓存路径
- * @returns 文件管理接口
+ * 오디오 파일 관리 Hook
+ * @param userId 사용자 ID, 캐시 경로 생성에 사용
+ * @returns 파일 관리 인터페이스
  */
 export const useAudioFileManager = (userId: string): AudioFileManagerReturn => {
   const isFileReady = ref(false)
@@ -65,9 +65,9 @@ export const useAudioFileManager = (userId: string): AudioFileManagerReturn => {
   const isMacOS = isMac()
 
   /**
-   * 检查音频格式支持
-   * @param mimeType MIME类型
-   * @returns 支持级别字符串
+   * 오디오 포맷 지원 여부 확인
+   * @param mimeType MIME 유형
+   * @returns 지원 수준 문자열 (boolean으로 반환됨)
    */
   const checkAudioSupport = (mimeType: string): boolean => {
     const audio = document.createElement('audio')
@@ -76,17 +76,17 @@ export const useAudioFileManager = (userId: string): AudioFileManagerReturn => {
   }
 
   /**
-   * 尝试从本地缓存中读取音频文件
-   * @param fileName 音频文件名（如 voice_1234.mp3）
-   * @returns 包含文件 buffer、完整路径、缓存路径和是否存在标志的对象
+   * 로컬 캐시에서 오디오 파일 읽기 시도
+   * @param fileName 오디오 파일 이름 (예: voice_1234.mp3)
+   * @returns 파일 버퍼, 전체 경로, 캐시 경로 및 존재 여부를 포함하는 객체
    */
   const getLocalAudioFile = async (fileName: string): Promise<LocalAudioFile> => {
     const audioFolder = 'audio'
-    // 拼接缓存路径（如 cache\46022457888256\audio）
+    // 캐시 경로 조합 (예: cache\46022457888256\audio)
     const cachePath = getImageCache(audioFolder, userId)
     const fullPath = await join(cachePath, fileName)
 
-    // 检查文件是否存在于本地缓存文件夹中
+    // 로컬 캐시 폴더에 파일이 존재하는지 확인
     const baseDir = isMobile() ? BaseDirectory.AppData : BaseDirectory.AppCache
     const fileExists = await exists(fullPath, { baseDir })
     if (!fileExists) {
@@ -98,10 +98,10 @@ export const useAudioFileManager = (userId: string): AudioFileManagerReturn => {
       }
     }
 
-    // 读取音频文件内容
+    // 오디오 파일 내용 읽기
     const fileBuffer = await readFile(fullPath, { baseDir })
 
-    // 如果是 Uint8Array，手动转成ArrayBuffer
+    // Uint8Array인 경우 수동으로 ArrayBuffer로 변환
     const arrayBuffer =
       fileBuffer instanceof Uint8Array
         ? fileBuffer.buffer.slice(fileBuffer.byteOffset, fileBuffer.byteOffset + fileBuffer.byteLength)
@@ -116,11 +116,11 @@ export const useAudioFileManager = (userId: string): AudioFileManagerReturn => {
   }
 
   /**
-   * 从远程下载音频文件并保存到本地缓存目录
-   * @param cachePath 要保存的目录路径
-   * @param fileName 要保存的文件名
-   * @param url 远程URL
-   * @returns 下载的 ArrayBuffer 数据
+   * 원격에서 오디오 파일을 다운로드하고 로컬 캐시 디렉토리에 저장
+   * @param cachePath 저장할 디렉토리 경로
+   * @param fileName 저장할 파일 이름
+   * @param url 원격 URL
+   * @returns 다운로드된 ArrayBuffer 데이터
    */
   const fetchAndDownloadAudioFile = async (cachePath: string, fileName: string, url: string): Promise<ArrayBuffer> => {
     const response = await fetch(url)
@@ -128,12 +128,12 @@ export const useAudioFileManager = (userId: string): AudioFileManagerReturn => {
     const baseDir = isMobile() ? BaseDirectory.AppData : BaseDirectory.AppCache
     const dirExists = await exists(cachePath, { baseDir })
 
-    // 若目录不存在，则创建缓存目录
+    // 디렉토리가 없으면 캐시 디렉토리 생성
     if (!dirExists) {
       await mkdir(cachePath, { baseDir, recursive: true })
     }
 
-    // 拼接完整路径并保存文件
+    // 전체 경로 조합 및 파일 저장
     const fullPath = await join(cachePath, fileName)
     const file = await create(fullPath, { baseDir })
     await file.write(new Uint8Array(arrayBuffer))
@@ -143,9 +143,9 @@ export const useAudioFileManager = (userId: string): AudioFileManagerReturn => {
   }
 
   /**
-   * 检查音频文件是否存在于本地缓存
-   * @param url 音频文件URL
-   * @returns 存在性检查结果
+   * 로컬 캐시에 오디오 파일이 존재하는지 확인
+   * @param url 오디오 파일 URL
+   * @returns 존재 여부 확인 결과
    */
   const existsAudioFile = async (url: string): Promise<AudioExistsResult> => {
     const [fileMeta] = await getFilesMeta<FilesMeta>([url])
@@ -159,14 +159,14 @@ export const useAudioFileManager = (userId: string): AudioFileManagerReturn => {
     return {
       exists: fileExists,
       fullPath: fullPath,
-      fileMeta: fileMeta // 这里fileMeta是从解构出来的，类型是正确的
+      fileMeta: fileMeta // 구조 분해 할당된 fileMeta 사용
     }
   }
 
   /**
-   * 获取可播放的音频URL
-   * @param originalUrl 原始音频URL
-   * @returns 可播放的URL（本地或远程）
+   * 재생 가능한 오디오 URL 가져오기
+   * @param originalUrl 원본 오디오 URL
+   * @returns 재생 가능한 URL (로컬 또는 원격)
    */
   const getAudioUrl = async (originalUrl: string): Promise<string> => {
     const existsData = await existsAudioFile(originalUrl)
@@ -174,17 +174,17 @@ export const useAudioFileManager = (userId: string): AudioFileManagerReturn => {
     if (existsData.exists) {
       const fileData = await getLocalAudioFile(existsData.fileMeta.name)
 
-      // Mac系统优化：设置正确的MIME类型
+      // Mac 시스템 최적화: 올바른 MIME 유형 설정
       const mimeType = existsData.fileMeta.mime_type || 'audio/mpeg'
 
-      // 检查音频格式支持(mac)
+      // 오디오 포맷 지원 확인 (mac)
       const support = checkAudioSupport(mimeType)
       if (!support && isMacOS) {
-        console.warn(`Mac系统可能不支持此音频格式: ${mimeType}`)
-        // 降级到远程URL
+        console.warn(`Mac 시스템이 이 오디오 형식을 지원하지 않을 수 있습니다: ${mimeType}`)
+        // 원격 URL로 폴백
         return originalUrl
       } else {
-        // 确保 fileBuffer 是 ArrayBuffer 类型
+        // fileBuffer가 ArrayBuffer 타입인지 확인
         let arrayBuffer: ArrayBuffer
         if (fileData.fileBuffer instanceof ArrayBuffer) {
           arrayBuffer = fileData.fileBuffer
@@ -200,10 +200,10 @@ export const useAudioFileManager = (userId: string): AudioFileManagerReturn => {
   }
 
   /**
-   * 下载并缓存音频文件
-   * @param url 音频URL
-   * @param fileName 文件名
-   * @returns ArrayBuffer数据
+   * 오디오 파일 다운로드 및 캐시
+   * @param url 오디오 URL
+   * @param fileName 파일 이름
+   * @returns ArrayBuffer 데이터
    */
   const downloadAndCache = async (url: string, fileName: string): Promise<ArrayBuffer> => {
     const audioFolder = 'audio'
@@ -213,42 +213,42 @@ export const useAudioFileManager = (userId: string): AudioFileManagerReturn => {
   }
 
   /**
-   * 加载音频波形数据
-   * 优先尝试从本地缓存中读取音频文件，若不存在则从远程 URL 下载，
-   * 并保存到本地缓存中以供后续使用。支持错误回退生成默认波形。
-   * @param url 音频URL
-   * @returns 音频数据buffer
+   * 오디오 파형 데이터 로드
+   * 우선 로컬 캐시에서 오디오 파일 읽기를 시도하고, 없으면 원격 URL에서 다운로드하여
+   * 로컬 캐시에 저장 후 사용합니다. 오류 발생 시 기본 파형 생성으로 폴백을 지원합니다.
+   * @param url 오디오 URL
+   * @returns 오디오 데이터 buffer
    */
   const loadAudioWaveform = async (url: string): Promise<ArrayBuffer | Uint8Array | SharedArrayBuffer> => {
     try {
-      // 从url中提取文件基本信息
+      // url에서 파일 기본 정보 추출
       const [fileMeta] = await getFilesMeta<FilesMeta>([url])
 
-      // 尝试获取本地音频文件
+      // 로컬 오디오 파일 가져오기 시도
       const localAudioFile = await getLocalAudioFile(fileMeta.name)
 
-      // 判断本地音频文件是否存在
+      // 로컬 오디오 파일 존재 여부 판단
       if (localAudioFile.fileExists) {
-        // 本地音频存在，则读取它的Buffer格式为Uint8Array<ArrayBufferLike>
+        // 로컬 오디오가 존재하면 Buffer를 Uint8Array<ArrayBufferLike> 형식으로 읽음
         audioBuffer.value = localAudioFile.fileBuffer
         isFileReady.value = true
         return localAudioFile.fileBuffer
       } else {
-        // 本地音频不存在，读取在线资源文件，格式为Uint8Array<ArrayBufferLike>
+        // 로컬 오디오가 없으면 온라인 리소스 파일 읽기, Uint8Array<ArrayBufferLike> 형식
         const arrayBuffer = await fetchAndDownloadAudioFile(localAudioFile.cachePath, fileMeta.name, url)
         audioBuffer.value = arrayBuffer
         isFileReady.value = true
         return arrayBuffer
       }
     } catch (error) {
-      console.error('加载音频波形失败:', error)
+      console.error('오디오 파형 로드 실패:', error)
       isFileReady.value = false
       throw error
     }
   }
 
   /**
-   * 清理资源
+   * 리소스 정리
    */
   const cleanup = () => {
     audioBuffer.value = null

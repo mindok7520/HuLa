@@ -1,28 +1,28 @@
-const DISTANCE = 35 // 距离
-const DURATION = 300 // 持续时间
+const DISTANCE = 35 // 거리
+const DURATION = 300 // 지속 시간
 
-const map = new WeakMap() // 弱引用映射
+const map = new WeakMap() // 약한 참조 맵
 
-/** 创建观察器 */
+/** 관찰자 생성 */
 const ob = new IntersectionObserver((entries: any) => {
   for (const entry of entries) {
     if (entry.isIntersecting) {
-      const animation = map.get(entry.target) // 获取映射中的动画
+      const animation = map.get(entry.target) // 맵에서 애니메이션 가져오기
       if (animation) {
-        animation.play() // 播放动画
-        ob.unobserve(entry.target) // 停止观察该元素
+        animation.play() // 애니메이션 재생
+        ob.unobserve(entry.target) // 해당 요소 관찰 중지
       }
     }
   }
 })
 
 function isBelowViewport(el: any) {
-  return el.getBoundingClientRect().top - DISTANCE > window.innerHeight // 判断元素是否在视口下方
+  return el.getBoundingClientRect().top - DISTANCE > window.innerHeight // 요소가 뷰포트 아래에 있는지 확인
 }
 
 export default {
   mounted(el: any) {
-    if (!isBelowViewport(el)) return // 如果元素在视口内，则不执行下面的代码
+    if (!isBelowViewport(el)) return // 요소가 뷰포트 내에 있으면 아래 코드를 실행하지 않음
     const animation = el.animate(
       [
         {
@@ -35,16 +35,16 @@ export default {
         }
       ],
       {
-        duration: DURATION, // 设置动画持续时间
-        easing: 'ease-in-out', // 设置动画缓动效果
-        fill: 'forwards' // 设置动画填充模式
+        duration: DURATION, // 애니메이션 지속 시간 설정
+        easing: 'ease-in-out', // 애니메이션 이징 효과 설정
+        fill: 'forwards' // 애니메이션 채움 모드 설정
       }
     )
-    animation.pause() // 暂停动画
-    ob.observe(el) // 开始观察该元素
-    map.set(el, animation) // 将动画对象存入映射中
+    animation.pause() // 애니메이션 일시 중지
+    ob.observe(el) // 해당 요소 관찰 시작
+    map.set(el, animation) // 애니메이션 객체를 맵에 저장
   },
   unmounted(el: any) {
-    ob.unobserve(el) // 停止观察该元素
+    ob.unobserve(el) // 해당 요소 관찰 중지
   }
 }

@@ -1,9 +1,9 @@
 import type { Ref } from 'vue'
 
 /**
- * 右键菜单的状态管理
- * @param ContextMenuRef 右键菜单的容器
- * @param isNull 传入的容器是否为空
+ * 우클릭 메뉴의 상태 관리
+ * @param ContextMenuRef 우클릭 메뉴 컨테이너
+ * @param isNull 전달된 컨테이너가 비어 있는지 여부
  */
 
 export const useContextMenu = (ContextMenuRef: Ref, isNull?: Ref<boolean>) => {
@@ -11,28 +11,28 @@ export const useContextMenu = (ContextMenuRef: Ref, isNull?: Ref<boolean>) => {
   const x = ref(0)
   const y = ref(0)
 
-  // 禁止滚动的默认行为
+  // 스크롤의 기본 동작 방지
   const preventDefault = (e: Event) => e.preventDefault()
 
-  // 禁止选中文本的默认行为
+  // 텍스트 선택 기본 동작 방지
   const preventTextSelection = (e: Event) => e.preventDefault()
 
-  // 禁用文本选择
+  // 텍스트 선택 비활성화
   const disableTextSelection = () => {
-    // 清除当前选择
+    // 현재 선택 지우기
     window.getSelection()?.removeAllRanges()
-    // 添加禁止选择事件
+    // 선택 방지 이벤트 추가
     document.body.classList.add('no-select')
     window.addEventListener('selectstart', preventTextSelection)
   }
 
-  // 启用文本选择
+  // 텍스트 선택 활성화
   const enableTextSelection = () => {
     document.body.classList.remove('no-select')
     window.removeEventListener('selectstart', preventTextSelection)
   }
 
-  /**! 解决使用n-virtual-list时，右键菜单出现还可以滚动的问题 */
+  /**! n-virtual-list 사용 시 우클릭 메뉴가 나타나도 스크롤이 가능한 문제 해결 */
   const handleVirtualListScroll = (isBan: boolean) => {
     const scrollbar_main = document.querySelector('#image-chat-main') as HTMLElement
     const scrollbar_sidebar = document.querySelector('#image-chat-sidebar') as HTMLElement
@@ -65,9 +65,9 @@ export const useContextMenu = (ContextMenuRef: Ref, isNull?: Ref<boolean>) => {
     e.stopPropagation()
     if (isNull?.value) return
 
-    // 如果当前右键目标包含了已有的文本选择，则保留用户选择，避免影响复制/翻译
+    // 현재 우클릭 대상이 기존 텍스트 선택을 포함하는 경우 사용자의 선택을 유지하여 복사/번역에 영향을 주지 않도록 함
     if (!isSelectionInsideContext()) {
-      // 在显示菜单前清除选择
+      // 메뉴를 표시하기 전에 선택 항목 지우기
       disableTextSelection()
     }
 
@@ -75,32 +75,32 @@ export const useContextMenu = (ContextMenuRef: Ref, isNull?: Ref<boolean>) => {
     showMenu.value = true
     x.value = e.clientX
     y.value = e.clientY
-    window.addEventListener('wheel', preventDefault, { passive: false }) // 禁止使用滚轮滚动页面
+    window.addEventListener('wheel', preventDefault, { passive: false }) // 마우스 휠을 사용한 페이지 스크롤 금지
   }
 
   const closeMenu = (event: any) => {
-    /** 需要判断点击如果不是.context-menu类的元素的时候，menu才会关闭 */
+    /** 클릭한 요소가 .context-menu 클래스가 아닌 경우에만 메뉴 닫기 */
     if (!event.target.matches('.context-menu, .context-menu *')) {
       handleVirtualListScroll(false)
       showMenu.value = false
-      enableTextSelection() // 恢复文本选择功能
+      enableTextSelection() // 텍스트 선택 기능 복원
     }
-    window.removeEventListener('wheel', preventDefault) // 移除禁止滚轮滚动
+    window.removeEventListener('wheel', preventDefault) // 휠 스크롤 금지 해제
   }
 
-  // 监听showMenu状态变化
+  // showMenu 상태 변경 감지
   watch(
     () => showMenu.value,
     (newValue) => {
       if (!newValue) {
-        // 当菜单关闭时，恢复文本选择功能
+        // 메뉴가 닫힐 때 텍스트 선택 기능 복원
         enableTextSelection()
       }
     }
   )
 
   onMounted(() => {
-    // 添加全局样式
+    // 전역 스타일 추가
     if (!document.querySelector('#no-select-style')) {
       const style = document.createElement('style')
       style.id = 'no-select-style'
@@ -114,9 +114,9 @@ export const useContextMenu = (ContextMenuRef: Ref, isNull?: Ref<boolean>) => {
     }
 
     const div = ContextMenuRef.value
-    //这里只监听了div的右键，如果需要监听其他元素的右键，需要在其他元素上监听
+    // 여기서는 div의 우클릭만 감지합니다. 다른 요소의 우클릭을 감지해야 하는 경우 다른 요소에서 감지해야 합니다.
     div.addEventListener('contextmenu', handleContextMenu)
-    // 这里需要监听window的右键，否则右键会触发div的右键事件，导致menu无法关闭，并且阻止默认右键菜单
+    // window의 우클릭을 감지해야 합니다. 그렇지 않으면 우클릭이 div의 우클릭 이벤트를 트리거하여 메뉴가 닫히지 않고 기본 우클릭 메뉴가 차단됩니다.
     window.addEventListener(
       'contextmenu',
       (e) => {
@@ -138,10 +138,10 @@ export const useContextMenu = (ContextMenuRef: Ref, isNull?: Ref<boolean>) => {
     window.removeEventListener('click', closeMenu, true)
     window.removeEventListener('contextmenu', closeMenu, true)
 
-    // 确保恢复选择功能
+    // 선택 기능 복원 확인
     enableTextSelection()
 
-    // 移除样式
+    // 스타일 제거
     const style = document.querySelector('#no-select-style')
     if (style) style.remove()
   })

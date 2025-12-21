@@ -1,7 +1,7 @@
 import { FOOTER_HEIGHT } from '@/common/constants'
 
 /**
- * 聊天页面布局管理
+ * 채팅 페이지 레이아웃 관리
  */
 export const useChatLayout = () => {
   const footerHeight = ref(FOOTER_HEIGHT)
@@ -16,8 +16,8 @@ export const useChatLayout = () => {
   }
 }
 
-// 创建全局实例
+// 전역 인스턴스 생성
 const chatLayoutInstance = useChatLayout()
 
-// 导出全局实例方法
+// 전역 인스턴스 메서드 내보내기
 export const useChatLayoutGlobal = () => chatLayoutInstance

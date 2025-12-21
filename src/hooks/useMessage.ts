@@ -14,7 +14,7 @@ import { useI18n } from 'vue-i18n'
 const msgBoxShow = ref(false)
 const shrinkStatus = ref(false)
 
-// 模块级别注册事件监听，避免 hook 被多次调用时重复注册
+// 모듈 수준에서 이벤트 리스너 등록, 훅이 여러 번 호출될 때 중복 등록 방지
 let isShrinkListenerRegistered = false
 const registerShrinkListener = () => {
   if (isShrinkListenerRegistered) return
@@ -35,12 +35,12 @@ export const useMessage = () => {
   const userStore = useUserStore()
   const BOT_ALLOWED_MENU_INDEXES = new Set([0, 1, 2, 3])
 
-  // 确保监听器只注册一次
+  // 리스너가 한 번만 등록되도록 보장
   registerShrinkListener()
 
   /**
-   * 处理点击选中消息
-   * 如果本地缓存中找不到自己，说明尚未同步服务端数据，此时强制刷新群成员信息。
+   * 선택된 메시지 클릭 처리
+   * 로컬 캐시에서 자신을 찾을 수 없으면 서버 데이터가 아직 동기화되지 않은 것이므로, 이때 그룹 멤버 정보를 강제로 새로 고침함.
    */
   const ensureGroupMembersSynced = async (roomId: string, sessionType: RoomTypeEnum) => {
     if (sessionType !== RoomTypeEnum.GROUP) return
@@ -58,32 +58,33 @@ export const useMessage = () => {
 
   const handleMsgClick = async (item: SessionItem) => {
     msgBoxShow.value = true
-    // 更新当前会话信息
+    // 현재 세션 정보 업데이트
     const roomId = item.roomId
-    console.log('[handleMsgClick] 点击会话:', roomId, '传入的未读数:', item.unreadCount)
+    console.log('[handleMsgClick] 세션 클릭:', roomId, '전달된 읽지 않음 수:', item.unreadCount)
 
     globalStore.updateCurrentSessionRoomId(roomId)
 
-    // 先清空本地未读标记（立即更新UI），再异步上报已读（不阻塞），避免后续同步群成员失败导致未读气泡残留
+    // 로컬 읽지 않음 표시를 먼저 지우고(UI 즉시 업데이트), 읽음 상태를 비동기로 보고(차단 방지)하여,
+    // 이후 그룹 멤버 동기화 실패로 인해 읽지 않음 배지가 남는 것을 방지함
     const currentSession = chatStore.getSession(roomId)
-    console.log('[handleMsgClick] 获取到的会话未读数:', currentSession?.unreadCount)
+    console.log('[handleMsgClick] 가져온 세션 읽지 않음 수:', currentSession?.unreadCount)
 
     if (currentSession?.unreadCount && currentSession.unreadCount > 0) {
-      console.log('[handleMsgClick] 开始清除未读数:', roomId)
+      console.log('[handleMsgClick] 읽지 않음 수 지우기 시작:', roomId)
       chatStore.markSessionRead(roomId)
-      markMsgRead(roomId).catch((err) => console.error('[useMessage] 已读上报失败:', err))
+      markMsgRead(roomId).catch((err) => console.error('[useMessage] 읽음 보고 실패:', err))
     }
 
-    // 再根据是否存在自身成员做一次兜底刷新，防止批量切换账号后看到旧数据
+    // 자신이 멤버에 포함되어 있는지 확인하여 한 번 더 새로 고침, 계정 일괄 전환 후 이전 데이터가 보이는 것을 방지
     try {
       await ensureGroupMembersSynced(roomId, item.type)
     } catch (error) {
-      console.error('[useMessage] 同步群成员失败:', error)
+      console.error('[useMessage] 그룹 멤버 동기화 실패:', error)
     }
   }
 
   /**
-   * 预加载聊天室
+   * 채팅방 미리 로드
    * @param roomId
    */
   const preloadChatRoom = (roomId: string = '1') => {
@@ -91,30 +92,30 @@ export const useMessage = () => {
   }
 
   /**
-   * 删除会话
-   * @param roomId 会话信息
+   * 세션 삭제
+   * @param roomId 세션 정보
    */
   const handleMsgDelete = async (roomId: string) => {
     const currentSessions = chatStore.sessionList
     const currentIndex = currentSessions.findIndex((session) => session.roomId === roomId)
 
-    // 检查是否是当前选中的会话
+    // 현재 선택된 세션인지 확인
     const isCurrentSession = roomId === globalStore.currentSessionRoomId
 
     chatStore.removeSession(roomId)
-    // TODO: 使用隐藏会话接口
+    // TODO: 세션 숨기기 인터페이스 사용
     // const res = await apis.hideSession({ roomId, hide: true })
     await invokeWithErrorHandler('hide_contact_command', { data: { roomId, hide: true } })
     // console.log(res, roomId)
 
-    // 如果不是当前选中的会话，直接返回
+    // 현재 선택된 세션이 아니면 바로 반환
     if (!isCurrentSession) {
       return
     }
 
     const updatedSessions = chatStore.sessionList
 
-    // 选择下一个或上一个会话
+    // 다음 또는 이전 세션 선택
     const nextIndex = Math.min(currentIndex, updatedSessions.length - 1)
     const nextSession = updatedSessions[nextIndex]
     if (nextSession) {
@@ -122,7 +123,7 @@ export const useMessage = () => {
     }
   }
 
-  /** 处理双击事件 */
+  /** 더블 클릭 이벤트 처리 */
   const handleMsgDblclick = (item: SessionItem) => {
     if (!chat.value.isDouble) return
     console.log(item)
@@ -135,7 +136,7 @@ export const useMessage = () => {
       click: (item: SessionItem) => {
         setSessionTop({ roomId: item.roomId, top: !item.top })
           .then(() => {
-            // 更新本地会话状态
+            // 로컬 세션 상태 업데이트
             chatStore.updateSession(item.roomId, { top: !item.top })
             window.$message.success(
               item.top ? t('message.message_menu.unpin_success') : t('message.message_menu.pin_success')
@@ -182,7 +183,7 @@ export const useMessage = () => {
             label: () => t('menu.allow_notifications'),
             icon: !item.shield && item.muteNotification === NotificationTypeEnum.RECEPTION ? 'check-small' : '',
             click: async () => {
-              // 如果当前是屏蔽状态，需要先取消屏蔽
+              // 현재 차단 상태인 경우 차단 해제 필요
               if (item.shield) {
                 await shield({
                   roomId: item.roomId,
@@ -197,7 +198,7 @@ export const useMessage = () => {
             label: () => t('menu.receive_silently'),
             icon: !item.shield && item.muteNotification === NotificationTypeEnum.NOT_DISTURB ? 'check-small' : '',
             click: async () => {
-              // 如果当前是屏蔽状态，需要先取消屏蔽
+              // 현재 차단 상태인 경우 차단 해제 필요
               if (item.shield) {
                 await shield({
                   roomId: item.roomId,
@@ -217,7 +218,7 @@ export const useMessage = () => {
                 state: !item.shield
               })
 
-              // 更新本地会话状态
+              // 로컬 세션 상태 업데이트
               chatStore.updateSession(item.roomId, {
                 shield: !item.shield
               })
@@ -230,7 +231,7 @@ export const useMessage = () => {
         ]
       },
       click: async (item: SessionItem) => {
-        if (item.type === RoomTypeEnum.GROUP) return // 群聊不执行点击事件
+        if (item.type === RoomTypeEnum.GROUP) return // 그룹 채팅은 클릭 이벤트 실행 안 함
 
         const newType =
           item.muteNotification === NotificationTypeEnum.RECEPTION
@@ -252,7 +253,7 @@ export const useMessage = () => {
           state: !item.shield
         })
 
-        // 更新本地会话状态
+        // 로컬 세션 상태 업데이트
         chatStore.updateSession(item.roomId, {
           shield: !item.shield
         })
@@ -261,7 +262,7 @@ export const useMessage = () => {
           item.shield ? t('message.message_menu.unshield_success') : t('message.message_menu.shield_success')
         )
       },
-      // 只在单聊时显示
+      // 단일 채팅일 때만 표시
       visible: (item: SessionItem) => item.type === RoomTypeEnum.SINGLE
     },
     {
@@ -283,8 +284,8 @@ export const useMessage = () => {
         return 'logout'
       },
       click: async (item: SessionItem) => {
-        console.log('删除好友或退出群聊执行')
-        // 单聊：删除好友
+        console.log('친구 삭제 또는 그룹 나가기 실행')
+        // 단일 채팅: 친구 삭제
         if (item.type === RoomTypeEnum.SINGLE) {
           await contactStore.onDeleteFriend(item.detailId)
           await handleMsgDelete(item.roomId)
@@ -292,7 +293,7 @@ export const useMessage = () => {
           return
         }
 
-        // 群聊：检查是否是频道
+        // 그룹 채팅: 채널인지 확인
         if (item.roomId === '1') {
           window.$message.warning(
             item.operate === SessionOperateEnum.DISSOLUTION_GROUP
@@ -302,7 +303,7 @@ export const useMessage = () => {
           return
         }
 
-        // 群聊：解散或退出
+        // 그룹 채팅: 해산 또는 나가기
         await exitGroup({ roomId: item.roomId })
         await handleMsgDelete(item.roomId)
         window.$message.success(
@@ -312,33 +313,33 @@ export const useMessage = () => {
         )
       },
       visible: (item: SessionItem) => {
-        // 单聊：只在operate为DELETE_FRIEND时显示
+        // 단일 채팅: operate가 DELETE_FRIEND일 때만 표시
         if (item.type === RoomTypeEnum.SINGLE) {
           return item.operate === SessionOperateEnum.DELETE_FRIEND
         }
 
-        // 群聊：不显示频道选项
+        // 그룹 채팅: 채널 옵션 표시 안 함
         if (item.roomId === '1') return false
 
-        // 群聊：始终显示退出选项，如果是群主则显示解散选项
+        // 그룹 채팅: 나가기 옵션 항상 표시, 방장인 경우 해산 옵션 표시
         return true
       }
     }
   ])
 
-  // 添加通知设置变更处理函数
+  // 알림 설정 변경 처리 함수 추가
   const handleNotificationChange = async (item: SessionItem, newType: NotificationTypeEnum) => {
     await notification({
       roomId: item.roomId,
       type: newType
     })
 
-    // 更新本地会话状态
+    // 로컬 세션 상태 업데이트
     chatStore.updateSession(item.roomId, {
       muteNotification: newType
     })
 
-    // 如果从免打扰切换到允许提醒，需要重新计算全局未读数
+    // 방해 금지에서 알림 허용으로 전환하는 경우 전역 읽지 않은 메시지 수를 다시 계산해야 함
     if (item.muteNotification === NotificationTypeEnum.NOT_DISTURB && newType === NotificationTypeEnum.RECEPTION) {
       chatStore.updateTotalUnreadCount()
     }
