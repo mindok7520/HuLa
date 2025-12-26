@@ -540,17 +540,17 @@ import {
 } from '@/enums'
 import { useAvatarUpload } from '@/hooks/useAvatarUpload'
 import { useMyRoomInfoUpdater } from '@/hooks/useMyRoomInfoUpdater'
-import { useMitt } from '@/hooks/useMitt.ts'
+import { useMitt } from '@/hooks/useMitt'
 import { useOnlineStatus } from '@/hooks/useOnlineStatus'
 import { useWindow } from '@/hooks/useWindow'
-import { IsAllUserEnum, type UserItem } from '@/services/types.ts'
+import { IsAllUserEnum, type UserItem, type FriendItem } from '@/services/types'
 import { WsResponseMessageType } from '@/services/wsType'
-import { useChatStore } from '@/stores/chat.ts'
-import { useContactStore } from '@/stores/contacts.ts'
+import { useChatStore } from '@/stores/chat'
+import { useContactStore } from '@/stores/contacts'
 import { useGlobalStore } from '@/stores/global'
-import { useGroupStore } from '@/stores/group.ts'
+import { useGroupStore } from '@/stores/group'
 import { useSettingStore } from '@/stores/setting'
-import { useUserStore } from '@/stores/user.ts'
+import { useUserStore } from '@/stores/user'
 import { AvatarUtils } from '@/utils/AvatarUtils'
 import { notification, setSessionTop, shield, updateRoomInfo } from '@/utils/ImRequestUtils'
 import { invokeWithErrorHandler } from '@/utils/TauriInvokeHandler'
@@ -563,7 +563,7 @@ const { stream, stop } = useDisplayMedia()
 const chatStore = useChatStore()
 const groupStore = useGroupStore()
 const globalStore = useGlobalStore()
-const contactStore = useContactStore()
+const contactStore = useContactStore() as any
 const userStore = useUserStore()
 const settingStore = useSettingStore()
 const { themes } = storeToRefs(settingStore)
@@ -666,7 +666,7 @@ const { isOnline, statusIcon, statusTitle, hasCustomState } = useOnlineStatus(ch
 const shouldShowDeleteFriend = computed(() => {
   const session = activeItem.value
   if (!session || session.type === RoomTypeEnum.GROUP) return false
-  return contactStore.contactsList.some((item) => item.uid === session.detailId)
+  return contactStore.contactsList.some((item: FriendItem) => item.uid === session.detailId)
 })
 const groupUserList = computed(() => groupStore.userList)
 const userList = computed(() => {

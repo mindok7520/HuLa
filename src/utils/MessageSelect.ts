@@ -1,7 +1,7 @@
 import { MsgEnum } from '@/enums'
 
 /**
- * 指示应从多选流中排除哪些消息类型
+ * 다중 선택 시 제외해야 할 메시지 유형을 나타냅니다.
  */
 export const MULTI_SELECT_BLOCKED_TYPES = new Set<MsgEnum>([MsgEnum.NOTICE, MsgEnum.BOT, MsgEnum.RECALL])
 

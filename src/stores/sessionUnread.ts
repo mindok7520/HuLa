@@ -8,15 +8,15 @@ type CacheStore = Record<string, UnreadCache>
 type LastReadActiveTimeCache = Record<string, Record<string, number>>
 
 /**
- * 负责管理「每个账号 -> 会话未读数」的本地缓存
+ * 「계정 -> 세션 읽지 않음 수」의 로컬 캐시 관리 담당
  */
 export const useSessionUnreadStore = defineStore(StoresEnum.SESSION_UNREAD, () => {
-  // cacheStore 结构为 { [uid]: { [roomId]: unreadCount } }
+  // cacheStore 구조는 { [uid]: { [roomId]: unreadCount } }
   const cacheStore = ref<CacheStore>({})
-  // lastReadActiveTime 结构为 { [uid]: { [roomId]: activeTime } }
+  // lastReadActiveTime 구조는 { [uid]: { [roomId]: activeTime } }
   const lastReadActiveTimeStore = ref<LastReadActiveTimeCache>({})
 
-  // 对传入的未读数做兜底处理，避免出现负数或 NaN
+  // 들어오는 읽지 않은 수에 대한 백업 처리, 음수나 NaN 방지
   const sanitizeCount = (count?: number) => {
     if (typeof count !== 'number' || Number.isNaN(count)) {
       return 0
@@ -24,7 +24,7 @@ export const useSessionUnreadStore = defineStore(StoresEnum.SESSION_UNREAD, () =
     return Math.max(0, Math.floor(count))
   }
 
-  // 根据 uid 获取对应的会话未读缓存，没有则初始化一个空对象
+  // uid에 따라 해당 세션의 읽지 않은 캐시를 가져옵니다. 없으면 빈 객체 초기화
   const ensureUserCache = (uid?: string): UnreadCache | null => {
     if (!uid) {
       return null
@@ -35,7 +35,7 @@ export const useSessionUnreadStore = defineStore(StoresEnum.SESSION_UNREAD, () =
     return cacheStore.value[uid]
   }
 
-  // 根据 uid 获取对应的已读活跃时间缓存
+  // uid에 따라 해당 읽음 활성 시간 캐시를 가져옵니다.
   const ensureLastReadCache = (uid?: string): Record<string, number> | null => {
     if (!uid) return null
     if (!lastReadActiveTimeStore.value[uid]) {
@@ -44,7 +44,7 @@ export const useSessionUnreadStore = defineStore(StoresEnum.SESSION_UNREAD, () =
     return lastReadActiveTimeStore.value[uid]
   }
 
-  /** 将缓存中的未读数应用到会话列表，并补齐缺失的缓存 */
+  /** 캐시의 읽지 않은 수를 세션 목록에 적용하고 누락된 캐시 보충 */
   const apply = (uid: string | undefined, sessions: SessionItem[]) => {
     if (!uid || sessions.length === 0) {
       return
@@ -60,9 +60,9 @@ export const useSessionUnreadStore = defineStore(StoresEnum.SESSION_UNREAD, () =
       const lastReadTime = lastReadCache?.[session.roomId] || 0
       const currentUnread = sanitizeCount(session.unreadCount)
 
-      // 如果本地记录的最后已读活跃时间不小于当前会话活跃时间，认为是陈旧未读，直接清零
+      // 로컬에 기록된 마지막 읽음 활성 시간이 현재 세션 활성 시간보다 작지 않으면, 오래된 읽지 않은 것으로 간주하고 0으로 초기화
       if (lastReadTime > 0 && (activeTime === 0 || activeTime <= lastReadTime) && currentUnread > 0) {
-        console.log('[SessionUnread][apply] clear stale unread by lastRead', session.roomId, {
+        console.log('[SessionUnread][apply] lastRead로 인한 오래된 읽지 않음 정리', session.roomId, {
           activeTime,
           lastReadTime,
           serverUnread: currentUnread
@@ -91,7 +91,7 @@ export const useSessionUnreadStore = defineStore(StoresEnum.SESSION_UNREAD, () =
     })
   }
 
-  /** 更新单个会话的未读数，并同步写入缓存映射 */
+  /** 단일 세션의 읽지 않은 수를 업데이트하고 캐시 맵에 동기화 */
   const set = (uid: string | undefined, roomId: string, count: number) => {
     const cache = ensureUserCache(uid)
     if (!cache) {
@@ -105,7 +105,7 @@ export const useSessionUnreadStore = defineStore(StoresEnum.SESSION_UNREAD, () =
     cache[roomId] = normalized
   }
 
-  /** 记录某个会话最后一次已读时的活跃时间 */
+  /** 특정 세션을 마지막으로 읽었을 때의 활성 시간 기록 */
   const setLastRead = (uid: string | undefined, roomId: string, activeTime: number) => {
     const cache = ensureLastReadCache(uid)
     if (!cache) return
@@ -113,7 +113,7 @@ export const useSessionUnreadStore = defineStore(StoresEnum.SESSION_UNREAD, () =
     cache[roomId] = Math.max(activeTime, cache[roomId] || 0)
   }
 
-  /** 删除某个会话的未读数缓存，在会话被移除或账号切换时调用 */
+  /** 세션이 제거되거나 계정 전환 시 호출하여 특정 세션의 읽지 않은 캐시 삭제 */
   const remove = (uid: string | undefined, roomId: string) => {
     const cache = ensureUserCache(uid)
     const lastReadCache = ensureLastReadCache(uid)

@@ -6,7 +6,7 @@ export const useMenuTopStore = defineStore(
   StoresEnum.MENUTOP,
   () => {
     const { t } = useI18n()
-    // 初始配置，文案由 i18n 动态注入，确保语言切换实时更新
+    // 초기 구성, 텍스트는 i18n에 의해 동적으로 주입되어 언어 전환 시 실시간 업데이트 보장
     const baseMenuTop: Array<Omit<STO.Plugins<PluginEnum>, 'title' | 'shortTitle'>> = [
       {
         url: 'message',

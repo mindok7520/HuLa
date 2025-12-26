@@ -661,7 +661,7 @@ defineExpose<VirtualListExpose>({
   overflow-y: scroll;
   overscroll-behavior: none; /* Mac의 바운스 효과 방지 */
 
-  /* 滚动条样式 */
+  /* 스크롤바 스타일 */
   &::-webkit-scrollbar {
     width: 6px;
     transition-property: opacity;

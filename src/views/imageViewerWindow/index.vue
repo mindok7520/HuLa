@@ -3,12 +3,12 @@
     class="size-full bg-#222 relative flex flex-col select-none"
     @mousemove="handleMouseMove"
     @mouseleave="handleMouseLeave">
-    <!-- 顶部操作栏 -->
+    <!-- 상단 조작 바 -->
     <ActionBar class="bg-#000 z-9999" :shrink="false" :current-label="currentLabel" />
 
-    <!-- 主体内容区域 -->
+    <!-- 본문 내용 영역 -->
     <div ref="contentRef" class="flex-1 overflow-auto">
-      <!-- 图片展示区域 -->
+      <!-- 이미지 표시 영역 -->
       <div ref="imgContainerRef" style="min-height: calc(100vh / var(--page-scale, 1) - 124px)" class="flex-center">
         <img
           ref="imageRef"
@@ -23,7 +23,7 @@
           @load="checkScrollbar"
           alt="preview" />
 
-        <!-- 提示文本 -->
+        <!-- 안내 텍스트 -->
         <transition name="viewer-tip">
           <div
             v-if="showTip"
@@ -35,7 +35,7 @@
       </div>
     </div>
 
-    <!-- 左右箭头 -->
+    <!-- 좌우 화살표 -->
     <div
       v-show="imageList.length > 1 && showArrows.left"
       @click="prevImage"
@@ -55,7 +55,7 @@
       <svg class="size-24px color-white"><use href="#arrow-right"></use></svg>
     </div>
 
-    <!-- 底部工具栏 -->
+    <!-- 하단 도구 모음 -->
     <div data-tauri-drag-region class="z-9999 h-50px bg-#000 flex justify-center items-center gap-30px">
       <n-tooltip placement="top">
         <template #trigger>
@@ -124,7 +124,7 @@ const imageViewerStore = useImageViewerStore()
 const { downloadOriginalByIndex } = useImageViewerHook()
 const appWindow = WebviewWindow.getCurrent()
 
-// 初始化数据
+// 데이터 초기화
 const imageList = ref<string[]>([])
 
 const currentLabel = WebviewWindow.getCurrent().label
@@ -135,14 +135,14 @@ const isDragging = ref(false)
 const dragStart = reactive({ x: 0, y: 0 })
 const imagePosition = reactive({ x: 0, y: 0 })
 const imageRef = ref<HTMLImageElement>()
-// 添加响应式变量来跟踪是否有滚动条
+// 스크롤바 유무를 추적하기 위한 반응형 변수 추가
 const contentScrollbar = useTemplateRef<HTMLElement>('contentRef')
-// 图片容器
+// 이미지 컨테이너
 const imgContainer = useTemplateRef<HTMLElement>('imgContainerRef')
-//提示相关的响应式变量
+// 안내 관련 반응형 변수
 const showTip = ref(false)
 const tipText = ref('')
-// 左右箭头显示
+// 좌우 화살표 표시
 const showArrows = reactive({
   left: false,
   right: false,
@@ -150,11 +150,11 @@ const showArrows = reactive({
   rightHover: false
 })
 
-// 添加缩放倍数显示的计算属性
+// 확대/축소 배율 표시를 위한 계산된 속성 추가
 const scaleText = computed(() => {
   return `${Math.round(scale.value * 100)}%`
 })
-// 当前显示的图片URL
+// 현재 표시되는 이미지 URL
 const currentImage = computed(() => {
   if (imageViewerStore.isSingleMode) {
     return imageViewerStore.singleImage
@@ -162,23 +162,23 @@ const currentImage = computed(() => {
   return imageList.value[currentIndex.value]
 })
 
-// 添加鼠标移动处理函数
+// 마우스 이동 처리 함수
 const handleMouseMove = (e: MouseEvent) => {
   const { clientX } = e
   const { innerWidth } = window
 
-  // 左侧箭头显示逻辑
+  // 왼쪽 화살표 표시 로직
   if (!showArrows.leftHover) {
     showArrows.left = clientX <= 78
   }
 
-  // 右侧箭头显示逻辑
+  // 오른쪽 화살표 표시 로직
   if (!showArrows.rightHover) {
     showArrows.right = innerWidth - clientX <= 78
   }
 }
 
-// 添加鼠标离开整个容器的处理
+// 전체 컨테이너에서 마우스가 벗어날 때의 처리 추가
 const handleMouseLeave = () => {
   if (!showArrows.leftHover) {
     showArrows.left = false
@@ -188,7 +188,7 @@ const handleMouseLeave = () => {
   }
 }
 
-// 添加箭头hover状态处理
+// 화살표 호버 상태 처리 추가
 const handleArrowEnter = (direction: 'left' | 'right') => {
   showArrows[`${direction}Hover`] = true
   showArrows[direction] = true
@@ -199,13 +199,13 @@ const handleArrowLeave = (direction: 'left' | 'right') => {
   showArrows[direction] = false
 }
 
-// 图片拖动相关
+// 이미지 드래그 관련
 const startDrag = (e: MouseEvent) => {
   isDragging.value = true
   dragStart.x = e.clientX - imagePosition.x
   dragStart.y = e.clientY - imagePosition.y
 
-  // 使用 addEventListener 的第三个参数 { passive: true } 来优化性能
+  // 성능 최적화를 위해 addEventListener의 세 번째 매개변수 { passive: true } 사용
   document.addEventListener('mousemove', handleDrag, { passive: true })
   document.addEventListener('mouseup', stopDrag)
 }
@@ -234,7 +234,7 @@ const handleDrag = (e: MouseEvent) => {
   updateTransform()
 }
 
-// 工具栏操作
+// 도구 모음 조작
 const zoomIn = () => {
   scale.value = Math.min(5, scale.value + 0.1)
   updateTransform()
@@ -255,7 +255,7 @@ const rotateRight = () => {
   updateTransform()
 }
 
-// 重置图片
+// 이미지 초기화
 const resetImage = (immediate = false) => {
   scale.value = 1
   rotation.value = 0
@@ -263,12 +263,12 @@ const resetImage = (immediate = false) => {
   imagePosition.y = 0
   if (imageRef.value) {
     if (immediate) {
-      // 立即重置，不使用过渡动画
+      // 트랜지션 애니메이션 없이 즉시 초기화
       imageRef.value.style.transition = 'none'
       imageRef.value.style.transform = ''
-      // 强制重绘
+      // 강제 다시 그리기
       imageRef.value.offsetHeight
-      // 恢复过渡动画
+      // 트랜지션 애니메이션 복구
       imageRef.value.style.transition = ''
     } else {
       imageRef.value.style.transform = ''
@@ -295,7 +295,7 @@ const saveImage = async () => {
   }
 }
 
-// 显示提示的函数
+// 안내 메시지 표시 함수
 const showTipMessage = (message: string) => {
   tipText.value = message
   showTip.value = true
@@ -304,7 +304,7 @@ const showTipMessage = (message: string) => {
   }, 1500)
 }
 
-// 修改切换图片的函数
+// 이미지 전환 함수 수정
 const syncCurrentIndex = (index: number) => {
   currentIndex.value = index
   imageViewerStore.currentIndex = index
@@ -313,7 +313,7 @@ const syncCurrentIndex = (index: number) => {
 
 const prevImage = () => {
   if (currentIndex.value > 0) {
-    resetImage(true) // 立即重置
+    resetImage(true) // 즉시 초기화
     syncCurrentIndex(currentIndex.value - 1)
   } else {
     showTipMessage(t('message.image_viewer.first_image'))
@@ -322,14 +322,14 @@ const prevImage = () => {
 
 const nextImage = () => {
   if (currentIndex.value < imageList.value.length - 1) {
-    resetImage(true) // 立即重置
+    resetImage(true) // 즉시 초기화
     syncCurrentIndex(currentIndex.value + 1)
   } else {
     showTipMessage(t('message.image_viewer.last_image'))
   }
 }
 
-// 添加键盘事件处理
+// 키보드 이벤트 처리 추가
 const handleKeydown = (e: KeyboardEvent) => {
   switch (e.key) {
     case 'ArrowLeft':
@@ -363,18 +363,18 @@ const handleKeydown = (e: KeyboardEvent) => {
   }
 }
 
-// 检查是否有滚动条的函数
+// 스크롤바 유무 확인 함수
 const checkScrollbar = () => {
   if (!imgContainer.value || !contentScrollbar.value || !imageRef.value) return
 
-  imgContainer.value.style.height = 'auto' // 先重置为auto以便正确计算
-  // 检查是否有滚动条
+  imgContainer.value.style.height = 'auto' // 정확한 계산을 위해 먼저 auto로 재설정
+  // 스크롤바 유무 확인
   imgContainer.value.style.height =
     contentScrollbar.value.scrollHeight > contentScrollbar.value.clientHeight ? 'auto' : '100%'
 }
 
 onMounted(async () => {
-  // 显示窗口
+  // 창 표시
   await getCurrentWebviewWindow().show()
 
   await addListener(
@@ -382,23 +382,23 @@ onMounted(async () => {
       const { index } = event.payload
       imageList.value = imageViewerStore.imageList
       syncCurrentIndex(index)
-      // 重置图片状态
+      // 이미지 상태 초기화
       resetImage(true)
     }),
     'update-image'
   )
 
   if (imageViewerStore.isSingleMode) {
-    // 单图模式下不需要设置 imageList 和 currentIndex
+    // 단일 이미지 모드에서는 imageList와 currentIndex를 설정할 필요가 없음
     imageList.value = [imageViewerStore.singleImage]
     syncCurrentIndex(0)
   } else {
-    // 多图模式保持原有逻辑
+    // 다중 이미지 모드는 기존 로직 유지
     imageList.value = imageViewerStore.imageList
     syncCurrentIndex(imageViewerStore.currentIndex)
   }
 
-  // 监听键盘事件
+  // 키보드 이벤트 감지
   document.addEventListener('keydown', handleKeydown)
 })
 
@@ -420,7 +420,7 @@ onUnmounted(() => {
   opacity: 0;
 }
 
-/* 自定义滚动条样式 */
+/* 사용자 정의 스크롤바 스타일 */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -435,7 +435,7 @@ onUnmounted(() => {
   background: transparent;
 }
 
-/* 添加以下样式来修改 ActionBar 中的 svg 颜色 */
+/* ActionBar의 svg 색상을 수정하기 위해 다음 스타일 추가 */
 :deep(.action-close),
 :deep(.hover-box) {
   svg {

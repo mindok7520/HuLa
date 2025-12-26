@@ -1,13 +1,13 @@
 <template>
   <div class="multi-msg-container">
-    <!--顶部操作栏-->
+    <!-- 상단 조작 바 -->
     <ActionBar :shrink="false" />
 
-    <!-- 消息列表 -->
+    <!-- 메시지 목록 -->
     <n-scrollbar>
       <template v-for="item in msgs" :key="item.message.id">
         <div class="py-12px mb-16px mx-20px">
-          <!-- 消息头像和信息 -->
+          <!-- 메시지 아바타 및 정보 -->
           <div class="flex cursor-default">
             <n-avatar
               :size="32"
@@ -88,19 +88,19 @@ const isSpecialMsgType = (type: number): boolean => {
   )
 }
 
-// 我的群昵称
+// 내 그룹 닉네임
 const getUserDisplayName = computed(() => (uid: string) => {
   const user = groupStore.getUserInfo(uid)
   return user?.myName || user?.name || ''
 })
 
-// 获取用户头像
+// 사용자 아바타 가져오기
 const getAvatarSrc = (uid: string) => {
   const avatar = uid === userUid.value ? userStore.userInfo!.avatar : groupStore.getUserInfo(uid)?.avatar
   return AvatarUtils.getAvatarUrl(avatar as string)
 }
 
-// 获取当前页面的所有图片和表情URL
+// 현재 페이지의 모든 이미지 및 이모지 URL 가져오기
 const getAllImageUrls = computed(() => {
   const imageUrls: string[] = []
   msgs.value.forEach((message) => {
@@ -114,7 +114,7 @@ const getAllImageUrls = computed(() => {
   return imageUrls
 })
 
-// 获取当前页面的所有视频URL
+// 현재 페이지의 모든 영상 URL 가져오기
 const getAllVideoUrls = computed(() => {
   const videoUrls: string[] = []
   msgs.value.forEach((message) => {
@@ -125,13 +125,13 @@ const getAllVideoUrls = computed(() => {
   return videoUrls
 })
 
-// 处理图片和表情点击事件
+// 이미지 및 이모지 클릭 이벤트 처리
 const handleImageClick = async (imageUrl: string) => {
   const imageList = getAllImageUrls.value
   await openImageViewer(imageUrl, [MsgEnum.IMAGE, MsgEnum.EMOJI], imageList)
 }
 
-// 处理视频点击事件
+// 영상 클릭 이벤트 처리
 const handleVideoClick = async (videoUrl: string) => {
   const videoList = getAllVideoUrls.value
   const currentIndex = videoList.indexOf(videoUrl)
@@ -139,7 +139,7 @@ const handleVideoClick = async (videoUrl: string) => {
   if (currentIndex === -1) {
     await openVideoViewer(videoUrl, [MsgEnum.VIDEO], [videoUrl])
   } else {
-    // 使用多视频模式
+    // 다중 영상 모드 사용
     await openVideoViewer(videoUrl, [MsgEnum.VIDEO], videoList)
   }
 }

@@ -9,21 +9,21 @@ import { getFilesMeta } from '@/utils/PathUtil'
 import { isMobile } from '../utils/PlatformConstants'
 
 export interface FileDownloadStatus {
-  /** 文件是否已下载 */
+  /** 파일 다운로드 여부 */
   isDownloaded: boolean
-  /** 本地文件相对路径 (相对于 Resource 目录) */
+  /** 로컬 파일 상대 경로 (Resource 디렉토리 기준) */
   localPath?: string
-  /** 本地文件绝对路径 */
+  /** 로컬 파일 절대 경로 */
   absolutePath?: string
-  /** 原生路径格式 (用于文件操作) */
+  /** 기본 경로 형식 (파일 작업용) */
   nativePath?: string
-  /** 显示路径格式 (规范化后) */
+  /** 표시 경로 형식 (정규화 후) */
   displayPath?: string
-  /** 下载状态 */
+  /** 다운로드 상태 */
   status: 'pending' | 'downloading' | 'completed' | 'failed'
-  /** 下载进度 */
+  /** 다운로드 진행률 */
   progress?: number
-  /** 错误信息 */
+  /** 오류 메시지 */
   error?: string
 }
 
@@ -32,12 +32,12 @@ export const useFileDownloadStore = defineStore(
   () => {
     const userStore = useUserStore()
 
-    // 存储文件下载状态的Map，key为文件URL，value为下载状态
+    // 파일 다운로드 상태를 저장하는 Map, key는 파일 URL, value는 다운로드 상태
     const downloadStatusMap = ref<Record<string, FileDownloadStatus>>({})
 
     /**
-     * 获取文件下载状态
-     * @param fileUrl 文件URL
+     * 파일 다운로드 상태 가져오기
+     * @param fileUrl 파일 URL
      */
     const getFileStatus = (fileUrl: string): FileDownloadStatus => {
       return (
@@ -49,9 +49,9 @@ export const useFileDownloadStore = defineStore(
     }
 
     /**
-     * 更新文件下载状态
-     * @param fileUrl 文件URL
-     * @param status 状态更新
+     * 파일 다운로드 상태 업데이트
+     * @param fileUrl 파일 URL
+     * @param status 상태 업데이트
      */
     const updateFileStatus = (fileUrl: string, status: Partial<FileDownloadStatus>) => {
       const currentStatus = getFileStatus(fileUrl)
@@ -60,7 +60,7 @@ export const useFileDownloadStore = defineStore(
     }
 
     /**
-     * 刷新文件消息的下载状态
+     * 파일 메시지의 다운로드 상태 새로고침
      */
     const refreshFileDownloadStatus = async (options: {
       fileUrl: string
@@ -69,7 +69,7 @@ export const useFileDownloadStore = defineStore(
       fileName: string
       exists?: boolean
     }) => {
-      console.log('触发状态刷新：', options)
+      console.log('상태 새로고침 트리거:', options)
       const fileStatus = downloadStatusMap.value[options.fileUrl]
 
       const resetStatus = () => {
@@ -97,61 +97,61 @@ export const useFileDownloadStore = defineStore(
       const resourceDirPath = await userStore.getUserRoomAbsoluteDir()
       const absolutePath = await join(resourceDirPath, options.fileName)
 
-      // 如果直接知道文件不存在，那就直接刷新，如果不知道则再做处理
+      // 파일이 존재하지 않는다는 것을 확실히 알고 있다면 직접 새로고침하고, 모른다면 추가 처리 수행
       if (Object.hasOwn(options, 'exists')) {
         if (options.exists && fileStatus?.isDownloaded) {
-          console.log('匹配1')
+          console.log('매칭1')
           return
         }
 
         if (options.exists) {
-          console.log('匹配2')
+          console.log('매칭2')
           updateSuccess(absolutePath)
           return
         }
 
         if (options.exists && !fileStatus?.isDownloaded) {
-          console.log('匹配3')
+          console.log('매칭3')
           updateSuccess(absolutePath)
           return
         }
 
         if (!options.exists && fileStatus?.isDownloaded) {
-          console.log('匹配4')
+          console.log('매칭4')
           resetStatus()
           return
         }
 
         if (!options.exists && fileStatus?.isDownloaded) {
-          console.log('匹配5')
+          console.log('매칭5')
           resetStatus()
           return
         }
-        console.log('匹配6')
+        console.log('매칭6')
 
         resetStatus()
         return
       }
 
-      // 这是匹配未查找到exists字段的逻辑
+      // exists 필드가 없는 경우의 로직
       const result = await getFilesMeta<FilesMeta>([absolutePath || options.fileUrl])
       const fileMeta = result[0]
 
       if (fileMeta.exists) {
-        // 把状态更新为完成
+        // 상태를 완료로 업데이트
         updateSuccess(absolutePath)
-        console.log('匹配7')
+        console.log('매칭7')
       } else {
-        // 把状态更新为未完成
+        // 상태를 미완료로 업데이트
         resetStatus()
-        console.log('匹配8')
+        console.log('매칭8')
       }
     }
 
     /**
-     * 检查文件是否已下载
-     * @param fileUrl 文件URL
-     * @param fileName 文件名
+     * 파일 다운로드 여부 확인
+     * @param fileUrl 파일 URL
+     * @param fileName 파일명
      */
     const checkFileExists = async (fileUrl: string, fileName: string): Promise<boolean> => {
       try {
@@ -162,26 +162,26 @@ export const useFileDownloadStore = defineStore(
         const fileExists = await exists(filePath, { baseDir })
 
         if (fileExists) {
-          // 文件存在，构建绝对路径并更新状态
+          // 파일이 존재함, 절대 경로 빌드 및 상태 업데이트
           const baseDirPath = isMobile() ? await appDataDir() : await resourceDir()
           const absolutePath = await join(baseDirPath, filePath)
 
-          // 保持原生路径格式用于文件操作，规范化路径用于显示
+          // 파일 작업에는 기본 경로 형식을 유지하고, 표시에는 정규화된 경로 사용
           const normalizedPath = absolutePath.replace(/\\/g, '/')
 
           updateFileStatus(fileUrl, {
             isDownloaded: true,
             localPath: filePath,
-            absolutePath: absolutePath, // 使用原生路径格式
-            nativePath: absolutePath, // 保存原生路径
-            displayPath: normalizedPath, // 保存显示路径
+            absolutePath: absolutePath, // 기본 경로 형식 사용
+            nativePath: absolutePath, // 기본 경로 저장
+            displayPath: normalizedPath, // 표시 경로 저장
             status: 'completed'
           })
         }
 
         return fileExists
       } catch (error) {
-        console.error('检查文件是否存在失败:', error)
+        console.error('파일 존재 여부 확인 실패:', error)
         return false
       }
     }
@@ -200,33 +200,33 @@ export const useFileDownloadStore = defineStore(
     }
 
     /**
-     * 下载文件
-     * @param fileUrl 文件URL
-     * @param fileName 文件名
+     * 파일 다운로드
+     * @param fileUrl 파일 URL
+     * @param fileName 파일명
      */
     const downloadFile = async (fileUrl: string, fileName: string): Promise<string | null> => {
       try {
-        // 检查文件是否已存在
+        // 파일이 이미 존재하는지 확인
         const isExists = await checkFileExists(fileUrl, fileName)
         if (isExists) {
           const existingStatus = getFileStatus(fileUrl)
           return existingStatus.localPath || null
         }
 
-        // 更新状态为下载中
+        // 상태를 다운로드 중으로 업데이트
         updateFileStatus(fileUrl, {
           status: 'downloading',
           progress: 0
         })
 
-        // 获取下载目录
+        // 다운로드 디렉토리 가져오기
         const downloadsDir = await userStore.getUserRoomDir()
         const filePath = await join(downloadsDir, fileName)
 
-        // 下载文件
+        // 파일 다운로드
         const response = await fetch(fileUrl)
         if (!response.ok) {
-          throw new Error(`下载失败: ${response.status} ${response.statusText}`)
+          throw new Error(`다운로드 실패: ${response.status} ${response.statusText}`)
         }
 
         const contentLength = response.headers.get('content-length')
@@ -235,7 +235,7 @@ export const useFileDownloadStore = defineStore(
 
         const reader = response.body?.getReader()
         if (!reader) {
-          throw new Error('无法读取响应流')
+          throw new Error('응답 스트림을 읽을 수 없습니다')
         }
 
         const chunks: Uint8Array[] = []
@@ -247,7 +247,7 @@ export const useFileDownloadStore = defineStore(
           chunks.push(value)
           downloaded += value.length
 
-          // 更新下载进度
+          // 다운로드 진행률 업데이트
           if (total > 0) {
             const progress = Math.round((downloaded / total) * 100)
             updateFileStatus(fileUrl, {
@@ -257,7 +257,7 @@ export const useFileDownloadStore = defineStore(
           }
         }
 
-        // 合并所有数据块
+        // 모든 데이터 청크 병합
         const totalLength = sumBy(chunks, (chunk) => chunk.length)
         const fileData = new Uint8Array(totalLength)
         let offset = 0
@@ -267,35 +267,35 @@ export const useFileDownloadStore = defineStore(
           offset += chunk.length
         }
 
-        // 写入文件
+        // 파일 쓰기
         const baseDir = isMobile() ? BaseDirectory.AppData : BaseDirectory.Resource
         await writeFile(filePath, fileData, { baseDir })
 
-        // 构建绝对路径
+        // 절대 경로 빌드
         const baseDirPath = isMobile() ? await appDataDir() : await resourceDir()
         const absolutePath = await join(baseDirPath, filePath)
 
         finalizeSuccessfulWrite(fileUrl, fileName, absolutePath, filePath)
-        return absolutePath // 返回原生路径格式
+        return absolutePath // 기본 경로 형식 반환
       } catch (error) {
-        console.error('文件下载失败:', error)
+        console.error('파일 다운로드 실패:', error)
 
-        // 更新状态为失败
+        // 상태를 실패로 업데이트
         updateFileStatus(fileUrl, {
           status: 'failed',
-          error: error instanceof Error ? error.message : '下载失败'
+          error: error instanceof Error ? error.message : '다운로드 실패'
         })
 
-        window.$message?.error(`文件下载失败: ${error instanceof Error ? error.message : '未知错误'}`)
+        window.$message?.error(`파일 다운로드 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`)
         return null
       }
     }
 
     /**
-     * 将 worker 下载的字节数据写入到本地文件
-     * @param fileUrl 文件URL（作为状态映射 key）
-     * @param fileName 文件名
-     * @param data 文件数据
+     * 워커가 다운로드한 바이트 데이터를 로컬 파일에 쓰기
+     * @param fileUrl 파일 URL (상태 매핑 키로 사용)
+     * @param fileName 파일명
+     * @param data 파일 데이터
      */
     const saveFileFromBytes = async (fileUrl: string, fileName: string, data: Uint8Array): Promise<string | null> => {
       try {
@@ -311,19 +311,19 @@ export const useFileDownloadStore = defineStore(
         finalizeSuccessfulWrite(fileUrl, fileName, absolutePath, filePath)
         return absolutePath
       } catch (error) {
-        console.error('保存文件失败:', error)
+        console.error('파일 저장 실패:', error)
         updateFileStatus(fileUrl, {
           status: 'failed',
-          error: error instanceof Error ? error.message : '保存失败'
+          error: error instanceof Error ? error.message : '저장 실패'
         })
         return null
       }
     }
 
     /**
-     * 获取本地文件路径
-     * @param fileUrl 文件URL
-     * @param absolute 是否返回绝对路径，默认为 true
+     * 로컬 파일 경로 가져오기
+     * @param fileUrl 파일 URL
+     * @param absolute 절대 경로 반환 여부, 기본값 true
      */
     const getLocalPath = (fileUrl: string, absolute: boolean = true): string | null => {
       const status = getFileStatus(fileUrl)
@@ -333,23 +333,23 @@ export const useFileDownloadStore = defineStore(
     }
 
     /**
-     * 清理下载状态
+     * 다운로드 상태 초기화
      */
     const clearDownloadStatus = () => {
       downloadStatusMap.value = {}
     }
 
     /**
-     * 移除特定文件的下载状态
-     * @param fileUrl 文件URL
+     * 특정 파일의 다운로드 상태 제거
+     * @param fileUrl 파일 URL
      */
     const removeFileStatus = (fileUrl: string) => {
       delete downloadStatusMap.value[fileUrl]
     }
 
     /**
-     * 批量检查文件状态
-     * @param fileInfos 文件信息数组
+     * 파일 상태 일괄 확인
+     * @param fileInfos 파일 정보 배열
      */
     const batchCheckFileStatus = async (fileInfos: Array<{ url: string; fileName: string }>) => {
       const promises = fileInfos.map(({ url, fileName }) => checkFileExists(url, fileName))

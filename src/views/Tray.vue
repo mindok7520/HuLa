@@ -93,10 +93,10 @@ const { stateList, stateId } = storeToRefs(userStatusStore)
 const { tipVisible, isTrayMenuShow } = storeToRefs(globalStore)
 const { t } = useI18n()
 const isFocused = ref(false)
-// 状态栏图标是否显示
+// 상태바 아이콘 표시 여부
 const iconVisible = ref(false)
 
-// 消息提示音状态
+// 메시지 알림음 상태
 const messageSound = computed({
   get: () => settingStore.notification.messageSound,
   set: (value: boolean) => {
@@ -116,7 +116,7 @@ const translateStateTitle = (title?: string) => {
 }
 
 const handleExit = () => {
-  /** 退出时关闭锁屏 */
+  /** 종료 시 화면 잠금 해제 */
   lockScreen.value.enable = false
   if (localStorage.getItem('wsLogin')) {
     localStorage.removeItem('wsLogin')
@@ -132,7 +132,7 @@ const toggleStatus = async (item: UserState) => {
     userStore.userInfo!.userStateId = item.id
     appWindow.hide()
   } catch (error) {
-    console.error('更新状态失败:', error)
+    console.error('상태 업데이트 실패:', error)
     appWindow.hide()
   }
 }
@@ -150,7 +150,7 @@ let homeBlurUnlisten: (() => void) | null = null
 
 const startBlinkTask = () => {
   blinkTask = setInterval(async () => {
-    // 定时器触发时，切换图标状态
+    // 타이머 트리거 시 아이콘 상태 전환
     const tray = await TrayIcon.getById('tray')
     tray?.setIcon(iconVisible.value ? 'tray/icon.png' : null)
     iconVisible.value = !iconVisible.value
@@ -162,12 +162,12 @@ const stopBlinkTask = async () => {
     clearInterval(blinkTask)
     blinkTask = null
 
-    // 恢复托盘图标为默认状态，防止图标消失
+    // 트레이 아이콘을 기본 상태로 복구하여 아이콘 사라짐 방지
     try {
       const tray = await TrayIcon.getById('tray')
       await tray?.setIcon('tray/icon.png')
     } catch (e) {
-      console.warn('[Tray] 恢复托盘图标失败:', e)
+      console.warn('[Tray] 트레이 아이콘 복구 실패:', e)
     }
     iconVisible.value = false
   }
@@ -178,19 +178,19 @@ watchEffect(async () => {
     if (tipVisible.value && !isFocused.value) {
       startBlinkTask()
     } else {
-      stopBlinkTask() // 停止图标闪烁
+      stopBlinkTask() // 아이콘 깜빡임 중지
     }
   }
 })
 
-// 监听托盘窗口尺寸调整事件
+// 트레이 창 크기 조정 이벤트 수신
 const handleTrayResize = async () => {
   const islogin = await WebviewWindow.getByLabel('home')
   await resizeWindow('tray', 130, islogin ? 356 : 44)
 }
 
 onMounted(async () => {
-  // 监听系统缩放变化事件，自动调整托盘窗口尺寸
+  // 시스템 배율 변경 이벤트를 수신하여 트레이 창 크기 자동 조정
   window.addEventListener('resize-needed', handleTrayResize)
 
   if (isWindows()) {

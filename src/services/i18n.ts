@@ -20,12 +20,12 @@ const i18n = createI18n({
 })
 
 /**
- * 在 setup 外使用，这似乎与 vue-i18n v9.x 相悖
- * 如非必要，请不要直接使用它!!!
+ * setup 외부에서 사용, 이는 vue-i18n v9.x와 상충되는 것으로 보임
+ * 꼭 필요한 경우가 아니면 직접 사용하지 마십시오!!!
  */
 export const useI18nGlobal = () => i18n.global
 
-// 动态导入所有 JSON 文件
+// 모든 JSON 동적 가져오기
 type LoadLocale = () => Promise<{ default: Record<string, string> }>
 
 const locales = Object.entries(import.meta.glob('../../locales/**/*.json'))
@@ -58,18 +58,18 @@ function getLangPrefix(lang: string) {
   return parts[0].toLowerCase()
 }
 
-// 统一的前缀映射表，后续需要支持其他语言时只需在此添加映射
+// 통합된 접두사 매핑 테이블, 추후 다른 언어를 지원해야 하는 경우 여기에 매핑을 추가하기만 하면 됩니다.
 const PREFIX_LANG_MAP: Record<string, Locale> = {
   zh: 'zh-CN',
   en: 'en'
 }
 
-// 根据语言前缀映射受支持的 locale，未匹配则回退中文
+// 언어 접두사에 따라 지원되는 로케일을 매핑하고, 일치하지 않으면 중국어로 대체
 const mapByPrefix = (lang: string): Locale => {
   return PREFIX_LANG_MAP[getLangPrefix(lang)] ?? 'zh-CN'
 }
 
-// AUTO 语言解析：使用映射表限定支持的前缀，其他一律回退中文
+// AUTO 언어 분석: 지원되는 접두사를 제한하기 위해 매핑 테이블을 사용하고, 나머지는 중국어로 대체
 const resolveAutoLanguage = (): Locale => {
   if (typeof navigator !== 'undefined') {
     return mapByPrefix(navigator.language)
@@ -77,7 +77,7 @@ const resolveAutoLanguage = (): Locale => {
   return 'zh-CN'
 }
 
-// 归一化语言值：优先显式支持的语言，其次按前缀映射，最后回退中文
+// 언어 값 정규화: 명시적으로 지원되는 언어를 우선으로 하고, 그 다음 접두사 매핑, 마지막으로 중국어로 대체
 const normalizeLang = (lang: string): Locale => {
   if (lang === 'AUTO') {
     return resolveAutoLanguage()
@@ -90,7 +90,7 @@ const normalizeLang = (lang: string): Locale => {
   return mapByPrefix(lang)
 }
 
-// 应用语言到 i18n 和 html 标签
+// i18n 및 html 태그에 언어 적용
 export function setI18nLanguage(lang: Locale) {
   const resolved = normalizeLang(lang)
   i18n.global.locale.value = resolved
@@ -111,7 +111,7 @@ function findLocales(lang: string) {
   return locales[like ?? 'zh-CN']
 }
 
-// 加载语言包并切换语言，确保 lang 被归一化后再加载
+// 언어 팩 로드 및 언어 전환, 로드하기 전에 lang이 정규화되었는지 확인
 export async function loadLanguage(lang: Locale) {
   const resolvedLang = normalizeLang(lang)
   if (i18n.global.locale.value === resolvedLang) {
@@ -128,20 +128,20 @@ export async function loadLanguage(lang: Locale) {
     return
   }
 
-  // 将每个文件的 Promise 收集起来
+  // 각 파일의 Promise 수집
   const tasks = Object.entries(messageParts).map(async ([key, loader]) => {
     const mod = await loader()
     return [key, mod.default]
   })
 
-  // 等待所有 JSON 完成加载
+  // 모든 JSON 로드 완료 대기
   const modules = await Promise.all(tasks)
 
-  // 文件结构是 { home: {...}, room: {...} }
-  // 合并成一个 messages = { ...home, ...room }
+  // 파일 구조는 { home: {...}, room: {...} } 입니다.
+  // messages = { ...home, ...room } 로 병합
   const messages = Object.fromEntries(modules)
 
-  // 设置语言包
+  // 언어 팩 설정
   i18n.global.setLocaleMessage(resolvedLang, messages)
 
   loadedLanguages.push(resolvedLang)

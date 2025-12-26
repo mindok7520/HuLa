@@ -5,14 +5,14 @@ export const useHistoryStore = defineStore(
   StoresEnum.HISTORY,
   () => {
     const emoji = ref<string[]>([])
-    // 记录上次选择的表情选项卡索引
+    // 마지막으로 선택한 이모티콘 탭 색인 기록
     const lastEmojiTabIndex = ref<number>(0)
 
     const setEmoji = (item: string[]) => {
       emoji.value = item
     }
 
-    // 设置上次选择的表情选项卡索引
+    // 마지막으로 선택한 이모티콘 탭 색인 설정
     const setLastEmojiTabIndex = (index: number) => {
       lastEmojiTabIndex.value = index
     }

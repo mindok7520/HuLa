@@ -1,6 +1,6 @@
 <template>
   <div class="size-full bg-[--bg-popover] select-none cursor-default">
-    <!--顶部操作栏-->
+    <!-- 상단 조작 바 -->
     <ActionBar :is-drag="false" :max-w="false" :min-w="false" :shrink="false" />
 
     <n-flex v-if="loading" vertical justify="center" class="mt-6px box-border px-12px">
@@ -120,16 +120,16 @@ import { useI18n } from 'vue-i18n'
 const settingStore = useSettingStore()
 const { t } = useI18n()
 const { createWebviewWindow, resizeWindow, setResizable } = useWindow()
-/** 项目提交日志记录 */
+/** 프로젝트 커밋 로그 기록 */
 const commitLog = ref<{ message: string; icon: string }[]>([])
 const newCommitLog = ref<{ message: string; icon: string }[]>([])
 const text = ref(t('message.check_update.update_now'))
 const currentVersion = ref('')
 const newVersion = ref('')
 const loading = ref(false)
-/** 控制日志是否可见 */
+/** 로그 표시 여부 제어 */
 const logVisible = ref(false)
-/** 版本更新日期 */
+/** 버전 업데이트 날짜 */
 const versionTime = ref('')
 const newVersionTime = ref('')
 
@@ -155,7 +155,7 @@ const mapCommitType = (commitMessage: string) => {
   }
 }
 
-/* 记录检测更新的版本 */
+/* 업데이트 감지 버전 기록 */
 //let lastVersion: string | null = null
 
 const getCommitLog = async (url: string, isNew = false) => {
@@ -168,7 +168,7 @@ const getCommitLog = async (url: string, isNew = false) => {
     res.json().then(async (data) => {
       isNew ? (newVersionTime.value = data.created_at) : (versionTime.value = data.created_at)
       await nextTick(() => {
-        // 使用正则表达式提取 * 号后面的内容
+        // 정규표현식을 사용하여 * 뒤의 내용 추출
         const regex = /\* (.+)/g
         let match
         const logs = []
@@ -176,9 +176,9 @@ const getCommitLog = async (url: string, isNew = false) => {
           logs.push(match[1])
         }
         const processedLogs = logs.map((commit) => {
-          // 获取最后一个 : 号的位置
+          // 마지막 : 위치 가져오기
           const lastColonIndex = commit.lastIndexOf(':')
-          // 截取最后一个 : 号后的内容
+          // 마지막 : 뒤의 내용 추출
           const message = lastColonIndex !== -1 ? commit.substring(lastColonIndex + 1).trim() : commit
           return {
             message: message,
@@ -196,7 +196,7 @@ const doUpdate = async () => {
   if (!(await confirm(t('message.check_update.confirm_update')))) {
     return
   }
-  await createWebviewWindow('更新', 'update', 490, 335, '', false, 490, 335, false, true)
+  await createWebviewWindow('업데이트', 'update', 490, 335, '', false, 490, 335, false, true)
   const windows = await WebviewWindow.getAll()
   windows.forEach((window) => {
     if (window.label === 'login' || window.label === 'home' || window.label === 'checkupdate') {
@@ -221,7 +221,7 @@ const checkUpdate = async () => {
         return
       }
       newVersion.value = e.version
-      // 检查版本之间不同的提交信息和提交日期
+      // 버전 간 차이점이 있는 커밋 정보 및 날짜 확인
       const url = `https://gitee.com/api/v5/repos/HuLaSpark/HuLa/releases/tags/v${newVersion.value}?access_token=${import.meta.env.VITE_GITEE_TOKEN}`
       await getCommitLog(url, true)
       text.value = t('message.check_update.update_now')
@@ -231,60 +231,60 @@ const checkUpdate = async () => {
     })
 }
 
-// 根据操作系统类型设置窗口位置（macOS为右上角，其他为右下角）
+// 운영체제 유형에 따라 창 위치 설정 (macOS는 우측 상단, 나머지는 우측 하단)
 const moveWindowToBottomRight = async () => {
   try {
     const checkUpdateWindow = await WebviewWindow.getByLabel('checkupdate')
     if (!checkUpdateWindow) return
 
-    // 获取当前显示器信息
+    // 현재 모니터 정보 가져오기
     const monitor = await currentMonitor()
     if (!monitor) return
 
-    // 获取窗口大小
+    // 창 크기 가져오기
     const size = await checkUpdateWindow.outerSize()
 
-    // 计算窗口位置（留出一定边距）
+    // 창 위치 계산 (일정 간격 확보)
     let y = 0
     let x = 0
 
     if (isMac()) {
-      // macOS - 放置在右上角
-      y = 50 // 为顶部菜单栏留出空间
+      // macOS - 우측 상단 배치
+      y = 50 // 상단 메뉴바 공간 확보
       x = Math.floor(monitor.size.width - size.width - 10)
     } else {
-      // Windows/Linux - 放置在右下角（保持原有逻辑）
+      // Windows/Linux - 우측 하단 배치 (기존 로직 유지)
       y = Math.floor(monitor.size.height - size.height - 50)
       x = Math.floor(monitor.size.width - size.width)
     }
 
-    // 移动窗口到计算的位置
+    // 계산된 위치로 창 이동
     await checkUpdateWindow.setPosition(new PhysicalPosition(x, y))
   } catch (error) {
-    console.error('移动窗口失败:', error)
+    console.error('창 이동 실패:', error)
   }
 }
 
 const toggleLogVisible = async () => {
   logVisible.value = !logVisible.value
 
-  // 获取当前窗口实例
+  // 현재 창 인스턴스 가져오기
   const checkUpdateWindow = await WebviewWindow.getByLabel('checkupdate')
   if (!checkUpdateWindow) return
 
-  // 设置窗口可调整大小，以便能够调整窗口高度
+  // 창 크기 조정 가능하도록 설정 (창 높이 조정을 위해)
   await setResizable('checkupdate', true)
 
-  // 根据日志显示状态调整窗口高度
+  // 로그 표시 상태에 따라 창 높이 조정
   if (logVisible.value) {
-    // 展开日志，调整窗口高度为600px
+    // 로그 펼치기, 창 높이를 620px로 조정
     await resizeWindow('checkupdate', 500, 620)
   } else {
-    // 收起日志，调整窗口高度为420px
+    // 로그 접기, 창 높이를 150px로 조정
     await resizeWindow('checkupdate', 500, 150)
   }
   await setResizable('checkupdate', false)
-  // 调整窗口位置到右下角，保持右下角位置不变
+  // 창 위치를 우측 하단으로 조정하여 우측 하단 위치 고정
   await moveWindowToBottomRight()
 }
 
@@ -293,11 +293,11 @@ const init = async () => {
   loading.value = true
   currentVersion.value = await getVersion()
   if (isMac()) {
-    // 隐藏标题栏按钮
+    // 타이틀바 버튼 숨기기
     try {
       await invokeSilently('hide_title_bar_buttons', { windowLabel: 'checkupdate' })
     } catch (error) {
-      console.error('隐藏标题栏按钮失败:', error)
+      console.error('타이틀바 버튼 숨기기 실패:', error)
     }
   }
 }

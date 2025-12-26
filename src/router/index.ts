@@ -57,12 +57,12 @@ import MobileServiceAgreement from '#/views/MobileServiceAgreement.vue'
 import MobilePrivacyAgreement from '#/views/MobilePrivacyAgreement.vue'
 import SyncData from '#/views/SyncData.vue'
 
-/**! 创建窗口后再跳转页面就会导致样式没有生效所以不能使用懒加载路由的方式，有些页面需要快速响应的就不需要懒加载 */
+// ! 창을 생성한 후 페이지를 이동하면 스타일이 적용되지 않는 문제가 있어 지연 로딩 방식을 사용할 수 없습니다. 빠른 응답이 필요한 일부 페이지는 지연 로딩이 필요하지 않습니다.
 const { BASE_URL } = import.meta.env
 
 const isMobile = type() === 'ios' || type() === 'android'
 
-// 移动端路由配置 - 使用直接导入避免懒加载问题
+// 모바일 라우트 설정 - 지연 로딩 문제를 피하기 위해 직접 가져오기 사용
 const getMobileRoutes = (): Array<RouteRecordRaw> => [
   {
     path: '/',
@@ -110,7 +110,7 @@ const getMobileRoutes = (): Array<RouteRecordRaw> => [
         redirect: '/mobile/chatRoom/chatMain'
       },
       {
-        path: 'chatMain/:uid?', // 可选传入，如果传入uid就表示房间属于好友的私聊房间
+        path: 'chatMain/:uid?', // 선택적 전달, uid가 전달되면 해당 방은 친구와의 1:1 채팅방임을 의미
         name: 'mobileChatMain',
         component: MobileChatMain,
         props: true,
@@ -331,7 +331,7 @@ const getMobileRoutes = (): Array<RouteRecordRaw> => [
   }
 ]
 
-// 桌面端路由配置
+// 데스크톱 라우트 설정
 const getDesktopRoutes = (): Array<RouteRecordRaw> => [
   {
     path: '/home',
@@ -494,7 +494,7 @@ const getDesktopRoutes = (): Array<RouteRecordRaw> => [
     name: 'rtcCall',
     component: () => import('@/views/callWindow/index.vue')
   },
-  // 添加聊天记录窗口路由
+  // 채팅 기록 창 라우트 추가
   {
     path: '/multiMsg',
     name: 'multiMsg',
@@ -517,7 +517,7 @@ const getDesktopRoutes = (): Array<RouteRecordRaw> => [
   }
 ]
 
-// 通用路由配置（所有平台都需要）
+// 공통 라우트 설정 (모든 플랫폼 필요)
 const getCommonRoutes = (): Array<RouteRecordRaw> => [
   {
     path: '/manageGroupMember',
@@ -606,7 +606,7 @@ const getCommonRoutes = (): Array<RouteRecordRaw> => [
   }
 ]
 
-// 创建所有路由（通用路由 + 平台特定路由）
+// 모든 라우트 생성 (공통 + 플랫폼별)
 const getAllRoutes = (): Array<RouteRecordRaw> => {
   const commonRoutes = getCommonRoutes()
   if (isMobile) {
@@ -616,18 +616,18 @@ const getAllRoutes = (): Array<RouteRecordRaw> => {
   }
 }
 
-// 创建路由
+// 라우터 생성
 const router: any = createRouter({
   history: createWebHistory(BASE_URL),
   routes: getAllRoutes()
 })
 
-// 在创建路由后，添加全局前置守卫
-// 为解决 “已声明‘to’，但从未读取其值” 的问题，将 to 参数改为下划线开头表示该参数不会被使用
+// 라우터 생성 후 전역 가드 추가
+// 'to'가 선언되었지만 사용되지 않는 문제를 해결하기 위해, 사용되지 않을 to 매개변수 이름을 밑줄로 시작하도록 변경
 router.beforeEach(async (to: RouteLocationNormalized, _from: RouteLocationNormalized, next: NavigationGuardNext) => {
-  // 桌面端直接放行
+  // 데스크톱은 바로 통과
   if (!isMobile) {
-    console.log('[守卫] 非移动端，直接放行')
+    console.log('[가드] 모바일이 아니므로 통과')
     return next()
   }
 
@@ -637,8 +637,8 @@ router.beforeEach(async (to: RouteLocationNormalized, _from: RouteLocationNormal
     const isForgetPage = to.path === '/mobile/MobileForgetPassword'
     const isAgreementPage = to.path === '/mobile/serviceAgreement' || to.path === '/mobile/privacyAgreement'
 
-    // 闪屏页白名单：不论登录状态都允许进入
-    console.log('路由守卫to->', to.path)
+    // 스플래시 화면 화이트리스트: 로그인 상태와 상관없이 접근 허용
+    console.log('라우트 가드 to->', to.path)
     if (isSplashPage || isForgetPage || isAgreementPage) {
       return next()
     }
@@ -646,21 +646,21 @@ router.beforeEach(async (to: RouteLocationNormalized, _from: RouteLocationNormal
     const tokens = await invoke<{ token: string | null; refreshToken: string | null }>(TauriCommand.GET_USER_TOKENS)
     const isLoggedIn = !!(tokens.token && tokens.refreshToken)
 
-    // 未登录且不是登录页 → 跳转登录
+    // 로그인하지 않았고 로그인 페이지도 아니면 → 로그인 페이지로 이동
     if (!isLoggedIn && !isLoginPage) {
-      console.warn('[守卫] 未登录，强制跳转到 /mobile/login')
+      console.warn('[가드] 미로그인 상태, /mobile/login 으로 강제 이동')
       return next('/mobile/login')
     }
 
     return next()
   } catch (error) {
-    console.error('[守卫] 获取token错误:', error)
-    // 出错时也跳转登录页（避免死循环）
+    console.error('[가드] 토큰 가져오기 오류:', error)
+    // 오류 발생 시에도 로그인 페이지로 이동 (무한 루프 방지)
     if (to.path !== '/mobile/login') {
-      console.warn('[守卫] 出错，强制跳转到 /mobile/login')
+      console.warn('[가드] 오류 발생, /mobile/login 으로 강제 이동')
       return next('/mobile/login')
     }
-    // console.log('[守卫] 出错但目标是登录页，直接放行')
+    // console.log('[가드] 오류 발생했으나 대상이 로그인 페이지이므로 통과')
     return next()
   }
 })

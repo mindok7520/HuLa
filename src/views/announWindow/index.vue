@@ -1,7 +1,7 @@
 <template>
   <main v-cloak class="size-full bg-[--right-bg-color] select-none cursor-default">
     <ActionBar :shrink="false" :max-w="false" />
-    <!-- 编辑公告视图 -->
+    <!-- 공지사항 편집 뷰 -->
     <n-flex v-if="viewType === '0' && isAdmin" vertical class="size-full flex-center">
       <div class="text-(14px [--chat-text-color]) flex-start-center w-95% h-40px">{{ title }}</div>
       <div class="w-95%">
@@ -21,7 +21,7 @@
       </div>
       <n-flex justify="space-between" class="w-95%">
         <div class="w-40% h-42px flex-start-center">
-          <!--是否置顶-->
+          <!-- 상단 고정 여부 -->
           <n-switch
             class="bg-[--button-bg]"
             size="small"
@@ -45,7 +45,7 @@
         </div>
       </n-flex>
     </n-flex>
-    <!-- 查看公告列表视图 -->
+    <!-- 공지사항 목록 조회 뷰 -->
     <n-flex v-else vertical :size="6" class="size-full flex-center">
       <div class="text-(14px [--chat-text-color]) flex-between-center w-95% pt-10px">
         <span>{{ title }}</span>
@@ -54,7 +54,7 @@
         </n-button>
       </div>
 
-      <!--暂无数据-->
+      <!-- 데이터 없음 -->
       <div v-if="!announList || announList.length === 0" class="flex-center">
         <n-empty
           style="height: calc(100vh / var(--page-scale, 1) - 100px)"
@@ -71,7 +71,7 @@
       </div>
 
       <n-scrollbar @scroll="handleScroll" v-else class="h-95%">
-        <!-- 展示公告列表 -->
+        <!-- 공지사항 목록 표시 -->
         <div class="w-full flex-col-x-center">
           <div
             v-for="announcement in announList"
@@ -170,9 +170,9 @@
             </div>
           </div>
         </div>
-        <!-- 加载更多 -->
+        <!-- 더 보기 -->
         <div v-if="announList.length > 0" class="w-full h-40px flex-center mt-10px">
-          <!-- <n-button v-if="!isLast" class="bg-[--button-bg]" @click="handleLoadMore">加载更多</n-button> -->
+          <!-- <n-button v-if="!isLast" class="bg-[--button-bg]" @click="handleLoadMore">더 보기</n-button> -->
           <img v-if="isLoading" class="size-16px" src="@/assets/img/loading.svg" alt="" />
           <span v-if="isLast && !isLoading" class="text-[12px] color-[#909090]">
             {{ t('announcement.list.noMore') }}
@@ -199,7 +199,7 @@ import { deleteAnnouncement, editAnnouncement, pushAnnouncement } from '@/utils/
 import { extractLinkSegments, openExternalUrl } from '@/hooks/useLinkSegments'
 import { useI18n } from 'vue-i18n'
 
-// 定义响应式变量
+// 반응형 변수 정의
 const title = ref('')
 const announContent = ref('')
 const roomId = ref('')
@@ -211,24 +211,24 @@ const isTop = ref(false)
 const isEdit = ref(false)
 const editAnnoouncement = ref<any>({})
 const announcementAutosize = { minRows: 20 }
-// 分页参数
+// 페이지네이션 파라미터
 const pageSize = 10
 const pageNum = ref(1)
-// 已经到底了
+// 마지막 페이지 도달
 const isLast = ref(false)
 const isLoading = ref(false)
 const announcementStates = ref<Record<string, { showDeleteConfirm: boolean; deleteLoading: boolean }>>({})
 
-// 引入 group store
+// group store 가져오기
 const groupStore = useGroupStore()
 const cachedStore = useCachedStore()
 const userStore = useUserStore()
 const settingStore = useSettingStore()
 const { t } = useI18n()
 const { themes } = storeToRefs(settingStore)
-/** 判断当前用户是否拥有id为6的徽章 并且是频道 */
+/** 현재 사용자가 ID가 6인 배지를 보유하고 있으며 채널인지 확인 */
 const hasBadge6 = computed(() => {
-  // 只有当 roomId 为 "1" 时才进行徽章判断（频道）
+  // roomId가 "1"인 경우에만 배지 확인 (채널)
   if (roomId.value !== '1') return false
 
   const currentUser = groupStore.getUserInfo(userStore.userInfo!.uid)!
@@ -238,7 +238,7 @@ const isAdmin = computed(() => {
   const LordId = groupStore.currentLordId
   const adminUserTds = groupStore.adminUidList
   const uid = useUserStore().userInfo?.uid
-  // 由于 uid 可能为 undefined，需要进行类型检查，确保其为 string 类型
+  // uid가 undefined일 수 있으므로 타입 검사 수행 (string 타입 보장)
   if (uid && (uid === LordId || adminUserTds.includes(uid) || hasBadge6.value)) {
     return true
   }
@@ -256,7 +256,7 @@ watch(
 
 const avatarSrc = (uid: string) => AvatarUtils.getAvatarUrl(groupStore.getUserInfo(uid)!.avatar as string)
 
-// 初始化函数，获取群公告列表
+// 초기화 함수, 그룹 공지사항 목록 가져오기
 const handleInit = async () => {
   if (roomId.value) {
     try {
@@ -270,12 +270,12 @@ const handleInit = async () => {
           return
         }
 
-        // 处理公告的userName getUserGroupNickname
+        // 공지사항 userName 처리 (getUserGroupNickname)
         announList.value.forEach((item) => {
           const user = groupStore.getUser(roomId.value, item.uid)
           const fallbackName = item.userName || item.name || ''
           item.userName = user?.myName || user?.name || fallbackName
-          // 添加展开/收起状态控制
+          // 펼치기/접기 상태 제어 추가
           item.expanded = false
           announcementStates.value[item.id] = {
             showDeleteConfirm: false,
@@ -283,7 +283,7 @@ const handleInit = async () => {
           }
         })
 
-        // 处理置顶公告，置顶的公告排在列表前面
+        // 상단 고정 공지사항 처리, 상단 고정된 공지사항이 목록 상단에 위치
         announList.value.sort((a, b) => {
           if (a.top && !b.top) return -1
           if (!a.top && b.top) return 1
@@ -292,14 +292,14 @@ const handleInit = async () => {
         pageNum.value++
       }
     } catch (error) {
-      console.error('获取群公告列表失败:', error)
+      console.error('그룹 공지사항 목록을 가져오지 못했습니다:', error)
     }
   }
 }
 
 /**
- * 处理滚动事件
- * @param event 滚动事件
+ * 스크롤 이벤트 처리
+ * @param event 스크롤 이벤트
  */
 const handleScroll = (event: Event) => {
   const target = event.target as HTMLElement
@@ -310,47 +310,47 @@ const handleScroll = (event: Event) => {
   }
 }
 
-// 加载更多公告
+// 공지사항 더 보기
 const handleLoadMore = async () => {
   if (roomId.value && !isLoading.value && !isLast.value) {
     try {
       isLoading.value = true
       const data = await cachedStore.getGroupAnnouncementList(roomId.value, pageNum.value, pageSize)
       if (data) {
-        // 如果没有数据，标记为最后一页
+        // 데이터가 없으면 마지막 페이지로 표시
         if (!data.records) {
           isLast.value = true
           return
         }
 
-        // 检查重复数据
+        // 중복 데이터 확인
         const existingIds = new Set(announList.value.map((item) => item.id))
         const newRecords = data.records.filter((newItem: any) => !existingIds.has(newItem.id))
 
-        // 为新加载的公告添加展开/收起状态
+        // 새로 로드된 공지사항에 펼치기/접기 상태 추가
         newRecords.forEach((item: any) => {
           item.expanded = false
           announcementStates.value[item.id] = {
             showDeleteConfirm: false,
             deleteLoading: false
           }
-          // 处理公告的userName
+          // 공지사항 userName 처리
           const user = groupStore.getUser(roomId.value, item.uid)
           const fallbackName = item.userName || item.name || ''
           item.userName = user?.myName || user?.name || fallbackName
         })
 
-        // 添加新的非重复数据到列表中
+        // 중복되지 않은 새로운 데이터를 목록에 추가
         if (newRecords.length > 0) {
           announList.value.push(...newRecords)
-          // 判断累计加载的数据量是否达到总数
+          // 누적 로드된 데이터 양이 전체 개수에 도달했는지 확인
           if (announList.value.length >= Number(data.total)) {
             isLast.value = true
             return
           }
           pageNum.value++
         } else if (pageNum.value < Number(data.pages)) {
-          // 如果当前页没有新数据但还没到最后一页，尝试加载下一页
+          // 현재 페이지에 새로운 데이터가 없지만 마지막 페이지가 아니면 다음 페이지 로드 시도
           pageNum.value++
           handleLoadMore()
           return
@@ -359,14 +359,14 @@ const handleLoadMore = async () => {
         }
       }
     } catch (error) {
-      console.error('加载更多公告失败:', error)
+      console.error('공지사항을 더 가져오지 못했습니다:', error)
     } finally {
       isLoading.value = false
     }
   }
 }
 
-// 切换到编辑公告视图
+// 공지사항 편집 뷰로 전환
 const handleNew = () => {
   announContent.value = ''
   viewType.value = '0'
@@ -375,7 +375,7 @@ const handleNew = () => {
   title.value = t('announcement.title.create')
 }
 
-// 处理取消操作
+// 취소 작업 처리
 const handleCancel = () => {
   announContent.value = ''
   if (isBack.value) {
@@ -387,45 +387,45 @@ const handleCancel = () => {
   getCurrentWebviewWindow().close()
 }
 
-// 删除公告
+// 공지사항 삭제
 const handleDel = async (announcement: any) => {
   try {
     announcementStates.value[announcement.id].deleteLoading = true
 
-    // 同时处理删除请求和最小延迟时间
+    // 삭제 요청과 최소 지연 시간 동시 처리
     await Promise.all([deleteAnnouncement({ id: announcement.id }), new Promise((resolve) => setTimeout(resolve, 600))])
 
-    // 重置该公告的确认框状态
+    // 해당 공지사항의 확인 창 상태 초기화
     announcementStates.value[announcement.id].showDeleteConfirm = false
     announcementStates.value[announcement.id].deleteLoading = false
 
-    // 重新获取公告列表
+    // 공지사항 목록 다시 가져오기
     await handleInit()
 
-    // 找出新的置顶公告
+    // 새로운 상단 고정 공지사항 찾기
     let newTopAnnouncement = null
     if (announList.value.length > 0) {
       newTopAnnouncement = announList.value.find((item: any) => item.top)
     }
 
-    // 发送刷新消息通知其他组件
+    // 다른 컴포넌트에 새로고침 알림 발송
     if (announList.value.length === 0) {
-      // 如果没有公告了，发送清空事件
+      // 공지사항이 없으면 초기화 이벤트 발송
       await emitTo('home', 'announcementClear')
     }
 
-    // 无论如何都要发送更新事件，携带最新状态
+    // 어떠한 경우에도 최신 상태를 포함한 업데이트 이벤트 발송
     await emitTo('home', 'announcementUpdated', {
       hasAnnouncements: announList.value.length > 0,
       topAnnouncement: newTopAnnouncement
     })
   } catch (error) {
-    console.error('删除公告失败:', error)
+    console.error('공지사항 삭제 실패:', error)
     announcementStates.value[announcement.id].deleteLoading = false
   }
 }
 
-// 编辑公告
+// 공지사항 편집
 const handleEdit = (announcement: any) => {
   isEdit.value = true
   editAnnoouncement.value = announcement
@@ -436,7 +436,7 @@ const handleEdit = (announcement: any) => {
   title.value = t('announcement.title.edit')
 }
 
-// 验证公告内容
+// 공지사항 내용 검증
 const validateAnnouncement = (content: string) => {
   if (content.length < 1) {
     window.$message.error(t('announcement.toast.contentRequired'))
@@ -449,7 +449,7 @@ const validateAnnouncement = (content: string) => {
   return true
 }
 
-// 发布公告
+// 공지사항 게시
 const handlePushAnnouncement = async () => {
   if (!validateAnnouncement(announContent.value)) {
     return
@@ -477,17 +477,17 @@ const handlePushAnnouncement = async () => {
     await apiCall()
     window.$message.success(successMessage)
 
-    // 重新获取公告列表
+    // 공지사항 목록 다시 가져오기
     await handleInit()
 
-    // 找出新的置顶公告
+    // 새로운 상단 고정 공지사항 찾기
     let newTopAnnouncement = null
     if (announList.value.length > 0) {
       newTopAnnouncement = announList.value.find((item: any) => item.top)
     }
 
-    info(`发送更新事件通知home: `)
-    // 发送更新事件通知其他组件
+    info('home에 업데이트 이벤트 알림 발송: ')
+    // 다른 컴포넌트에 업데이트 이벤트 알림 발송
     await emitTo('home', 'announcementUpdated', {
       hasAnnouncements: announList.value.length > 0,
       topAnnouncement: newTopAnnouncement
@@ -507,17 +507,17 @@ const handlePushAnnouncement = async () => {
   }
 }
 
-// 控制内容展开/收起
+// 내용 펼치기/접기 제어
 const needsExpansion = (content: string) => {
-  return content && content.length > 80 // 根据实际情况调整，大约200px的文本量
+  return content && content.length > 80 // 실제 상황에 따라 조정, 약 200px 분량의 텍스트
 }
 
-// 切换展开/收起状态
+// 펼치기/접기 상태 전환
 const toggleExpand = (announcement: any) => {
   announcement.expanded = !announcement.expanded
 }
 
-// 组件挂载时执行初始化操作
+// 컴포넌트 마운트 시 초기화 작업 수행
 onMounted(async () => {
   try {
     await nextTick()
@@ -533,7 +533,7 @@ onMounted(async () => {
       title.value = await currentWindow.title()
     }, 200)
   } catch (error) {
-    console.error('组件挂载初始化失败:', error)
+    console.error('컴포넌트 마운트 초기화 실패:', error)
   }
 })
 </script>
@@ -549,7 +549,7 @@ onMounted(async () => {
 }
 
 .content-collapsed {
-  max-height: 100px; // 设置为约200px的显示高度
+  max-height: 100px; // 약 200px 표시 높이로 설정
   mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 60%, rgba(0, 0, 0, 0));
   -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 60%, rgba(0, 0, 0, 0));
 }

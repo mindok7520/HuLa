@@ -16,20 +16,20 @@ class FileUtil {
     return FileUtil._userStore
   }
   /**
-   * 打开文件选择器，允许用户选择多个文件，将选中的文件复制到用户资源目录下
-   * 副作用: 会将选中的文件复制到用户资源目录下
+   * 파일 선택기를 열고 사용자가 여러 파일을 선택할 수 있게 하며, 선택한 파일을 사용자 리소스 디렉터리에 복사합니다.
+   * 부작용: 선택한 파일을 사용자 리소스 디렉터리에 복사합니다.
    * @returns
-   * files: 选中的文件列表
-   * filesMeta: 选中的文件元数据列表
+   * files: 선택한 파일 목록
+   * filesMeta: 선택한 파일 메타데이터 목록
    */
   static async openAndCopyFile(): Promise<{
     files: File[]
     filesMeta: FilesMeta
   } | null> {
-    // 获取文件路径列表
+    // 파일 경로 목록 가져오기
     const selected = await open({
       multiple: true
-      // 不设置filters，允许选择所有文件类型
+      // filters를 설정하지 않아 모든 파일 형식을 선택할 수 있게 함
     })
 
     if (!selected) {
@@ -45,10 +45,10 @@ class FileUtil {
   }
 
   /**
-   * 将选中的文件复制到用户资源目录下
-   * 副作用: 会将选中的文件复制到用户资源目录下
-   * @param files 选中的文件路径列表
-   * @param filesMeta 选中的文件元数据列表
+   * 선택한 파일을 사용자 리소스 디렉터리에 복사합니다.
+   * 부작용: 선택한 파일을 사용자 리소스 디렉터리에 복사합니다.
+   * @param files 선택한 파일 경로 목록
+   * @param filesMeta 선택한 파일 메타데이터 목록
    */
   static async copyUploadFile(files: string[], filesMeta: FilesMeta) {
     const userResourceDir = await FileUtil.userStore.getUserRoomAbsoluteDir()
@@ -61,10 +61,10 @@ class FileUtil {
   }
 
   /**
-   * 将选中的文件路径列表和文件元数据列表转换为 File 对象列表
-   * @param files 选中的文件路径列表
-   * @param filesMeta 选中的文件元数据列表
-   * @returns File 对象列表
+   * 선택한 파일 경로 목록과 파일 메타데이터 목록을 File 객체 목록으로 변환합니다.
+   * @param files 선택한 파일 경로 목록
+   * @param filesMeta 선택한 파일 메타데이터 목록
+   * @returns File 객체 목록
    */
   static async map2File(files: string[], filesMeta: FilesMeta): Promise<File[]> {
     return await Promise.all(
@@ -73,11 +73,11 @@ class FileUtil {
         const fileName = extractFileName(path)
         const blob = new Blob([new Uint8Array(fileData)])
 
-        // 找到对应路径的文件，并且获取其类型
+        // 해당 경로의 파일을 찾아서 유형을 가져옴
         const fileMeta = filesMeta.find((f) => f.path === path)
         const fileType = fileMeta?.mime_type || fileMeta?.file_type
 
-        // 最后手动传入blob中，因为blob无法自动判断文件类型
+        // blob은 파일 유형을 자동으로 판단할 수 없으므로 수동으로 전달함
         return new File([blob], fileName, { type: fileType })
       })
     )

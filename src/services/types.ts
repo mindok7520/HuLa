@@ -1,7 +1,7 @@
 /**
- * 类型定义文件
- * 注意：请使用TSDoc规范进行注释，以便在使用时能够获得良好提示。
- * @see TSDoc规范https://tsdoc.org/
+ * 타입 정의 파일
+ * 참고: TSDoc 표준을 사용하여 주석을 작성하면 사용할 때 좋은 힌트를 얻을 수 있습니다.
+ * @see TSDoc 표준 https://tsdoc.org/
  **/
 import type {
   ActEnum,
@@ -16,17 +16,17 @@ import type {
   SexEnum
 } from '@/enums'
 
-/**响应请求体*/
+/** 응답 요청 본문 */
 export type ServiceResponse = {
-  /** 成功标识true or false */
+  /** 성공 여부 true or false */
   success: boolean
-  /** 状态码 */
+  /** 상태 코드 */
   code: number
-  /** 错误消息 */
+  /** 오류 메시지 */
   msg: string
-  /** 数据 */
+  /** 데이터 */
   data: any
-  /** 版本号 */
+  /** 버전 번호 */
   version: string
 }
 
@@ -40,11 +40,11 @@ export type PageInfo<T> = {
 /* ======================================================== */
 
 export type LoginUserReq = {
-  /** 账号 */
+  /** 계정 */
   account: string
-  /** 密码 */
+  /** 비밀번호 */
   password: string
-  /** 登录方式 PC/MOBILE */
+  /** 로그인 방식 PC/MOBILE */
   deviceType: 'PC' | 'MOBILE'
   systemType: number
   grantType: 'CAPTCHA' | 'REFRESH_TOKEN' | 'PASSWORD' | 'MOBILE'
@@ -53,323 +53,323 @@ export type LoginUserReq = {
 }
 
 export type RegisterUserReq = {
-  /** 默认随机头像 */
+  /** 기본 랜덤 아바타 */
   avatar: string
-  /** 昵称 */
+  /** 닉네임 */
   nickName: string
-  /** 邮箱 */
+  /** 이메일 */
   email: string
-  /** 密码 */
+  /** 비밀번호 */
   password: string
-  /** 邮箱验证码 */
+  /** 이메일 인증 코드 */
   code: string
-  /** 识别码 */
+  /** 식별 코드 */
   uuid: string
   key?: string
   confirmPassword: string
   systemType: number
 }
 
-/** 分页翻页 */
+/** 페이지네이션 */
 export type PageResponse<T> = {
-  /** 总数 */
+  /** 총계 */
   total: string
-  /** 总页数 */
+  /** 총 페이지 수 */
   pages: string
-  /** 当前页 */
+  /** 현재 페이지 */
   current: string
-  /** 每页大小 */
+  /** 페이지 크기 */
   size: string
-  /** 数据 */
+  /** 데이터 */
   records: T[]
 }
 
-/** 游标翻页 */
+/** 커서 페이징 */
 export type ListResponse<T> = {
-  /** 游标（下次翻页带上这参数）*/
+  /** 커서 (다음 페이지 요청 시 포함) */
   cursor: string
-  /** 当前页数 */
+  /** 현재 페이지 번호 */
   pageNo?: number
-  /** 是否最后一页 */
+  /** 마지막 페이지 여부 */
   isLast: boolean
   list: T[]
 }
 
 export type CacheBadgeReq = {
-  /** 最后更新时间 更新超过 10 分钟异步去更新。 */
+  /** 마지막 업데이트 시간. 10분 이상 경과 시 비동기로 업데이트. */
   lastModifyTime?: number
-  /** 徽章 ID */
+  /** 배지 ID */
   itemId: string
 }
 
 export type GroupDetailReq = {
-  /** 群头像 */
+  /** 그룹 아바타 */
   avatar: string
-  /** 群名称 */
+  /** 그룹 이름 */
   groupName: string
-  /** 在线人数 */
+  /** 온라인 인원 */
   onlineNum: number
-  /** 成员角色 1群主 2管理员 3普通成员 4踢出群聊 */
+  /** 멤버 역할 1방장 2관리자 3일반 멤버 4강퇴 */
   roleId: number
-  /** 房间id */
+  /** 방 id */
   roomId: string
-  /** 群号 */
+  /** 그룹 번호 */
   account: string
-  /** 群成员数 */
+  /** 그룹 멤버 수 */
   memberNum: number
-  /** 群备注 */
+  /** 그룹 비고 */
   remark: string
-  /** 我的群昵称 */
+  /** 내 그룹 닉네임 */
   myName: string
   allowScanEnter: boolean
 }
 
 export type GroupListReq = {
-  /** 群聊id */
+  /** 그룹 id */
   groupId: string
-  /** 房间id */
+  /** 방 id */
   roomId: string
-  /** 群名称 */
+  /** 그룹 이름 */
   roomName: string
-  /** 群头像 */
+  /** 그룹 아바타 */
   avatar: string
-  /** 群备注 */
+  /** 그룹 비고 */
   remark?: string
 }
 
 export type CacheBadgeItem = {
-  /** 是否需要更新数据源。 */
+  /** 데이터 소스 업데이트 필요 여부 */
   needRefresh?: boolean
-  /** 最后更新时间 更新超过 10 分钟异步去更新。 */
+  /** 마지막 업데이트 시간. 10분 이상 경과 시 비동기로 업데이트. */
   lastModifyTime: number
-  /** 徽章说明 */
+  /** 배지 설명 */
   describe: string
-  /** 徽章图标 */
+  /** 배지 아이콘 */
   img: string
-  /** 徽章 ID */
+  /** 배지 ID */
   itemId: string
 }
 
 export type CacheUserReq = {
-  /** 最后更新时间 更新超过 10 分钟异步去更新。 */
+  /** 마지막 업데이트 시간. 10분 이상 경과 시 비동기로 업데이트. */
   lastModifyTime?: number
   /** uid */
   uid: string
 }
 
 export type CacheUserItem = {
-  /** 是否需要更新数据源。 */
+  /** 데이터 소스 업데이트 필요 여부 */
   needRefresh?: boolean
-  /** 最后更新时间 更新超过 10 分钟异步去更新。 */
+  /** 마지막 업데이트 시간. 10분 이상 경과 시 비동기로 업데이트. */
   lastModifyTime: number
-  /** 获得的徽章 */
+  /** 획득한 배지 */
   itemIds: string[]
-  /** 佩戴的徽章 */
+  /** 착용 중인 배지 */
   wearingItemId: string
-  /** 归属地 */
+  /** 지역 */
   locPlace: string
-  /** 头像 */
+  /** 아바타 */
   avatar: string
-  /** 最后一次上下线时间 */
+  /** 마지막 접속/접속 종료 시간 */
   lastOptTime: number
-  /** 用户名称 */
+  /** 사용자 이름 */
   name: string
   /** uid */
   uid: string
-  /** 用户状态 */
+  /** 사용자 상태 */
   userStateId: string
-  /** 账号 */
+  /** 계정 */
   account: string
 }
 
 export type UserItem = {
-  /** 在线状态 */
+  /** 온라인 상태 */
   activeStatus: OnlineEnum
-  /** 头像 */
+  /** 아바타 */
   avatar: string
-  /** 最后一次上下线时间 */
+  /** 마지막 접속/접속 종료 시간 */
   lastOptTime: number
-  /** 用户名称 */
+  /** 사용자 이름 */
   name: string
   /** uid */
   uid: string
-  /** 归属地 */
+  /** 지역 */
   locPlace?: string
-  /** 角色ID */
+  /** 역할 ID */
   roleId?: number
-  /** 账号 */
+  /** 계정 */
   account: string
-  /** 我的群昵称 */
+  /** 내 그룹 닉네임 */
   myName?: string
-  /** 当前佩戴的徽章 */
+  /** 현재 착용 중인 배지 */
   wearingItemId?: string
-  /** 徽章集合 */
+  /** 배지 모음 */
   itemIds?: string[]
-  /** 用户状态 */
+  /** 사용자 상태 */
   userStateId?: string
 }
 
 export type GroupStatisticType = {
-  /** 在线人数 */
+  /** 온라인 인원 */
   onlineNum: number
-  /** 总人数 */
+  /** 총 인원 */
   totalNum: number
 }
 
 export type MessageReplyType = {
-  /** 是否可消息跳转 0否 1是 */
+  /** 메시지 이동 가능 여부 0아니오 1예 */
   canCallback: number
-  /** 是否可消息跳转 0否 1是 */
+  /** 내용 */
   content: string
-  /** 跳转间隔的消息条数 */
+  /** 이동 간격 메시지 수 */
   gapCount: number
-  /** 消息id */
+  /** 메시지 id */
   id: string
-  /** 用户名称 */
+  /** 사용자 이름 */
   username: string
 }
 
 export type MarkMsgReq = {
-  // actType	动作类型 1确认 2取消
+  // actType	동작 유형 1확인 2취소
   actType: ActEnum
-  // 标记类型 1点赞 2举报
+  // 마크 유형 1좋아요 2신고
   markType: MarkEnum
-  // 消息 ID
+  // 메시지 ID
   msgId: string
 }
 
 export type UserInfoType = {
-  /** 用户唯一标识 */
+  /** 사용자 고유 식별자 */
   uid: string
-  /** 用户账号 */
+  /** 사용자 계정 */
   account: string
-  /** 邮箱 */
+  /** 이메일 */
   email: string
-  /** 密码 */
+  /** 비밀번호 */
   password?: string
-  /** 用户头像 */
+  /** 사용자 아바타 */
   avatar: string
-  /** 用户名 */
+  /** 사용자 이름 */
   name: string
-  /** 剩余改名次数 */
+  /** 남은 이름 변경 횟수 */
   modifyNameChance: number
-  /** 性别 1为男性，2为女性 */
+  /** 성별 1남성, 2여성 */
   sex: SexEnum
-  /** 权限 */
+  /** 권한 */
   power?: number
-  /** 手机号 */
+  /** 휴대폰 번호 */
   phone?: string
-  /** 佩戴的徽章 */
+  /** 착용 중인 배지 */
   wearingItemId?: string
-  /** 徽章集合 */
+  /** 배지 모음 */
   itemIds?: string[]
-  /** 用户状态id */
+  /** 사용자 상태 id */
   userStateId: string
-  /** 头像更新时间 */
+  /** 아바타 업데이트 시간 */
   avatarUpdateTime: number
-  /** 客户端 */
+  /** 클라이언트 */
   client: string
-  /** 个人简介 */
+  /** 자기 소개 */
   resume: string
 }
 
 export type BadgeType = {
-  // 徽章描述
+  // 배지 설명
   describe: string
-  // 徽章id
+  // 배지 id
   id: string
-  // 徽章图标
+  // 배지 아이콘
   img: string
-  // 是否拥有 0否 1是
+  // 보유 여부 0아니오 1예
   obtain: IsYesEnum
-  // 是否佩戴 0否 1是
+  // 착용 여부 0아니오 1예
   wearing: IsYesEnum
 }
 
 export type MarkItemType = {
-  /** 操作用户 */
+  /** 작업 사용자 */
   uid: string
-  /** 消息id */
+  /** 메시지 id */
   msgId: string
-  /** 操作类型 */
+  /** 작업 유형 */
   markType: MarkEnum
-  /** 数量 */
+  /** 수량 */
   markCount: number
-  /** 动作类型 1确认 2取消 */
+  /** 동작 유형 1확인 2취소 */
   actType: ActEnum
 }
 
 export type RevokedMsgType = {
-  /** 消息ID */
+  /** 메시지 ID */
   msgId: string
-  /** 会话ID */
+  /** 세션 ID */
   roomId?: string
-  /** 撤回人ID */
+  /** 철회자 ID */
   recallUid?: string
 }
 
 export type EmojiItem = {
   expressionUrl: string
   id: string
-  /** 本地缓存路径，存在时用于渲染展示 */
+  /** 로컬 캐시 경로, 존재 시 렌더링에 사용 */
   localUrl?: string
 }
 
-// -------------------- ⬇消息体类型定义⬇ ----------------
+// -------------------- ⬇ 메시지 본문 유형 정의 ⬇ ----------------
 
 /**
- * 消息返回体
+ * 메시지 응답 본문
  */
 export type MessageType = {
-  /** 发送者信息 */
+  /** 발신자 정보 */
   fromUser: MsgUserType
-  /** 消息主体 */
+  /** 메시지 본체 */
   message: MsgType
-  /** 发送时间 */
+  /** 전송 시간 */
   sendTime: number
-  /** 时间段（可选） */
+  /** 시간 블록 (선택) */
   timeBlock?: number
-  /** 是否加载中 */
+  /** 로딩 중 여부 */
   loading?: boolean
   uploadProgress?: number
   isCheck?: boolean
 }
 
 /**
- * 消息中用户信息
+ * 메시지 내 사용자 정보
  */
 export type MsgUserType = {
-  /** 用户ID */
+  /** 사용자 ID */
   uid: string
-  /** 用户名 */
+  /** 사용자 이름 */
   username: string
-  /** 头像 */
+  /** 아바타 */
   avatar: string
-  /** 归属地 */
+  /** 지역 */
   locPlace: string
-  /** 徽章 */
+  /** 배지 */
   badge?: {
-    /** 徽章地址 */
+    /** 배지 주소 */
     img: string
-    /** 描述 */
-    describe: string // 描述
+    /** 설명 */
+    describe: string // 설명
   }
 }
 
 /**
- * 消息互动信息
+ * 메시지 상호작용 정보
  */
 export type MessageMarkType = Record<
   string,
   {
-    /** 该表情的计数 */
+    /** 해당 이모티콘의 개수 */
     count: number
-    /** 当前用户是否标记了该表情 */
+    /** 현재 사용자가 해당 이모티콘을 표시했는지 여부 */
     userMarked: boolean
   }
 >
 
-/** 图片消息体 */
+/** 이미지 메시지 본문 */
 export type ImageBody = {
   size: number
   url: string
@@ -377,7 +377,7 @@ export type ImageBody = {
   height: number
   thumbnailPath?: string
 }
-/** 语音消息体 */
+/** 음성 메시지 본문 */
 export type VoiceBody = {
   size: number
   second: number
@@ -393,7 +393,7 @@ export type MergeBody = {
   body: MergeBodyBody[]
   content: string[]
 }
-/** 视频 */
+/** 비디오 */
 export type VideoBody = {
   size: number
   url: string
@@ -405,23 +405,23 @@ export type VideoBody = {
   thumbnailPath?: string
   localPath?: string
 }
-/** 文件消息体 */
+/** 파일 메시지 본문 */
 export type FileBody = {
   size: number
   fileName: string
   url: string
   localPath?: string
 }
-/** 文本消息体 */
+/** 텍스트 메시지 본문 */
 export type TextBody = {
-  /** 消息内容 */
+  /** 메시지 내용 */
   content: string
-  /** 回复 */
+  /** 답장 */
   reply: ReplyType
-  /** @用户uid列表，用于精准渲染高亮 */
+  /** @사용자 uid 목록, 정밀한 강조 표시 렌더링에 사용 */
   atUidList?: string[] | null
   /**
-   * 消息链接映射
+   * 메시지 링크 매핑
    */
   urlContentMap: Record<
     string,
@@ -432,53 +432,53 @@ export type TextBody = {
     }
   >
 }
-/** 公告消息体 */
+/** 공지 메시지 본문 */
 export type AnnouncementBody = TextBody & {
-  /** 公告ID */
+  /** 공지 ID */
   id: string
-  /** 创建时间 */
+  /** 생성 시간 */
   createTime: number
-  /** 更新时间 */
+  /** 업데이트 시간 */
   updateTime: number
 }
-/** 表情消息 */
+/** 이모티콘 메시지 */
 export type EmojiBody = {
   url: string
   localPath?: string
 }
 
-/** 位置消息体 */
+/** 위치 메시지 본문 */
 export type LocationBody = {
-  /** 纬度 */
+  /** 위도 */
   latitude: string
-  /** 经度 */
+  /** 경도 */
   longitude: string
-  /** 地址描述 */
+  /** 주소 설명 */
   address: string
-  /** 精度描述 */
+  /** 정밀도 설명 */
   precision: string
-  /** 时间戳 */
+  /** 타임스탬프 */
   timestamp: string
 }
 
 /**
- * 消息内容
+ * 메시지 내용
  */
 export type MessageBody = TextBody | ImageBody | VoiceBody | VideoBody | FileBody | EmojiBody | LocationBody | any
 export type MsgType = {
-  /** 消息ID */
+  /** 메시지 ID */
   id: string
-  /**  房间 ID */
+  /**  방 ID */
   roomId: string
-  /** 消息类型 */
+  /** 메시지 유형 */
   type: MsgEnum
-  /** 动态消息体-`根据消息类型变化` */
+  /** 동적 메시지 본문-`메시지 유형에 따라 변경됨` */
   body: MessageBody
-  /** 发送时间戳 */
+  /** 전송 타임스탬프 */
   sendTime: number
-  /** 消息互动信息 */
+  /** 메시지 상호작용 정보 */
   messageMarks: MessageMarkType
-  /** 消息发送状态 */
+  /** 메시지 전송 상태 */
   status: MessageStatusEnum
 }
 
@@ -486,200 +486,200 @@ export type ReplyType = {
   id: string
   username: string
   type: MsgEnum
-  /** 根据不同类型回复的消息展示也不同-`过渡版` */
+  /** 다른 유형에 따라 답장 메시지 표시도 다름-`과도기 버전` */
   body: any
   /**
-   * 是否可消息跳转
-   * @enum {number}  `0`否 `1`是
+   * 메시지 이동 가능 여부
+   * @enum {number}  `0`아니오 `1`예
    */
   canCallback: number
-  /** 跳转间隔的消息条数  */
+  /** 이동 간격 메시지 수  */
   gapCount: number
 }
 
 /**
- * 发送消息载体
+ * 메시지 전송 객체
  */
 export type MessageReq = {
-  /** 会话id */
+  /** 세션 id */
   roomId: string
-  /** 消息类型 */
+  /** 메시지 유형 */
   msgType: MsgEnum
-  /** 消息体 */
+  /** 메시지 본문 */
   body: {
-    /** 文本消息内容 */
+    /** 텍스트 메시지 내용 */
     content?: string
-    /** 回复的消息id */
+    /** 답장할 메시지 id */
     replyMsgId?: number
-    /** 任意 */
+    /** 임의 */
     [key: string]: any
   }
 }
 
-/** 通知状态 */
+/** 알림 상태 */
 export enum RequestNoticeAgreeStatus {
-  /** 待审批 */
+  /** 승인 대기 */
   UNTREATED = 0,
-  /** 同意 */
+  /** 동의 */
   ACCEPTED,
-  /** 拒绝 */
+  /** 거절 */
   REJECTED,
-  /** 忽略 */
+  /** 무시 */
   IGNORE
 }
 
-/** 通知事件 */
+/** 알림 이벤트 */
 export enum NoticeType {
-  /** 好友申请 */
+  /** 친구 신청 */
   FRIEND_APPLY = 1,
-  /** 好友被申请 */
+  /** 친구 신청 받음 */
   ADD_ME = 6,
-  /** 加群申请 */
+  /** 그룹 가입 신청 */
   GROUP_APPLY = 2,
-  /** 群邀请 */
+  /** 그룹 초대 */
   GROUP_INVITE = 3,
-  /** 被邀请进群 */
+  /** 그룹 초대 받음 */
   GROUP_INVITE_ME = 7,
-  /** 移除群成员 */
+  /** 그룹 멤버 제거 */
   GROUP_MEMBER_DELETE = 5,
-  /** 设置群管理员 */
+  /** 그룹 관리자 설정 */
   GROUP_SET_ADMIN = 8,
-  /** 取消群管理员 */
+  /** 그룹 관리자 해제 */
   GROUP_RECALL_ADMIN = 9
 }
 
-/** 请求添加好友的列表项 */
+/** 친구 추가 요청 목록 항목 */
 export type RequestFriendItem = {
-  /** 申请id */
+  /** 신청 id */
   applyId: string
-  /** 申请信息 */
+  /** 신청 정보 */
   msg: string
-  /** 申请状态 1待审批 2同意 3拒绝 4忽略 */
+  /** 신청 상태 1승인 대기 2동의 3거절 4무시 */
   status: RequestNoticeAgreeStatus
-  /** 申请类型 1加好友 */
+  /** 신청 유형 1친구 추가 */
   type: number
-  /** 申请人uid */
+  /** 신청자 uid */
   uid: string
-  /** 被申请人id */
+  /** 대상 id */
   targetId: string
-  /** 申请时间 */
+  /** 신청 시간 */
   createTime: number
-  /** 会话 ID */
+  /** 세션 ID */
   roomId: string
 }
 
 export interface NoticeItem {
-  /** 实体ID */
+  /** 엔티티 ID */
   id?: string
-  /** 通知类型:1-好友申请;2-群申请;3-群邀请;5-移除群成员;6-好友被申请;7-被邀请进群 */
+  /** 알림 유형: 1-친구 신청; 2-그룹 신청; 3-그룹 초대; 5-그룹 멤버 제거; 6-친구 신청 받음; 7-그룹 초대 받음 */
   eventType: number
-  /** 通知类型 1群聊 2加好友 */
+  /** 알림 유형 1그룹 채팅 2친구 추가 */
   type: number
-  /** 发起人UID */
+  /** 발신자 UID */
   senderId: string
-  /** 接收人UID */
+  /** 수신자 UID */
   receiverId: string
-  /** 申请ID */
+  /** 신청 ID */
   applyId: string
-  /** 房间ID */
+  /** 방 ID */
   roomId: string
-  /** 被操作的人 */
+  /** 작업 대상 */
   operateId?: string
-  /** 通知内容 申请时填写的 */
+  /** 알림 내용 (신청 시 작성함) */
   content: string
-  /** 处理状态:0-未处理;1-已同意;2-已拒绝;3-忽略 */
+  /** 처리 상태: 0-미처리; 1-동의함; 2-거절함; 3-무시함 */
   status: number
-  /** 是否已读 */
+  /** 읽음 여부 */
   isRead: boolean
-  /** 创建时间 */
+  /** 생성 시간 */
   createTime?: number
 }
 
-/** 联系人的列表项 */
+/** 연락처 목록 항목 */
 export type FriendItem = {
-  /** 好友id */
+  /** 친구 id */
   uid: string
-  /** 好友备注 */
+  /** 친구 비고 */
   remark: string
-  /** 在线状态 1在线 2离线 */
+  /** 온라인 상태 1온라인 2오프라인 */
   activeStatus: OnlineEnum
-  /** 最后一次上下线时间 */
+  /** 마지막 접속/접속 종료 시간 */
   lastOptTime: number
-  /** 不让他看我（0-允许，1-禁止） */
+  /** 내 게시물 숨기기 (0-허용, 1-금지) */
   hideMyPosts: boolean
-  /** 不看他（0-允许，1-禁止） */
+  /** 그들의 게시물 숨기기 (0-허용, 1-금지) */
   hideTheirPosts: boolean
 }
 
-/** 是否全员展示的会话 0否 1是 */
+/** 전체 사용자에게 표시되는 세션 여부 0아니오 1예 */
 export enum IsAllUserEnum {
-  /** 0否 */
+  /** 0아니오 */
   Not,
-  /** 1是 */
+  /** 1예 */
   Yes
 }
 
-/** 会话列表项 */
+/** 세션 목록 항목 */
 export type SessionItem = {
-  /** hula号 */
+  /** hula 번호 */
   account: string
-  /** 房间最后活跃时间(用来排序) */
+  /** 방 마지막 활동 시간(정렬용) */
   activeTime: number
-  /** 会话头像 */
+  /** 세션 아바타 */
   avatar: string
-  /** 会话id */
+  /** 세션 id */
   id: string
-  /** 如果是单聊，则是对方的uid，如果是群聊，则是群id */
+  /** 1:1 채팅인 경우 상대방 uid, 그룹 채팅인 경우 그룹 id */
   detailId: string
-  /** 是否全员展示的会话 0否 1是 */
+  /** 전체 사용자에게 표시되는 세션 여부 0아니오 1예 */
   hotFlag: IsAllUserEnum
-  /** 会话名称 */
+  /** 세션 이름 */
   name: string
-  /** 房间id */
+  /** 방 id */
   roomId: string
-  /** 最新消息 */
+  /** 최신 메시지 */
   text: string
-  /** 房间类型 1群聊 2单聊 */
+  /** 방 유형 1그룹 채팅 2단일 채팅 */
   type: RoomTypeEnum
-  /** 未读数 */
+  /** 읽지 않은 수 */
   unreadCount: number
-  /** 是否置顶 0否 1是 */
+  /** 상단 고정 여부 0아니오 1예 */
   top: boolean
-  /** 会话操作 */
+  /** 세션 조작 */
   operate: SessionOperateEnum
-  /** 在线状态 1在线 2离线 */
+  /** 온라인 상태 1온라인 2오프라인 */
   activeStatus?: OnlineEnum
-  /** 隐藏会话 */
+  /** 세션 숨기기 */
   hide: boolean
-  /** 免打扰类型 */
+  /** 방해 금지 유형 */
   muteNotification: NotificationTypeEnum
-  /** 屏蔽消息 */
+  /** 메시지 차단 */
   shield: boolean
-  /** 群成员数 */
+  /** 그룹 멤버 수 */
   memberNum?: number
-  /** 群备注 */
+  /** 그룹 비고 */
   remark?: string
-  /** 我的群昵称 */
+  /** 내 그룹 닉네임 */
   myName?: string
-  /** 是否选中（非后端） */
+  /** 선택 여부 (백엔드 미포함) */
   isCheck?: boolean
   allowScanEnter: boolean
 }
 
-/** 消息已读未读数列表项 */
+/** 메시지 읽음/안 읽음 수 목록 항목 */
 export type MsgReadUnReadCountType = {
-  /** 消息 ID */
+  /** 메시지 ID */
   msgId: string
-  /** 已读数 */
+  /** 읽음 수 */
   readCount: number
-  /** 未读数 */
+  /** 읽지 않음 수 */
   unReadCount: number | null
 }
 
-/** 支持的翻译服务提供商类型  */
+/** 지원되는 번역 서비스 제공자 유형  */
 export type TranslateProvider = 'youdao' | 'tencent'
 
-/** AI模型 */
+/** AI 모델 */
 export type AIModel = {
   uid: string
   type: 'Ollama' | 'OpenAI'
@@ -688,104 +688,104 @@ export type AIModel = {
   avatar: string
 }
 
-/** 修改用户基础信息的类型 */
+/** 사용자 기본 정보 수정 유형 */
 export type ModifyUserInfoType = {
   name: string
   avatar: string
   sex?: number
   phone?: string
   resume?: string
-  /** 昵称修改次数 */
+  /** 닉네임 변경 횟수 */
   modifyNameChance: number
 }
 
-/** 登录 */
+/** 로그인 */
 export type Login = {
-  /** token */
+  /** 토큰 */
   token: string
-  /** 刷新token */
+  /** 리프레시 토큰 */
   refreshToken: string
-  /** 客户端 */
+  /** 클라이언트 */
   client: string
 }
 
-/** 用户状态 */
+/** 사용자 상태 */
 export type UserState = {
   /** id */
   id: string
-  /** 标题 */
+  /** 제목 */
   title: string
-  /** 链接 */
+  /** 링크 */
   url: string
-  /** 背景颜色 */
+  /** 배경 색상 */
   bgColor?: string
 }
 
-/** 搜索好友 */
+/** 친구 검색 */
 export type SearchFriend = {
-  /** 用户ID */
+  /** 사용자 ID */
   uid: string
-  /** 用户名 */
+  /** 사용자 이름 */
   name: string
-  /** 头像 */
+  /** 아바타 */
   avatar: string
-  /** 账号 */
+  /** 계정 */
   account: string
 }
 
-/** 搜索群 */
+/** 그룹 검색 */
 export type SearchGroup = {
-  /** 群ID */
+  /** 그룹 ID */
   roomId: string
-  /** 群名称 */
+  /** 그룹 이름 */
   name: string
-  /** 头像 */
+  /** 아바타 */
   avatar: string
-  /** 账号 */
+  /** 계정 */
   account: string
-  /** 额外信息 */
+  /** 추가 정보 */
   extJson: string
-  /** 是否删除 */
+  /** 삭제 상태 */
   deleteStatus: IsYesEnum
 }
 
-/** 配置 */
+/** 설정 */
 export type ConfigType = {
-  /** logo */
+  /** 로고 */
   logo: string
-  /** 系统名称 */
+  /** 시스템 이름 */
   name: string
-  /** 七牛 */
+  /** Qiniu */
   qiNiu: {
-    /** oss域名 */
+    /** oss 도메인 */
     ossDomain: string
-    /** 分片大小 */
+    /** 조각 크기 */
     fragmentSize: string
-    /** 超过多少MB开启分片上传 */
+    /** 몇 MB 초과 시 조각 업로드 활성화 */
     turnSharSize: string
   }
-  /** 大群ID */
+  /** 대규모 그룹 ID */
   roomGroupId: string
 }
 
-/** 群组公告 */
+/** 그룹 공지 */
 export type AnnouncementItem = {
-  /** 公告ID */
+  /** 공지 ID */
   id: string
-  /** 房间ID */
+  /** 방 ID */
   roomId: string
-  /** 发布者ID */
+  /** 게시자 ID */
   uid: string
-  /** 公告内容 */
+  /** 공지 내용 */
   content: string
-  /** 创建时间 */
+  /** 생성 시간 */
   createdTime: number
-  /** 是否置顶 */
+  /** 상단 고정 여부 */
   top: boolean
 }
 
 /* ======================================================== */
-/**! 模拟信息数据的类型 */
+/**! 모의 정보 데이터 유형 */
 export type MockItem = {
   key: number
   type: RoomTypeEnum
@@ -820,7 +820,7 @@ export type RightMouseMessageItem = {
       fileName: string
       replyMsgId: string | null
       atUidList: string[] | null
-      reply: any | null // 可进一步细化
+      reply: any | null // 더 세분화 가능
     }
     messageMarks: {
       [key: string]: {
@@ -840,20 +840,20 @@ export type DetailsContent = {
 }
 
 /**
- * 媒体类型枚举
+ * 미디어 유형 열거형
  */
 export enum MediaType {
-  TEXT = 0, // 纯文本
-  IMAGE = 1, // 图片
-  VIDEO = 2 // 视频
+  TEXT = 0, // 일반 텍스트
+  IMAGE = 1, // 이미지
+  VIDEO = 2 // 비디오
 }
 
 /**
- * 朋友圈权限枚举
+ * 타임라인 권한 열거형
  */
 export enum FeedPermission {
-  PRIVACY = 'privacy', // 私密
-  OPEN = 'open', // 公开
-  PART_VISIBLE = 'partVisible', // 部分可见
-  NOT_ANYONE = 'notAnyone' // 不给谁看
+  PRIVACY = 'privacy', // 비공개
+  OPEN = 'open', // 공개
+  PART_VISIBLE = 'partVisible', // 일부 공개
+  NOT_ANYONE = 'notAnyone' // 비공개 (특정 대상 제외)
 }

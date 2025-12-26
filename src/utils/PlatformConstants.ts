@@ -1,17 +1,17 @@
 import { type, version } from '@tauri-apps/plugin-os'
 
 /**
- * 平台类型枚举
+ * 플랫폼 유형 열거형
  */
 export type PlatformType = 'desktop' | 'mobile'
 
 /**
- * 操作系统类型
+ * 운영 체제 유형
  */
 export type OSType = 'windows' | 'macos' | 'linux' | 'android' | 'ios'
 
 /**
- * 平台检测结果 - 应用启动时执行一次，全局共享
+ * 플랫폼 감지 결과 - 앱 시작 시 한 번 실행되며 전역적으로 공유됨
  */
 class PlatformDetector {
   private static _osType: OSType
@@ -21,7 +21,7 @@ class PlatformDetector {
   private static _initialized = false
 
   /**
-   * 初始化平台检测（只执行一次）
+   * 플랫폼 감지 초기화 (한 번만 실행)
    */
   static initialize(): void {
     if (PlatformDetector._initialized) return
@@ -106,81 +106,81 @@ class PlatformDetector {
 export const initializePlatform = () => PlatformDetector.initialize()
 
 /**
- * 获取操作系统类型
+ * 운영 체제 유형 가져오기
  * @returns 'windows' | 'macos' | 'linux' | 'android' | 'ios'
  */
 export const getOSType = (): OSType => PlatformDetector.osType
 
 /**
- * 获取平台类型
+ * 플랫폼 유형 가져오기
  * @returns 'desktop' | 'mobile'
  */
 export const getPlatformType = (): PlatformType => PlatformDetector.platformType
 
 /**
- * 获取系统版本号
+ * 시스템 버전 번호 가져오기
  */
 export const getOSVersion = (): string | undefined => PlatformDetector.osVersion
 
 /**
- * 是否为桌面端
+ * 데스크톱 여부
  */
 export const isDesktop = (): boolean => PlatformDetector.platformType === 'desktop'
 
 /**
- * 是否为移动端
+ * 모바일 여부
  */
 export const isMobile = (): boolean => PlatformDetector.platformType === 'mobile'
 
 /**
- * 是否为 Windows 系统
+ * Windows 시스템 여부
  */
 export const isWindows = (): boolean => PlatformDetector.osType === 'windows'
 
 /**
- * 是否为 Windows 10
+ * Windows 10 여부
  */
 export const isWindows10 = (): boolean => PlatformDetector.isWindows10
 
 /**
- * 是否为 macOS 系统
+ * macOS 시스템 여부
  */
 export const isMac = (): boolean => PlatformDetector.osType === 'macos'
 
 /**
- * 是否为 Linux 系统
+ * Linux 시스템 여부
  */
 export const isLinux = (): boolean => PlatformDetector.osType === 'linux'
 
 /**
- * 是否为 Android 系统
+ * Android 시스템 여부
  */
 export const isAndroid = (): boolean => PlatformDetector.osType === 'android'
 
 /**
- * 是否为 iOS 系统
+ * iOS 시스템 여부
  */
 export const isIOS = (): boolean => PlatformDetector.osType === 'ios'
 
 /**
- * 是否为兼容平台（Windows 或 Linux）
+ * 호환 플랫폼(Windows 또는 Linux) 여부
  */
 export const isCompatibility = (): boolean => isWindows() || isLinux()
 
 /**
- * 平台工具集合 - 统一导出所有平台判断函数
+ * 플랫폼 도구 세트 - 모든 플랫폼 판단 함수 통합 내보내기
  */
 export const Platform = {
-  // 获取信息
+  // 정보 가져오기
   getOSType,
   getPlatformType,
   getOSVersion,
 
-  // 平台判断
+  // 플랫폼 판단
   isDesktop,
   isMobile,
 
-  // 系统判断
+  // 시스템 판단
   isWindows,
   isWindows10,
   isMac,

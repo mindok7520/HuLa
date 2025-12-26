@@ -6,11 +6,11 @@ import type { SessionItem } from '@/services/types'
 import { isMac } from '@/utils/PlatformConstants'
 
 /**
- * 统一的未读计数管理器
+ * 통합 읽지 않은 수 관리자
  */
 export class UnreadCountManager {
   private pendingUpdates = new Set<string>()
-  private readonly DEBOUNCE_DELAY = 60 // 防抖延迟
+  private readonly DEBOUNCE_DELAY = 60 // 디바운스 지연 시간
   private updateCallback: (() => void) | null = null
   private setTipVisible?: (visible: boolean) => void
   private debouncedExecuteUpdate: () => void
@@ -22,39 +22,39 @@ export class UnreadCountManager {
   }
 
   /**
-   * 设置更新回调函数
-   * @param callback 当需要实际更新时调用的回调函数
+   * 업데이트 콜백 함수 설정
+   * @param callback 실제 업데이트가 필요할 때 호출되는 콜백 함수
    */
   public setUpdateCallback(callback: () => void) {
     this.updateCallback = callback
   }
 
   /**
-   * 请求更新未读计数
-   * @param sessionId 可选的会话ID，如果提供则只更新特定会话
+   * 읽지 않은 수 업데이트 요청
+   * @param sessionId 선택적 세션 ID, 제공된 경우 특정 세션만 업데이트
    */
   public requestUpdate(sessionId?: string) {
     if (sessionId) {
       this.pendingUpdates.add(sessionId)
     } else {
-      this.pendingUpdates.add('*') // '*' 表示全局更新
+      this.pendingUpdates.add('*') // '*'는 전체 업데이트를 나타냄
     }
 
     this.debouncedExecuteUpdate()
   }
 
   /**
-   * 计算全局未读计数
-   * @param sessionList 会话列表
-   * @param unReadMark 全局未读标记对象
-   * @param feedUnreadCount 朋友圈未读数（可选）
+   * 전역 읽지 않은 수 계산
+   * @param sessionList 세션 목록
+   * @param unReadMark 전역 읽지 않은 표시 객체
+   * @param feedUnreadCount 피드(타임라인) 읽지 않은 수 (선택 사항)
    */
   public calculateTotal(
     sessionList: SessionItem[],
     unReadMark: { newFriendUnreadCount: number; newGroupUnreadCount: number; newMsgUnreadCount: number },
     feedUnreadCount?: number
   ) {
-    // 计算总未读数（排除免打扰的会话）
+    // 총 읽지 않은 수 계산 (방해 금지 모드 세션 제외)
     const totalUnread = sumBy(sessionList, (session) => {
       if (session.muteNotification === NotificationTypeEnum.NOT_DISTURB) {
         return 0
@@ -62,15 +62,15 @@ export class UnreadCountManager {
       return Math.max(0, session.unreadCount || 0)
     })
 
-    // 更新全局未读计数
+    // 전역 읽지 않은 수 업데이트
     unReadMark.newMsgUnreadCount = totalUnread
 
-    // 更新系统徽章（包含朋友圈未读数）
+    // 시스템 배지 업데이트 (피드 읽지 않은 수 포함)
     this.updateSystemBadge(unReadMark, feedUnreadCount)
   }
 
   /**
-   * 执行实际的更新操作
+   * 실제 업데이트 작업 수행
    */
   private executeUpdate() {
     if (this.updateCallback) {
@@ -80,9 +80,9 @@ export class UnreadCountManager {
   }
 
   /**
-   * 更新系统徽章计数
-   * @param unReadMark 全局未读标记对象
-   * @param feedUnreadCount 朋友圈未读数（可选）
+   * 시스템 배지 카운트 업데이트
+   * @param unReadMark 전역 읽지 않은 표시 객체
+   * @param feedUnreadCount 피드(타임라인) 읽지 않은 수 (선택 사항)
    */
   private async updateSystemBadge(
     unReadMark: {
@@ -92,37 +92,37 @@ export class UnreadCountManager {
     },
     feedUnreadCount?: number
   ): Promise<void> {
-    // 计算所有类型的未读总数
+    // 모든 유형의 읽지 않은 총합 계산
     const messageUnread = Math.max(0, unReadMark.newMsgUnreadCount || 0)
     const friendUnread = Math.max(0, unReadMark.newFriendUnreadCount || 0)
     const groupUnread = Math.max(0, unReadMark.newGroupUnreadCount || 0)
     const feedUnread = Math.max(0, feedUnreadCount || 0)
     const badgeTotal = messageUnread + friendUnread + groupUnread + feedUnread
 
-    // 在 macOS 上更新 Dock 图标徽章（显示所有类型未读总数）
+    // macOS에서 Dock 아이콘 배지 업데이트 (모든 유형의 읽지 않은 총합 표시)
     if (isMac()) {
       const count = badgeTotal > 0 ? badgeTotal : undefined
-      // 使用 getByLabel 获取 home 窗口，即使窗口隐藏也能正常设置徽章
+      // getByLabel을 사용하여 home 창을 가져옴, 창이 숨겨져 있어도 배지를 정상적으로 설정할 수 있음
       const homeWindow = await WebviewWindow.getByLabel('home')
       if (homeWindow) {
         await homeWindow.setBadgeCount(count)
       }
     }
 
-    // 更新tipVisible状态，用于控制托盘通知显示
+    // 트레이 알림 표시 제어를 위한 tipVisible 상태 업데이트
     if (messageUnread > 0) {
-      // 有新消息时，设置tipVisible为true，触发托盘闪烁
+      // 새 메시지가 있을 때 tipVisible을 true로 설정하여 트레이 깜빡임 유도
       this.setTipVisible?.(true)
     } else {
-      // 没有未读消息时，设置tipVisible为false
+      // 읽지 않은 메시지가 없을 때 tipVisible을 false로 설정
       this.setTipVisible?.(false)
     }
   }
 
   /**
-   * 手动刷新系统徽章计数
-   * @param unReadMark 全局未读标记对象
-   * @param feedUnreadCount 朋友圈未读数（可选）
+   * 시스템 배지 카운트 수동 새로고침
+   * @param unReadMark 전역 읽지 않은 표시 객체
+   * @param feedUnreadCount 피드(타임라인) 읽지 않은 수 (선택 사항)
    */
   public refreshBadge(
     unReadMark: {
@@ -136,20 +136,20 @@ export class UnreadCountManager {
   }
 
   /**
-   * 设置tipVisible回调函数
-   * @param callback 回调函数，用于设置tipVisible状态
+   * tipVisible 콜백 함수 설정
+   * @param callback tipVisible 상태를 설정하기 위한 콜백 함수
    */
   public setTipVisibleCallback(callback: (visible: boolean) => void) {
     this.setTipVisible = callback
   }
 
   /**
-   * 销毁管理器，清理资源
+   * 관리자 소멸 및 리소스 정리
    */
   public destroy() {
     this.pendingUpdates.clear()
   }
 }
 
-// 创建单例实例
+// 싱글톤 인스턴스 생성
 export const unreadCountManager = new UnreadCountManager()

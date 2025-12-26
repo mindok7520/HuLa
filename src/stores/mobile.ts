@@ -18,7 +18,7 @@ export const useMobileStore = defineStore(StoresEnum.MOBILE, () => {
     left: 0,
     right: 0,
     top: 0,
-    toJSON: () => {}
+    toJSON: () => { }
   })
 
   const bottomTabBarPosition = ref<DOMRect>({
@@ -30,7 +30,7 @@ export const useMobileStore = defineStore(StoresEnum.MOBILE, () => {
     left: 0,
     right: 0,
     top: 0,
-    toJSON: () => {}
+    toJSON: () => { }
   })
 
   const safeArea = ref<SafeArea>({
@@ -45,7 +45,7 @@ export const useMobileStore = defineStore(StoresEnum.MOBILE, () => {
   const updateSafeArea = (newSafeArea: SafeArea) => {
     safeArea.value = newSafeArea
 
-    // 自动修改当前状态是否为全屏
+    // 현재 상태 자동 변경 - 전체 화면 여부
     if (newSafeArea.bottom === 0) {
       isFullScreen.value = false
     } else {

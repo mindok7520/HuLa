@@ -135,7 +135,7 @@
           </svg>
           {{ t('dynamic.detail.content.video_tag') }}
         </div>
-        <!-- 播放提示 -->
+        <!-- 재생 안내 -->
         <div
           class="absolute bottom-12px right-12px bg-black/60 text-white px-12px py-6px rounded-full text-12px opacity-0 group-hover:opacity-100 transition-opacity duration-300 backdrop-blur-sm">
           {{ t('dynamic.detail.content.video_cta') }}

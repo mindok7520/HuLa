@@ -437,7 +437,7 @@ const handleSubmitComment = async () => {
 <style scoped lang="scss">
 .dynamic-list-container {
   width: 100%;
-  /* 隐藏滚动条 */
+  /* 스크롤바 숨김 */
   &::-webkit-scrollbar {
     display: none;
   }

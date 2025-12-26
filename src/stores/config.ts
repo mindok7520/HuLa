@@ -6,13 +6,13 @@ import * as ImRequestUtils from '@/utils/ImRequestUtils'
 export const useConfigStore = defineStore(StoresEnum.CONFIG, () => {
   const config = ref<ConfigType>({} as any)
 
-  /** 初始化配置 */
+  /** 설정 초기화 */
   const initConfig = async () => {
     const res = await ImRequestUtils.initConfig()
     config.value = res
   }
 
-  /** 获取七牛配置 */
+  /** QiNiu 설정 가져오기 */
   const getQiNiuConfig = () => config.value.qiNiu
 
   return { config, initConfig, getQiNiuConfig }

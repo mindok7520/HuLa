@@ -10,7 +10,7 @@
         </svg>
         <div class="flex flex-col gap-10px p-10px select-none">
           <n-flex vertical align="center" :size="30">
-            <span class="text-(14px [--text-color])">下线通知</span>
+            <span class="text-(14px [--text-color])">로그아웃 알림</span>
             <div class="relative">
               <img class="rounded-full size-72px" :src="AvatarUtils.getAvatarUrl(userStore.userInfo?.avatar ?? '')" />
               <div
@@ -21,12 +21,12 @@
               </div>
             </div>
             <div class="text-(13px centent [--text-color]) px-12px leading-loose mb-20px">
-              您的账号在其他设备
+              사용자의 계정이 다른 기기
               <span class="text-#13987f">{{ ip }}</span>
-              登录，如非本人登录，请尽快修改密码，建议联系管理员
+              에서 로그인되었습니다. 본인이 아닌 경우 신속히 비밀번호를 변경하십시오. 관리자에게 문의하는 것을 권장합니다.
             </div>
           </n-flex>
-          <n-button style="color: #fff" class="w-full" color="#13987f" @click="handleConfirm">知道了</n-button>
+          <n-button style="color: #fff" class="w-full" color="#13987f" @click="handleConfirm">확인</n-button>
         </div>
       </div>
     </div>
@@ -43,7 +43,7 @@ import { useSettingStore } from '@/stores/setting'
 import { useUserStore } from '@/stores/user.ts'
 import { isMac } from '@/utils/PlatformConstants'
 
-const ip = ref('未知IP')
+const ip = ref('알 수 없는 IP')
 const showModal = ref(true)
 const settingStore = useSettingStore()
 const { themes } = storeToRefs(settingStore)
@@ -61,7 +61,7 @@ const assignIpFromPayload = async () => {
       ip.value = payload.ip
     }
   } catch (error) {
-    console.error('获取异地登录信息失败:', error)
+    console.error('타지역 로그인 정보 가져오기 실패:', error)
   }
 }
 

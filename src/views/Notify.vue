@@ -35,7 +35,7 @@
               </template>
             </span>
 
-            <!-- 有多少条消息 -->
+            <!-- 메시지 개수 -->
             <div class="text-(10px #fff) rounded-full px-6px py-2px flex-center bg-#d5304f">
               {{ group.messageCount > 99 ? '99+' : group.messageCount }}
             </div>
@@ -68,7 +68,7 @@ import { useI18n } from 'vue-i18n'
 
 // import { useTauriListener } from '../hooks/useTauriListener'
 
-// 定义分组消息的类型
+// 그룹화된 메시지 타입 정의
 type GroupedMessage = {
   id: string
   roomId: string
@@ -78,8 +78,8 @@ type GroupedMessage = {
   name: string
   timestamp: number
   isAtMe: boolean
-  top?: boolean // 添加置顶状态属性
-  roomType: number // 房间类型：1=群聊，2=单聊
+  top?: boolean // 상단 고정 상태 속성 추가
+  roomType: number // 채팅방 타입: 1=그룹 채팅, 2=개인 채팅
 }
 
 const appWindow = WebviewWindow.getCurrent()
@@ -96,14 +96,14 @@ const msgCount = ref(0)
 let homeFocusUnlisten: (() => void) | null = null
 let homeBlurUnlisten: (() => void) | null = null
 
-// 监听 tipVisible 的变化，当它变为 false 时重置消息列表
+// tipVisible의 변화를 감지하여 false가 되면 메시지 목록 초기화
 watch(
   () => tipVisible.value,
   (newValue) => {
     if (!newValue) {
       content.value = []
       msgCount.value = 0
-      // 重置窗口高度
+      // 창 높이 초기화
       resizeWindow('notify', 280, 140)
     }
   }
@@ -113,46 +113,46 @@ const division = () => {
   return <div class={'h-1px bg-[--line-color] w-full'}></div>
 }
 
-// 处理点击消息的逻辑
-// TODO: 会导致频控触发
+// 메시지 클릭 로직 처리
+// TODO: 빈도 제어(Frequency Control)가 트리거될 수 있음
 const handleClickMsg = async (group: any) => {
-  // 打开消息页面
+  // 메시지 페이지 열기
   await checkWinExist('home')
-  // 找到对应的会话 - 根据roomId而不是消息ID
+  // 해당하는 세션 찾기 - 메시지 ID가 아닌 roomId 기준
   const session = chatStore.sessionList.find((s) => s.roomId === group.roomId)
   if (session) {
-    info(`点击消息，打开会话：${JSON.stringify(session)}`)
+    info(`클릭 메시지, 세션 열기：${JSON.stringify(session)}`)
     emitTo('home', 'search_to_msg', {
       uid: group.roomType === RoomTypeEnum.SINGLE ? session.detailId : session.roomId,
       roomType: group.roomType
     })
-    // 收起通知面板
+    // 알림 패널 접기
     await debouncedHandleTip()
   } else {
-    console.error('找不到对应的会话信息')
+    console.error('해당하는 세션 정보를 찾을 수 없습니다.')
   }
 }
 
-// 取消状态栏闪烁
+// 상태바 깜빡임 취소
 const handleTip = async () => {
   globalStore.setTipVisible(false)
-  // 取消窗口置顶
+  // 창 상단 고정 취소
   await appWindow?.setAlwaysOnTop(false)
 
-  // 隐藏窗口
+  // 창 숨기기
   await appWindow?.hide()
 
-  // 清空消息内容
+  // 메시지 내용 비우기
   content.value = []
   msgCount.value = 0
 
-  // 重置窗口高度
+  // 창 높이 초기화
   resizeWindow('notify', 280, 140)
 }
 
 const debouncedHandleTip = useDebounceFn(handleTip, 100)
 
-// 处理窗口显示和隐藏的逻辑
+// 창 표시 및 숨기기 로직 처리
 const showWindow = async (event: Event<any>) => {
   if (tipVisible.value) {
     const notifyWindow = WebviewWindow.getCurrent()
@@ -190,14 +190,14 @@ const handleMouseLeave = async () => {
   await hideWindow()
 }
 
-// TODO 在托盘图标闪烁的时候鼠标移动到null的图标上的时候会导致Notify窗口消失或者直接不显示Notify，即使已经移动到Notify了也会消失。
+// TODO: 트레이 아이콘이 깜빡일 때 마우스를 null 아이콘으로 이동하면 Notify 창이 사라지거나 표시되지 않는 문제가 있음 (이미 Notify로 이동했더라도 사라짐).
 onMounted(async () => {
-  // 初始化窗口高度
+  // 창 높이 초기화
   resizeWindow('notify', 280, 140)
 
   if (isWindows()) {
     appWindow.listen('notify_enter', async (event: Event<any>) => {
-      info('监听到enter事件，打开notify窗口')
+      info('enter 이벤트 감지, notify 창 열기')
       await showWindow(event)
     })
 
@@ -208,7 +208,7 @@ onMounted(async () => {
     })
 
     appWindow.listen('hide_notify', async () => {
-      // 只有在tipVisible为true时才需要处理
+      // tipVisible이 true인 경우에만 처리
       if (tipVisible.value) {
         await handleTip()
       }
@@ -216,19 +216,19 @@ onMounted(async () => {
 
     appWindow.listen('notify_content', async (event: Event<MessageType>) => {
       if (event.payload) {
-        // 窗口显示将由notify_enter事件触发
+        // 창 표시는 notify_enter 이벤트에 의해 트리거됨
 
-        // 处理消息内容
+        // 메시지 내용 처리
         const msg = event.payload
         const session = chatStore.sessionList.find((s) => s.roomId === msg.message.roomId)
         const existingGroup = content.value.find((group) => group.roomId === msg.message.roomId)
 
-        // 使用useReplaceMsg处理消息内容
+        // useReplaceMsg를 사용하여 메시지 내용 처리
         const { formatMessageContent, getMessageSenderName } = useReplaceMsg()
         const isAtMe = checkMessageAtMe(msg)
         const currentTime = Date.now()
 
-        // 获取发送者信息
+        // 보낸 사람 정보 가져오기
         const senderName = getMessageSenderName(
           msg,
           session?.name || '',
@@ -236,7 +236,7 @@ onMounted(async () => {
           session?.type
         )
 
-        // 格式化消息内容
+        // 메시지 내용 포맷팅
         const formattedContent = formatMessageContent(
           msg,
           session?.type || RoomTypeEnum.GROUP,
@@ -245,7 +245,7 @@ onMounted(async () => {
         )
 
         if (existingGroup) {
-          // 如果该房间的消息已存在，更新最新内容和计数
+          // 해당 채팅방의 메시지가 이미 존재하면 최신 내용과 개수 업데이트
           existingGroup.id = msg.message.id
           existingGroup.latestContent = formattedContent
           existingGroup.messageCount++
@@ -256,8 +256,8 @@ onMounted(async () => {
             existingGroup.name = session.name
           }
         } else {
-          // 如果是新的房间，创建新的分组
-          // 使用会话的未读消息数量（当前收到的消息已经包含在 unreadCount 中）
+          // 새로운 채팅방인 경우 새로운 그룹 생성
+          // 세션의 안 읽은 메시지 개수 사용 (현재 받은 메시지는 이미 unreadCount에 포함됨)
           const messageCount = session?.unreadCount || 1
 
           content.value.push({
@@ -269,11 +269,11 @@ onMounted(async () => {
             name: session?.name || '',
             timestamp: currentTime,
             isAtMe: isAtMe,
-            // 添加房间类型，从session中获取，如果没有则默认为私聊类型
+            // 채팅방 타입 추가, 세션에서 가져오며 없는 경우 기본적으로 개인 채팅 타입으로 설정
             roomType: session?.type || RoomTypeEnum.SINGLE
           })
 
-          // 调整窗口高度，基础高度140，从第二个分组开始每组增加60px，最多4个分组
+          // 창 높이 조정, 기본 높이 140, 두 번째 그룹부터 그룹당 60px 추가, 최대 4개 그룹
           const baseHeight = 140
           const groupCount = content.value.length
           const additionalHeight = Math.min(Math.max(groupCount - 1, 0), 3) * 60
@@ -281,13 +281,13 @@ onMounted(async () => {
           resizeWindow('notify', 280, newHeight)
         }
 
-        // 对消息进行排序 - 先按置顶状态排序，再按活跃时间排序
+        // 메시지 정렬 - 상단 고정 상태 우선, 그 다음 활성 시간순
         content.value.sort((a, b) => {
-          // 1. 先按置顶状态排序（置顶的排在前面）
+          // 1. 상단 고정 상태 우선 정렬 (상단 고정된 항목이 앞으로)
           if (a.top && !b.top) return -1
           if (!a.top && b.top) return 1
 
-          // 2. 在相同置顶状态下，按时间戳降序排序（最新的排在前面）
+          // 2. 동일한 상단 고정 상태 내에서 타임스탬프 내림차순 정렬 (최신 항목이 앞으로)
           return b.timestamp - a.timestamp
         })
 
@@ -304,7 +304,7 @@ onMounted(async () => {
     })
 
     homeBlurUnlisten = await appWindow.listen('home_blur', () => {
-      // 保留占位，未来若需要在失焦时处理逻辑可扩展
+      // 향후 포커스 해제 시 처리 로직 확장을 위한 자리 표시
     })
   }
 })
