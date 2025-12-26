@@ -6,12 +6,12 @@
         :hidden-right="true"
         :enable-default-background="false"
         :enable-shadow="false"
-        room-name="添加好友/群" />
+        room-name="친구/그룹 추가" />
 
       <div class="flex flex-col gap-1 overflow-auto h-full">
-        <!-- 主要内容 -->
+        <!-- 주요 내용 -->
         <n-flex vertical :size="14">
-          <!-- 搜索框 -->
+          <!-- 검색창 -->
           <div class="px-16px">
             <n-input
               v-model:value="searchValue"
@@ -38,19 +38,19 @@
             </n-input>
           </div>
 
-          <!-- 搜索类型切换 -->
+          <!-- 검색 유형 전환 -->
           <n-tabs v-model:value="searchType" animated size="small" @update:value="handleTypeChange">
             <n-tab-pane v-for="tab in tabs" :key="tab.name" :name="tab.name" :tab="tab.label">
               <template>
                 <span>{{ tab.label }}</span>
               </template>
 
-              <!-- 初始加载状态 -->
+              <!-- 초기 로딩 상태 -->
               <template v-if="initialLoading">
                 <n-spin class="flex-center" style="height: calc(100vh / var(--page-scale, 1) - 200px)" size="large" />
               </template>
 
-              <!-- 搜索结果 -->
+              <!-- 검색 결과 -->
               <template v-else-if="searchResults.length">
                 <FloatBlockList
                   :data-source="searchResults"
@@ -75,7 +75,7 @@
                             </template>
                           </n-space>
                           <n-flex align="center" :size="10">
-                            <span class="text-(12px [--chat-text-color])">{{ `账号：${item.account}` }}</span>
+                            <span class="text-(12px [--chat-text-color])">{{ `계정: ${item.account}` }}</span>
                             <n-tooltip trigger="hover">
                               <template #trigger>
                                 <svg
@@ -84,12 +84,12 @@
                                   <use href="#copy"></use>
                                 </svg>
                               </template>
-                              <span>复制账号</span>
+                              <span>계정 복사</span>
                             </n-tooltip>
                           </n-flex>
                         </n-flex>
 
-                        <!-- 三种状态的按钮 -->
+                        <!-- 세 가지 상태 버튼 -->
                         <n-button
                           secondary
                           :type="getButtonType(item.uid, item.roomId)"
@@ -104,25 +104,25 @@
                 </FloatBlockList>
               </template>
 
-              <!-- 搜索中状态 -->
+              <!-- 검색 중 상태 -->
               <template v-else-if="loading">
                 <n-spin class="flex-center" style="height: calc(100vh / var(--page-scale, 1) - 200px)" size="large" />
               </template>
 
-              <!-- 搜索无结果状态 -->
+              <!-- 검색 결과 없음 상태 -->
               <template v-else-if="hasSearched">
                 <n-empty
                   class="flex-center"
                   style="height: calc(100vh / var(--page-scale, 1) - 200px)"
-                  description="未找到相关结果" />
+                  description="관련 결과를 찾을 수 없습니다" />
               </template>
 
-              <!-- 默认空状态 -->
+              <!-- 기본 빈 상태 -->
               <template v-else>
                 <n-empty
                   style="height: calc(100vh / var(--page-scale, 1) - 200px)"
                   class="flex-center"
-                  description="输入关键词搜索">
+                  description="검색어 입력">
                   <template #icon>
                     <n-icon>
                       <svg>
@@ -165,38 +165,38 @@ const globalStore = useGlobalStore()
 const settingStore = useSettingStore()
 const cachedStore = useCachedStore()
 const { themes } = storeToRefs(settingStore)
-// 定义标签页
+// 탭 정의
 const tabs = ref([
-  { name: 'recommend', label: '推荐' },
-  { name: 'user', label: '找好友' },
-  { name: 'group', label: '找群聊' }
+  { name: 'recommend', label: '추천' },
+  { name: 'user', label: '친구 찾기' },
+  { name: 'group', label: '그룹 찾기' }
 ])
-// 搜索类型
+// 검색 유형
 const searchType = ref<'recommend' | 'user' | 'group'>('recommend')
-// 搜索类型对应的placeholder映射
+// 검색 유형별 placeholder 매핑
 const searchPlaceholder = {
-  recommend: '输入推荐关键词',
-  user: '输入昵称搜索好友',
-  group: '输入群号搜索群聊'
+  recommend: '추천 검색어 입력',
+  user: '닉네임 입력하여 친구 검색',
+  group: '그룹 ID 입력하여 그룹 검색'
 }
-// 搜索值
+// 검색 값
 const searchValue = ref('')
-// 搜索结果
+// 검색 결과
 const searchResults = ref<any[]>([])
-// 是否已经搜索过
+// 검색 여부
 const hasSearched = ref(false)
-// 加载状态
+// 로딩 상태
 const loading = ref(false)
-// 初始加载状态
+// 초기 로딩 상태
 const initialLoading = ref(true)
 
-// 从缓存存储中获取用户数据
+// 캐시 스토리지에서 사용자 데이터 가져오기
 const getCachedUsers = () => {
-  // 从缓存中获取所有用户
+  // 캐시에서 모든 사용자 가져오기
   const users = groupStore.allUserInfo
   console.log(users)
 
-  // 筛选出需要显示的用户（ID在20016-20030之间的用户）
+  // 표시할 사용자 필터링 (ID 20016-20030 사이 사용자)
   return sortSearchResults(
     users
       .filter((user) => {
@@ -214,33 +214,33 @@ const getCachedUsers = () => {
   )
 }
 
-// 清空搜索结果
+// 검색 결과 초기화
 const clearSearchResults = () => {
   searchResults.value = []
   hasSearched.value = false
   searchValue.value = ''
 }
 
-// 处理复制账号
+// 계정 복사 처리
 const handleCopy = (account: string) => {
   navigator.clipboard.writeText(account)
-  window.$message.success(`复制成功 ${account}`)
+  window.$message.success(`복사 성공 ${account}`)
 }
 
-// 处理清空按钮点击
+// 초기화 버튼 클릭 처리
 const handleClear = () => {
   clearSearchResults()
 
-  // 如果是推荐标签，重新加载推荐用户
+  // 추천 탭인 경우 추천 사용자 다시 로드
   if (searchType.value === 'recommend') {
     searchResults.value = getCachedUsers()
   }
 }
 
-// 处理搜索
+// 검색 처리
 const handleSearch = useDebounceFn(async () => {
   if (!searchValue.value.trim()) {
-    // 如果搜索框为空且是推荐标签，显示所有推荐用户
+    // 검색창이 비어 있고 추천 탭인 경우 모든 추천 사용자 표시
     if (searchType.value === 'recommend') {
       searchResults.value = getCachedUsers()
     }
@@ -252,7 +252,7 @@ const handleSearch = useDebounceFn(async () => {
 
   try {
     if (searchType.value === 'group') {
-      // 调用群聊搜索接口
+      // 그룹 검색 API 호출
       const res = await searchGroup({ account: searchValue.value })
       searchResults.value = res.map((group: any) => ({
         account: group.account,
@@ -263,7 +263,7 @@ const handleSearch = useDebounceFn(async () => {
         roomId: group.roomId
       }))
     } else if (searchType.value === 'user') {
-      // 调用好友搜索接口
+      // 친구 검색 API 호출
       const res = await searchFriend({ key: searchValue.value })
       searchResults.value = res.map((user: any) => ({
         uid: user.uid,
@@ -272,24 +272,24 @@ const handleSearch = useDebounceFn(async () => {
         account: user.account
       }))
     } else {
-      // 推荐标签搜索结果
+      // 추천 탭 검색 결과
       const cachedUsers = getCachedUsers()
       searchResults.value = cachedUsers.filter(
         (user) =>
           user?.name?.includes(searchValue.value) || (user.uid && user.uid.toString().includes(searchValue.value))
       )
     }
-    // 通用排序函数
+    // 공통 정렬 함수
     searchResults.value = sortSearchResults(searchResults.value, searchType.value)
   } catch (error) {
-    window.$message.error('搜索失败')
+    window.$message.error('검색 실패')
     searchResults.value = []
   } finally {
     loading.value = false
   }
 }, 300)
 
-// 处理选项卡切换
+// 탭 전환 처리
 const handleTypeChange = () => {
   clearSearchResults()
 
@@ -298,15 +298,15 @@ const handleTypeChange = () => {
   }
 }
 const groupStore = useGroupStore()
-// 判断是否已加入群聊
+// 그룹 가입 여부 확인
 const isInGroup = (roomId: string) => {
   return groupStore.groupDetails.some((group: GroupDetailReq) => group.roomId === roomId)
 }
 
-// 通用排序函数
+// 공통 정렬 함수
 const sortSearchResults = (items: any[], type: 'user' | 'group' | 'recommend') => {
   if (type === 'group') {
-    // 群聊排序逻辑：已加入的群聊排在前面
+    // 그룹 정렬 로직: 가입한 그룹 우선 정렬
     return items.sort((a, b) => {
       const aInGroup = isInGroup(a.roomId)
       const bInGroup = isInGroup(b.roomId)
@@ -315,17 +315,17 @@ const sortSearchResults = (items: any[], type: 'user' | 'group' | 'recommend') =
       return 0
     })
   } else {
-    // 用户排序逻辑：自己排在最前面，好友排在第二位
+    // 사용자 정렬 로직: 본인 최상단, 친구 2순위
     return items.sort((a, b) => {
-      // 处理uid可能是string或number的情况
+      // uid가 string 또는 number일 수 있는 상황 처리
       const aUid = String(a.uid)
       const bUid = String(b.uid)
 
-      // 自己排在最前面
+      // 본인 최상단 배치
       if (isCurrentUser(aUid)) return -1
       if (isCurrentUser(bUid)) return 1
 
-      // 好友排在第二位
+      // 친구 2순위 배치
       const aIsFriend = isFriend(aUid)
       const bIsFriend = isFriend(bUid)
       if (aIsFriend && !bIsFriend) return -1
@@ -336,41 +336,41 @@ const sortSearchResults = (items: any[], type: 'user' | 'group' | 'recommend') =
   }
 }
 
-// 判断是否已经是好友
+// 이미 친구인지 확인
 const isFriend = (uid: string) => {
   return contactStore.contactsList.some((contact: FriendItem) => contact.uid === uid)
 }
 
-// 判断是否是当前登录用户
+// 현재 로그인한 사용자인지 확인
 const isCurrentUser = (uid: string) => {
   return userStore.userInfo!.uid === uid
 }
 
-// 获取按钮文本
+// 버튼 텍스트 가져오기
 const getButtonText = (uid: string, roomId: string) => {
-  // 群聊逻辑
+  // 그룹 로직
   if (searchType.value === 'group') {
-    return isInGroup(roomId) ? '发消息' : '添加'
+    return isInGroup(roomId) ? '메시지 보내기' : '추가'
   }
-  // 用户逻辑
-  if (isCurrentUser(uid)) return '编辑资料'
-  if (isFriend(uid)) return '发消息'
-  return '添加'
+  // 사용자 로직
+  if (isCurrentUser(uid)) return '프로필 편집'
+  if (isFriend(uid)) return '메시지 보내기'
+  return '추가'
 }
 
-// 获取按钮类型
+// 버튼 유형 가져오기
 const getButtonType = (uid: string, roomId: string) => {
-  // 群聊逻辑
+  // 그룹 로직
   if (searchType.value === 'group') {
     return isInGroup(roomId) ? 'info' : 'primary'
   }
-  // 用户逻辑
+  // 사용자 로직
   if (isCurrentUser(uid)) return 'default'
   if (isFriend(uid)) return 'info'
   return 'primary'
 }
 
-// 处理按钮点击
+// 버튼 클릭 처리
 const handleButtonClick = (item: any) => {
   if (searchType.value === 'group') {
     if (isInGroup(item.roomId)) {
@@ -381,7 +381,7 @@ const handleButtonClick = (item: any) => {
     return
   }
 
-  // 用户逻辑保持不变
+  // 사용자 로직 유지
   if (isCurrentUser(item.uid)) {
     handleEditProfile()
   } else if (isFriend(item.uid)) {
@@ -391,7 +391,7 @@ const handleButtonClick = (item: any) => {
   }
 }
 
-// 处理添加好友或群聊
+// 친구 또는 그룹 추가 처리
 const handleAddFriend = async (item: any) => {
   if (searchType.value === 'user' || searchType.value === 'recommend') {
     globalStore.addFriendModalInfo.uid = item.uid
@@ -406,24 +406,24 @@ const handleAddFriend = async (item: any) => {
   }
 }
 
-// 处理编辑个人资料
+// 개인 프로필 편집 처리
 const handleEditProfile = async () => {
-  // 获取主窗口
+  // 메인 창 가져오기
   if (!isMobile()) {
     const homeWindow = await WebviewWindow.getByLabel('home')
-    // 激活主窗口
+    // 메인 창 활성화
     await homeWindow?.setFocus()
   }
-  // 打开个人资料编辑窗口
+  // 개인 프로필 편집 창 열기
   emitTo('home', 'open_edit_info')
 }
 
-// 处理发送消息
+// 메시지 전송 처리
 const handleSendMessage = async (item: any) => {
   emitTo('home', 'search_to_msg', { uid: item.uid, roomType: RoomTypeEnum.SINGLE })
 }
 
-// 处理发送群消息
+// 그룹 메시지 전송 처리
 const handleSendGroupMessage = async (item: any) => {
   emitTo('home', 'search_to_msg', {
     uid: item.roomId,
@@ -435,13 +435,13 @@ onMounted(async () => {
   // await getCurrentWebviewWindow().show()
 
   try {
-    // 初始化联系人列表
+    // 연락처 목록 초기화
     await contactStore.getContactList(true)
 
-    // 从缓存中获取推荐用户
+    // 캐시에서 추천 사용자 가져오기
     const cachedUsers = getCachedUsers()
 
-    // 默认展示推荐用户
+    // 기본적으로 추천 사용자 표시
     if (searchType.value === 'recommend') {
       searchResults.value = cachedUsers
     }
@@ -467,7 +467,7 @@ onMounted(async () => {
   transform: scale(0.98);
 }
 
-/* 移除标签内容的内边距 */
+/* 탭 내용 패딩 제거 */
 :deep(.n-tab-pane) {
   padding: 0 !important;
 }

@@ -6,15 +6,15 @@
         :hidden-right="true"
         :enable-default-background="false"
         :enable-shadow="false"
-        room-name="发起群聊" />
+        room-name="그룹 채팅 시작" />
 
-      <!-- 顶部搜索框 -->
+      <!-- 상단 검색창 -->
       <div class="px-16px mt-10px flex gap-3">
         <div class="flex-1 py-5px shrink-0">
           <n-input
             v-model:value="keyword"
             class="rounded-10px w-full bg-gray-100 relative text-14px"
-            placeholder="搜索联系人~"
+            placeholder="연락처 검색~"
             clearable
             spellCheck="false"
             autoComplete="off"
@@ -26,12 +26,12 @@
           </n-input>
         </div>
         <div class="flex justify-end items-center">
-          <n-button class="py-5px" @click="doSearch">搜索</n-button>
+          <n-button class="py-5px" @click="doSearch">검색</n-button>
         </div>
       </div>
 
-      <!-- 联系人列表 -->
-      <!-- 联系人列表 -->
+      <!-- 연락처 목록 -->
+
       <div ref="scrollArea" class="flex-1 overflow-y-auto px-16px mt-10px" :style="{ height: scrollHeight + 'px' }">
         <n-scrollbar style="max-height: calc(100vh - 150px)">
           <n-checkbox-group v-model:value="selectedList" class="flex flex-col gap-2">
@@ -48,16 +48,16 @@
                   selectedList.includes(item.uid) ? 'bg-blue-50 border-blue-300' : 'hover:bg-gray-50'
                 ]">
                 <template #default>
-                  <!-- ✅ 强制一行展示 -->
+                  <!-- ✅ 한 줄 표시 강제 -->
                   <div class="flex items-center gap-10px px-8px py-10px">
-                    <!-- 头像 -->
+                    <!-- 프로필 사진 -->
                     <n-avatar
                       round
                       :size="44"
                       :src="AvatarUtils.getAvatarUrl(groupStore.getUserInfo(item.uid)!.avatar!)"
                       fallback-src="/logo.png"
                       style="border: 1px solid var(--avatar-border-color)" />
-                    <!-- 文字信息 -->
+                    <!-- 텍스트 정보 -->
                     <div class="flex flex-col leading-tight truncate">
                       <span class="text-14px font-medium truncate">
                         {{ groupStore.getUserInfo(item.uid)!.name }}
@@ -69,7 +69,7 @@
                         </template>
                         <template v-else>
                           <n-badge :color="item.activeStatus === OnlineEnum.ONLINE ? '#1ab292' : '#909090'" dot />
-                          {{ item.activeStatus === OnlineEnum.ONLINE ? '在线' : '离线' }}
+                          {{ item.activeStatus === OnlineEnum.ONLINE ? '온라인' : '오프라인' }}
                         </template>
                       </div>
                     </div>
@@ -81,10 +81,10 @@
         </n-scrollbar>
       </div>
 
-      <!-- 底部操作栏 -->
+      <!-- 하단 작업 표시줄 -->
       <div class="px-16px py-10px bg-white border-t border-gray-200 flex justify-between items-center">
-        <span class="text-14px">已选择 {{ selectedList.length }} 人</span>
-        <n-button type="primary" :disabled="selectedList.length === 0" @click="createGroup">发起群聊</n-button>
+        <span class="text-14px">{{ selectedList.length }}명 선택됨</span>
+        <n-button type="primary" :disabled="selectedList.length === 0" @click="createGroup">그룹 채팅 시작</n-button>
       </div>
     </div>
   </MobileLayout>
@@ -107,7 +107,7 @@ const groupStore = useGroupStore()
 const chatStore = useChatStore()
 const globalStore = useGlobalStore()
 
-/** 获取用户状态 */
+/** 사용자 상태 가져오기 */
 const getUserState = (uid: string) => {
   const userInfo = groupStore.getUserInfo(uid)!
   const userStateId = userInfo.userStateId
@@ -121,27 +121,27 @@ const getUserState = (uid: string) => {
 // store
 const contactStore = useContactStore()
 
-// 搜索关键字
+// 검색어
 const keyword = ref('')
 
-// 选中的联系人 uid 数组
+// 선택된 연락처 uid 배열
 const selectedList = ref<string[]>([])
 
-// 滚动高度计算
+// 스크롤 높이 계산
 const scrollHeight = ref(600)
 onMounted(() => {
   scrollHeight.value = window.innerHeight - 180
 })
 
-// 搜索逻辑
+// 검색 로직
 const doSearch = () => {
-  // 这里只是触发响应式，实际过滤逻辑写在 computed 里
+  // 여기서는 반응형 트리거만 하고 실제 필터링 로직은 computed에 작성
 }
 
 const filteredContacts = computed(() => {
   const contactsList = contactStore.contactsList.filter((c) => {
     if (c.uid === '1') {
-      // 排除hula小管家
+      // HuLa 도우미 제외
       return false
     }
     return true
@@ -158,10 +158,10 @@ const filteredContacts = computed(() => {
   })
 })
 
-// 点击发起群聊
+// 그룹 채팅 시작 클릭
 const createGroup = async () => {
   if (selectedList.value.length < 2) {
-    window.$message.success('两个人无法建群哦')
+    window.$message.success('두 명으로는 그룹을 만들 수 없습니다')
     return
   }
 
@@ -191,9 +191,9 @@ const createGroup = async () => {
     }
 
     resetCreateGroupState()
-    window.$message.success('创建群聊成功')
+    window.$message.success('그룹 채팅 생성 성공')
   } catch (error) {
-    window.$message.error('创建群聊失败')
+    window.$message.error('그룹 채팅 생성 실패')
   }
 }
 

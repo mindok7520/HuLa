@@ -2,11 +2,11 @@
   <MobileLayout :backgroundImage="'/login_bg.png'" :safeAreaTop="false" :safeAreaBottom="false">
     <div class="h-full flex-col-center gap-40px">
       <div class="flex-center absolute top-13vh left-36px">
-        <p class="text-(20px #333)">HI, 欢迎来到</p>
+        <p class="text-(20px #333)">HI, 환영합니다</p>
         <img src="@/assets/mobile/2.svg" alt="" class="w-80px h-20px" />
       </div>
 
-      <!-- 选项卡导航 -->
+      <!-- 탭 내비게이션 -->
       <div class="w-80% h-40px absolute top-20vh flex-center">
         <div class="flex w-200px relative">
           <div
@@ -15,7 +15,7 @@
               'z-999 w-100px text-center transition-all duration-300 ease-out',
               activeTab === 'login' ? 'text-(18px #000)' : 'text-(16px #666)'
             ]">
-            登录
+            로그인
           </div>
           <div
             @click="activeTab = 'register'"
@@ -23,9 +23,9 @@
               'z-999 w-100px text-center transition-all duration-300 ease-out',
               activeTab === 'register' ? 'text-(18px #000)' : 'text-(16px #666)'
             ]">
-            注册
+            회원가입
           </div>
-          <!-- 选中条 -->
+          <!-- 선택 표시줄 -->
           <div
             style="border-radius: 24px 42px 4px 24px"
             :class="[
@@ -35,10 +35,10 @@
         </div>
       </div>
 
-      <!-- 头像 -->
+      <!-- 프로필 사진 -->
       <img v-if="activeTab === 'login'" :src="userInfo.avatar" alt="logo" class="size-86px rounded-full" />
 
-      <!-- 登录表单 -->
+      <!-- 로그인 폼 -->
       <n-flex v-if="activeTab === 'login'" class="text-center w-80%" vertical :size="16">
         <n-input
           :class="{ 'pl-22px': loginHistories.length > 0 }"
@@ -51,7 +51,7 @@
           autoCapitalize="off"
           :placeholder="accountPH"
           @focus="accountPH = ''"
-          @blur="accountPH = '输入HuLa账号'"
+          @blur="accountPH = 'HuLa 계정 입력'"
           clearable>
           <template #suffix>
             <n-flex v-if="loginHistories.length > 0" @click="arrowStatus = !arrowStatus">
@@ -63,7 +63,7 @@
           </template>
         </n-input>
 
-        <!-- 账号选择框-->
+        <!-- 계정 선택 상자 -->
         <div
           style="border: 1px solid rgba(70, 70, 70, 0.1)"
           v-if="loginHistories.length > 0 && arrowStatus"
@@ -98,11 +98,11 @@
           autoCapitalize="off"
           :placeholder="passwordPH"
           @focus="passwordPH = ''"
-          @blur="passwordPH = '输入HuLa密码'"
+          @blur="passwordPH = 'HuLa 비밀번호 입력'"
           clearable />
 
         <n-flex justify="flex-end" :size="6">
-          <n-button text color="#13987f" @click="handleForgetPassword">忘记密码</n-button>
+          <n-button text color="#13987f" @click="handleForgetPassword">비밀번호 찾기</n-button>
         </n-flex>
 
         <n-button
@@ -115,19 +115,19 @@
           <span>{{ loginText }}</span>
         </n-button>
 
-        <!-- 协议 -->
+        <!-- 약관 -->
         <n-flex align="center" justify="center" :style="agreementStyle" :size="6" class="absolute bottom-0 w-[80%]">
           <n-checkbox v-model:checked="protocol" />
           <div class="text-12px color-#909090 cursor-default lh-14px">
-            <span>已阅读并同意</span>
-            <span @click.stop="toServiceAgreement" class="color-#13987f cursor-pointer">服务协议</span>
-            <span>和</span>
-            <span @click.stop="toPrivacyAgreement" class="color-#13987f cursor-pointer">HuLa隐私保护指引</span>
+            <span>이미 읽었으며 동의합니다</span>
+            <span @click.stop="toServiceAgreement" class="color-#13987f cursor-pointer">서비스 약관</span>
+            <span>및</span>
+            <span @click.stop="toPrivacyAgreement" class="color-#13987f cursor-pointer">HuLa 개인정보 처리방침</span>
           </div>
         </n-flex>
       </n-flex>
 
-      <!-- 注册表单 - 第一步：昵称和密码 -->
+      <!-- 회원가입 폼 - 1단계: 닉네임 및 비밀번호 -->
       <n-flex v-if="activeTab === 'register' && currentStep === 1" class="text-center w-80%" vertical :size="16">
         <n-input
           size="large"
@@ -142,7 +142,7 @@
           :allow-input="noSideSpace"
           :placeholder="registerNamePH"
           @focus="registerNamePH = ''"
-          @blur="registerNamePH = '输入HuLa昵称'"
+          @blur="registerNamePH = 'HuLa 닉네임 입력'"
           clearable />
 
         <n-input
@@ -159,7 +159,7 @@
           :allow-input="noSideSpace"
           :placeholder="registerPasswordPH"
           @focus="registerPasswordPH = ''"
-          @blur="registerPasswordPH = '设置密码'"
+          @blur="registerPasswordPH = '비밀번호 설정'"
           clearable />
 
         <n-input
@@ -176,24 +176,27 @@
           :allow-input="noSideSpace"
           :placeholder="confirmPasswordPH"
           @focus="confirmPasswordPH = ''"
-          @blur="confirmPasswordPH = '确认密码'"
+          @blur="confirmPasswordPH = '비밀번호 확인'"
           clearable />
 
-        <!-- 密码提示信息 -->
+        <!-- 비밀번호 힌트 정보 -->
         <n-flex vertical v-if="registerInfo.password" :size="10" class="mt-8px">
-          <Validation :value="registerInfo.password" message="最少6位" :validator="validateMinLength" />
-          <Validation :value="registerInfo.password" message="由英文和数字构成" :validator="validateAlphaNumeric" />
-          <Validation :value="registerInfo.password" message="必须有一个特殊字符" :validator="validateSpecialChar" />
+          <Validation :value="registerInfo.password" message="최소 6자" :validator="validateMinLength" />
+          <Validation :value="registerInfo.password" message="영문, 숫자 포함" :validator="validateAlphaNumeric" />
+          <Validation
+            :value="registerInfo.password"
+            message="특수문자 1개 이상 포함"
+            :validator="validateSpecialChar" />
         </n-flex>
 
-        <!-- 协议 -->
+        <!-- 약관 -->
         <n-flex align="center" justify="center" :size="6" class="mt-10px">
           <n-checkbox v-model:checked="registerProtocol" />
           <div class="text-12px color-#909090 cursor-default lh-14px">
-            <span>已阅读并同意</span>
-            <span @click.stop="toServiceAgreement" class="color-#13987f cursor-pointer">服务协议</span>
-            <span>和</span>
-            <span @click.stop="toPrivacyAgreement" class="color-#13987f cursor-pointer">HuLa隐私保护指引</span>
+            <span>이미 읽었으며 동의합니다</span>
+            <span @click.stop="toServiceAgreement" class="color-#13987f cursor-pointer">서비스 약관</span>
+            <span>및</span>
+            <span @click.stop="toPrivacyAgreement" class="color-#13987f cursor-pointer">HuLa 개인정보 처리방침</span>
           </div>
         </n-flex>
 
@@ -204,11 +207,11 @@
           style="color: #fff"
           class="w-full mt-8px mb-50px gradient-button"
           @click="handleRegisterStep">
-          <span>下一步</span>
+          <span>다음</span>
         </n-button>
       </n-flex>
 
-      <!-- 注册表单 - 第二步：邮箱和图片验证码 -->
+      <!-- 회원가입 폼 - 2단계: 이메일 및 이미지 인증코드 -->
       <n-flex v-if="activeTab === 'register' && currentStep === 2" class="text-center w-80%" vertical :size="16">
         <n-auto-complete
           size="large"
@@ -219,9 +222,9 @@
           clearable
           type="text"
           @focus="registerEmailPH = ''"
-          @blur="registerEmailPH = '输入邮箱'" />
+          @blur="registerEmailPH = '이메일 입력'" />
 
-        <!-- 邮箱验证码 -->
+        <!-- 이메일 인증코드 -->
         <div class="flex justify-between items-center gap-10px">
           <n-input
             size="large"
@@ -235,7 +238,7 @@
             :allow-input="noSideSpace"
             :placeholder="registerCodePH"
             @focus="registerCodePH = ''"
-            @blur="registerCodePH = '输入邮箱验证码'"
+            @blur="registerCodePH = '이메일 인증코드 입력'"
             clearable />
 
           <n-button
@@ -281,7 +284,7 @@ import { useSettingStore } from '../stores/setting'
 import { clearListener } from '../utils/ReadCountQueue'
 import { useLogin } from '../hooks/useLogin'
 
-// 本地注册信息类型，扩展API类型以包含确认密码
+// 로컬 회원가입 정보 타입, 비밀번호 확인을 포함하도록 API 타입 확장
 interface LocalRegisterInfo extends RegisterUserReq {}
 
 const loginHistoriesStore = useLoginHistoriesStore()
@@ -293,13 +296,13 @@ const { login } = storeToRefs(settingStore)
 
 const isJumpDirectly = ref(false)
 
-/** 当前激活的选项卡 */
+/** 현재 활성화된 탭 */
 const activeTab = ref<'login' | 'register'>('login')
 
-/** 当前注册步骤 */
+/** 현재 회원가입 단계 */
 const currentStep = ref(1)
 
-/** 注册账号信息 */
+/** 회원가입 계정 정보 */
 const registerInfo = ref<LocalRegisterInfo>({
   nickName: '',
   email: '',
@@ -312,18 +315,18 @@ const registerInfo = ref<LocalRegisterInfo>({
   systemType: 2
 })
 
-// 登录相关的占位符和状态
-const accountPH = ref('输入HuLa账号')
-const passwordPH = ref('输入HuLa密码')
+// 로그인 관련 플레이스홀더 및 상태
+const accountPH = ref('HuLa 계정 입력')
+const passwordPH = ref('HuLa 비밀번호 입력')
 const protocol = ref(true)
 const arrowStatus = ref(false)
 
-// 注册相关的占位符和状态
-const registerNamePH = ref('输入HuLa昵称')
-const registerEmailPH = ref('输入邮箱')
-const registerPasswordPH = ref('设置密码')
-const confirmPasswordPH = ref('确认密码')
-const registerCodePH = ref('输入邮箱验证码')
+// 회원가입 관련 플레이스홀더 및 상태
+const registerNamePH = ref('HuLa 닉네임 입력')
+const registerEmailPH = ref('이메일 입력')
+const registerPasswordPH = ref('비밀번호 설정')
+const confirmPasswordPH = ref('비밀번호 확인')
+const registerCodePH = ref('이메일 인증코드 입력')
 const registerProtocol = ref(true)
 const registerLoading = ref(false)
 const sendCodeLoading = ref(false)
@@ -334,9 +337,9 @@ const { normalLogin, loading, loginText, loginDisabled, info: userInfo } = useLo
 
 const sendCodeButtonText = computed(() => {
   if (sendCodeCountdown.value > 0) {
-    return `${sendCodeCountdown.value}秒后重新发送`
+    return `${sendCodeCountdown.value}초 후 재발송`
   }
-  return '发送验证码'
+  return '인증코드 발송'
 })
 
 const sendCodeDisabled = computed(() => {
@@ -391,7 +394,7 @@ watch(activeTab, () => {
   sendCodeLoading.value = false
 })
 
-// 常用邮箱后缀
+// 자주 사용하는 이메일 접미사
 const commonEmailDomains = computed(() => {
   return ['@gmail.com', '@163.com', '@qq.com'].map((suffix) => {
     const prefix = registerInfo.value.email.split('@')[0]
@@ -402,26 +405,26 @@ const commonEmailDomains = computed(() => {
   })
 })
 
-/** 不允许输入空格 */
+/** 공백 입력 불가 */
 const noSideSpace = (value: string) => !value.startsWith(' ') && !value.endsWith(' ')
 
-/** 检查邮箱格式 */
+/** 이메일 형식 확인 */
 const isEmailValid = computed(() => {
   const email = registerInfo.value.email.trim()
   if (!email) return false
   return /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)
 })
 
-/** 密码验证函数 */
+/** 비밀번호 검증 함수 */
 const validateMinLength = (value: string) => value.length >= 6
 
-/** 检查密码是否满足所有条件 */
+/** 비밀번호가 모든 조건을 만족하는지 확인 */
 const isPasswordValid = computed(() => {
   const password = registerInfo.value.password
   return validateMinLength(password) && validateAlphaNumeric(password) && validateSpecialChar(password)
 })
 
-/** 检查第一步是否可以继续 */
+/** 1단계를 계속 진행할 수 있는지 확인 */
 const isStep1Valid = computed(() => {
   return (
     registerInfo.value.nickName &&
@@ -431,7 +434,7 @@ const isStep1Valid = computed(() => {
   )
 })
 
-/** 检查第二步是否可以继续 */
+/** 2단계를 계속 진행할 수 있는지 확인 */
 const isStep2Valid = computed(() => {
   return isEmailValid.value && !!registerInfo.value.code.trim()
 })
@@ -443,27 +446,27 @@ const getShow = (value: string) => {
   return false
 }
 
-// 监听登录表单变化
+// 로그인 폼 변경 감지
 watchEffect(() => {
   loginDisabled.value = !(userInfo.value.account && userInfo.value.password && protocol.value)
-  // 清空账号的时候设置默认头像
+  // 계정을 비울 때 기본 프로필 사진 설정
   if (!userInfo.value.account) {
     userInfo.value.avatar = '/logo.png'
   }
 })
 
-// 监听选项卡切换，重置状态
+// 탭 전환 감지, 상태 초기화
 watch(activeTab, (newTab) => {
   if (newTab === 'login') {
-    // 切换到登录时重置注册状态
+    // 로그인으로 전환 시 회원가입 상태 초기화
     resetRegisterForm()
   } else {
-    // 切换到注册时重置登录表单
+    // 회원가입으로 전환 시 로그인 폼 초기화
     resetLoginForm()
   }
 })
 
-// 监听账号输入
+// 계정 입력 감지
 watch(
   () => userInfo.value.account,
   (newAccount) => {
@@ -476,7 +479,7 @@ watch(
   }
 )
 
-/** 重置登录表单 */
+/** 로그인 폼 초기화 */
 const resetLoginForm = () => {
   userInfo.value = {
     account: '',
@@ -485,12 +488,12 @@ const resetLoginForm = () => {
     uid: '',
     name: ''
   }
-  accountPH.value = '输入HuLa账号'
-  passwordPH.value = '输入HuLa密码'
+  accountPH.value = 'HuLa 계정 입력'
+  passwordPH.value = 'HuLa 비밀번호 입력'
   arrowStatus.value = false
 }
 
-/** 重置注册表单 */
+/** 회원가입 폼 초기화 */
 const resetRegisterForm = () => {
   registerInfo.value = {
     nickName: '',
@@ -504,29 +507,29 @@ const resetRegisterForm = () => {
     key: 'REGISTER_EMAIL'
   } as LocalRegisterInfo
   currentStep.value = 1
-  registerNamePH.value = '输入HuLa昵称'
-  registerEmailPH.value = '输入邮箱'
-  registerPasswordPH.value = '设置密码'
-  confirmPasswordPH.value = '确认密码'
-  registerCodePH.value = '输入邮箱验证码'
+  registerNamePH.value = 'HuLa 닉네임 입력'
+  registerEmailPH.value = '이메일 입력'
+  registerPasswordPH.value = '비밀번호 설정'
+  confirmPasswordPH.value = '비밀번호 확인'
+  registerCodePH.value = '이메일 인증코드 입력'
   sendCodeLoading.value = false
   stopSendCodeCountdown()
 }
 
-/** 处理注册步骤 */
+/** 회원가입 단계 처리 */
 const handleRegisterStep = async () => {
   if (currentStep.value === 1) {
-    // 进入第二步
+    // 2단계 진입
     currentStep.value = 2
     return
   }
   await handleRegisterComplete()
 }
 
-/** 发送邮箱验证码 */
+/** 이메일 인증코드 발송 */
 const handleSendEmailCode = async () => {
   if (!isEmailValid.value) {
-    window.$message.warning('请输入正确的邮箱')
+    window.$message.warning('올바른 이메일 주소를 입력해주세요')
     return
   }
 
@@ -541,20 +544,20 @@ const handleSendEmailCode = async () => {
       operationType: 'register',
       templateCode: 'REGISTER_EMAIL'
     })
-    window.$message.success('验证码已发送，请查收邮箱')
+    window.$message.success('인증코드가 이메일로 발송되었습니다')
     startSendCodeCountdown()
   } catch (error) {
-    console.error('发送验证码错误：', error)
-    window.$message.error('验证码发送失败，请稍后再试')
+    console.error('인증코드 발송 오류:', error)
+    window.$message.error('인증코드 발송 실패, 나중에 다시 시도해주세요')
   } finally {
     sendCodeLoading.value = false
   }
 }
 
-/** 完成注册 */
+/** 회원가입 완료 */
 const handleRegisterComplete = async () => {
   if (!isStep2Valid.value) {
-    window.$message.warning('请完善信息后再注册')
+    window.$message.warning('가입 정보를 모두 입력해주세요')
     return
   }
 
@@ -562,27 +565,27 @@ const handleRegisterComplete = async () => {
     registerLoading.value = true
     registerInfo.value.email = registerInfo.value.email.trim()
     registerInfo.value.code = registerInfo.value.code.trim()
-    // 随机生成头像编号
+    // 프로필 사진 번호 무작위 생성
     const avatarNum = Math.floor(Math.random() * 21) + 1
     const avatarId = avatarNum.toString().padStart(3, '0')
     registerInfo.value.avatar = avatarId
 
-    // 注册 - 只传递API需要的字段
+    // 회원가입 - API에 필요한 필드만 전달
     const { ...apiRegisterInfo } = registerInfo.value
 
     await register(apiRegisterInfo)
 
-    // 关闭弹窗并切换到登录页面
+    // 팝업 닫기 및 로그인 페이지로 전환
     activeTab.value = 'login'
     userInfo.value.account = registerInfo.value.nickName || registerInfo.value.email
 
-    window.$message.success('注册成功')
+    window.$message.success('가입 성공')
 
-    // 重置注册表单
+    // 회원가입 폼 초기화
     resetRegisterForm()
   } catch (error) {
-    // 处理注册失败
-    window.$message.error((error as any) || '注册失败')
+    // 회원가입 실패 처리
+    window.$message.error((error as any) || '가입 실패')
     console.error(error)
   } finally {
     registerLoading.value = false
@@ -590,8 +593,8 @@ const handleRegisterComplete = async () => {
 }
 
 /**
- * 给账号赋值
- * @param item 账户信息
+ * 계정에 값 할당
+ * @param item 계정 정보
  * */
 const giveAccount = (item: UserInfoType) => {
   const { account, avatar, name, uid } = item
@@ -602,12 +605,12 @@ const giveAccount = (item: UserInfoType) => {
   arrowStatus.value = false
 }
 
-/** 删除账号列表内容 */
+/** 계정 목록 내용 삭제 */
 const delAccount = (item: UserInfoType) => {
-  // 获取删除前账户列表的长度
+  // 삭제 전 계정 목록 길이 가져오기
   const lengthBeforeDelete = loginHistories.length
   loginHistoriesStore.removeLoginHistory(item)
-  // 判断是否删除了最后一个条目，并据此更新arrowStatus
+  // 마지막 항목이 삭제되었는지 확인하고 그에 따라 arrowStatus 업데이트
   if (lengthBeforeDelete === 1 && loginHistories.length === 0) {
     arrowStatus.value = false
   }
@@ -640,15 +643,15 @@ onBeforeMount(async () => {
     return
   }
 
-  // 只有在非自动登录的情况下才验证token并直接打开主窗口
+  // 자동 로그인이 아닌 경우에만 토큰을 검증하고 메인 창을 직접 엽니다.
   // if (token && refreshToken && !login.value.autoLogin) {
   //   isJumpDirectly.value = true
   //   try {
   //     // await openHomeWindow()
-  //     return // 直接返回，不执行后续的登录相关逻辑
+  //     return // 직접 반환, 후속 로그인 관련 로직 실행 안 함
   //   } catch (error) {
   //     isJumpDirectly.value = false
-  //     // token无效，清除token并重置状态
+  //     // 토큰 무효, 토큰 제거 및 상태 초기화
   //     localStorage.removeItem('TOKEN')
   //     localStorage.removeItem('REFRESH_TOKEN')
   //     userStore.userInfo = undefined
@@ -684,19 +687,19 @@ onMounted(async () => {
   if (isIOS()) {
     invoke('set_webview_keyboard_adjustment', { enabled: false })
   }
-  // 只有在需要登录的情况下才显示登录窗口
+  // 로그인이 필요한 경우에만 로그인 창 표시
   if (isJumpDirectly.value) {
     loading.value = false
     router.push('/mobile/message')
     return
   }
 
-  // 进入登录页面时立即隐藏首屏，确保无论登录成功或失败都能看到登录界面
+  // 로그인 페이지 진입 시 즉시 스플래시 화면 숨김, 로그인 성공/실패 여부와 관계없이 로그인 화면이 보이도록 함
   await invoke('hide_splash_screen')
 
   useMitt.on(WsResponseMessageType.NO_INTERNET, () => {
     loginDisabled.value = true
-    loginText.value = '服务异常断开'
+    loginText.value = '서버 연결 끊김'
   })
 
   if (login.value.autoLogin) {

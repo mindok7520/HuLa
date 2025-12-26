@@ -6,28 +6,28 @@
         class="bg-white"
         style="border-bottom: 1px solid; border-color: #dfdfdf"
         :hidden-right="true"
-        :room-name="isEditMode ? '编辑群公告' : '新增群公告'" />
+        :room-name="isEditMode ? '그룹 공지 편집' : '그룹 공지 추가'" />
     </template>
 
     <template #container>
       <div
         class="bg-[url('@/assets/mobile/chat-home/background.webp')] bg-cover bg-center flex flex-col overflow-auto h-full">
         <div class="flex flex-col flex-1 gap-20px py-15px px-20px">
-          <!-- 公告内容编辑区域 -->
+          <!-- 공지 내용 편집 영역 -->
           <div class="bg-white rounded-15px p-15px shadow">
             <n-form label-placement="top" size="medium">
-              <n-form-item label="公告内容" required>
+              <n-form-item label="공지 내용" required>
                 <n-input
                   v-model:value="announcementContent"
                   type="textarea"
-                  placeholder="请输入公告内容..."
+                  placeholder="공지 내용을 입력하세요..."
                   class="w-full"
                   :autosize="announcementAutosize"
                   :maxlength="1000"
                   :show-count="true" />
               </n-form-item>
 
-              <n-form-item label="上传图片（暂不支持）">
+              <n-form-item label="이미지 업로드 (미지원)">
                 <div class="upload-image-container">
                   <n-upload
                     action="https://www.mocky.io/v2/5e4bafc63100007100d8b70f"
@@ -38,7 +38,7 @@
                       <svg class="size-24px text-#999">
                         <use href="#plus"></use>
                       </svg>
-                      <span class="text-12px text-#999 mt-5px">点击上传</span>
+                      <span class="text-12px text-#999 mt-5px">클릭하여 업로드</span>
                     </div>
                   </n-upload>
                 </div>
@@ -46,24 +46,24 @@
             </n-form>
           </div>
 
-          <!-- 置顶设置区域 -->
+          <!-- 상단 고정 설정 영역 -->
           <div class="bg-white rounded-15px shadow">
             <div class="flex flex-col w-full">
               <div class="flex justify-between py-15px px-15px items-center border-b border-gray-200">
                 <div class="flex flex-col">
-                  <div class="text-14px font-medium">设为置顶</div>
-                  <div class="text-12px text-gray-500 mt-5px">公告将显示在群公告列表顶部</div>
+                  <div class="text-14px font-medium">상단 고정 설정</div>
+                  <div class="text-12px text-gray-500 mt-5px">공지가 그룹 공지 목록 상단에 고정됩니다</div>
                 </div>
                 <n-switch v-model:value="top" />
               </div>
             </div>
           </div>
 
-          <!-- 操作按钮 -->
+          <!-- 작업 버튼 -->
           <div class="flex justify-center gap-15px">
-            <n-button type="default" class="w-40%" size="large" @click="handleCancel">取消</n-button>
+            <n-button type="default" class="w-40%" size="large" @click="handleCancel">취소</n-button>
             <n-button type="primary" class="w-40%" size="large" @click="handleSubmit" :loading="submitting">
-              保存
+              저장
             </n-button>
           </div>
         </div>
@@ -86,17 +86,17 @@ const router = useRouter()
 const globalStore = useGlobalStore()
 const announcementAutosize = { minRows: 5, maxRows: 10 }
 
-// 判断是编辑模式还是新增模式
+// 편집 모드인지 추가 모드인지 확인
 const isEditMode = computed(() => !!route.params.id)
 
-// 公告内容
+// 공지 내용
 const announcementContent = ref('')
 const top = ref(false)
 const submitting = ref(false)
 
-// 加载公告详情
+// 공지 상세 정보 로드
 const loadAnnouncementDetail = async () => {
-  // 如果是新增模式，不需要加载详情
+  // 추가 모드인 경우 상세 정보 로드 불필요
   if (!isEditMode.value) {
     return
   }
@@ -107,25 +107,25 @@ const loadAnnouncementDetail = async () => {
       announcementId: route.params.id as string
     })
 
-    // 填充表单数据
+    // 폼 데이터 채우기
     announcementContent.value = data.content
     top.value = data.top || false
     console.log('announcementContent ', announcementContent)
   } catch (error) {
-    console.error('加载公告详情失败:', error)
+    console.error('공지 상세 정보 로드 실패:', error)
   }
 }
 
-// 处理取消
+// 취소 처리
 const handleCancel = () => {
   router.back()
 }
 
-// 处理提交
+// 제출 처리
 const handleSubmit = async () => {
-  // 简单验证
+  // 간단 검증
   if (!announcementContent.value.trim()) {
-    window.$message?.error('请输入公告内容')
+    window.$message?.error('공지 내용을 입력하세요')
     return
   }
 
@@ -133,7 +133,7 @@ const handleSubmit = async () => {
 
   try {
     if (isEditMode.value) {
-      // 编辑模式
+      // 편집 모드
       const announcementData = {
         id: route.params.id as string,
         roomId: (route.query.roomId as string) || globalStore.currentSessionRoomId,
@@ -142,12 +142,12 @@ const handleSubmit = async () => {
       }
 
       await editAnnouncement(announcementData)
-      window.$message?.success('公告修改成功')
+      window.$message?.success('공지 수정 성공')
       router.push({
         path: `/mobile/chatRoom/notice/detail/${announcementData.id}`
       })
     } else {
-      // 新增模式
+      // 추가 모드
       const announcementData = {
         roomId: (route.query.roomId as string) || globalStore.currentSessionRoomId,
         content: announcementContent.value,
@@ -155,12 +155,12 @@ const handleSubmit = async () => {
       }
 
       await pushAnnouncement(announcementData)
-      window.$message?.success('公告发布成功')
+      window.$message?.success('공지 게시 성공')
       router.back()
     }
   } catch (error) {
-    console.error('保存公告失败:', error)
-    window.$message?.error('保存公告失败，请重试')
+    console.error('공지 저장 실패:', error)
+    window.$message?.error('공지 저장 실패, 다시 시도해주세요')
   } finally {
     submitting.value = false
   }
@@ -172,7 +172,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* 按钮样式优化 */
+/* 버튼 스타일 최적화 */
 .n-button {
   border-radius: 30px;
   font-weight: 500;
@@ -190,7 +190,7 @@ onMounted(() => {
   border: none;
 }
 
-/* 上传图片组件样式优化 */
+/* 이미지 업로드 컴포넌트 스타일 최적화 */
 .upload-image-container {
   width: 100%;
 }

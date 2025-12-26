@@ -1,3 +1,4 @@
+```
 <template>
   <MobileLayout :topSafeAreaClass="computedTopAreaClass">
     <div class="h-full flex flex-col">
@@ -43,7 +44,7 @@ const handleScanLogin = async (data: ScanData) => {
       ip: result.ip,
       expireTime: result.expireTime,
       deviceType: result.deviceType,
-      locPlace: Object.hasOwn(result, 'locPlace') ? (result.locPlace ? result.locPlace : '深圳') : '深圳',
+      locPlace: Object.hasOwn(result, 'locPlace') ? (result.locPlace ? result.locPlace : '서울') : '서울',
       qrId
     }
   })

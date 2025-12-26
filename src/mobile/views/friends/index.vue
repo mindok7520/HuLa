@@ -2,16 +2,16 @@
   <div class="flex flex-col h-full flex-1">
     <img src="@/assets/mobile/chat-home/background.webp" class="w-100% fixed top-0" alt="hula" />
 
-    <!-- 页面蒙板 -->
+    <!-- 페이지 마스크 -->
     <div
       v-if="showMask"
       @touchend="maskHandler.close"
       @click="maskHandler.close"
       class="fixed inset-0 bg-black/20 backdrop-blur-sm z-[999] transition-all duration-3000 ease-in-out opacity-100"></div>
 
-    <!-- 导航条 -->
+    <!-- 네비게이션 바 -->
     <NavBar>
-      <template #center>通讯录</template>
+      <template #center>연락처</template>
       <template #right>
         <n-dropdown
           @on-clickoutside="addIconHandler.clickOutside"
@@ -26,7 +26,7 @@
       </template>
     </NavBar>
 
-    <!-- 输入框 -->
+    <!-- 입력창 -->
     <div class="px-16px mt-2 mb-12px z-1">
       <n-input
         id="search"
@@ -37,7 +37,7 @@
         autoComplete="off"
         autoCorrect="off"
         autoCapitalize="off"
-        :placeholder="'搜索'">
+        :placeholder="'검색'">
         <template #prefix>
           <svg class="w-12px h-12px"><use href="#search"></use></svg>
         </template>
@@ -45,9 +45,9 @@
     </div>
 
     <div class="flex flex-1 gap-2 flex-col bg-white z-1 custom-rounded">
-      <!-- 我的消息条 -->
+      <!-- 나의 메시지 바 -->
       <div class="grid grid-cols-[4rem_1fr_24px] py-15px px-16px border-b-[1px] border-b-solid border-b-[#e5e7eb]">
-        <div class="h-full flex items-center text-14px">我的消息</div>
+        <div class="h-full flex items-center text-14px">나의 메시지</div>
         <div @click="toMessage" class="h-full flex items-center justify-end overflow-hidden">
           <n-avatar
             v-if="contactStore.requestFriendsList.length > 0"
@@ -64,15 +64,15 @@
       </div>
 
       <n-tabs type="segment" animated class="mt-4px p-[4px_10px_0px_8px]">
-        <n-tab-pane name="1" tab="好友">
+        <n-tab-pane name="1" tab="친구">
           <n-collapse :display-directive="'show'" accordion :default-expanded-names="['1']">
             <ContextMenu @contextmenu="showMenu($event)" @select="handleSelect($event.label)" :menu="menuList">
-              <n-collapse-item title="我的好友" name="1">
+              <n-collapse-item title="나의 친구" name="1">
                 <template #header-extra>
                   <span class="text-(10px #707070)">{{ onlineCount }}/{{ contactStore.contactsList.length }}</span>
                 </template>
                 <n-scrollbar style="max-height: calc(100vh - (340px + var(--safe-area-inset-top)))">
-                  <!-- 用户框 多套一层div来移除默认的右键事件然后覆盖掉因为margin空隙而导致右键可用 -->
+                  <!-- 사용자 박스, 기본 우클릭 제거 및 margin 공백 우클릭 방지를 위해 div 추가 -->
                   <div @contextmenu.stop="$event.preventDefault()">
                     <n-flex
                       :size="10"
@@ -98,14 +98,14 @@
 
                           <div class="text leading-tight text-12px flex-y-center gap-4px flex-1 truncate">
                             [
-                            <template v-if="isBotUser(item.uid)">助手</template>
+                            <template v-if="isBotUser(item.uid)">도우미</template>
                             <template v-else-if="getUserState(item.uid)">
                               <img class="size-12px rounded-50%" :src="getUserState(item.uid)?.url" alt="" />
                               {{ getUserState(item.uid)?.title }}
                             </template>
                             <template v-else>
                               <n-badge :color="item.activeStatus === OnlineEnum.ONLINE ? '#1ab292' : '#909090'" dot />
-                              {{ item.activeStatus === OnlineEnum.ONLINE ? '在线' : '离线' }}
+                              {{ item.activeStatus === OnlineEnum.ONLINE ? '온라인' : '오프라인' }}
                             </template>
                             ]
                           </div>
@@ -118,9 +118,9 @@
             </ContextMenu>
           </n-collapse>
         </n-tab-pane>
-        <n-tab-pane name="2" tab="群聊">
+        <n-tab-pane name="2" tab="그룹 채팅">
           <n-collapse :display-directive="'show'" accordion :default-expanded-names="['1']">
-            <n-collapse-item title="我的群聊" name="1">
+            <n-collapse-item title="나의 그룹" name="1">
               <template #header-extra>
                 <span class="text-(10px #707070)">{{ groupChatList.length }}</span>
               </template>
@@ -174,8 +174,8 @@ import { AvatarUtils } from '@/utils/AvatarUtils'
 import { NoticeType } from '@/services/types'
 
 /**
- * 获取当前用户查询视角
- * @param item 通知消息
+ * 현재 사용자 정보 조회 시점 가져오기
+ * @param item 알림 메시지
  */
 const getUserInfo = (item: any) => {
   switch (item.eventType) {
@@ -212,9 +212,9 @@ const avatars = computed(() => {
 })
 
 /**
- * 渲染图片图标的函数工厂
- * @param {string} src - 图标图片路径
- * @returns {() => import('vue').VNode} 返回一个渲染图片的函数组件
+ * 이미지 아이콘 렌더링 함수 팩토리
+ * @param {string} src - 아이콘 이미지 경로
+ * @returns {() => import('vue').VNode} 이미지 렌더링 함수형 컴포넌트 반환
  */
 const renderImgIcon = (src: string) => {
   return () =>
@@ -225,18 +225,18 @@ const renderImgIcon = (src: string) => {
 }
 
 /**
- * UI 视图数据，包含菜单选项及其图标
+ * UI 뷰 데이터, 메뉴 옵션 및 아이콘 포함
  * @type {import('vue').Ref<{ addOptions: { label: string; key: string; icon: () => import('vue').VNode }[] }>}
  */
 const uiViewsData = ref({
   addOptions: [
     {
-      label: '发起群聊',
+      label: '그룹 채팅 시작',
       key: '/mobile/mobileFriends/startGroupChat',
       icon: renderImgIcon(groupChatIcon)
     },
     {
-      label: '加好友/群',
+      label: '친구/그룹 추가',
       key: '/mobile/mobileFriends/addFriends',
       icon: renderImgIcon(addFriendIcon)
     }
@@ -244,11 +244,11 @@ const uiViewsData = ref({
 })
 
 const menuList = ref([
-  { label: '添加分组', icon: 'plus' },
-  { label: '重命名该组', icon: 'edit' },
-  { label: '删除分组', icon: 'delete' }
+  { label: '그룹 추가', icon: 'plus' },
+  { label: '그룹 이름 변경', icon: 'edit' },
+  { label: '그룹 삭제', icon: 'delete' }
 ])
-/** 建议把此状态存入localStorage中 */
+/** 이 상태를 localStorage에 저장하는 것을 권장 */
 const activeItem = ref('')
 const detailsShow = ref(false)
 const shrinkStatus = ref(false)
@@ -263,23 +263,23 @@ const toMessage = () => {
   router.push('/mobile/mobileMy/myMessages')
 }
 
-/** 群聊列表 */
+/** 그룹 채팅 목록 */
 const groupChatList = computed(() => {
   return [...groupStore.groupDetails].sort((a, b) => {
-    // 将roomId为'1'的群聊排在最前面
+    // roomId가 '1'인 그룹 채팅을 최상단에 배치
     if (a.roomId === '1' && b.roomId !== '1') return -1
     if (a.roomId !== '1' && b.roomId === '1') return 1
     return 0
   })
 })
-/** 统计在线用户人数 */
+/** 온라인 사용자 수 집계 */
 const onlineCount = computed(() => {
   return contactStore.contactsList.filter((item) => item.activeStatus === OnlineEnum.ONLINE).length
 })
-/** 排序好友列表 */
+/** 친구 목록 정렬 */
 const sortedContacts = computed(() => {
   return [...contactStore.contactsList].sort((a, b) => {
-    // 在线用户排在前面
+    // 온라인 사용자 우선 정렬
     if (a.activeStatus === OnlineEnum.ONLINE && b.activeStatus !== OnlineEnum.ONLINE) return -1
     if (a.activeStatus !== OnlineEnum.ONLINE && b.activeStatus === OnlineEnum.ONLINE) return 1
     return 0
@@ -292,8 +292,8 @@ const isBotUser = (uid: string) => groupStore.getUserInfo(uid)?.account === User
 
 /**
  *
- * @param uid 群聊id或好友uid
- * @param type 1 群聊 2 单聊
+ * @param uid 그룹 채팅 ID 또는 친구 UID
+ * @param type 1 그룹 채팅, 2 1:1 채팅
  */
 const handleClick = async (id: string, type: number) => {
   detailsShow.value = true
@@ -319,7 +319,7 @@ const handleClick = async (id: string, type: number) => {
   }
 }
 
-// todo 需要循环数组来展示分组
+// todo 배열을 순회하여 그룹 표시 필요
 const showMenu = (event: MouseEvent) => {
   console.log(event)
 }
@@ -328,7 +328,7 @@ const handleSelect = (event: MouseEvent) => {
   console.log(event)
 }
 
-/** 获取用户状态 */
+/** 사용자 상태 가져오기 */
 const getUserState = (uid: string) => {
   const userInfo = groupStore.getUserInfo(uid)!
   const userStateId = userInfo.userStateId
@@ -347,7 +347,7 @@ onMounted(async () => {
     await contactStore.getContactList(true)
     await contactStore.getApplyPage('friend', false)
   } catch (error) {
-    console.log('请求好友申请列表失败')
+    console.log('친구 신청 목록 요청 실패')
   }
 })
 
@@ -357,23 +357,23 @@ onUnmounted(() => {
 })
 
 /**
- * 页面蒙板显示状态
+ * 페이지 마스크 표시 상태
  * @type {import('vue').Ref<boolean>}
  */
 const showMask = ref(false)
 
 /**
- * 当前页面滚动的纵向位置，避免打开蒙板时页面跳动
+ * 현재 페이지 스크롤 수직 위치, 마스크 열릴 때 페이지 점프 방지
  * @type {number}
  */
 let scrollY = 0
 
 /**
- * 控制页面蒙板的对象，包含打开和关闭方法
+ * 페이지 마스크 제어 객체, 열기 및 닫기 메서드 포함
  */
 const maskHandler = {
   /**
-   * 打开蒙板，并锁定滚动位置
+   * 마스크 열기 및 스크롤 위치 잠금
    */
   open: () => {
     scrollY = window.scrollY
@@ -385,7 +385,7 @@ const maskHandler = {
   },
 
   /**
-   * 关闭蒙板，恢复滚动状态和位置
+   * 마스크 닫기, 스크롤 상태 및 위치 복원
    */
   close: () => {
     setTimeout(() => {
@@ -394,33 +394,33 @@ const maskHandler = {
       document.body.style.position = ''
       document.body.style.top = ''
       document.body.style.width = ''
-      window.scrollTo(0, scrollY) // 恢复滚动位置
+      window.scrollTo(0, scrollY) // 스크롤 위치 복원
     }, 200)
   }
 }
 
 /**
- * 添加按钮相关事件处理对象
+ * 추가 버튼 관련 이벤트 처리 객체
  */
 const addIconHandler = {
   /**
-   * 选项选择时关闭蒙板
+   * 옵션 선택 시 마스크 닫기
    */
   select: (item: string) => {
-    console.log('选择的项：', item)
+    console.log('선택된 항목:', item)
     router.push(item)
     maskHandler.close()
   },
 
   /**
-   * 点击加号按钮打开蒙板
+   * 플러스 버튼 클릭 시 마스크 열기
    */
   open: () => {
     maskHandler.open()
   },
 
   /**
-   * 点击下拉菜单外部区域关闭蒙板
+   * 드롭다운 메뉴 외부 영역 클릭 시 마스크 닫기
    */
   clickOutside: () => {
     maskHandler.close()

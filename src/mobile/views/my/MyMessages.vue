@@ -6,7 +6,7 @@
         class="bg-white"
         style="border-bottom: 1px solid; border-color: #dfdfdf"
         :hidden-right="true"
-        room-name="我的消息" />
+        room-name="나의 메시지" />
     </template>
 
     <template #container>
@@ -29,16 +29,16 @@
 
 <script setup lang="ts">
 const onUpdate = (newTab: string) => {
-  console.log('已更新：', newTab)
+  console.log('업데이트됨:', newTab)
 }
 
 const tabOptions = reactive([
   {
-    tab: '好友消息',
+    tab: '친구 메시지',
     name: 'friend-message'
   },
   {
-    tab: '群聊消息',
+    tab: '그룹 채팅 메시지',
     name: 'group-message'
   }
 ])

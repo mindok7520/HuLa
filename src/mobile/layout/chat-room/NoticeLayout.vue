@@ -1,5 +1,5 @@
 <template>
-  <!-- 페이지 전체 내용 -->
+  <!-- Page full content -->
   <div class="flex flex-col flex-1">
     <RouterView v-slot="{ Component }">
       <Transition name="slide" appear mode="out-in">
@@ -18,7 +18,7 @@ const route = useRoute()
 </script>
 
 <style scoped>
-/* 측면 슬라이드 전환 애니메이션 */
+/* Side slide transition animation */
 /* .slide-enter-active,
 .slide-leave-active {
   transition: all 0.1s ease;
